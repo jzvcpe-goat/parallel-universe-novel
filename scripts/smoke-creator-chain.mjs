@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -10,6 +10,13 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const tempDir = mkdtempSync(join(tmpdir(), 'narrativeos-creator-smoke-'))
 const children = []
 const logs = []
+const runtimeRules = JSON.parse(readFileSync(join(root, 'docs/product/rules/genre-runtime-rules.v1.json'), 'utf8'))
+const smokeProfile = runtimeRules.constraintProfiles.find(profile => (
+  profile.signalTerms?.length && profile.entryModeSignals?.length && profile.toneSignals?.length
+)) || runtimeRules.constraintProfiles[0]
+const smokeKernel = smokeProfile ? runtimeRules.genreKernels.find(kernel => (
+  kernel.compatibleProfiles || []
+).includes(smokeProfile.id)) : undefined
 
 const blockedPublicTerms = [
   'system prompt',
@@ -95,6 +102,17 @@ async function postJson(url, payload) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function firstText(values, fallback) {
+  return values?.find(value => String(value || '').trim().length > 0) || fallback
+}
+
+function seedForProfile(profile) {
+  const signal = firstText(profile.signalTerms, profile.displayName)
+  const entry = firstText(profile.entryModeSignals, '一个必须立刻处理的开场事件')
+  const tone = firstText(profile.toneSignals, '选择代价')
+  return `我想写${profile.displayName}，从${entry}开始，${signal}和${tone}会把人物推到选择前。`
 }
 
 function assertRuntimeRuleHandshake(agentRules, fastapiRules) {
@@ -191,15 +209,21 @@ try {
 
   const agentHealth = await waitForJson(`${agentBaseUrl}/health`)
   assert(agentHealth.runtimeRules?.version >= 2, 'agent health must expose shared runtime rule version')
+  assert(smokeProfile, 'runtime rule JSON must contain at least one profile for smoke')
+  assert(smokeKernel, `${smokeProfile.id} must have a compatible smoke kernel`)
 
   const creatorDialogue = await postJson(`${apiBaseUrl}/v1/creator/dialogue/sessions`, {
     creator_id: 'smoke_author',
-    seed: '现代悬疑旧案，主角只能依靠证据链追查真相。',
-    genre: '现代悬疑',
+    seed: seedForProfile(smokeProfile),
+    genre: smokeProfile.displayName,
     context: {
       story_direction: {
-        label: '现代悬疑',
-        keywords: '现代悬疑 旧案 证据链 心理侧写',
+        label: smokeProfile.displayName,
+        keywords: [
+          smokeProfile.displayName,
+          firstText(smokeProfile.signalTerms, smokeProfile.displayName),
+          firstText(smokeProfile.entryModeSignals, smokeProfile.displayName),
+        ].join(' '),
       },
     },
   })
@@ -208,20 +232,24 @@ try {
     creatorDialogue.setting_cards?.genre_constraint_facts?.runtime_rules,
   )
 
-  const seed = '我想写一个系统流故事，主角每完成一次任务都会拿回一段不属于自己的记忆。'
+  const seed = seedForProfile(smokeProfile)
   const createPayload = {
     seed,
-    genre: '系统流',
+    genre: smokeProfile.displayName,
     creatorId: 'smoke_author',
     context: {
       story_direction: {
-        label: '系统流',
-        tone: '任务压迫、身份反噬',
-        keywords: '系统流 任务代价 记忆回声 身份反噬',
+        label: smokeProfile.displayName,
+        tone: firstText(smokeProfile.toneSignals, smokeProfile.displayName),
+        keywords: [
+          smokeProfile.displayName,
+          firstText(smokeProfile.signalTerms, smokeProfile.displayName),
+          firstText(smokeProfile.entryModeSignals, smokeProfile.displayName),
+        ].join(' '),
       },
       main_universe_template: {
-        title: '任务回声',
-        genre: '系统流',
+        title: `${smokeProfile.displayName}开场`,
+        genre: smokeProfile.displayName,
       },
     },
   }
@@ -231,20 +259,20 @@ try {
   assert(String(created.candidateDraft?.body || '').length >= 200, 'candidate draft must contain a readable opening')
   assert(Array.isArray(created.questions) && created.questions.length <= 2, 'workflow must ask at most two questions')
   assert(
-    (created.activeConstraints || []).some(item => item.profileId === 'system-litrpg'),
-    'selected system genre must activate system-litrpg constraints',
+    (created.activeConstraints || []).some(item => item.profileId === smokeProfile.id),
+    `selected document genre must activate ${smokeProfile.id} constraints`,
   )
   assert(
-    created.activeConstraints?.[0]?.profileId === 'system-litrpg',
-    'selected system genre must be the primary active constraint',
+    created.activeConstraints?.[0]?.profileId === smokeProfile.id,
+    `selected document genre must make ${smokeProfile.id} the primary active constraint`,
   )
   assert(
-    (created.activeKernels || []).some(item => item.kernelId === 'kernel-system-litrpg'),
-    'selected system genre must activate kernel-system-litrpg',
+    (created.activeKernels || []).some(item => item.kernelId === smokeKernel.id),
+    `selected document genre must activate ${smokeKernel.id}`,
   )
   assert(
-    created.activeKernels?.[0]?.kernelId === 'kernel-system-litrpg',
-    'selected system genre must be the primary active kernel',
+    created.activeKernels?.[0]?.kernelId === smokeKernel.id,
+    `selected document genre must make ${smokeKernel.id} the primary active kernel`,
   )
   assert(
     (created.runTrace || []).some(item => item.step === 'tool_bridge.socratic_turn' && item.status === 'ok'),

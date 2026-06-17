@@ -292,12 +292,28 @@ def _rules_for_profiles(profile_ids: List[str]) -> List[Dict[str, Any]]:
 
 def _profile_activation_score(*, profile_summary: Dict[str, Any], selected_text: str) -> int:
     selected_text = selected_text.lower()
-    exact_terms = [
+    direct_terms = [
         str(profile_summary.get("id") or ""),
         str(profile_summary.get("display_name") or ""),
-        *[str(term) for terms in (profile_summary.get("matched_terms") or {}).values() for term in terms],
     ]
-    selected_boost = 1000 if any(term and term.lower() in selected_text for term in exact_terms) else 0
+    direct_match = sorted(
+        [term for term in direct_terms if term and term.lower() in selected_text],
+        key=len,
+        reverse=True,
+    )
+    if direct_match:
+        selected_boost = 2000 + len(direct_match[0])
+    else:
+        signal_terms = [
+            str(term)
+            for term in ((profile_summary.get("matched_terms") or {}).get("signal_terms") or [])
+        ]
+        signal_match = sorted(
+            [term for term in signal_terms if term and term.lower() in selected_text],
+            key=len,
+            reverse=True,
+        )
+        selected_boost = 1000 + len(signal_match[0]) if signal_match else 0
     return selected_boost + int(profile_summary.get("priority") or 0)
 
 
@@ -886,13 +902,19 @@ class CreatorDialogueService:
             for item in [
                 (session.get("preferences") or {}).get("genre"),
                 story_direction.get("label"),
-                story_direction.get("tone"),
-                story_direction.get("keywords"),
-                template.get("title"),
                 template.get("genre"),
             ]
         )
-        constraint_profile = _genre_constraint_profile(selected_text=selected_genre_text, user_text=joined)
+        inference_text = " ".join(
+            str(item or "")
+            for item in [
+                joined,
+                story_direction.get("tone"),
+                story_direction.get("keywords"),
+                template.get("title"),
+            ]
+        )
+        constraint_profile = _genre_constraint_profile(selected_text=selected_genre_text, user_text=inference_text)
         facts = constraint_profile["facts"]
         active_profiles = facts.get("active_profiles") if isinstance(facts.get("active_profiles"), list) else []
         active_kernels = facts.get("active_kernels") if isinstance(facts.get("active_kernels"), list) else []

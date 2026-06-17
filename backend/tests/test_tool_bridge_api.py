@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -13,11 +14,29 @@ def _client(tmp_path: Path) -> TestClient:
     return TestClient(app)
 
 
+def _runtime_rule_example() -> tuple[dict, dict]:
+    root = Path(__file__).resolve().parents[2]
+    rules = json.loads((root / "docs/product/rules/genre-runtime-rules.v1.json").read_text(encoding="utf-8"))
+    profile = rules["constraintProfiles"][0]
+    kernel = next(
+        item for item in rules["genreKernels"]
+        if profile["id"] in item.get("compatibleProfiles", [])
+    )
+    return profile, kernel
+
+
 def _payload():
+    profile, kernel = _runtime_rule_example()
+    rule_ids = [rule["id"] for rule in profile["rules"]]
+    prohibited_terms = [
+        term
+        for rule in profile["rules"]
+        for term in rule.get("prohibitedTerms", [])
+    ]
     return {
         "projectId": "project_demo",
-        "seed": "我想写一个仙侠玄幻故事，主角得到裂纹玉简后必须偿还因果债。",
-        "genre": "仙侠玄幻",
+        "seed": f"我想写一个{profile['displayName']}故事，开场要有明确的选择代价。",
+        "genre": profile["displayName"],
         "context": {
             "mastra_local_output": {
                 "runId": "run_demo",
@@ -28,26 +47,26 @@ def _payload():
                     "title": "问灵台",
                     "body": "问灵台的铜铃响到第三声。",
                 },
-                "questions": ["这次突破要付出的第一笔代价是什么？", "他更怕失去修行机会还是欠下人情债？"],
+                "questions": ["这次选择要付出的第一笔代价是什么？", "人物更怕失去关系、真相，还是自己的生存位置？"],
                 "settingCards": {
                     "genre_constraints": [
                         {
-                            "id": "xuanhuan-xianxia",
-                            "rule_ids": ["cultivation-must-have-cost", "xuanhuan-era-substrate"],
+                            "id": profile["id"],
+                            "rule_ids": rule_ids,
                         }
                     ]
                 },
                 "activeConstraints": [
                     {
-                        "profileId": "xuanhuan-xianxia",
-                        "ruleIds": ["cultivation-must-have-cost", "xuanhuan-era-substrate"],
-                        "prohibitedTerms": ["一键升级", "手机", "汽车"],
+                        "profileId": profile["id"],
+                        "ruleIds": rule_ids,
+                        "prohibitedTerms": prohibited_terms,
                     }
                 ],
                 "activeKernels": [
                     {
-                        "kernelId": "kernel-xuanhuan-xianxia",
-                        "beatPlan": ["传承触发", "资源稀缺"],
+                        "kernelId": kernel["id"],
+                        "beatPlan": kernel["eventStructure"][:2],
                     }
                 ],
                 "qualityPreview": {
@@ -84,7 +103,7 @@ def test_tool_bridge_returns_candidate_without_canon_write(tmp_path: Path):
     assert payload["writeback"]["canon_written"] is False
     assert payload["writeback"]["branch_written"] is False
     assert len(payload["questions"]) <= 2
-    assert payload["activeConstraints"][0]["profileId"] == "xuanhuan-xianxia"
+    assert payload["activeConstraints"][0]["profileId"] == _runtime_rule_example()[0]["id"]
     assert payload["runTrace"][-1]["step"] == "fastapi.socratic_turn"
 
 

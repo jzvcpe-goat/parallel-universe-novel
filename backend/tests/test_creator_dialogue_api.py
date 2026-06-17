@@ -25,6 +25,29 @@ def _runtime_rules_fixture() -> dict:
     return json.loads((root / "docs/product/rules/genre-runtime-rules.v1.json").read_text(encoding="utf-8"))
 
 
+def _first_text(values, fallback: str) -> str:
+    for value in values or []:
+        text = str(value or "").strip()
+        if text:
+            return text
+    return fallback
+
+
+def _seed_for_profile(profile: dict) -> str:
+    display = str(profile["displayName"])
+    signal = _first_text(profile.get("signalTerms"), display)
+    entry = _first_text(profile.get("entryModeSignals"), "一个必须立刻处理的开场事件")
+    tone = _first_text(profile.get("toneSignals"), "选择代价")
+    return f"我想写{display}，从{entry}开始，{signal}和{tone}会把人物推到选择前。"
+
+
+def _kernel_for_profile(rules: dict, profile_id: str) -> dict:
+    for kernel in rules["genreKernels"]:
+        if profile_id in kernel.get("compatibleProfiles", []):
+            return kernel
+    raise AssertionError(f"{profile_id} has no compatible kernel")
+
+
 def test_creator_dialogue_session_without_seed_asks_one_open_question(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
 
@@ -107,61 +130,30 @@ def test_creator_dialogue_seed_generates_story_cards_and_persists(tmp_path: Path
 
 
 
-def test_creator_dialogue_uses_shared_runtime_rules_for_all_core_profiles(tmp_path: Path, monkeypatch):
+def test_creator_dialogue_uses_shared_runtime_rules_for_each_document_profile(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     rules = _runtime_rules_fixture()
-    cases = [
-        {
-            "genre": "仙侠玄幻",
-            "display": "仙侠玄幻",
-            "seed": "主角得到一枚裂纹玉简，突破前必须先还一笔因果债。",
-            "profile_id": "xuanhuan-xianxia",
-            "kernel_id": "kernel-xuanhuan-xianxia",
-            "rule_id": "cultivation-must-have-cost",
-            "source_ref": "rwref_0013",
-        },
-        {
-            "genre": "现代悬疑",
-            "display": "其他现代",
-            "seed": "雨夜旧案重启，主角只能依靠证据链和心理侧写追查真相。",
-            "profile_id": "modern-other",
-            "kernel_id": "kernel-modern-other",
-            "rule_id": "logical-evidence-required",
-            "source_ref": "rwref_0016",
-        },
-        {
-            "genre": "游戏异界",
-            "display": "游戏异界",
-            "seed": "主角登录虚拟游戏后进入公会副本，任务失败会清空当前身份。",
-            "profile_id": "game-litrpg",
-            "kernel_id": "kernel-game-litrpg",
-            "rule_id": "system-interface-mandatory",
-            "source_ref": "rwref_0034",
-        },
-        {
-            "genre": "喜剧反套路",
-            "display": "喜剧反套路",
-            "seed": "反派掉马现场，主角用一句吐槽把审问变成误会升级。",
-            "profile_id": "comedy-misfit",
-            "kernel_id": "kernel-comedy-misfit",
-            "rule_id": "comedy-pressure-release",
-            "source_ref": "rwref_0010",
-        },
-    ]
-
-    for case in cases:
+    for profile in rules["constraintProfiles"]:
+        expected_kernel = _kernel_for_profile(rules, profile["id"])
+        seed = _seed_for_profile(profile)
         response = client.post(
             "/v1/creator/dialogue/sessions",
             json={
                 "creator_id": "author_1",
-                "seed": case["seed"],
-                "genre": case["genre"],
+                "seed": seed,
+                "genre": profile["displayName"],
                 "context": {
                     "story_direction": {
-                        "label": case["genre"],
-                        "tone": case["genre"],
-                        "hooks": case["seed"],
-                        "keywords": case["genre"],
+                        "label": profile["displayName"],
+                        "tone": _first_text(profile.get("toneSignals"), profile["displayName"]),
+                        "hooks": seed,
+                        "keywords": " ".join(
+                            [
+                                profile["displayName"],
+                                _first_text(profile.get("signalTerms"), profile["displayName"]),
+                                _first_text(profile.get("entryModeSignals"), profile["displayName"]),
+                            ]
+                        ),
                     },
                 },
             },
@@ -176,16 +168,20 @@ def test_creator_dialogue_uses_shared_runtime_rules_for_all_core_profiles(tmp_pa
         assert runtime_rules["kernel_count"] == len(rules["genreKernels"])
         assert runtime_rules["privacy"]["representative_works"] == "encrypted_vault_only"
         assert runtime_rules["privacy"]["public_reference_field"] == "sourceRefs"
-        assert cards["genre_signal"] == case["display"]
+        assert cards["genre_signal"] == profile["displayName"]
         constraint_ids = {item["id"] for item in cards["genre_constraints"]}
-        assert case["rule_id"] in constraint_ids
-        assert case["profile_id"] in cards["genre_constraint_facts"]["active_profile_ids"]
-        assert case["kernel_id"] in cards["genre_constraint_facts"]["active_kernel_ids"]
-        assert cards["genre_kernels"][0]["id"] == case["kernel_id"]
-        assert case["source_ref"] in cards["genre_constraint_facts"]["active_profiles"][0]["source_refs"]
+        for rule in profile["rules"]:
+            assert rule["id"] in constraint_ids
+        assert cards["genre_constraint_facts"]["active_profile_ids"][0] == profile["id"]
+        assert expected_kernel["id"] in cards["genre_constraint_facts"]["active_kernel_ids"]
+        assert cards["genre_kernels"][0]["id"] == expected_kernel["id"]
+        active_refs = cards["genre_constraint_facts"]["active_profiles"][0]["source_refs"]
+        for source_ref in profile.get("sourceRefs", []):
+            assert source_ref in active_refs
         serialized = json.dumps(cards, ensure_ascii=False)
         assert "source_evidence" not in serialized
-        assert case["source_ref"] in serialized
+        for source_ref in profile.get("sourceRefs", []):
+            assert source_ref in serialized
 
 
 def test_creator_dialogue_does_not_apply_constraints_to_unmatched_selected_genres(tmp_path: Path, monkeypatch):

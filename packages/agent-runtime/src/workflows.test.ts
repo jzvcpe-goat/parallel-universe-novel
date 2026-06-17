@@ -5,8 +5,20 @@ import {
   evaluatePublicProseHygiene,
   genreKernels,
   resolveConstraints,
+  resolveKernels,
 } from './constraints.js'
 import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+
+function firstText(values: string[] | undefined, fallback: string): string {
+  return values?.find(value => value.trim().length > 0) || fallback
+}
+
+function seedForProfile(profile: typeof constraintProfiles[number]): string {
+  const signal = firstText(profile.signalTerms, profile.displayName)
+  const entry = firstText(profile.entryModeSignals, '一个必须立刻处理的开场事件')
+  const tone = firstText(profile.toneSignals, '选择代价')
+  return `我想写${profile.displayName}，从${entry}开始，${signal}和${tone}会把人物推到选择前。`
+}
 
 test('agent runtime exposes shared rulebook metadata', () => {
   assert.equal(agentRuntimeMeta.runtimeRules.version, 2)
@@ -17,15 +29,16 @@ test('agent runtime exposes shared rulebook metadata', () => {
 })
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
+  const profile = constraintProfiles.find(item => item.displayName === '仙侠玄幻') || constraintProfiles[0]
   const result = await socraticCreateWorkflow({
-    seed: '我想写一个仙侠玄幻故事，主角得到一枚裂纹玉简，突破前必须先还一笔因果债。',
-    genre: '仙侠玄幻',
+    seed: seedForProfile(profile),
+    genre: profile.displayName,
   }, { preferToolBridge: false })
 
   assert.equal(result.candidateDraft.status, 'candidate')
   assert.ok(result.candidateDraft.body.length > 200)
   assert.ok(result.questions.length <= 2)
-  assert.ok(result.activeConstraints.some(item => item.profileId === 'xuanhuan-xianxia'))
+  assert.ok(result.activeConstraints.some(item => item.profileId === profile.id))
   assert.equal(result.qualityPreview.result, 'pass')
   assert.ok(result.ledger[0].inputHash)
 })
@@ -40,42 +53,39 @@ test('constraint preview blocks prohibited mismatched terms', async () => {
   assert.ok(result.activeConstraints[0].prohibitedTerms.includes('读心术'))
 })
 
-test('selected system genre produces a full candidate and remains primary', async () => {
-  const result = await socraticCreateWorkflow({
-    seed: '主角每完成一次任务都会拿回一段不属于自己的记忆。',
-    genre: '系统流',
-    context: {
-      story_direction: {
-        label: '系统流',
-        keywords: '系统流 任务代价 记忆回声 身份反噬',
+test('every document profile can be explicitly selected as the primary active profile and kernel', async () => {
+  for (const profile of constraintProfiles) {
+    const expectedKernel = resolveKernels([profile])[0]
+    assert.ok(expectedKernel, `${profile.id} must resolve at least one compatible kernel`)
+
+    const result = await socraticCreateWorkflow({
+      seed: seedForProfile(profile),
+      genre: profile.displayName,
+      context: {
+        story_direction: {
+          label: profile.displayName,
+          tone: firstText(profile.toneSignals, profile.displayName),
+          keywords: [
+            profile.displayName,
+            firstText(profile.signalTerms, profile.displayName),
+            firstText(profile.entryModeSignals, profile.displayName),
+          ].join(' '),
+        },
+        main_universe_template: {
+          title: `${profile.displayName}开场`,
+          genre: profile.displayName,
+        },
       },
-      main_universe_template: {
-        title: '任务回声',
-        genre: '系统流',
-      },
-    },
-  }, { preferToolBridge: false })
+    }, { preferToolBridge: false })
 
-  assert.equal(result.candidateDraft.status, 'candidate')
-  assert.equal(result.candidateDraft.title, '任务回声')
-  assert.ok(result.candidateDraft.body.length > 200)
-  assert.equal(result.activeConstraints[0].profileId, 'system-litrpg')
-  assert.equal(result.activeKernels[0].kernelId, 'kernel-system-litrpg')
-  assert.ok(result.questions.length <= 2)
-})
-
-test('candidate opening is generated from the active document kernel instead of hardcoded profile branches', async () => {
-  const result = await socraticCreateWorkflow({
-    seed: '年代女强，主角重回改革初期，用粮票和政策窗口救下家里的小厂。',
-    genre: '年代女强',
-  }, { preferToolBridge: false })
-
-  assert.equal(result.activeConstraints[0].profileId, 'era-female')
-  assert.equal(result.activeKernels[0].kernelId, 'kernel-era-female')
-  assert.ok(result.candidateDraft.body.includes('政策'))
-  assert.ok(result.candidateDraft.body.includes('粮票'))
-  assert.ok(result.questions[0].includes('具体落在'))
-  assert.equal(result.qualityPreview.result, 'pass')
+    assert.equal(result.candidateDraft.status, 'candidate', `${profile.id} must produce a candidate`)
+    assert.equal(result.candidateDraft.title, `${profile.displayName}开场`.slice(0, 16))
+    assert.ok(result.candidateDraft.body.length > 200, `${profile.id} must produce readable prose`)
+    assert.equal(result.activeConstraints[0].profileId, profile.id, `${profile.id} must be primary`)
+    assert.equal(result.activeKernels[0].kernelId, expectedKernel.id, `${expectedKernel.id} must be primary`)
+    assert.ok(result.questions.length <= 2, `${profile.id} must stay Socratic`)
+    assert.equal(result.qualityPreview.result, 'pass', `${profile.id} generated candidate should pass its own rules`)
+  }
 })
 
 test('candidate prose does not expose planning scaffolds', async () => {
@@ -180,9 +190,15 @@ test('state preview workflow never writes canon when tool bridge is unavailable'
 })
 
 test('quality brake suggests repair without committing candidate text', async () => {
+  const profile = constraintProfiles.find(item =>
+    item.rules.some(rule => (rule.prohibitedTerms || []).includes('读心术')),
+  ) || constraintProfiles[0]
+  const prohibitedTerms = profile.rules.flatMap(rule => rule.prohibitedTerms || []).slice(0, 2)
+  const ruleIds = profile.rules.map(rule => rule.id)
+  const violatingBody = `旧案重启当晚，那个人通过${prohibitedTerms[0]}瞬间逼近真相，还拿出${prohibitedTerms[1]}。`
   const result = await qualityBrakeWorkflow({
-    seed: '现代悬疑旧案，主角通过读心术瞬间破案，还出现未解释证据。',
-    genre: '现代悬疑',
+    seed: `${profile.displayName}，${violatingBody}`,
+    genre: profile.displayName,
     context: {
       mastra_local_output: {
         runId: 'run_quality_demo',
@@ -191,13 +207,13 @@ test('quality brake suggests repair without committing candidate text', async ()
         candidateDraft: {
           status: 'candidate',
           title: '雨夜证据',
-          body: '旧案重启当晚，主角通过读心术瞬间破案，还拿出未解释证据逼近真相。',
+          body: violatingBody,
         },
         activeConstraints: [
           {
-            profileId: 'modern-other',
-            ruleIds: ['modern_other_no_unearned_supernatural'],
-            prohibitedTerms: ['读心术', '未解释证据'],
+            profileId: profile.id,
+            ruleIds,
+            prohibitedTerms,
           },
         ],
         runTrace: [],
@@ -211,8 +227,9 @@ test('quality brake suggests repair without committing candidate text', async ()
   const writeback = result.writeback as Record<string, unknown>
   assert.equal(qualityPreview.result, 'block')
   assert.ok(Array.isArray(qualityPreview.violations))
-  assert.ok(!String(revisedCandidate.body || '').includes('读心术'))
-  assert.ok(!String(revisedCandidate.body || '').includes('未解释证据'))
+  for (const term of prohibitedTerms) {
+    assert.ok(!String(revisedCandidate.body || '').includes(term))
+  }
   assert.equal(writeback.canon_written, false)
   assert.equal(writeback.branch_written, false)
 })

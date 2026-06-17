@@ -71,10 +71,23 @@ function selectedTextFromInput(input: SocraticCreateInput): string {
   return [
     input.genre,
     input.selectedTemplate?.genre,
-    input.selectedTemplate?.title,
     contextTemplate.genre,
-    contextTemplate.title,
     storyDirection.label,
+  ].filter(Boolean).join(' ')
+}
+
+function contextSignalTextFromInput(input: SocraticCreateInput): string {
+  const context = input.context || {}
+  const storyDirection = typeof context.story_direction === 'object' && context.story_direction !== null
+    ? context.story_direction as Record<string, unknown>
+    : {}
+  const contextTemplate = typeof context.main_universe_template === 'object' && context.main_universe_template !== null
+    ? context.main_universe_template as Record<string, unknown>
+    : {}
+  return [
+    selectedTextFromInput(input),
+    input.selectedTemplate?.title,
+    contextTemplate.title,
     storyDirection.tone,
     storyDirection.keywords,
   ].filter(Boolean).join(' ')
@@ -83,7 +96,7 @@ function selectedTextFromInput(input: SocraticCreateInput): string {
 function textFromInput(input: SocraticCreateInput): string {
   return [
     input.seed,
-    selectedTextFromInput(input),
+    contextSignalTextFromInput(input),
   ].filter(Boolean).join(' ')
 }
 
@@ -93,8 +106,15 @@ function includesAny(text: string, terms: string[]): boolean {
 
 function selectedProfileBoost(selectedText: string, profile: ConstraintProfile): number {
   const text = selectedText.toLowerCase()
-  const exactTerms = [profile.id, profile.displayName, ...profile.signalTerms]
-  return exactTerms.some(term => text.includes(term.toLowerCase())) ? 1000 : 0
+  const directTerms = [profile.id, profile.displayName].filter(Boolean)
+  const directMatch = directTerms
+    .filter(term => text.includes(term.toLowerCase()))
+    .sort((a, b) => b.length - a.length)[0]
+  if (directMatch) return 2000 + directMatch.length
+  const signalMatch = profile.signalTerms
+    .filter(term => text.includes(term.toLowerCase()))
+    .sort((a, b) => b.length - a.length)[0]
+  return signalMatch ? 1000 + signalMatch.length : 0
 }
 
 export function resolveConstraints(input: SocraticCreateInput): ConstraintProfile[] {

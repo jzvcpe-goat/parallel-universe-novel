@@ -17,6 +17,7 @@ const runtimeImplementationSources = [
   join(root, 'backend/src/narrativeos/services/creator_dialogue.py'),
   join(root, 'backend/tests/test_creator_dialogue_api.py'),
   join(root, 'backend/tests/test_tool_bridge_api.py'),
+  join(root, 'scripts/smoke-creator-chain.mjs'),
 ]
 const forbiddenWorkflowPatterns = [
   {
@@ -49,6 +50,10 @@ function lineNumber(text, index) {
   return text.slice(0, index).split(/\r?\n/).length
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function expect(condition, message) {
   if (!condition) violations.push(message)
 }
@@ -71,6 +76,10 @@ if (!existsSync(runtimeRulesSource)) {
   const kernels = runtimeRules.genreKernels || []
   const profileIds = new Set(profiles.map(profile => profile.id))
   const kernelProfileIds = new Set(kernels.flatMap(kernel => kernel.compatibleProfiles || []))
+  const registryIds = [
+    ...profiles.map(profile => String(profile.id || '')).filter(Boolean),
+    ...kernels.map(kernel => String(kernel.id || '')).filter(Boolean),
+  ]
 
   expect(runtimeRules.version >= 2, 'runtime rules must use the document-derived versioned registry')
   expectArray(profiles, 'runtime rules must contain ConstraintProfile entries')
@@ -119,6 +128,20 @@ if (!existsSync(runtimeRulesSource)) {
 
   for (const profile of profiles) {
     expect(kernelProfileIds.has(profile.id), `${profile.id} must have at least one compatible GenreKernel`)
+  }
+
+  for (const source of runtimeImplementationSources) {
+    if (!existsSync(source)) continue
+    const text = readFileSync(source, 'utf8')
+    for (const id of registryIds) {
+      const pattern = new RegExp(`['"\`]${escapeRegExp(id)}['"\`]`)
+      const match = text.match(pattern)
+      if (match?.index !== undefined) {
+        violations.push(
+          `${relative(root, source)}:${lineNumber(text, match.index)} must not hardcode registry id ${id}; load it from ${relative(root, runtimeRulesSource)}`,
+        )
+      }
+    }
   }
 }
 

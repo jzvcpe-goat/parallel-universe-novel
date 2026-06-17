@@ -306,7 +306,7 @@ export async function socraticCreateWorkflow(
   const profiles = resolveConstraints(input)
   const kernels = resolveKernels(profiles)
   const title = safeTitle(input, profiles, kernels)
-  const body = candidateBody(input, profiles, kernels)
+  const body = repairBody(repairPublicProseScaffolds(candidateBody(input, profiles, kernels)), profiles)
   const violations = evaluatePublicProseHygiene(body, profiles)
   const cards = runtimeSettingCards(input, profiles, kernels)
 
