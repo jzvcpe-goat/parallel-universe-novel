@@ -39,8 +39,16 @@ test('socratic workflow returns candidate draft and at most two questions', asyn
   assert.ok(result.candidateDraft.body.length > 200)
   assert.ok(result.questions.length <= 2)
   assert.ok(result.activeConstraints.some(item => item.profileId === profile.id))
+  assert.equal(result.runtimeArtifact.version, 1)
+  assert.equal(result.runtimeArtifact.narrativeRun.decision, 'candidate')
+  assert.ok(result.runtimeArtifact.scenePlan.beats.length > 0)
+  assert.ok(result.runtimeArtifact.stateWritebackPreview.length > 0)
+  assert.equal(result.runtimeArtifact.timeConsistencyReport.status, 'pass')
+  assert.equal(result.runtimeArtifact.qualityBrakeReport.result, 'pass')
+  assert.equal(result.runtimeArtifact.branchGenerationResult.status, 'not_generated')
   assert.equal(result.qualityPreview.result, 'pass')
   assert.ok(result.ledger[0].inputHash)
+  assert.ok(result.ledger[0].stateDeltaCandidate?.length)
 })
 
 test('constraint preview blocks prohibited mismatched terms', async () => {
@@ -83,6 +91,9 @@ test('every document profile can be explicitly selected as the primary active pr
     assert.ok(result.candidateDraft.body.length > 200, `${profile.id} must produce readable prose`)
     assert.equal(result.activeConstraints[0].profileId, profile.id, `${profile.id} must be primary`)
     assert.equal(result.activeKernels[0].kernelId, expectedKernel.id, `${expectedKernel.id} must be primary`)
+    assert.equal(result.runtimeArtifact.kernelSelection[0].kernelId, expectedKernel.id, `${expectedKernel.id} must enter runtime artifact`)
+    assert.equal(result.runtimeArtifact.constraintSet[0].profileId, profile.id, `${profile.id} must enter runtime artifact`)
+    assert.ok(result.runtimeArtifact.scenePlan.choiceSlots.length <= 2, `${profile.id} must keep choice slots Socratic`)
     assert.ok(result.questions.length <= 2, `${profile.id} must stay Socratic`)
     assert.equal(result.qualityPreview.result, 'pass', `${profile.id} generated candidate should pass its own rules`)
   }

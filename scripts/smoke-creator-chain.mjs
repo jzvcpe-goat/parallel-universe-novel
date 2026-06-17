@@ -274,6 +274,15 @@ try {
     created.activeKernels?.[0]?.kernelId === smokeKernel.id,
     `selected document genre must make ${smokeKernel.id} the primary active kernel`,
   )
+  assert(created.runtimeArtifact?.version === 1, 'socratic create must return a runtime artifact')
+  assert(created.runtimeArtifact?.scenePlan?.beats?.length > 0, 'runtime artifact must include a scene plan')
+  assert(
+    Array.isArray(created.runtimeArtifact?.stateWritebackPreview) && created.runtimeArtifact.stateWritebackPreview.length > 0,
+    'runtime artifact must include state writeback preview',
+  )
+  assert(created.runtimeArtifact?.timeConsistencyReport?.status === 'pass', 'runtime artifact must include time consistency')
+  assert(created.runtimeArtifact?.qualityBrakeReport?.result === created.qualityPreview?.result, 'runtime artifact quality report must match quality preview')
+  assert(created.runtimeArtifact?.branchGenerationResult?.status === 'not_generated', 'runtime artifact must not auto-generate a branch')
   assert(
     (created.runTrace || []).some(item => item.step === 'tool_bridge.socratic_turn' && item.status === 'ok'),
     'socratic create must use FastAPI Tool Bridge',
@@ -326,6 +335,11 @@ try {
 
   assert(preview.status === 'preview_only', 'state preview must remain preview_only')
   assert(Array.isArray(preview.stateDeltaCandidate) && preview.stateDeltaCandidate.length > 0, 'state preview must return candidate state deltas')
+  assert(preview.runtimeArtifact?.version === 1, 'state preview must return the runtime artifact for Studio/backend replay')
+  assert(
+    JSON.stringify(preview.stateDeltaCandidate) === JSON.stringify(preview.runtimeArtifact.stateWritebackPreview),
+    'state preview must use runtime artifact state writeback preview',
+  )
   assert(preview.writeback?.canon_written === false, 'state preview must not write canon')
   assert(preview.writeback?.branch_written === false, 'state preview must not write branch')
   assert(
@@ -342,6 +356,7 @@ try {
     sessionId: created.sessionId,
     activeConstraints: created.activeConstraints.map(item => item.profileId),
     activeKernels: created.activeKernels.map(item => item.kernelId),
+    scenePlanBeats: created.runtimeArtifact.scenePlan.beats.length,
     qualityStatus: quality.status,
     stateDeltaCount: preview.stateDeltaCandidate.length,
     writeback: preview.writeback,

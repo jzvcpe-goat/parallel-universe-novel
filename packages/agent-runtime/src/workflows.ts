@@ -13,6 +13,7 @@ import { qualityCheckTool, socraticTurnTool, statePreviewTool } from './toolBrid
 import type {
   ConstraintProfile,
   GenreKernel,
+  RuntimeArtifact,
   SocraticCreateInput,
   SocraticCreateOutput,
 } from './types.js'
@@ -217,6 +218,175 @@ function runtimeSettingCards(input: SocraticCreateInput, profiles: ConstraintPro
   }
 }
 
+function runtimeStatePatch(args: {
+  runId: string
+  projectId: string
+  sessionId: string
+  title: string
+  body: string
+  questions: string[]
+  profiles: ConstraintProfile[]
+  kernels: GenreKernel[]
+  qualityResult: SocraticCreateOutput['qualityPreview']['result']
+}): Record<string, unknown>[] {
+  return [
+    {
+      targetId: args.sessionId,
+      targetType: 'world',
+      operations: [
+        {
+          op: 'set',
+          path: 'candidate.current',
+          value: {
+            status: 'candidate',
+            title: args.title,
+            bodyPreview: args.body.slice(0, 240),
+            charCount: args.body.length,
+          },
+        },
+        {
+          op: 'merge',
+          path: 'setting_cards',
+          value: {
+            open_questions: args.questions.slice(0, 2),
+            active_constraints: args.profiles.map(profile => ({
+              profileId: profile.id,
+              ruleIds: profile.rules.map(rule => rule.id),
+            })),
+            active_kernels: args.kernels.map(kernel => ({
+              kernelId: kernel.id,
+              beatPlan: beatPlan([kernel]),
+            })),
+          },
+        },
+        {
+          op: 'set',
+          path: 'quality.preview',
+          value: {
+            result: args.qualityResult,
+          },
+        },
+      ],
+      metadata: {
+        sourceAgent: 'Orchestrator',
+        runId: args.runId,
+        projectId: args.projectId,
+        confidence: 0.74,
+        reason: 'preview_candidate_memory_before_author_confirmation',
+      },
+    },
+  ]
+}
+
+function runtimeArtifactFor(args: {
+  runId: string
+  projectId: string
+  sessionId: string
+  title: string
+  body: string
+  questions: string[]
+  profiles: ConstraintProfile[]
+  kernels: GenreKernel[]
+  violations: Array<{ ruleId: string; severity: string; message: string }>
+  qualityResult: SocraticCreateOutput['qualityPreview']['result']
+}): RuntimeArtifact {
+  const primaryKernel = args.kernels[0]
+  const beats = primaryKernel ? beatPlan([primaryKernel]) : beatPlan([])
+  const qualityDecision = args.qualityResult === 'block'
+    ? 'block'
+    : args.qualityResult === 'rewrite'
+      ? 'rewrite'
+      : 'candidate'
+  const stateWritebackPreview = runtimeStatePatch(args)
+  const acceptedTimeEvents = beats.slice(0, 5).map((label, index) => ({
+    id: `time_event_${index + 1}`,
+    label,
+    order: index + 1,
+  }))
+
+  return {
+    version: 1,
+    narrativeRun: {
+      id: args.runId,
+      projectId: args.projectId,
+      sessionId: args.sessionId,
+      authoringMode: 'co_write',
+      decision: qualityDecision,
+    },
+    constraintSet: args.profiles.flatMap(profile =>
+      profile.rules.map(rule => ({
+        profileId: profile.id,
+        ruleIds: [rule.id],
+        severity: rule.severity,
+      })),
+    ),
+    kernelSelection: args.kernels.map(kernel => ({
+      kernelId: kernel.id,
+      compatibleProfiles: kernel.compatibleProfiles,
+      beatPlan: beatPlan([kernel]),
+      timeControls: kernel.timeControls,
+    })),
+    scenePlan: {
+      id: `scene_${args.runId.replace(/^run_/, '').slice(0, 12)}`,
+      runId: args.runId,
+      objective: cleanPublicText(primaryKernel?.thesis, '把故事种子写成有选择压力的第一幕。'),
+      beats,
+      requiredStateRefs: [
+        'candidate.current',
+        'setting_cards.open_questions',
+        'quality.preview',
+      ],
+      candidateEvents: beats.slice(0, 5).map((label, index) => ({
+        id: `event_${index + 1}`,
+        label,
+        source: 'kernel',
+        intensity: Number(((primaryKernel?.timeControls.baseRate || 0.35) + index * 0.08).toFixed(2)),
+      })),
+      choiceSlots: args.questions.slice(0, 2).map((question, index) => ({
+        id: `choice_slot_${index + 1}`,
+        prompt: question,
+        status: 'candidate',
+      })),
+    },
+    stateWritebackPreview,
+    timeConsistencyReport: {
+      id: `time_${args.runId.replace(/^run_/, '').slice(0, 12)}`,
+      runId: args.runId,
+      status: args.violations.some(item => item.severity === 'hard') ? 'warn' : 'pass',
+      acceptedTimeEvents,
+      timelineConflicts: [],
+      requiredRepair: [],
+    },
+    qualityBrakeReport: {
+      id: `quality_${args.runId.replace(/^run_/, '').slice(0, 12)}`,
+      runId: args.runId,
+      result: args.qualityResult,
+      scores: {
+        doctrine: 0.74,
+        constraint: args.violations.length ? 0.42 : 0.88,
+        kernel: args.kernels.length ? 0.86 : 0.62,
+        time: 0.8,
+        state: stateWritebackPreview.length ? 0.78 : 0.48,
+        prose: args.body.length >= 200 ? 0.82 : 0.56,
+        safety: args.violations.some(item => item.severity === 'hard') ? 0.46 : 0.9,
+      },
+      reasons: args.violations.map(item => item.message),
+      repairPrompt: args.violations.length
+        ? '先修复题材、时间或公开正文问题，再让作者确认。'
+        : '候选正文可进入作者确认；确认前仍不得写入正史或支线。',
+      decision: qualityDecision,
+    },
+    branchGenerationResult: {
+      id: `branch_${args.runId.replace(/^run_/, '').slice(0, 12)}`,
+      runId: args.runId,
+      status: 'not_generated',
+      reason: 'author_confirmation_required',
+      visibility: 'private',
+      sourceType: 'ai_candidate',
+    },
+  }
+}
+
 function localOutputFromInput(input: SocraticCreateInput, runId: string): Record<string, unknown> {
   const contextOutput = input.context?.mastra_local_output
   if (typeof contextOutput === 'object' && contextOutput !== null) {
@@ -308,18 +478,33 @@ export async function socraticCreateWorkflow(
   const title = safeTitle(input, profiles, kernels)
   const body = repairBody(repairPublicProseScaffolds(candidateBody(input, profiles, kernels)), profiles)
   const violations = evaluatePublicProseHygiene(body, profiles)
+  const qualityResult = violations.some(item => item.severity === 'hard') ? 'block' : violations.length ? 'warn' : 'pass'
+  const sessionId = input.sessionId || `creator_dialogue_${randomUUID().slice(0, 12)}`
+  const questions = questionsFor(profiles, kernels).slice(0, 2)
   const cards = runtimeSettingCards(input, profiles, kernels)
+  const runtimeArtifact = runtimeArtifactFor({
+    runId,
+    projectId,
+    sessionId,
+    title,
+    body,
+    questions,
+    profiles,
+    kernels,
+    violations,
+    qualityResult,
+  })
 
   const localOutput: SocraticCreateOutput = {
     runId,
     projectId,
-    sessionId: input.sessionId || `creator_dialogue_${randomUUID().slice(0, 12)}`,
+    sessionId,
     candidateDraft: {
       status: 'candidate',
       title,
       body,
     },
-    questions: questionsFor(profiles, kernels).slice(0, 2),
+    questions,
     settingCards: cards,
     activeConstraints: profiles.map(profile => ({
       profileId: profile.id,
@@ -337,10 +522,12 @@ export async function socraticCreateWorkflow(
       settingCards: 'rule_engine',
       activeConstraints: 'rule_engine',
       activeKernels: 'rule_engine',
+      runtimeArtifact: 'rule_engine',
       qualityPreview: 'quality_gate',
     },
+    runtimeArtifact,
     qualityPreview: {
-      result: violations.some(item => item.severity === 'hard') ? 'block' : violations.length ? 'warn' : 'pass',
+      result: qualityResult,
       violations,
       repairSuggestions: violations.map(item => `修复 ${item.ruleId} 后再进入作者确认。`),
     },
@@ -368,7 +555,7 @@ export async function socraticCreateWorkflow(
       output: localOutput,
       startedAt,
       qualityResult: localOutput.qualityPreview,
-      stateDeltaCandidate: [],
+      stateDeltaCandidate: localOutput.runtimeArtifact.stateWritebackPreview,
     }),
   ]
 

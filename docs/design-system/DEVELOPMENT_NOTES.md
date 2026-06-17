@@ -963,6 +963,47 @@ npm run scan:reference-privacy
 
 ### 必跑检查
 
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+./backend/.venv/bin/pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
+npm run smoke:creator-chain
+```
+
+## 2026-06-17 P28 Runtime Artifact 最小闭环
+
+### 现象
+
+P4 已经把 `ConstraintProfile + GenreKernel` 收敛成文档 registry 驱动，但 Creator 首轮输出仍主要是 `candidateDraft / questions / settingCards`。这能证明“写出了候选正文”，还不能证明一次生成经过了运行时内核所需的 `ScenePlan / StatePatch / TimeConsistencyReport / QualityBrakeReport / BranchGenerationResult`。
+
+### 修复原则
+
+1. 运行时产物是内部 API 和 Studio/后端调试契约，不进入普通 Creator/Reader UI。
+2. `ScenePlan` 必须由 active `GenreKernel` 的 beat/time controls 生成，不能写死某个题材。
+3. `StatePatch` 默认是 candidate preview，只能进入 `stateWritebackPreview`，不得写 canon 或 branch。
+4. `QualityBrakeReport` 必须与公开 `qualityPreview` 对齐，避免 UI 显示通过但运行时报告阻断。
+5. `BranchGenerationResult` 首轮默认 `not_generated`，原因必须是 `author_confirmation_required`。
+6. Tool Bridge 可以包装并回传 runtime artifact，但仍然只做 preview-only facade，不拥有数据库写入主权。
+
+### 本轮落地
+
+- `packages/agent-runtime/src/types.ts` 新增 `RuntimeArtifact` 契约。
+- `socraticCreateWorkflow` 现在返回 `runtimeArtifact`，包含 `narrativeRun / constraintSet / kernelSelection / scenePlan / stateWritebackPreview / timeConsistencyReport / qualityBrakeReport / branchGenerationResult`。
+- `ledger.stateDeltaCandidate` 改为记录同一组 `runtimeArtifact.stateWritebackPreview`。
+- FastAPI `Tool Bridge` 会透传 `runtimeArtifact`，`state-preview` 优先返回 artifact 中的 `stateWritebackPreview`。
+- `smoke:creator-chain` 验证真实 HTTP 链路中 artifact、scene plan、state writeback preview、time consistency 和 branch-not-generated 状态都存在。
+- `RELEASE_SYNC_MANIFEST.json` 新增 `packages/agent-runtime/src/types.ts`，防止契约文件在源工作区和发布仓库之间漂移。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+./backend/.venv/bin/pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
+npm run smoke:creator-chain
+npm run check:release-sync-manifest
+```
+
 ## 2026-06-17 P7 Creator 链路 Smoke
 
 ### 现象
@@ -981,7 +1022,7 @@ npm run scan:reference-privacy
 
 - 新增 `scripts/smoke-creator-chain.mjs`。
 - 新增 `npm run smoke:creator-chain`。
-- Smoke 验证 `system-litrpg` 与 `kernel-system-litrpg` 被激活。
+- Smoke 从 `genre-runtime-rules.v1.json` 读取文档 profile/kernel 示例，验证显式选择的 profile 与兼容 kernel 被激活。
 - Smoke 验证 `stateDeltaCandidate` 非空，且 `canon_written=false`、`branch_written=false`。
 
 ### 必跑检查

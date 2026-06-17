@@ -78,6 +78,80 @@ export interface GenreKernel {
   }
 }
 
+export interface RuntimeArtifact {
+  version: 1
+  narrativeRun: {
+    id: string
+    projectId: string
+    sessionId: string
+    authoringMode: 'co_write'
+    decision: 'candidate' | 'rewrite' | 'block'
+  }
+  constraintSet: Array<{
+    profileId: string
+    ruleIds: string[]
+    severity: 'hard' | 'soft'
+  }>
+  kernelSelection: Array<{
+    kernelId: string
+    compatibleProfiles: string[]
+    beatPlan: string[]
+    timeControls: GenreKernel['timeControls']
+  }>
+  scenePlan: {
+    id: string
+    runId: string
+    objective: string
+    beats: string[]
+    requiredStateRefs: string[]
+    candidateEvents: Array<{
+      id: string
+      label: string
+      source: 'kernel' | 'seed'
+      intensity: number
+    }>
+    choiceSlots: Array<{
+      id: string
+      prompt: string
+      status: 'candidate'
+    }>
+  }
+  stateWritebackPreview: Array<Record<string, unknown>>
+  timeConsistencyReport: {
+    id: string
+    runId: string
+    status: 'pass' | 'warn' | 'block'
+    acceptedTimeEvents: Array<{ id: string; label: string; order: number }>
+    timelineConflicts: string[]
+    requiredRepair: string[]
+  }
+  qualityBrakeReport: {
+    id: string
+    runId: string
+    result: 'pass' | 'warn' | 'rewrite' | 'block'
+    scores: {
+      doctrine: number
+      constraint: number
+      kernel: number
+      time: number
+      state: number
+      prose: number
+      safety: number
+    }
+    reasons: string[]
+    repairPrompt: string
+    decision: 'candidate' | 'rewrite' | 'block'
+  }
+  branchGenerationResult: {
+    id: string
+    runId: string
+    status: 'not_generated' | 'candidate'
+    reason: string
+    visibility: 'private'
+    sourceType: 'ai_candidate'
+  }
+}
+
 export interface SocraticCreateInput {
   projectId?: string
   creatorId?: string
@@ -110,6 +184,7 @@ export interface SocraticCreateOutput {
     beatPlan: string[]
   }>
   sourceLabels: Record<string, 'human' | 'memo' | 'llm_candidate' | 'rule_engine' | 'time_engine' | 'quality_gate'>
+  runtimeArtifact: RuntimeArtifact
   qualityPreview: {
     result: 'pass' | 'warn' | 'rewrite' | 'block'
     violations: Array<{ ruleId: string; severity: string; message: string }>

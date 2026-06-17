@@ -46,6 +46,7 @@ def _public_output(payload: RuntimeToolRequest, *, idempotency_key: str, endpoin
     active_constraints = local_output.get("activeConstraints") if isinstance(local_output.get("activeConstraints"), list) else []
     active_kernels = local_output.get("activeKernels") if isinstance(local_output.get("activeKernels"), list) else []
     quality_preview = dict(local_output.get("qualityPreview") or {})
+    runtime_artifact = dict(local_output.get("runtimeArtifact") or {})
     run_trace = local_output.get("runTrace") if isinstance(local_output.get("runTrace"), list) else []
     run_trace = [
         *run_trace,
@@ -69,6 +70,7 @@ def _public_output(payload: RuntimeToolRequest, *, idempotency_key: str, endpoin
         "settingCards": setting_cards,
         "activeConstraints": active_constraints,
         "activeKernels": active_kernels,
+        "runtimeArtifact": runtime_artifact,
         "sourceLabels": local_output.get("sourceLabels") or {
             "seed": "human",
             "candidateDraft": "llm_candidate",
@@ -96,6 +98,11 @@ def _public_output(payload: RuntimeToolRequest, *, idempotency_key: str, endpoin
 
 
 def _state_delta_candidate(output: Dict[str, Any]) -> List[Dict[str, Any]]:
+    runtime_artifact = output.get("runtimeArtifact") if isinstance(output.get("runtimeArtifact"), dict) else {}
+    artifact_preview = runtime_artifact.get("stateWritebackPreview") if isinstance(runtime_artifact, dict) else None
+    if isinstance(artifact_preview, list) and artifact_preview:
+        return artifact_preview
+
     candidate = dict(output.get("candidateDraft") or {})
     setting_cards = dict(output.get("settingCards") or {})
     quality_preview = dict(output.get("qualityPreview") or {})
@@ -197,6 +204,7 @@ def state_preview(
         "projectId": output["projectId"],
         "sessionId": output["sessionId"],
         "stateDeltaCandidate": _state_delta_candidate(output),
+        "runtimeArtifact": output.get("runtimeArtifact") or {},
         "writeback": output["writeback"],
         "runTrace": output["runTrace"],
     }

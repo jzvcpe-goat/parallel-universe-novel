@@ -33,6 +33,79 @@ def _payload():
         for rule in profile["rules"]
         for term in rule.get("prohibitedTerms", [])
     ]
+    runtime_artifact = {
+        "version": 1,
+        "narrativeRun": {
+            "id": "run_demo",
+            "projectId": "project_demo",
+            "sessionId": "session_demo",
+            "authoringMode": "co_write",
+            "decision": "candidate",
+        },
+        "constraintSet": [
+            {
+                "profileId": profile["id"],
+                "ruleIds": rule_ids,
+                "severity": "hard",
+            }
+        ],
+        "kernelSelection": [
+            {
+                "kernelId": kernel["id"],
+                "compatibleProfiles": kernel.get("compatibleProfiles", []),
+                "beatPlan": kernel["eventStructure"][:2],
+                "timeControls": kernel.get("timeControls", {}),
+            }
+        ],
+        "scenePlan": {
+            "id": "scene_run_demo",
+            "runId": "run_demo",
+            "objective": kernel.get("thesis", ""),
+            "beats": kernel["eventStructure"][:2],
+            "requiredStateRefs": ["candidate.current", "quality.preview"],
+            "candidateEvents": [
+                {"id": "event_1", "label": kernel["eventStructure"][0], "source": "kernel", "intensity": 0.4}
+            ],
+            "choiceSlots": [{"id": "choice_slot_1", "prompt": "这次选择要付出什么？", "status": "candidate"}],
+        },
+        "stateWritebackPreview": [
+            {
+                "targetId": "session_demo",
+                "targetType": "world",
+                "operations": [{"op": "set", "path": "candidate.current", "value": {"status": "candidate"}}],
+                "metadata": {
+                    "runId": "run_demo",
+                    "projectId": "project_demo",
+                    "reason": "preview_candidate_memory_before_author_confirmation",
+                },
+            }
+        ],
+        "timeConsistencyReport": {
+            "id": "time_run_demo",
+            "runId": "run_demo",
+            "status": "pass",
+            "acceptedTimeEvents": [{"id": "time_event_1", "label": kernel["eventStructure"][0], "order": 1}],
+            "timelineConflicts": [],
+            "requiredRepair": [],
+        },
+        "qualityBrakeReport": {
+            "id": "quality_run_demo",
+            "runId": "run_demo",
+            "result": "pass",
+            "scores": {"doctrine": 0.8, "constraint": 0.8, "kernel": 0.8, "time": 0.8, "state": 0.8, "prose": 0.8, "safety": 0.8},
+            "reasons": [],
+            "repairPrompt": "候选正文可进入作者确认。",
+            "decision": "candidate",
+        },
+        "branchGenerationResult": {
+            "id": "branch_run_demo",
+            "runId": "run_demo",
+            "status": "not_generated",
+            "reason": "author_confirmation_required",
+            "visibility": "private",
+            "sourceType": "ai_candidate",
+        },
+    }
     return {
         "projectId": "project_demo",
         "seed": f"我想写一个{profile['displayName']}故事，开场要有明确的选择代价。",
@@ -74,6 +147,7 @@ def _payload():
                     "violations": [],
                     "repairSuggestions": [],
                 },
+                "runtimeArtifact": runtime_artifact,
                 "runTrace": [{"step": "intent.resolve", "status": "ok", "detail": "seed accepted"}],
                 "cost": {"mode": "mock_local", "estimatedTokens": 120, "estimatedCostUsd": 0},
             }
@@ -104,6 +178,8 @@ def test_tool_bridge_returns_candidate_without_canon_write(tmp_path: Path):
     assert payload["writeback"]["branch_written"] is False
     assert len(payload["questions"]) <= 2
     assert payload["activeConstraints"][0]["profileId"] == _runtime_rule_example()[0]["id"]
+    assert payload["runtimeArtifact"]["version"] == 1
+    assert payload["runtimeArtifact"]["branchGenerationResult"]["status"] == "not_generated"
     assert payload["runTrace"][-1]["step"] == "fastapi.socratic_turn"
 
 
@@ -119,6 +195,8 @@ def test_tool_bridge_state_preview_is_preview_only(tmp_path: Path):
     payload = response.json()
     assert payload["status"] == "preview_only"
     assert payload["stateDeltaCandidate"]
+    assert payload["runtimeArtifact"]["scenePlan"]["id"] == "scene_run_demo"
+    assert payload["stateDeltaCandidate"] == payload["runtimeArtifact"]["stateWritebackPreview"]
     patch = payload["stateDeltaCandidate"][0]
     assert patch["targetType"] == "world"
     assert patch["operations"][0]["path"] == "candidate.current"
