@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P12 静态公开预览浏览器 QA
+
+### 现象
+
+P10/P11 的公开页问题都是浏览器真实路径才暴露出来的：CTA 点击层级、GitHub Pages hash 路由、无运行时边界。只跑接口 smoke 或直接打开 `/create` 都会绕过这些风险。
+
+### 修复原则
+
+1. 静态公开预览必须有独立浏览器 QA，不启动 FastAPI 和 Agent Runtime。
+2. QA 构建必须模拟 GitHub Pages：`VITE_ROUTER_MODE=hash`。
+3. QA 构建必须显式关闭本地兜底：`VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`。
+4. QA 必须验证三件事：`/#/create` 可直达、首页“开始创作”CTA 可点击、无运行时时不生成假对话。
+5. QA 需要保存截图证据，但截图不进入 git。
+
+### 本轮落地
+
+- 新增 `scripts/browser-pages-preview-e2e.mjs`。
+- 新增 `npm run qa:pages-browser`。
+- 脚本构建 hash 静态包，复制 `404.html`，启动 Vite preview，并用真实 Chrome 验证公开预览边界。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+PLAYWRIGHT_MODULE_PATH=/Users/james/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.js \
+PLAYWRIGHT_CHROMIUM_EXECUTABLE="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+npm run qa:pages-browser
+```
+
 ## 2026-06-17 P11 GitHub Pages 深链接刷新
 
 ### 现象
