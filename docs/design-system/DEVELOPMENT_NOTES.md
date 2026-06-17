@@ -69,6 +69,34 @@ npm run scan:reference-privacy
 
 ### 必跑检查
 
+## 2026-06-17 P7 Creator 链路 Smoke
+
+### 现象
+
+`socratic-create`、FastAPI Tool Bridge 和 `state-preview` 分别有单元测试，但缺少一条命令证明它们在真实 HTTP 端口上能一起工作。只看单测无法发现端口、环境变量、幂等 header 或服务启动顺序问题。
+
+### 修复原则
+
+1. Smoke 必须启动真实 FastAPI 和 Mastra-compatible agent runtime。
+2. 使用临时 sqlite 与临时创作会话目录，不污染本地开发数据。
+3. 输入使用文档内题材 Profile，不再使用旧的一次性负例。
+4. 必须证明 `socratic-create` 经由 Tool Bridge 返回，`state-preview` 只生成候选补丁，不写 canon 或 branch。
+5. 面向用户的候选正文和追问不得出现内部词。
+
+### 本轮落地
+
+- 新增 `scripts/smoke-creator-chain.mjs`。
+- 新增 `npm run smoke:creator-chain`。
+- Smoke 验证 `system-litrpg` 与 `kernel-system-litrpg` 被激活。
+- Smoke 验证 `stateDeltaCandidate` 非空，且 `canon_written=false`、`branch_written=false`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run smoke:creator-chain
+```
+
 ```bash
 cd /Users/james/Documents/PUF/workspaces/integration-harness
 npm run test

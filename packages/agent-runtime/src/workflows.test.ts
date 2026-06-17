@@ -26,6 +26,30 @@ test('constraint preview blocks prohibited mismatched terms', async () => {
   assert.ok(result.activeConstraints[0].prohibitedTerms.includes('读心术'))
 })
 
+test('selected system genre produces a full candidate and remains primary', async () => {
+  const result = await socraticCreateWorkflow({
+    seed: '主角每完成一次任务都会拿回一段不属于自己的记忆。',
+    genre: '系统流',
+    context: {
+      story_direction: {
+        label: '系统流',
+        keywords: '系统流 任务代价 记忆回声 身份反噬',
+      },
+      main_universe_template: {
+        title: '任务回声',
+        genre: '系统流',
+      },
+    },
+  }, { preferToolBridge: false })
+
+  assert.equal(result.candidateDraft.status, 'candidate')
+  assert.equal(result.candidateDraft.title, '回声任务')
+  assert.ok(result.candidateDraft.body.length > 200)
+  assert.equal(result.activeConstraints[0].profileId, 'system-litrpg')
+  assert.equal(result.activeKernels[0].kernelId, 'kernel-system-litrpg')
+  assert.ok(result.questions.length <= 2)
+})
+
 test('state preview workflow never writes canon when tool bridge is unavailable', async () => {
   const result = await statePreviewWorkflow({
     seed: '主角把裂纹玉简放回问灵台，暂时不确认这段正文。',

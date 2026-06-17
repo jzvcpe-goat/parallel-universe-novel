@@ -18,6 +18,7 @@ function safeTitle(input: SocraticCreateInput, profiles: ConstraintProfile[]): s
   if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) return '问灵台'
   if (profiles.some(profile => profile.id === 'modern-other')) return '雨夜证据'
   if (profiles.some(profile => profile.id === 'game-litrpg')) return '登录前夜'
+  if (profiles.some(profile => profile.id === 'system-litrpg')) return '回声任务'
   if (profiles.some(profile => profile.id === 'comedy-misfit')) return '掉马现场'
   return '第一幕'
 }
@@ -59,6 +60,16 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
+  if (profiles.some(profile => profile.id === 'system-litrpg')) {
+    return [
+      `任务提示第一次响起时，主角正在旧商业街的雨棚下躲债。`,
+      `那行字没有给他金币，也没有许诺奇迹，只要求他在十分钟内救下一个即将穿过马路的陌生人。`,
+      `他照做了。奖励不是钱，而是一段记忆：七岁那年，他坐在一间完全陌生的厨房里，听见有人喊他另一个名字。`,
+      `从那一刻起，任务不再像机会，更像一张慢慢收紧的账单。每完成一次，他能拿回一小块被夺走的过去，也会丢掉一点现在赖以证明自己的证据。`,
+      `如果继续执行，他可能查清债务和身份的来源；如果拒绝，下一次惩罚会先落到他最想保护的人身上。`,
+      `本轮节拍：${beats.join(' -> ')}。`,
+    ].join('\n\n')
+  }
   if (profiles.some(profile => profile.id === 'comedy-misfit')) {
     return [
       `主角穿过门帘时，满堂人都以为他要说出惊天秘密。`,
@@ -94,6 +105,12 @@ function questionsFor(profiles: ConstraintProfile[]): string[] {
     return [
       '这次任务失败后，主角最不能承受的惩罚是什么？',
       '队伍里谁的职业短板会在第一场战斗中暴露？',
+    ]
+  }
+  if (profiles.some(profile => profile.id === 'system-litrpg')) {
+    return [
+      '第一条任务真正想迫使主角承认什么身份漏洞？',
+      '任务惩罚会先伤到主角自己，还是先伤到他想保护的人？',
     ]
   }
   if (profiles.some(profile => profile.id === 'comedy-misfit')) {

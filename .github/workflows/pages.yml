@@ -44,12 +44,8 @@ jobs:
 
       - name: Run runtime checks
         run: |
-          npm --workspace @narrativeos/agent-runtime test
-          npm --prefix app run lint
-          python -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
-          npm run scan:internal-terms
-          npm run scan:p4-rule-source
-          npm run scan:reference-privacy
+          npm run test
+          npm run smoke:creator-chain
 
       - name: Build Creator Studio
         run: npm --prefix app run build

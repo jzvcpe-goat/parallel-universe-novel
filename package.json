@@ -22,6 +22,7 @@
     "test:agents": "npm --workspace @narrativeos/agent-runtime test",
     "test:api": "node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py",
     "test:creator": "npm --prefix app run lint",
+    "smoke:creator-chain": "node scripts/smoke-creator-chain.mjs",
     "debug:pipeline": "npm --workspace @narrativeos/agent-runtime run debug:pipeline --",
     "debug:constraints": "npm --workspace @narrativeos/agent-runtime run debug:constraints --",
     "debug:quality": "npm --workspace @narrativeos/agent-runtime run debug:quality --",
