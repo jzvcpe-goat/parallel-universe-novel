@@ -51,6 +51,7 @@
     "scripts/check-public-runtime-boundary.mjs",
     "scripts/check-public-runtime-preview.mjs",
     "scripts/check-public-live-config.mjs",
+    "scripts/check-runtime-readiness-ledger.mjs",
     "scripts/check-runtime-deploy-readiness.mjs",
     "scripts/check-runtime-activation-package.mjs",
     "scripts/check-live-runtime-smoke-contract.mjs",

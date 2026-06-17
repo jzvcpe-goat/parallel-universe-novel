@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P26 Readiness ledger 内容和隐私校验
+
+### 现象
+
+P25 已经把 readiness ledger 上传成 GitHub Actions artifact，但仍然只证明“有一个 JSON 被上传”。上线证据本身也需要门禁：结构必须稳定，状态和阻塞项必须可读，且不能把 provider secret、API key、system prompt、数据库连接串、代表作品映射等内部信息写进 artifact。
+
+### 修复原则
+
+1. 账本生成后必须立刻验证，不能只在 CI 页面看到 artifact 名字。
+2. 校验范围包括 top-level schema、状态枚举、health 节点、必备 check id、blocked/ready 关系。
+3. 校验器递归扫描 key 和 value，禁止 secret、token、database、provider、system prompt、raw state、representative/source refs/vault 等敏感痕迹。
+4. Root test 必须保持顺序：先 `audit:live-runtime-readiness`，再 `check:runtime-readiness-ledger`。
+
+### 本轮落地
+
+- 新增 `scripts/check-runtime-readiness-ledger.mjs`。
+- 新增 `npm run check:runtime-readiness-ledger` 并纳入 root `npm run test`。
+- `scripts/check-runtime-activation-package.mjs` 反向检查账本校验器。
+- P23 ledger 文档补充内容校验和隐私边界。
+
+### 必跑检查
+
+```bash
+npm run audit:live-runtime-readiness
+npm run check:runtime-readiness-ledger
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P25 Readiness ledger 上传为 CI artifact
 
 ### 现象

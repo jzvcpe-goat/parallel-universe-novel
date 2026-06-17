@@ -26,6 +26,7 @@ const requiredFiles = [
   'backend/src/narrativeos/api/app_factory.py',
   '.github/workflows/pages.yml',
   'scripts/audit-live-runtime-readiness.mjs',
+  'scripts/check-runtime-readiness-ledger.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -56,8 +57,12 @@ assert(
   'package.json must expose audit:live-runtime-readiness',
 )
 assert(
-  String(packageJson.scripts.test).includes('npm run audit:live-runtime-readiness'),
-  'npm run test must include audit:live-runtime-readiness so live rollout blockers are materialized as an evidence ledger',
+  packageJson.scripts['check:runtime-readiness-ledger'] === 'node scripts/check-runtime-readiness-ledger.mjs',
+  'package.json must expose check:runtime-readiness-ledger',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run audit:live-runtime-readiness && npm run check:runtime-readiness-ledger'),
+  'npm run test must generate and validate the readiness ledger before continuing',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run smoke:creator-chain'),
@@ -119,6 +124,7 @@ for (const command of [
 for (const required of [
   'REQUIRE_LIVE_RUNTIME_READY=true',
   'artifacts/runtime/live-runtime-readiness',
+  'check:runtime-readiness-ledger',
   'health.api',
   'health.agent',
   'blockedChecks',
