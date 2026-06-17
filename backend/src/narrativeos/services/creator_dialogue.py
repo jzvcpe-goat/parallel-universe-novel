@@ -901,7 +901,7 @@ class CreatorDialogueService:
         cards["genre_constraint_facts"] = dict(facts)
         cards["genre_constraints"] = list(constraint_profile["active"])
         cards["genre_kernels"] = active_kernels
-        if _contains_any(joined, ["热血", "燃", "冒险", "战斗", "地下城", "深渊", "佣兵"]):
+        if _contains_any(joined, ["热血", "燃", "冒险", "战斗", "深渊"]):
             cards["tone"] = "高张力、行动感强"
         elif _contains_any(joined, ["怪", "诡", "梦", "失踪", "悬疑"]):
             cards["tone"] = "悬疑、压迫、带异常感"
@@ -920,9 +920,6 @@ class CreatorDialogueService:
             else:
                 active_rules = cards["genre_constraints"]
                 cards["world_rule_hint"] = _clean_text(active_rules[0].get("rule") if active_rules else "", limit=260) or "类型规则要服务下一场戏"
-        elif _contains_any(joined, ["未来", "AI", "算法", "太空", "赛博"]):
-            cards["genre_signal"] = "科幻"
-            cards["world_rule_hint"] = "技术规则必须制造选择代价"
         else:
             cards["genre_signal"] = "待从正文里确认"
 

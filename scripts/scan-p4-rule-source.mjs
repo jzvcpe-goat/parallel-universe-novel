@@ -6,6 +6,18 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 
 const workflowSource = join(root, 'packages/agent-runtime/src/workflows.ts')
 const runtimeRulesSource = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
+const ruleDocSources = [
+  join(root, 'docs/product/rules/GENRE_CONSTRAINT_RULES.md'),
+  join(root, 'docs/product/rules/GENRE_KERNEL_RULES.md'),
+]
+const runtimeImplementationSources = [
+  join(root, 'packages/agent-runtime/src/constraints.ts'),
+  join(root, 'packages/agent-runtime/src/workflows.ts'),
+  join(root, 'packages/agent-runtime/src/workflows.test.ts'),
+  join(root, 'backend/src/narrativeos/services/creator_dialogue.py'),
+  join(root, 'backend/tests/test_creator_dialogue_api.py'),
+  join(root, 'backend/tests/test_tool_bridge_api.py'),
+]
 const forbiddenWorkflowPatterns = [
   {
     pattern: /profile\.id\s*={2,3}\s*['"]/,
@@ -14,6 +26,22 @@ const forbiddenWorkflowPatterns = [
   {
     pattern: /kernel\.id\s*={2,3}\s*['"]/,
     message: 'workflow must not branch on hardcoded kernel ids; use document-derived kernel fields instead',
+  },
+]
+const staleDocPatterns = [
+  {
+    pattern: /\bothers-modern\b/,
+    message: 'rule docs must use current registry id modern-other, not stale others-modern',
+  },
+  {
+    pattern: /\bkernel-others-modern\b/,
+    message: 'rule docs must use current registry id kernel-modern-other, not stale kernel-others-modern',
+  },
+]
+const retiredPromptCasePatterns = [
+  {
+    pattern: /西幻|西方玄幻|非游戏化|古代官署|清河县|仵作|县衙|western-dungeon|black-gate|地下城/,
+    message: 'retired prompt-case terms must not be hardcoded in runtime implementation or P4 tests',
   },
 ]
 
@@ -100,6 +128,28 @@ if (existsSync(workflowSource)) {
     const match = workflowText.match(check.pattern)
     if (match?.index !== undefined) {
       violations.push(`${relative(root, workflowSource)}:${lineNumber(workflowText, match.index)} ${check.message}`)
+    }
+  }
+}
+
+for (const docSource of ruleDocSources) {
+  if (!existsSync(docSource)) continue
+  const text = readFileSync(docSource, 'utf8')
+  for (const check of staleDocPatterns) {
+    const match = text.match(check.pattern)
+    if (match?.index !== undefined) {
+      violations.push(`${relative(root, docSource)}:${lineNumber(text, match.index)} ${check.message}`)
+    }
+  }
+}
+
+for (const source of runtimeImplementationSources) {
+  if (!existsSync(source)) continue
+  const text = readFileSync(source, 'utf8')
+  for (const check of retiredPromptCasePatterns) {
+    const match = text.match(check.pattern)
+    if (match?.index !== undefined) {
+      violations.push(`${relative(root, source)}:${lineNumber(text, match.index)} ${check.message}`)
     }
   }
 }

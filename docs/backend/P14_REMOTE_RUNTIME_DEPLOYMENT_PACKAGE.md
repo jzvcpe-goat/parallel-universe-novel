@@ -42,7 +42,8 @@ docker build -t parallel-universe-agent-runtime -f deploy/agent-runtime/Dockerfi
 docker run --rm -p 4111:4111 \
   -e MASTRA_HOST=0.0.0.0 \
   -e MASTRA_PORT=4111 \
-  -e FASTAPI_TOOL_BRIDGE_BASE_URL=https://<api-host> \
+  -e MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host> \
+  -e MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io \
   parallel-universe-agent-runtime
 ```
 
@@ -94,9 +95,11 @@ cp app/dist/index.html app/dist/404.html
 1. `GET /health` passes for both API and Agent Runtime.
 2. API CORS allows `https://jzvcpe-goat.github.io`.
 3. Agent Runtime binds `0.0.0.0` in deploy environments and keeps `127.0.0.1` only as local default.
-4. Creator public build uses `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`.
-5. AI outputs remain `candidate`; no canon write is performed by the public creator chain.
-6. Any future persistent write must pass through FastAPI Tool Bridge with `Idempotency-Key`.
+4. Agent Runtime uses `MASTRA_TOOL_BRIDGE_BASE_URL` to call FastAPI Tool Bridge; `FASTAPI_TOOL_BRIDGE_BASE_URL` is legacy compatibility only.
+5. Agent Runtime CORS is restricted with `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io` for public preview.
+6. Creator public build uses `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`.
+7. AI outputs remain `candidate`; no canon write is performed by the public creator chain.
+8. Any future persistent write must pass through FastAPI Tool Bridge with `Idempotency-Key`.
 
 ## Verification
 

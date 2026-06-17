@@ -66,10 +66,11 @@ assert(
   'Agent Dockerfile must run the production start script on 0.0.0.0:4111',
 )
 assert(
-  compose.includes('FASTAPI_TOOL_BRIDGE_BASE_URL: http://api:8787')
+  compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')
+    && compose.includes('MASTRA_ALLOWED_ORIGINS:')
     && compose.includes('http://127.0.0.1:8787/health')
     && compose.includes('http://127.0.0.1:4111/health'),
-  'Runtime preview compose must wire agents to API and define health checks',
+  'Runtime preview compose must wire agents to API, restrict CORS, and define health checks',
 )
 assert(
   contract.includes('FastAPI business runtime')

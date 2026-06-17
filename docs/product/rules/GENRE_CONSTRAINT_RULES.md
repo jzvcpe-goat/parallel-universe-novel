@@ -93,11 +93,11 @@ Rules:
 - `cultivation-must-have-cost`: 境界突破必须绑定资源消耗、身体代价或因果债务，不得无代价升级。
 - `xuanhuan-era-substrate`: 通信、交通、治疗和武器应使用世界内表达，避免现代科技词破坏时代基底。
 
-### `others-modern`
+### `modern-other`
 
-Display name: 现代悬疑
+Display name: 其他现代
 
-Source refs: `rwref_0004`, `rwref_0016`, `rwref_0029`
+Source refs: `rwref_0004`, `rwref_0016`
 
 Signals:
 

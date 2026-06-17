@@ -5,10 +5,27 @@ import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePr
 const port = Number(process.env.MASTRA_PORT || 4111)
 const host = process.env.MASTRA_HOST || '127.0.0.1'
 
-function sendJson(res: import('node:http').ServerResponse, status: number, payload: unknown) {
+function allowedOrigins(): string[] {
+  return String(process.env.MASTRA_ALLOWED_ORIGINS || '*')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+}
+
+function corsOrigin(req: import('node:http').IncomingMessage): string {
+  const configured = allowedOrigins()
+  if (configured.includes('*')) return '*'
+  const requestOrigin = String(req.headers.origin || '')
+  if (requestOrigin && configured.includes(requestOrigin)) return requestOrigin
+  return configured[0] || '*'
+}
+
+function sendJson(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, status: number, payload: unknown) {
+  const origin = corsOrigin(req)
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin,
+    ...(origin === '*' ? {} : { Vary: 'Origin' }),
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization,Idempotency-Key',
   })
@@ -24,32 +41,32 @@ async function readJson(req: import('node:http').IncomingMessage) {
 
 const server = createServer(async (req, res) => {
   try {
-    if (req.method === 'OPTIONS') return sendJson(res, 204, {})
+    if (req.method === 'OPTIONS') return sendJson(req, res, 204, {})
     const url = new URL(req.url || '/', `http://${host}:${port}`)
     if (req.method === 'GET' && url.pathname === '/health') {
-      return sendJson(res, 200, { status: 'ok', service: 'narrativeos-agent-runtime', ...agentRuntimeMeta })
+      return sendJson(req, res, 200, { status: 'ok', service: 'narrativeos-agent-runtime', ...agentRuntimeMeta })
     }
     if (req.method === 'GET' && url.pathname === '/v1/agents/contracts') {
-      return sendJson(res, 200, { agents: agentContracts })
+      return sendJson(req, res, 200, { agents: agentContracts })
     }
     if (req.method === 'POST' && url.pathname === '/v1/workflows/socratic-create') {
       const body = await readJson(req)
       const output = await socraticCreateWorkflow(body)
-      return sendJson(res, 200, output)
+      return sendJson(req, res, 200, output)
     }
     if (req.method === 'POST' && url.pathname === '/v1/workflows/state-preview') {
       const body = await readJson(req)
       const output = await statePreviewWorkflow(body)
-      return sendJson(res, 200, output)
+      return sendJson(req, res, 200, output)
     }
     if (req.method === 'POST' && url.pathname === '/v1/workflows/quality-brake') {
       const body = await readJson(req)
       const output = await qualityBrakeWorkflow(body)
-      return sendJson(res, 200, output)
+      return sendJson(req, res, 200, output)
     }
-    return sendJson(res, 404, { code: 'not_found' })
+    return sendJson(req, res, 404, { code: 'not_found' })
   } catch (error) {
-    return sendJson(res, 500, {
+    return sendJson(req, res, 500, {
       code: 'agent_runtime_error',
       reason: error instanceof Error ? error.message : 'unknown_error',
     })

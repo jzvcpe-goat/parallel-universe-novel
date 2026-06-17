@@ -10,7 +10,11 @@ export class ToolBridgeError extends Error {
 }
 
 export function fastApiBaseUrl(): string {
-  return (process.env.MASTRA_TOOL_BRIDGE_BASE_URL || DEFAULT_FASTAPI_BASE_URL).replace(/\/+$/, '')
+  return (
+    process.env.MASTRA_TOOL_BRIDGE_BASE_URL
+    || process.env.FASTAPI_TOOL_BRIDGE_BASE_URL
+    || DEFAULT_FASTAPI_BASE_URL
+  ).replace(/\/+$/, '')
 }
 
 export function serviceToken(): string {

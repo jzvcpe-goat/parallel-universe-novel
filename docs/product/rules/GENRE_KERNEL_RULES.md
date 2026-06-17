@@ -85,13 +85,13 @@ Pacing model:
 
 传承触发 -> 资源稀缺 -> 代价突破 -> 关系债显形 -> 天劫或追责
 
-### `kernel-others-modern`
+### `kernel-modern-other`
 
 Name: 现代悬疑
 
-Compatible profile: `others-modern`
+Compatible profile: `modern-other`
 
-Source refs: `rwref_0004`, `rwref_0016`, `rwref_0029`
+Source refs: `rwref_0004`, `rwref_0016`
 
 Thesis:
 
