@@ -43,6 +43,14 @@ assert(
   'Pages workflow must generate the readiness ledger before the Creator Studio build step',
 )
 assert(
+  workflow.includes('Upload runtime readiness ledger')
+    && workflow.includes('if: always()')
+    && workflow.includes('actions/upload-artifact@v4')
+    && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
+    && workflow.indexOf('Upload runtime readiness ledger') > workflow.indexOf('Gate public runtime release mode'),
+  'Pages workflow must upload the readiness ledger artifact after the runtime gate, including failed live gates',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -78,5 +86,6 @@ console.log(JSON.stringify({
   ],
   defaultMode: 'disabled',
   readinessLedger: 'audit:live-runtime-readiness',
+  ledgerArtifact: 'runtime-readiness-ledger',
   liveModeGate: 'qa:live-runtime-browser',
 }, null, 2))

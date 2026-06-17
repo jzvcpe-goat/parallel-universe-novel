@@ -63,6 +63,15 @@ jobs:
             REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
           fi
 
+      - name: Upload runtime readiness ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-readiness-ledger
+          path: artifacts/runtime/live-runtime-readiness-*.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash

@@ -217,6 +217,7 @@ Capture and attach:
 - `npm run check:public-live-config` output.
 - `npm run check:public-runtime-preview` output.
 - `npm run audit:live-runtime-readiness` output and generated `artifacts/runtime/live-runtime-readiness-*.json`.
+- GitHub Actions `runtime-readiness-ledger` artifact.
 - `npm run smoke:creator-chain` output, or `npm run test` output proving the smoke ran inside the root gate.
 - `npm run qa:live-runtime-browser` output and screenshot path.
 - GitHub Actions run URL.

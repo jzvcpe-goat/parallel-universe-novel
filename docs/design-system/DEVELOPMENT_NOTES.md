@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P25 Readiness ledger 上传为 CI artifact
+
+### 现象
+
+P24 已经让 GitHub Pages workflow 在 release gate 中生成 readiness ledger；但 workflow 运行结束后，`artifacts/runtime/live-runtime-readiness-*.json` 只存在于 runner 临时文件系统。真正 live gate 失败时，团队反而最需要这份证据，却无法从 Actions 页面直接下载。
+
+### 修复原则
+
+1. Readiness ledger 是上线证据，必须作为 GitHub Actions artifact 保留。
+2. 上传步骤必须 `if: always()`，确保 live gate 失败时也会执行。
+3. Artifact 上传只收集 `artifacts/runtime/live-runtime-readiness-*.json`，不上传日志、secret、构建产物或本地数据库。
+4. 反向检查器必须固定 artifact 名称和路径，避免后续 workflow 漂移。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 增加 `Upload runtime readiness ledger`。
+- Artifact 名称固定为 `runtime-readiness-ledger`，保留 14 天。
+- `scripts/check-pages-live-release-gate.mjs` 和 `scripts/check-runtime-activation-package.mjs` 反向检查上传步骤。
+- P20/P23 文档同步验收证据和 artifact 行为。
+
+### 必跑检查
+
+```bash
+npm run check:pages-live-release-gate
+npm run check:runtime-activation-package
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P24 Readiness ledger 接入 Pages live gate
 
 ### 现象
