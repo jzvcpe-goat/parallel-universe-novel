@@ -60,6 +60,7 @@
     "scripts/check-pages-live-release-gate.mjs",
     "scripts/check-release-sync-manifest.mjs",
     "scripts/check-runtime-rule-handshake.mjs",
+    "scripts/check-runtime-artifact-contract.mjs",
     "scripts/check-template-intent-routing.mjs",
     "scripts/scan-internal-terms.mjs",
     "scripts/scan-p4-rule-source.mjs",

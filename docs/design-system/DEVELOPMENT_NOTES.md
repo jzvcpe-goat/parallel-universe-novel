@@ -1004,6 +1004,39 @@ npm run smoke:creator-chain
 npm run check:release-sync-manifest
 ```
 
+## 2026-06-17 P29 Runtime Artifact 隐私与边界扫描
+
+### 现象
+
+P28 让 `runtimeArtifact` 成为 Creator 首轮链路的一等内部产物。它包含 scene plan、状态候选补丁、时间一致性、质量刹车和分支生成结果，价值很高，但也带来新的风险：如果后续团队把 `sourceRefs`、代表作品、provider、raw state 或内部字段塞进 artifact，普通用户或非团队成员可能通过浏览器响应、日志或 UI 看到不该看的内容。
+
+### 修复原则
+
+1. Runtime artifact 可以进入 Agent/FastAPI 内部响应和 Studio 调试，但普通 UI 不得消费或渲染。
+2. Artifact 内不得出现 `sourceRefs / rwref_* / representativeWorks / workTitle / authorName / source_evidence` 等代表作品线索。
+3. Artifact 内不得出现 `provider / system prompt / rawHash / StateVector / AgentRun / CHANGES JSON` 等内部运行痕迹。
+4. Artifact 的 `qualityBrakeReport` 必须和公开 `qualityPreview` 对齐，不能出现前端通过、运行时阻断的分裂状态。
+5. Artifact 的 `branchGenerationResult` 在作者确认前必须保持 `not_generated` 和 `private`。
+6. 这类检查要进入 root `npm run test`，不能只留在人工审查。
+
+### 本轮落地
+
+- 新增 `scripts/check-runtime-artifact-contract.mjs`。
+- 新脚本遍历 21 个文档 profile，逐个生成 `runtimeArtifact` 并检查契约、质量对齐、candidate-only、branch-not-generated 和隐私词扫描。
+- `npm run test` 串入 `check:runtime-artifact-contract`。
+- `scan-public-ui-boundary.mjs` 增加 `runtimeArtifact / scenePlan / stateWritebackPreview / timeConsistencyReport / qualityBrakeReport / branchGenerationResult` 禁用词，阻止普通 UI 消费内部产物。
+- `RELEASE_SYNC_MANIFEST.json` 纳入新脚本，防止源工作区与 GitHub 发布包漏同步。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+npm run check:runtime-artifact-contract
+npm run scan:public-ui-boundary
+npm run test
+```
+
 ## 2026-06-17 P7 Creator 链路 Smoke
 
 ### 现象
