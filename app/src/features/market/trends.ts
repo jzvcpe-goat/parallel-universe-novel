@@ -329,12 +329,41 @@ const creatorSeedSignals: Record<string, string[]> = {
   'lotus-lane': ['来信', '错过', '重逢', '情感', '关系', '记忆', '遗憾', '莲巷', '明天'],
 }
 
+const explicitCreatorSeedSignals: Record<string, string[]> = {
+  'algorithm-city': ['脑洞都市', '都市异能', '都市脑洞', '算法城市', '科幻短篇'],
+  'echo-ledger': ['系统流', '任务系统', '任务回声'],
+  'beacon-beyond': ['玄幻悬疑', '规则怪谈', '中式恐怖', '灯塔之外'],
+  'rain-bridge': ['都市谜案', '都市悬疑', '现代悬疑', '现实悬疑', '社会派推理', '旧案', '冷案'],
+  'jade-contract': ['仙侠权谋', '仙侠修仙', '宗门经营', '玉京契书'],
+  'frontier-edict': ['历史权谋', '历史架空', '边塞经营', '边城密诏'],
+  'lotus-lane': ['情感成长', '言情成长', '破镜重圆', '莲巷来信'],
+}
+
 function scoreTextMatch(text: string, signals: string[]) {
   return signals.reduce((score, signal) => {
     const clean = signal.trim().toLowerCase()
     if (!clean) return score
     return text.includes(clean) ? score + Math.max(1, Math.min(6, clean.length)) : score
   }, 0)
+}
+
+function inferExplicitTemplateId(text: string, payload: MarketTrendPayload): string | null {
+  const allowedTemplateIds = new Set([
+    ...payload.trends.map(item => item.template_id),
+    ...marketTrendFallback.trends.map(item => item.template_id),
+  ])
+  const matches = Object.entries(explicitCreatorSeedSignals)
+    .filter(([templateId]) => allowedTemplateIds.has(templateId))
+    .map(([templateId, signals]) => {
+      const trend = payload.trends.find(item => item.template_id === templateId)
+        || marketTrendFallback.trends.find(item => item.template_id === templateId)
+      const labelScore = trend && text.includes(trend.label.toLowerCase()) ? 100 : 0
+      const signalScore = scoreTextMatch(text, signals)
+      return { templateId, score: labelScore + signalScore }
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+  return matches[0]?.templateId || null
 }
 
 export function inferTemplateIdFromStorySeed(
@@ -344,6 +373,8 @@ export function inferTemplateIdFromStorySeed(
 ): string {
   const text = seed.trim().toLowerCase()
   if (!text) return fallbackTemplateId
+  const explicitTemplateId = inferExplicitTemplateId(text, payload)
+  if (explicitTemplateId) return explicitTemplateId
 
   const candidates = payload.trends.map(item => {
     const trendSignals = [
