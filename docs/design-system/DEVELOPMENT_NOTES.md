@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P48 Product Runtime API 覆盖门禁
+
+### 现象
+
+P47 已经证明 Creator、Reader、Studio 的 trace 字段和入口边界一致，但其中 Reader/Studio 的后端行为测试只被静态脚本引用，没有进入根测试。这样仍可能出现“文档说有，CI 没跑”的断点。
+
+### 修复原则
+
+1. P47 依赖的 Reader/Studio product runtime 合同必须进入根测试。
+2. `/scene/advance`、`/quality/evaluate`、`/canon/commit` 要作为同一个 product runtime 面验证。
+3. 覆盖门禁检查 package root test、后端测试、前端 runtime API 和 P47 trace 文档一致。
+4. P48 artifact 只记录端点和覆盖状态，不写候选正文、secret、system prompt 或代表作品。
+
+### 本轮落地
+
+- Root `npm run test` 增加 `backend/tests/test_product_runtime_api.py`。
+- 新增 `scripts/check-product-runtime-coverage.mjs`。
+- 新增 `docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md`。
+- `package.json` 增加 `check:product-runtime-coverage`，并接入根 `npm run test`。
+
+### 必跑检查
+
+```bash
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python node scripts/run-backend-python.mjs -m pytest backend/tests/test_product_runtime_api.py
+npm run check:product-runtime-coverage
+```
+
 ## 2026-06-17 P47 Runtime Trace 连续性门禁
 
 ### 现象
