@@ -1004,6 +1004,40 @@ npm run smoke:creator-chain
 npm run check:release-sync-manifest
 ```
 
+## 2026-06-17 P31 Mastra 依赖安全审计门禁
+
+### 现象
+
+`npm audit --audit-level=moderate` 当前会报 4 个漏洞：`@ai-sdk/provider-utils / @mastra/core / gray-matter / js-yaml`。这些都来自 `@mastra/core@1.42.0` 的传递依赖链。尝试过两种修复方式：
+
+1. root `overrides` 强制改 `@ai-sdk/provider-utils-v5` 和 `gray-matter -> js-yaml`，npm 会形成 invalid dependency tree。
+2. root direct alias hoist 新安全包，Mastra 内部仍保留旧传递依赖，audit 不会解除。
+
+因此本轮不能把无效 override 或大范围 `npm audit fix` 混进产品提交。
+
+### 修复原则
+
+1. 高危/严重漏洞一律阻断。
+2. 新增的 low/moderate 漏洞必须先分类，不能悄悄进入主线。
+3. 当前 4 个 Mastra 上游漏洞允许作为已知断点通过，但必须由脚本显式识别。
+4. 一旦 Mastra 发布可修版本，优先升级真实依赖，而不是长期依赖 allowlist。
+
+### 本轮落地
+
+- 新增 `scripts/check-dependency-audit.mjs`。
+- 脚本运行 `npm audit --audit-level=moderate --json`。
+- 仅允许当前 4 个 Mastra 上游 advisory 组合；任何新增包、severity 变化或 high/critical 都会失败。
+- root `npm run test` 串入 `npm run audit:dependencies`。
+- `RELEASE_SYNC_MANIFEST.json` 纳入新脚本，防止源工作区漏同步。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run audit:dependencies
+npm run test
+```
+
 ## 2026-06-17 P30 公开响应与内部调试响应拆分
 
 ### 现象
