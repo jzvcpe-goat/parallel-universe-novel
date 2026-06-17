@@ -106,6 +106,16 @@ npm run check:public-runtime-preview
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
 ```
 
+After remote URLs exist:
+
+```bash
+REQUIRE_PUBLIC_RUNTIME=true \
+VITE_API_ORIGIN=https://<api-host> \
+VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host> \
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
+npm run qa:live-runtime-browser
+```
+
 ## Next Breakpoint
 
 Pick the actual remote host and secrets strategy. Once host URLs exist, update GitHub Actions Pages build from:

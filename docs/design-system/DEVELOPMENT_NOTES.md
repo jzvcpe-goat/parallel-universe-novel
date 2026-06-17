@@ -1,5 +1,45 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P15 远端 Runtime Live Smoke
+
+### 现象
+
+P14 能证明两个服务可以被部署，但不能证明公开 Creator Studio 能从浏览器侧真实调用远端 Agent Runtime 并返回候选正文。部署健康和产品链路之间仍有一层断点。
+
+### 修复原则
+
+1. live 验收必须从浏览器发起，而不是只用 curl 检查 health。
+2. 没有远端 URL 时，live smoke 应该明确 `skipped`；设置 `REQUIRE_PUBLIC_RUNTIME=true` 时必须严格失败。
+3. live 构建必须使用 `VITE_PUBLIC_RUNTIME_MODE=live` 和 `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`。
+4. 浏览器验收必须检查正文长度、追问数量、服务状态和内部词泄漏。
+5. live smoke 只证明 candidate 创作链路，不证明 canon、支付或生产数据库。
+
+### 本轮落地
+
+- 新增 `scripts/browser-live-runtime-e2e.mjs`。
+- 新增 `scripts/check-live-runtime-smoke-contract.mjs`。
+- 新增 `docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md`。
+- 新增 `npm run qa:live-runtime-browser`。
+- 新增 `npm run check:live-runtime-smoke` 并串入 `npm run test`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:live-runtime-smoke
+npm run qa:live-runtime-browser
+```
+
+有远端 URL 后：
+
+```bash
+REQUIRE_PUBLIC_RUNTIME=true \
+VITE_API_ORIGIN=https://<api-host> \
+VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host> \
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
+npm run qa:live-runtime-browser
+```
+
 ## 2026-06-17 P14 远端 Runtime 部署包
 
 ### 现象

@@ -94,5 +94,5 @@ npm run check:public-runtime-preview
 1. Pick the remote host for FastAPI and Agent Runtime.
 2. Add CORS allowlist for the GitHub Pages origin.
 3. Add deployment secrets and environment variables.
-4. Add live browser QA against the remote preview.
+4. Add live browser QA against the remote preview with `npm run qa:live-runtime-browser`.
 5. Only after live QA passes, change `VITE_PUBLIC_RUNTIME_MODE` from `disabled` to `live`.
