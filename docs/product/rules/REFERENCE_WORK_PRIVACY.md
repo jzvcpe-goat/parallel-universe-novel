@@ -46,12 +46,12 @@ Creator Studio and Reader Web may show:
 
 - genre names
 - story constraints
-- anonymous source labels
 - template names owned by this product
 
 They must not show:
 
 - representative work names
 - source evidence names
+- source labels or provenance maps
 - competitor/platform research labels
 - benchmark title lists

@@ -5,33 +5,6 @@ import { dirname, join, relative, resolve } from 'node:path'
 const root = resolve(new URL('..', import.meta.url).pathname)
 const rulePath = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
 const outputDir = join(root, 'artifacts/runtime')
-const legacyProbeTerms = [
-  'd2VzdGVybl9mYW50YXN5X3RyYW5zbWlncmF0aW9u',
-  'bm9uX2dhbWU=',
-  'YmFuX2FuY2llbnRfY2hpbmVzZV9vZmZpY2lhbF9yb2xlcw==',
-  'd2VzdGVybi1mYW50YXN5',
-  'bm9uLWdhbWUgZHVuZ2Vvbg==',
-  'YW5jaWVudCBDaGluZXNlIG9mZmljaWFsIHJvbGVz',
-  '6KW/5bm7',
-  '6Z2e5ri45oiP5YyW',
-  '5Y+k5Luj5a6Y572y',
-  '5riF5rKz5Y6/',
-  '5Lu15L2c',
-  '5Y6/6KGZ',
-].map(encoded => Buffer.from(encoded, 'base64').toString('utf8'))
-
-const activeSources = [
-  'docs/product/rules/genre-runtime-rules.v1.json',
-  'docs/product/rules/GENRE_CONSTRAINT_RULES.md',
-  'docs/product/rules/GENRE_KERNEL_RULES.md',
-  'docs/backend/P34_MODEL_AGNOSTIC_CREATOR_RUNTIME.md',
-  'packages/agent-runtime/src/constraints.ts',
-  'packages/agent-runtime/src/workflows.ts',
-  'backend/src/narrativeos/services/creator_dialogue.py',
-  'backend/tests/test_creator_dialogue_api.py',
-  'packages/agent-runtime/src/workflows.test.ts',
-  'scripts/smoke-creator-chain.mjs',
-]
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -84,17 +57,6 @@ for (const kernel of rules.genreKernels) {
   assert(kernel.compatibleProfiles?.some(id => profileIds.has(id)), `${kernel.id} must connect to at least one document profile`)
   assert(kernel.sourceRefs?.every(ref => /^rwref_\d{4}$/.test(ref)), `${kernel.id} sourceRefs must remain anonymous`)
 }
-
-const leakedLegacyTerms = []
-for (const source of activeSources) {
-  const absolute = join(root, source)
-  if (!existsSync(absolute)) continue
-  const text = readFileSync(absolute, 'utf8')
-  for (const term of legacyProbeTerms) {
-    if (text.includes(term)) leakedLegacyTerms.push(`${source}: ${term}`)
-  }
-}
-assert(leakedLegacyTerms.length === 0, `P4 active sources still expose retired prompt-case terms: ${leakedLegacyTerms.join('; ')}`)
 
 mkdirSync(outputDir, { recursive: true })
 const artifact = {

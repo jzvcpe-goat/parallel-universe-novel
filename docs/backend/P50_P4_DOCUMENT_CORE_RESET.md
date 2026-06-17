@@ -44,7 +44,7 @@ The gate verifies:
 - the runtime registry points to the v3 baseline contract,
 - human-editable source documents exist,
 - historical negative samples are marked non-executable,
-- active sources do not expose retired prompt-case terms,
+- the registry does not contain ad hoc override keys such as prompt-case branches,
 - all profiles and kernels use anonymous `rwref_*` source refs,
 - every kernel maps back to at least one document profile.
 
@@ -55,6 +55,11 @@ npm run scan:p4-rule-source
 ```
 
 continues to verify schema shape, registry/document sync, privacy, and absence of hardcoded registry id branches in runtime code.
+
+The P4 gates intentionally do not carry a list of historical sample terms. A
+failed browser comment, prompt experiment, or manual negative sample can guide
+research, but it cannot become executable logic until it is generalized into the
+document registry.
 
 ## Handoff Standard
 

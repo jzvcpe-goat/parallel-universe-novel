@@ -22,7 +22,6 @@ Allowed public fields:
 
 - `sourceRefs`
 - `rwref_*`
-- `source_pdfs`
 - encrypted vault metadata needed for AES-GCM decryption, such as `algorithm`, `iv`, `tag`, `aad`, `ciphertext`, and `keyEnv`
 
 Forbidden public content:
@@ -30,6 +29,7 @@ Forbidden public content:
 - representative work titles
 - author names
 - plaintext source evidence names
+- source labels or provenance maps
 - decrypted vault payloads
 - concrete vault key values
 - local key files
@@ -90,4 +90,3 @@ This gate checks:
 - absence of committed vault key files,
 - absence of concrete `REFERENCE_WORK_VAULT_KEY` values,
 - exact plaintext title leaks when the private key is available.
-

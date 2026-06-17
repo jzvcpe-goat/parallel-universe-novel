@@ -157,14 +157,8 @@ function validatePublicRefs() {
     if (ids.has(id)) violations.push(`docs/product/rules/reference-work-public-refs.json duplicate ref id: ${id}`)
     ids.add(id)
     for (const key of Object.keys(ref)) {
-      if (!['id', 'source_pdfs'].includes(key)) {
+      if (key !== 'id') {
         violations.push(`docs/product/rules/reference-work-public-refs.json ${id} exposes forbidden public key: ${key}`)
-      }
-    }
-    const sourcePdfs = Array.isArray(ref.source_pdfs) ? ref.source_pdfs : []
-    for (const sourcePdf of sourcePdfs) {
-      if (!String(sourcePdf).endsWith('.pdf')) {
-        violations.push(`docs/product/rules/reference-work-public-refs.json ${id} has invalid source pdf label`)
       }
     }
   }

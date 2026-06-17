@@ -3,277 +3,140 @@
   "refCount": 45,
   "refs": [
     {
-      "id": "rwref_0001",
-      "source_pdfs": [
-        "武侠历史.pdf"
-      ]
+      "id": "rwref_0001"
     },
     {
-      "id": "rwref_0002",
-      "source_pdfs": [
-        "武侠历史.pdf"
-      ]
+      "id": "rwref_0002"
     },
     {
-      "id": "rwref_0003",
-      "source_pdfs": [
-        "甜宠先婚后爱.pdf"
-      ]
+      "id": "rwref_0003"
     },
     {
-      "id": "rwref_0004",
-      "source_pdfs": [
-        "其他现代.pdf",
-        "男频种田基建.pdf"
-      ]
+      "id": "rwref_0004"
     },
     {
-      "id": "rwref_0005",
-      "source_pdfs": [
-        "系统流.pdf"
-      ]
+      "id": "rwref_0005"
     },
     {
-      "id": "rwref_0006",
-      "source_pdfs": [
-        "甜宠先婚后爱.pdf"
-      ]
+      "id": "rwref_0006"
     },
     {
-      "id": "rwref_0007",
-      "source_pdfs": [
-        "科幻.pdf"
-      ]
+      "id": "rwref_0007"
     },
     {
-      "id": "rwref_0008",
-      "source_pdfs": [
-        "喜剧.pdf",
-        "炼丹炼器.pdf"
-      ]
+      "id": "rwref_0008"
     },
     {
-      "id": "rwref_0009",
-      "source_pdfs": [
-        "现代都市.pdf"
-      ]
+      "id": "rwref_0009"
     },
     {
-      "id": "rwref_0010",
-      "source_pdfs": [
-        "喜剧.pdf"
-      ]
+      "id": "rwref_0010"
     },
     {
-      "id": "rwref_0011",
-      "source_pdfs": [
-        "现代都市.pdf"
-      ]
+      "id": "rwref_0011"
     },
     {
-      "id": "rwref_0012",
-      "source_pdfs": [
-        "现代都市.pdf"
-      ]
+      "id": "rwref_0012"
     },
     {
-      "id": "rwref_0013",
-      "source_pdfs": [
-        "仙侠玄幻.pdf"
-      ]
+      "id": "rwref_0013"
     },
     {
-      "id": "rwref_0014",
-      "source_pdfs": [
-        "喜剧.pdf"
-      ]
+      "id": "rwref_0014"
     },
     {
-      "id": "rwref_0015",
-      "source_pdfs": [
-        "科幻.pdf"
-      ]
+      "id": "rwref_0015"
     },
     {
-      "id": "rwref_0016",
-      "source_pdfs": [
-        "其他现代.pdf"
-      ]
+      "id": "rwref_0016"
     },
     {
-      "id": "rwref_0017",
-      "source_pdfs": [
-        "系统流.pdf"
-      ]
+      "id": "rwref_0017"
     },
     {
-      "id": "rwref_0018",
-      "source_pdfs": [
-        "炼丹炼器.pdf"
-      ]
+      "id": "rwref_0018"
     },
     {
-      "id": "rwref_0019",
-      "source_pdfs": [
-        "喜剧.pdf"
-      ]
+      "id": "rwref_0019"
     },
     {
-      "id": "rwref_0020",
-      "source_pdfs": [
-        "末世.pdf"
-      ]
+      "id": "rwref_0020"
     },
     {
-      "id": "rwref_0021",
-      "source_pdfs": [
-        "恐怖无限流.pdf"
-      ]
+      "id": "rwref_0021"
     },
     {
-      "id": "rwref_0022",
-      "source_pdfs": [
-        "穿越重生.pdf"
-      ]
+      "id": "rwref_0022"
     },
     {
-      "id": "rwref_0023",
-      "source_pdfs": [
-        "穿越重生.pdf"
-      ]
+      "id": "rwref_0023"
     },
     {
-      "id": "rwref_0024",
-      "source_pdfs": [
-        "男频种田基建.pdf"
-      ]
+      "id": "rwref_0024"
     },
     {
-      "id": "rwref_0025",
-      "source_pdfs": [
-        "恐怖无限流.pdf"
-      ]
+      "id": "rwref_0025"
     },
     {
-      "id": "rwref_0026",
-      "source_pdfs": [
-        "耽美女频.pdf"
-      ]
+      "id": "rwref_0026"
     },
     {
-      "id": "rwref_0027",
-      "source_pdfs": [
-        "恐怖无限流.pdf"
-      ]
+      "id": "rwref_0027"
     },
     {
-      "id": "rwref_0028",
-      "source_pdfs": [
-        "群像家族.pdf"
-      ]
+      "id": "rwref_0028"
     },
     {
-      "id": "rwref_0029",
-      "source_pdfs": [
-        "群像家族.pdf"
-      ]
+      "id": "rwref_0029"
     },
     {
-      "id": "rwref_0030",
-      "source_pdfs": [
-        "仙侠玄幻.pdf"
-      ]
+      "id": "rwref_0030"
     },
     {
-      "id": "rwref_0031",
-      "source_pdfs": [
-        "种田女频.pdf"
-      ]
+      "id": "rwref_0031"
     },
     {
-      "id": "rwref_0032",
-      "source_pdfs": [
-        "炼丹炼器.pdf"
-      ]
+      "id": "rwref_0032"
     },
     {
-      "id": "rwref_0033",
-      "source_pdfs": [
-        "种田女频.pdf"
-      ]
+      "id": "rwref_0033"
     },
     {
-      "id": "rwref_0034",
-      "source_pdfs": [
-        "游戏异界.pdf"
-      ]
+      "id": "rwref_0034"
     },
     {
-      "id": "rwref_0035",
-      "source_pdfs": [
-        "群像家族.pdf"
-      ]
+      "id": "rwref_0035"
     },
     {
-      "id": "rwref_0036",
-      "source_pdfs": [
-        "甜宠先婚后爱.pdf"
-      ]
+      "id": "rwref_0036"
     },
     {
-      "id": "rwref_0037",
-      "source_pdfs": [
-        "追妻虐恋（女频）.pdf"
-      ]
+      "id": "rwref_0037"
     },
     {
-      "id": "rwref_0038",
-      "source_pdfs": [
-        "炼丹炼器.pdf"
-      ]
+      "id": "rwref_0038"
     },
     {
-      "id": "rwref_0039",
-      "source_pdfs": [
-        "科幻.pdf"
-      ]
+      "id": "rwref_0039"
     },
     {
-      "id": "rwref_0040",
-      "source_pdfs": [
-        "末世.pdf"
-      ]
+      "id": "rwref_0040"
     },
     {
-      "id": "rwref_0041",
-      "source_pdfs": [
-        "游戏异界.pdf"
-      ]
+      "id": "rwref_0041"
     },
     {
-      "id": "rwref_0042",
-      "source_pdfs": [
-        "群像家族.pdf"
-      ]
+      "id": "rwref_0042"
     },
     {
-      "id": "rwref_0043",
-      "source_pdfs": [
-        "甜宠先婚后爱.pdf"
-      ]
+      "id": "rwref_0043"
     },
     {
-      "id": "rwref_0044",
-      "source_pdfs": [
-        "耽美女频.pdf"
-      ]
+      "id": "rwref_0044"
     },
     {
-      "id": "rwref_0045",
-      "source_pdfs": [
-        "追妻虐恋（女频）.pdf"
-      ]
+      "id": "rwref_0045"
     }
   ],
-  "note": "Representative work titles are encrypted in reference-work-vault.enc.json and are not public runtime data."
+  "note": "Public reference map is zero-knowledge: refs expose only anonymous rwref_* ids. Titles, source labels, authors, and provenance mappings are encrypted in reference-work-vault.enc.json and are not public runtime data."
 }

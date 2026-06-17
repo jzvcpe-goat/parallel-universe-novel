@@ -11,7 +11,7 @@
 | `docs/product/rules/genre-runtime-rules.v1.json` | public | Only `sourceRefs` may reference representative works. |
 | `docs/product/rules/GENRE_CONSTRAINT_RULES.md` | public | No work titles, author names, or title markers. |
 | `docs/product/rules/GENRE_KERNEL_RULES.md` | public | No work titles, author names, or title markers. |
-| `docs/product/rules/reference-work-public-refs.json` | public | Only anonymous `id` and source PDF labels. |
+| `docs/product/rules/reference-work-public-refs.json` | public | Only anonymous `id`. |
 | `docs/product/rules/reference-work-vault.enc.json` | private encrypted artifact | AES-GCM ciphertext only; no plaintext refs/titles/items. |
 
 ## Current Evidence
@@ -38,7 +38,7 @@
 - Chinese book-title markers like `《...》`.
 - Metadata labels such as `代表作`, `代表作品`, `作品名`, `书名`, `作者名`.
 - English metadata keys such as `authorName`, `workTitle`, `representativeWorkTitle`.
-- Public ref objects with fields beyond `id` and `source_pdfs`.
+- Public ref objects with fields beyond `id`.
 - Runtime `sourceRefs` that are not anonymous `rwref_0000` IDs.
 - Public ref count, encrypted vault ref count, and decrypted ref count mismatches.
 - Committed `reference-work-vault.key` files or tracked `private/` key paths.
