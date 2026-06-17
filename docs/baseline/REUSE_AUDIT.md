@@ -15,7 +15,7 @@ This audit prevents duplicate development while the project adopts the Narrative
 | shadcn/glass UI | `app/src/components/*`, `app/src/styles/*`, design-system docs | use as-is | The product already has an established glass UI surface. |
 | Creator dialogue backend | `CreatorDialogueService` and `/v1/creator/dialogue/*` | wrap | Reuse existing Socratic prompt, constraints, and local fallback through Tool Bridge. |
 | Product runtime backend | `/v1/reader/snapshot`, `/v1/scene/advance`, `/v1/quality/evaluate`, `/v1/canon/commit` | wrap | Existing services remain business facts behind FastAPI facades. |
-| Constraint logic | existing `creator_dialogue.py` western-fantasy/non-game guardrails | retire for new chain | The new Mastra/Tool Bridge path must use the v3 documentation registry. Legacy rules remain only to avoid breaking old endpoints. |
+| Constraint logic | existing prompt-specific guardrails in `creator_dialogue.py` | retire for new chain | The new Mastra/Tool Bridge path must use the v3 documentation registry. Legacy rules remain only to avoid breaking old endpoints. |
 | Agent framework | ad hoc services and final-package `AgentContract` schema | migrate | Mastra becomes the orchestration and run-ledger layer, but cannot own business state. |
 | Runtime engine | current Python pipeline/product runtime services | wrap | Runtime stays FastAPI-side. Mastra calls it through Tool Bridge only. |
 | Backend team assets | prior FastAPI models/routes/tests/docs | migrate selectively | Backend/non-UI code may be mined after file-level review. No whole-package merge. |
@@ -36,4 +36,4 @@ This audit prevents duplicate development while the project adopts the Narrative
 - Do not let Mastra connect directly to business PostgreSQL.
 - Do not let Reader Web call high-cost live generation by default.
 - Do not allow AI output to enter canon without Quality Brake and author confirmation.
-- Do not reuse legacy western-fantasy guardrails for the new P4 chain; rebuild constraints from the v3 baseline and final seeds.
+- Do not reuse prompt-specific guardrails for the new P4 chain; rebuild constraints from the v3 baseline and final seeds.

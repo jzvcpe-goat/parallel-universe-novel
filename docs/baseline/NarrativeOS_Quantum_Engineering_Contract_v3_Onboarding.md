@@ -272,7 +272,7 @@ interface ConstraintRule {
 | 项 | 说明 |
 |---|---|
 | 做什么 | 定义具体禁用、必需、替换、修复与失败行为 |
-| 不做什么 | 不允许独立于 Profile 全局乱用；比如“系统面板”在系统流可允许，在非游戏西幻禁用 |
+| 不做什么 | 不允许独立于 Profile 全局乱用；同一词项在某些题材中可能是必需元素，在另一些题材中可能破坏世界基底，必须由 active Profile 判断 |
 | 建议路径 | `packages/constraints/src/rules.ts` |
 
 ### 3.4 GenreKernel / Kernel Lens

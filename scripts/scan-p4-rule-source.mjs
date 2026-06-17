@@ -1,36 +1,11 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 
-const scanRoots = [
-  'packages/agent-runtime/src',
-  'backend/src/narrativeos/services/creator_dialogue.py',
-  'backend/src/narrativeos/services/market_trends.py',
-  'backend/tests/test_creator_dialogue_api.py',
-  'backend/tests/test_market_trends_api.py',
-  'app/src/features/market',
-  'app/src/features/parallel-universe/data.ts',
-  'docs/product/rules',
-  'docs/product/breakpoints/00_NARRATIVE_RUNTIME_ENGINE.md',
-  'docs/product/reviews/BACKEND_COMPLETE_ASSET_REUSE_REVIEW_20260615.md',
-  'docs/design-system/DEVELOPMENT_NOTES.md',
-]
-
-const retiredTerms = [
-  'western-dungeon-crossing',
-  'black-gate-translator',
-  '西幻穿越',
-  '西方玄幻',
-  '非游戏化',
-  '古代官署',
-  '清河县',
-  '仵作',
-  '县衙',
-]
-
 const workflowSource = join(root, 'packages/agent-runtime/src/workflows.ts')
+const runtimeRulesSource = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
 const forbiddenWorkflowPatterns = [
   {
     pattern: /profile\.id\s*={2,3}\s*['"]/,
@@ -42,42 +17,80 @@ const forbiddenWorkflowPatterns = [
   },
 ]
 
-function collectFiles(entry) {
-  const absolute = join(root, entry)
-  if (!existsSync(absolute)) return []
-  const stat = statSync(absolute)
-  if (stat.isFile()) return [absolute]
-  const files = []
-  function walk(current) {
-    for (const child of readdirSync(current)) {
-      const full = join(current, child)
-      const childStat = statSync(full)
-      if (childStat.isDirectory()) {
-        if (['node_modules', 'dist', '.git', '.venv'].includes(child)) continue
-        walk(full)
-      } else {
-        files.push(full)
-      }
-    }
-  }
-  walk(absolute)
-  return files
-}
-
 function lineNumber(text, index) {
   return text.slice(0, index).split(/\r?\n/).length
 }
 
-const violations = []
-const files = scanRoots.flatMap(collectFiles)
+function expect(condition, message) {
+  if (!condition) violations.push(message)
+}
 
-for (const file of files) {
-  const text = readFileSync(file, 'utf8')
-  for (const term of retiredTerms) {
-    const index = text.indexOf(term)
-    if (index >= 0) {
-      violations.push(`${relative(root, file)}:${lineNumber(text, index)} retired P4 one-off term appears: ${term}`)
+function expectArray(value, message) {
+  expect(Array.isArray(value) && value.length > 0, message)
+}
+
+function hasPlainReferenceLeak(value) {
+  return /《[^》]+》|workTitle|authorName|representativeWorkTitle/.test(JSON.stringify(value))
+}
+
+const violations = []
+
+if (!existsSync(runtimeRulesSource)) {
+  violations.push(`${relative(root, runtimeRulesSource)} missing runtime rule source`)
+} else {
+  const runtimeRules = JSON.parse(readFileSync(runtimeRulesSource, 'utf8'))
+  const profiles = runtimeRules.constraintProfiles || []
+  const kernels = runtimeRules.genreKernels || []
+  const profileIds = new Set(profiles.map(profile => profile.id))
+  const kernelProfileIds = new Set(kernels.flatMap(kernel => kernel.compatibleProfiles || []))
+
+  expect(runtimeRules.version >= 2, 'runtime rules must use the document-derived versioned registry')
+  expectArray(profiles, 'runtime rules must contain ConstraintProfile entries')
+  expectArray(kernels, 'runtime rules must contain GenreKernel entries')
+  expect(!hasPlainReferenceLeak(runtimeRules), 'runtime rules must not expose representative work titles or author fields')
+
+  for (const profile of profiles) {
+    expect(typeof profile.id === 'string' && profile.id.length > 0, 'ConstraintProfile.id is required')
+    expect(typeof profile.displayName === 'string' && profile.displayName.length > 0, `${profile.id || 'unknown'} displayName is required`)
+    expect(['world', 'thematic', 'character', 'narrative', 'safety'].includes(profile.layer), `${profile.id} layer must follow the v3 contract`)
+    expect(Number.isFinite(profile.priority), `${profile.id} priority must be numeric`)
+    expectArray(profile.signalTerms, `${profile.id} signalTerms must be populated`)
+    expectArray(profile.entryModeSignals, `${profile.id} entryModeSignals must be populated`)
+    expectArray(profile.toneSignals, `${profile.id} toneSignals must be populated`)
+    expectArray(profile.rules, `${profile.id} rules must be populated`)
+    for (const ref of profile.sourceRefs || []) {
+      expect(/^rwref_\d{4}$/.test(ref), `${profile.id} sourceRefs must use anonymous rwref ids`)
     }
+    for (const rule of profile.rules || []) {
+      expect(typeof rule.id === 'string' && rule.id.length > 0, `${profile.id} rule.id is required`)
+      expect(['hard', 'soft'].includes(rule.severity), `${profile.id}/${rule.id} severity must be hard or soft`)
+      expectArray(rule.appliesWhen, `${profile.id}/${rule.id} appliesWhen must be populated`)
+      expect(typeof rule.rule === 'string' && rule.rule.length > 0, `${profile.id}/${rule.id} rule text is required`)
+      expect(['allow', 'warn', 'repair', 'regenerate', 'block'].includes(rule.failBehavior), `${profile.id}/${rule.id} failBehavior must follow the v3 contract`)
+    }
+  }
+
+  for (const kernel of kernels) {
+    expect(typeof kernel.id === 'string' && kernel.id.length > 0, 'GenreKernel.id is required')
+    expect(typeof kernel.name === 'string' && kernel.name.length > 0, `${kernel.id || 'unknown'} name is required`)
+    expectArray(kernel.compatibleProfiles, `${kernel.id} compatibleProfiles must be populated`)
+    expect(typeof kernel.thesis === 'string' && kernel.thesis.length > 0, `${kernel.id} thesis is required`)
+    expect(typeof kernel.antiThesis === 'string' && kernel.antiThesis.length > 0, `${kernel.id} antiThesis is required`)
+    expectArray(kernel.eventStructure, `${kernel.id} eventStructure must be populated`)
+    expectArray(kernel.motiveRules, `${kernel.id} motiveRules must be populated`)
+    expectArray(kernel.conflictRules, `${kernel.id} conflictRules must be populated`)
+    expectArray(kernel.climaxRules, `${kernel.id} climaxRules must be populated`)
+    expect(kernel.timeControls && Number.isFinite(kernel.timeControls.baseRate), `${kernel.id} timeControls.baseRate is required`)
+    for (const ref of kernel.sourceRefs || []) {
+      expect(/^rwref_\d{4}$/.test(ref), `${kernel.id} sourceRefs must use anonymous rwref ids`)
+    }
+    for (const profileId of kernel.compatibleProfiles || []) {
+      expect(profileIds.has(profileId), `${kernel.id} references missing profile ${profileId}`)
+    }
+  }
+
+  for (const profile of profiles) {
+    expect(kernelProfileIds.has(profile.id), `${profile.id} must have at least one compatible GenreKernel`)
   }
 }
 
