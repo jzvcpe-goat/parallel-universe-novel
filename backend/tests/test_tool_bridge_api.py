@@ -99,4 +99,11 @@ def test_tool_bridge_state_preview_is_preview_only(tmp_path: Path):
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "preview_only"
+    assert payload["stateDeltaCandidate"]
+    patch = payload["stateDeltaCandidate"][0]
+    assert patch["targetType"] == "world"
+    assert patch["operations"][0]["path"] == "candidate.current"
+    assert patch["operations"][0]["value"]["status"] == "candidate"
+    assert patch["metadata"]["reason"] == "preview_candidate_memory_before_author_confirmation"
     assert payload["writeback"]["canon_written"] is False
+    assert payload["writeback"]["branch_written"] is False

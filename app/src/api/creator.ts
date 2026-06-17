@@ -88,6 +88,20 @@ export interface AgentSocraticCreateResponse {
   }
 }
 
+export interface CreatorMemoryPreviewResponse {
+  status: 'preview_only' | string
+  projectId?: string
+  sessionId?: string
+  stateDeltaCandidate?: Array<Record<string, unknown>>
+  writeback?: {
+    status?: string
+    canon_written?: boolean
+    branch_written?: boolean
+    idempotency_key?: string
+  }
+  runTrace?: Array<{ step: string; status: string; detail: string }>
+}
+
 export interface CreatorDialogueSession {
   session_id: string
   creator_id?: string
@@ -111,6 +125,17 @@ export interface CreatorDialogueSession {
     active_kernels?: Array<Record<string, unknown>>
     source_labels?: Record<string, string>
     quality_preview?: Record<string, unknown>
+    candidate_draft?: {
+      status: string
+      title: string
+      body: string
+    }
+    memory_preview?: {
+      status: string
+      summary: string
+      item_count: number
+      updated_at: string
+    }
     run_id?: string
     project_id?: string
     input_sources?: {
@@ -201,6 +226,21 @@ async function postAgentWorkflow(payload: Record<string, unknown>): Promise<Agen
   return response.json() as Promise<AgentSocraticCreateResponse>
 }
 
+async function postAgentMemoryPreview(payload: Record<string, unknown>): Promise<CreatorMemoryPreviewResponse> {
+  const response = await fetch(`${AGENT_RUNTIME_BASE}/v1/workflows/state-preview`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    throw new Error(`agent_runtime_${response.status}`)
+  }
+  return response.json() as Promise<CreatorMemoryPreviewResponse>
+}
+
 function agentWorkflowToDialogueSession(
   result: AgentSocraticCreateResponse,
   message: string,
@@ -250,6 +290,7 @@ function agentWorkflowToDialogueSession(
       active_kernels: result.activeKernels,
       source_labels: result.sourceLabels,
       quality_preview: result.qualityPreview,
+      candidate_draft: result.candidateDraft,
       run_id: result.runId,
       project_id: result.projectId,
     },
@@ -291,6 +332,62 @@ export async function addAgentDialogueTurn(
     selectedTemplate: (payload.context as Record<string, unknown> | undefined)?.main_universe_template,
   })
   return agentWorkflowToDialogueSession(result, payload.message, session)
+}
+
+function sessionToLocalOutput(session: CreatorDialogueSession): Record<string, unknown> {
+  const candidate = session.setting_cards.candidate_draft || {
+    status: 'candidate',
+    title: '第一幕',
+    body: session.assistant.story_text || '',
+  }
+  return {
+    runId: session.setting_cards.run_id || `preview_${session.session_id}`,
+    projectId: session.setting_cards.project_id || 'project_preview',
+    sessionId: session.session_id,
+    candidateDraft: candidate,
+    questions: session.assistant.questions || session.setting_cards.open_questions || [],
+    settingCards: session.setting_cards,
+    activeConstraints: session.setting_cards.genre_constraints || [],
+    activeKernels: session.setting_cards.active_kernels || [],
+    qualityPreview: session.setting_cards.quality_preview || { result: 'pass', violations: [], repairSuggestions: [] },
+    runTrace: session.assistant.harness_trace || [],
+    cost: { mode: 'mock_local', estimatedTokens: 0, estimatedCostUsd: 0 },
+  }
+}
+
+export async function previewAgentStoryMemory(session: CreatorDialogueSession): Promise<CreatorMemoryPreviewResponse> {
+  return postAgentMemoryPreview({
+    seed: session.setting_cards.seed || session.assistant.story_text || '',
+    sessionId: session.session_id,
+    projectId: session.setting_cards.project_id,
+    creatorId: session.creator_id,
+    context: {
+      mastra_local_output: sessionToLocalOutput(session),
+    },
+    previousSession: session,
+  })
+}
+
+export function applyMemoryPreview(
+  session: CreatorDialogueSession,
+  preview: CreatorMemoryPreviewResponse,
+): CreatorDialogueSession {
+  const count = Array.isArray(preview.stateDeltaCandidate) ? preview.stateDeltaCandidate.length : 0
+  return {
+    ...session,
+    setting_cards: {
+      ...session.setting_cards,
+      memory_preview: {
+        status: preview.status || 'preview_only',
+        summary: count
+          ? `已整理 ${count} 组写作记忆，等你确认后再固定到作品。`
+          : '已整理这一段的写作记忆，等你确认后再固定到作品。',
+        item_count: count,
+        updated_at: nowIso(),
+      },
+    },
+    updated_at: nowIso(),
+  }
 }
 
 function nowIso() {

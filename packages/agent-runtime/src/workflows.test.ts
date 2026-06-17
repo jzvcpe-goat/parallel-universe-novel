@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { socraticCreateWorkflow } from './workflows.js'
+import { socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
   const result = await socraticCreateWorkflow({
@@ -24,4 +24,32 @@ test('constraint preview blocks prohibited mismatched terms', async () => {
 
   assert.ok(result.activeConstraints.length > 0)
   assert.ok(result.activeConstraints[0].prohibitedTerms.includes('读心术'))
+})
+
+test('state preview workflow never writes canon when tool bridge is unavailable', async () => {
+  const result = await statePreviewWorkflow({
+    seed: '主角把裂纹玉简放回问灵台，暂时不确认这段正文。',
+    genre: '仙侠玄幻',
+    context: {
+      mastra_local_output: {
+        runId: 'run_preview_demo',
+        projectId: 'project_demo',
+        sessionId: 'session_demo',
+        candidateDraft: {
+          status: 'candidate',
+          title: '问灵台',
+          body: '问灵台的铜铃响到第三声。',
+        },
+        settingCards: {
+          confirmed: ['裂纹玉简', '问灵台', '因果债'],
+        },
+        runTrace: [],
+      },
+    },
+  })
+
+  const writeback = result.writeback as Record<string, unknown>
+  assert.equal(result.status, 'preview_only')
+  assert.equal(writeback.canon_written, false)
+  assert.equal(writeback.branch_written, false)
 })

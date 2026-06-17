@@ -6,7 +6,7 @@ import {
   resolveKernels,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
-import { socraticTurnTool } from './toolBridge.js'
+import { socraticTurnTool, statePreviewTool } from './toolBridge.js'
 import type {
   ConstraintProfile,
   GenreKernel,
@@ -246,11 +246,87 @@ export async function socraticCreateWorkflow(
   }
 }
 
+export async function statePreviewWorkflow(
+  input: SocraticCreateInput,
+  options: { signal?: AbortSignal } = {},
+): Promise<Record<string, unknown>> {
+  const runId = `preview_${randomUUID()}`
+  const startedAt = Date.now()
+  const localOutput = typeof input.context?.mastra_local_output === 'object' && input.context.mastra_local_output !== null
+    ? input.context.mastra_local_output as Record<string, unknown>
+    : {
+        runId,
+        projectId: input.projectId || `project_${randomUUID().slice(0, 8)}`,
+        sessionId: input.sessionId || `creator_dialogue_${randomUUID().slice(0, 12)}`,
+        candidateDraft: {
+          status: 'candidate',
+          title: '第一幕',
+          body: input.seed,
+        },
+        questions: [],
+        settingCards: {},
+        activeConstraints: [],
+        activeKernels: [],
+        qualityPreview: { result: 'pass', violations: [], repairSuggestions: [] },
+        runTrace: [
+          { step: 'state.preview.prepare', status: 'ok', detail: '候选写作记忆已准备预览。' },
+        ],
+        cost: { mode: 'mock_local', estimatedTokens: 0, estimatedCostUsd: 0 },
+      }
+
+  try {
+    const bridged = await statePreviewTool(
+      {
+        ...input,
+        context: {
+          ...(input.context || {}),
+          mastra_local_output: localOutput,
+        },
+      },
+      String(localOutput.runId || runId),
+      options.signal,
+    )
+    return {
+      ...bridged,
+      ledger: [
+        ledgerEntry({
+          runId,
+          projectId: String(localOutput.projectId || input.projectId || 'project_preview'),
+          agentType: 'Workflow',
+          input,
+          output: bridged,
+          startedAt,
+          stateDeltaCandidate: Array.isArray((bridged as Record<string, unknown>).stateDeltaCandidate)
+            ? (bridged as { stateDeltaCandidate: Record<string, unknown>[] }).stateDeltaCandidate
+            : [],
+        }),
+      ],
+    }
+  } catch {
+    return {
+      status: 'preview_only',
+      projectId: localOutput.projectId || input.projectId || 'project_preview',
+      sessionId: localOutput.sessionId || input.sessionId || `preview_${runId.slice(0, 12)}`,
+      stateDeltaCandidate: [],
+      writeback: {
+        status: 'preview_only',
+        canon_written: false,
+        branch_written: false,
+        idempotency_key: runId,
+      },
+      runTrace: [
+        { step: 'tool_bridge.state_preview', status: 'warn', detail: '候选写作记忆暂时只保留在本地。' },
+      ],
+    }
+  }
+}
+
 export const workflowRegistry = {
   socraticCreateWorkflow,
   draftSceneWorkflow: socraticCreateWorkflow,
   extractChangesWorkflow: socraticCreateWorkflow,
   qualityBrakeWorkflow: socraticCreateWorkflow,
+  statePreviewWorkflow,
 }
 
 export const agentRuntimeMeta = {

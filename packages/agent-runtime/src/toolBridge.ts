@@ -50,3 +50,10 @@ export async function socraticTurnTool(
   return callToolBridge('/v1/tools/runtime/socratic-turn', input, runId, signal)
 }
 
+export async function statePreviewTool(
+  input: SocraticCreateInput,
+  runId: string,
+  signal?: AbortSignal,
+): Promise<Record<string, unknown>> {
+  return callToolBridge('/v1/tools/runtime/state-preview', input, runId, signal)
+}

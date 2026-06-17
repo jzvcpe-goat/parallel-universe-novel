@@ -1,4 +1,4 @@
-import { Loader2, Send } from 'lucide-react'
+import { Loader2, Send, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type CreatorTurn = Record<string, unknown>
@@ -12,6 +12,9 @@ interface CreatorDialogueThreadProps {
   onChange: (value: string) => void
   onSubmit: () => void
   onUseQuestion: (question: string) => void
+  onPreviewMemory?: () => void
+  previewLoading?: boolean
+  previewSummary?: string
 }
 
 function turnRole(turn: CreatorTurn) {
@@ -37,6 +40,9 @@ export function CreatorDialogueThread({
   onChange,
   onSubmit,
   onUseQuestion,
+  onPreviewMemory,
+  previewLoading = false,
+  previewSummary,
 }: CreatorDialogueThreadProps) {
   return (
     <div className="creator-dialogue-flow" data-testid="creator-dialogue-thread">
@@ -76,6 +82,21 @@ export function CreatorDialogueThread({
               </button>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {onPreviewMemory ? (
+        <section className="creator-memory-preview">
+          <div>
+            <p className="text-sm font-semibold text-[var(--ink-paper)]">写作记忆</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
+              {previewSummary || '把当前开场、问题和故事笔记先整理出来，等你确认后再固定到作品。'}
+            </p>
+          </div>
+          <Button variant="outline" onClick={onPreviewMemory} disabled={previewLoading}>
+            {previewLoading ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+            整理成写作记忆
+          </Button>
         </section>
       ) : null}
 

@@ -9,9 +9,11 @@ import { CreatorStoryNotes } from '@/components/design-system/CreatorStoryNotes'
 import {
   addAgentDialogueTurn,
   createAgentDialogueSession,
+  applyMemoryPreview,
   creatorApi,
   localDialogueSession,
   localDialogueTurn,
+  previewAgentStoryMemory,
   type CreatorDialogueSession,
 } from '@/api/creator'
 import { marketApi } from '@/api/market'
@@ -46,6 +48,7 @@ export default function Create() {
   const [session, setSession] = useState<CreatorDialogueSession | null>(null)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [notice, setNotice] = useState<string>('写下一句话就能开始。')
   const [marketTrends, setMarketTrends] = useState(marketTrendFallback)
   const initialTemplateId = useMemo(
@@ -189,6 +192,33 @@ export default function Create() {
       setNotice('先用草稿继续写，不打断创作。')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function previewMemory() {
+    if (!session || previewLoading) return
+    setPreviewLoading(true)
+    setNotice('')
+    try {
+      const preview = await previewAgentStoryMemory(session)
+      setSession(applyMemoryPreview(session, preview))
+      setNotice('写作记忆已整理好，仍等你确认后再固定到作品。')
+    } catch {
+      setSession({
+        ...session,
+        setting_cards: {
+          ...session.setting_cards,
+          memory_preview: {
+            status: 'preview_only',
+            summary: '已先在本页整理这一段的写作记忆，等你确认后再固定到作品。',
+            item_count: 0,
+            updated_at: new Date().toISOString(),
+          },
+        },
+      })
+      setNotice('已先在本页整理写作记忆，不打断创作。')
+    } finally {
+      setPreviewLoading(false)
     }
   }
 
@@ -366,9 +396,12 @@ export default function Create() {
                   value={input}
                   notice={notice}
                   loading={loading}
+                  previewLoading={previewLoading}
+                  previewSummary={cards?.memory_preview?.summary}
                   onChange={setInput}
                   onSubmit={() => void submit()}
                   onUseQuestion={setInput}
+                  onPreviewMemory={() => void previewMemory()}
                 />
               )}
             </section>

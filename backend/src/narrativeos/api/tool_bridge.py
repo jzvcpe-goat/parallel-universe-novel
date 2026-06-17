@@ -95,6 +95,63 @@ def _public_output(payload: RuntimeToolRequest, *, idempotency_key: str, endpoin
     }
 
 
+def _state_delta_candidate(output: Dict[str, Any]) -> List[Dict[str, Any]]:
+    candidate = dict(output.get("candidateDraft") or {})
+    setting_cards = dict(output.get("settingCards") or {})
+    quality_preview = dict(output.get("qualityPreview") or {})
+    run_id = str(output.get("runId") or "")
+    session_id = str(output.get("sessionId") or "session_preview")
+    project_id = str(output.get("projectId") or "project_preview")
+    confirmed = setting_cards.get("confirmed") if isinstance(setting_cards.get("confirmed"), list) else []
+    open_questions = setting_cards.get("open_questions") if isinstance(setting_cards.get("open_questions"), list) else []
+    constraints = output.get("activeConstraints") if isinstance(output.get("activeConstraints"), list) else []
+    kernels = output.get("activeKernels") if isinstance(output.get("activeKernels"), list) else []
+
+    return [
+        {
+            "targetId": session_id,
+            "targetType": "world",
+            "operations": [
+                {
+                    "op": "set",
+                    "path": "candidate.current",
+                    "value": {
+                        "status": "candidate",
+                        "title": candidate.get("title") or "第一幕",
+                        "bodyPreview": str(candidate.get("body") or "")[:240],
+                        "charCount": len(str(candidate.get("body") or "")),
+                    },
+                },
+                {
+                    "op": "merge",
+                    "path": "setting_cards",
+                    "value": {
+                        "confirmed": confirmed,
+                        "open_questions": open_questions[:2],
+                        "active_constraints": constraints,
+                        "active_kernels": kernels,
+                    },
+                },
+                {
+                    "op": "set",
+                    "path": "quality.preview",
+                    "value": {
+                        "result": quality_preview.get("result") or "pass",
+                        "violationCount": len(quality_preview.get("violations") or []),
+                    },
+                },
+            ],
+            "metadata": {
+                "sourceAgent": "Orchestrator",
+                "runId": run_id,
+                "projectId": project_id,
+                "confidence": 0.74,
+                "reason": "preview_candidate_memory_before_author_confirmation",
+            },
+        }
+    ]
+
+
 @router.post("/socratic-turn")
 def socratic_turn(
     payload: RuntimeToolRequest,
@@ -139,8 +196,7 @@ def state_preview(
         "status": "preview_only",
         "projectId": output["projectId"],
         "sessionId": output["sessionId"],
-        "stateDeltaCandidate": [],
+        "stateDeltaCandidate": _state_delta_candidate(output),
         "writeback": output["writeback"],
         "runTrace": output["runTrace"],
     }
-

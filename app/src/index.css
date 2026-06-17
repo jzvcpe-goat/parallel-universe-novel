@@ -1011,6 +1011,24 @@
     padding-top: 1rem;
   }
 
+  .creator-memory-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 16px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  @media (max-width: 760px) {
+    .creator-memory-preview {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+
   .creator-composer textarea {
     width: 100%;
     resize: vertical;

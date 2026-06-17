@@ -38,6 +38,43 @@ npm --workspace @narrativeos/agent-runtime test
 npm run scan:reference-privacy
 ```
 
+## 2026-06-17 P6 候选正文生命周期
+
+### 现象
+
+`/create` 已经能通过 Mastra-compatible workflow 生成候选开场和追问，但作者确认前的状态回写仍不够明确。页面只展示正文和故事笔记，没有一个可点击的“先整理为写作记忆”的动作；FastAPI `state-preview` 也只返回空列表，无法证明状态预览不是口头概念。
+
+### 原因
+
+1. 首条链路优先打通了 `socratic-create -> socratic-turn`，但没有把确认前的 `state-preview` 做成可验证闭环。
+2. 前端不应该展示 `state-preview / canon / branch / runtime` 等内部词，因此需要一个产品化动作名承载这一步。
+3. Tool Bridge 原本只证明“不写 canon”，没有返回可回放的候选补丁。
+
+### 修复原则
+
+1. 创作者端用“写作记忆”表达候选状态预览，不暴露内部运行时词。
+2. 点击“整理成写作记忆”只生成候选补丁，不写入 canon 或 branch。
+3. FastAPI 返回 `stateDeltaCandidate` 供后端/Studio 回放，公共前端只显示整理结果摘要。
+4. 失败时前端本地降级，继续保持创作不中断，但不伪装成已正式写入作品。
+5. 回归测试必须同时验证候选补丁存在、`canon_written=false`、`branch_written=false`。
+
+### 本轮落地
+
+- Agent runtime 新增 `/v1/workflows/state-preview`，通过 Tool Bridge 调 FastAPI `state-preview`。
+- FastAPI `state-preview` 返回 `StatePatch` 风格的 `stateDeltaCandidate`，包含候选正文、故事笔记和质量预览。
+- `/create` 的对话线程新增“整理成写作记忆”按钮。
+- 前端新增 `previewAgentStoryMemory` 和 `applyMemoryPreview`，只显示“已整理，等你确认后再固定到作品”。
+- `test_tool_bridge_api.py` 增加状态预览候选补丁断言。
+- `workflows.test.ts` 增加 Tool Bridge 不可用时仍不写 canon 的回归测试。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run test
+npm --prefix app run build
+```
+
 ## 2026-06-12 /create 创作页布局与系统边界收口
 
 ### 现象

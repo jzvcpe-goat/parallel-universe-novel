@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import { agentContracts } from './agents.js'
-import { agentRuntimeMeta, socraticCreateWorkflow } from './workflows.js'
+import { agentRuntimeMeta, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 
 const port = Number(process.env.MASTRA_PORT || 4111)
 const host = process.env.MASTRA_HOST || '127.0.0.1'
@@ -37,6 +37,11 @@ const server = createServer(async (req, res) => {
       const output = await socraticCreateWorkflow(body)
       return sendJson(res, 200, output)
     }
+    if (req.method === 'POST' && url.pathname === '/v1/workflows/state-preview') {
+      const body = await readJson(req)
+      const output = await statePreviewWorkflow(body)
+      return sendJson(res, 200, output)
+    }
     return sendJson(res, 404, { code: 'not_found' })
   } catch (error) {
     return sendJson(res, 500, {
@@ -49,4 +54,3 @@ const server = createServer(async (req, res) => {
 server.listen(port, host, () => {
   console.log(`NarrativeOS Mastra-compatible agent runtime listening at http://${host}:${port}`)
 })
-
