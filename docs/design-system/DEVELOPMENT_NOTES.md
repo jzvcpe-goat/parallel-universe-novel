@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P46 远程 Runtime 激活门禁
+
+### 现象
+
+P45 把 `commercial-release-chain` 判定为 blocked，但“远端 API/Agent 未配置”仍然太粗。真正上线时，团队需要知道断点发生在 repository variables、远端 health、Creator workflow preflight、CI artifact，还是 Pages 发布状态。
+
+### 修复原则
+
+1. 公开 Pages 只能通过 GitHub repository variables 从 `disabled` 切到 `live`，不能靠改前端绕过。
+2. P46 读取最新 `runtime-readiness-ledger`，不重新发明一套环境判断。
+3. 远端未配置时脚本输出 `passed_with_activation_blockers`，证明断点清楚，而不是伪造上线成功。
+4. P46 artifact 只保留阶段、检查 ID 和下一步动作，不写入 secret、system prompt、raw state、代表作品或 candidate 全文。
+
+### 本轮落地
+
+- 新增 `scripts/check-remote-runtime-activation.mjs`。
+- 新增 `docs/backend/P46_REMOTE_RUNTIME_ACTIVATION_GATE.md`。
+- `package.json` 增加 `check:remote-runtime-activation`，并接入根 `npm run test`。
+- `docs/baseline/RELEASE_SYNC_MANIFEST.json` 纳入 P46 文档和脚本。
+- 脚本生成 `artifacts/runtime/remote-runtime-activation-*.json`，输出 `hold_public_live_runtime_disabled` 或 `can_enable_public_live_runtime`。
+
+### 必跑检查
+
+```bash
+npm run audit:live-runtime-readiness
+npm run check:remote-runtime-activation
+```
+
 ## 2026-06-17 P45 Runtime Engine 完成度审计
 
 ### 现象
