@@ -9,7 +9,7 @@ import {
   runtimeRulesMeta,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
-import { qualityCheckTool, socraticTurnTool, statePreviewTool } from './toolBridge.js'
+import { qualityCheckTool, requiresToolBridgeFailClosed, socraticTurnTool, statePreviewTool } from './toolBridge.js'
 import type {
   ConstraintProfile,
   GenreKernel,
@@ -673,7 +673,8 @@ export async function socraticCreateWorkflow(
       ],
       ledger: localOutput.ledger,
     }
-  } catch {
+  } catch (error) {
+    if (requiresToolBridgeFailClosed()) throw error
     return {
       ...localOutput,
       runTrace: [
@@ -740,7 +741,8 @@ export async function statePreviewWorkflow(
         }),
       ],
     }
-  } catch {
+  } catch (error) {
+    if (requiresToolBridgeFailClosed()) throw error
     return {
       status: 'preview_only',
       projectId: localOutput.projectId || input.projectId || 'project_preview',
@@ -851,7 +853,8 @@ export async function qualityBrakeWorkflow(
       qualityPreview: (bridged.qualityPreview as typeof qualityPreview | undefined) || qualityPreview,
       runTrace: bridgedTrace,
     }
-  } catch {
+  } catch (error) {
+    if (requiresToolBridgeFailClosed()) throw error
     return {
       ...localResult,
       runTrace: [

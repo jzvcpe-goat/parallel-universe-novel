@@ -69,6 +69,33 @@ test('tool bridge service token default is only allowed outside protected deploy
   }
 })
 
+test('protected deploy fails closed when tool bridge cannot be reached', async () => {
+  const originalDeployEnv = process.env.NARRATIVEOS_DEPLOY_ENV
+  const originalToken = process.env.MASTRA_TOOL_BRIDGE_TOKEN
+  const originalBaseUrl = process.env.MASTRA_TOOL_BRIDGE_BASE_URL
+
+  try {
+    process.env.NARRATIVEOS_DEPLOY_ENV = 'production'
+    process.env.MASTRA_TOOL_BRIDGE_TOKEN = 'prod-secret'
+    process.env.MASTRA_TOOL_BRIDGE_BASE_URL = 'http://127.0.0.1:9'
+
+    await assert.rejects(
+      () => socraticCreateWorkflow({
+        seed: '现代悬疑旧案，主角收到一份矛盾证据。',
+        genre: '现代悬疑',
+      }),
+      (error: unknown) => error instanceof ToolBridgeError && error.message.startsWith('tool_bridge_unavailable'),
+    )
+  } finally {
+    if (originalDeployEnv === undefined) delete process.env.NARRATIVEOS_DEPLOY_ENV
+    else process.env.NARRATIVEOS_DEPLOY_ENV = originalDeployEnv
+    if (originalToken === undefined) delete process.env.MASTRA_TOOL_BRIDGE_TOKEN
+    else process.env.MASTRA_TOOL_BRIDGE_TOKEN = originalToken
+    if (originalBaseUrl === undefined) delete process.env.MASTRA_TOOL_BRIDGE_BASE_URL
+    else process.env.MASTRA_TOOL_BRIDGE_BASE_URL = originalBaseUrl
+  }
+})
+
 test('socratic workflow returns candidate draft and at most two questions', async () => {
   const profile = constraintProfiles.find(item => item.displayName === '仙侠玄幻') || constraintProfiles[0]
   const result = await socraticCreateWorkflow({

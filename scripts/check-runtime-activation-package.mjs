@@ -23,6 +23,7 @@ const requiredFiles = [
   'deploy/runtime-preview/docker-compose.yml',
   'packages/agent-runtime/src/server.ts',
   'packages/agent-runtime/src/toolBridge.ts',
+  'packages/agent-runtime/src/workflows.ts',
   'backend/src/narrativeos/api/app_factory.py',
   'backend/src/narrativeos/api/tool_bridge.py',
   '.github/workflows/pages.yml',
@@ -41,6 +42,7 @@ const p23 = read('docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
 const agentServer = read('packages/agent-runtime/src/server.ts')
 const toolBridge = read('packages/agent-runtime/src/toolBridge.ts')
+const agentWorkflows = read('packages/agent-runtime/src/workflows.ts')
 const apiFactory = read('backend/src/narrativeos/api/app_factory.py')
 const apiToolBridge = read('backend/src/narrativeos/api/tool_bridge.py')
 const workflow = read('.github/workflows/pages.yml')
@@ -88,6 +90,13 @@ assert(
   'Tool Bridge client must prefer MASTRA_TOOL_BRIDGE_BASE_URL while retaining legacy compatibility',
 )
 assert(
+  toolBridge.includes('requiresToolBridgeFailClosed')
+    && toolBridge.includes('MASTRA_REQUIRE_TOOL_BRIDGE')
+    && agentWorkflows.includes('requiresToolBridgeFailClosed')
+    && agentWorkflows.includes('throw error'),
+  'Agent Runtime must fail closed on Tool Bridge errors in protected deploys',
+)
+assert(
   agentServer.includes('MASTRA_ALLOWED_ORIGINS')
     && agentServer.includes('Vary')
     && agentServer.includes('Idempotency-Key'),
@@ -114,7 +123,8 @@ assert(
     && p14.includes('MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && p14.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && p14.includes('MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io')
-    && p14.includes('Authorization: Bearer <shared-tool-bridge-secret>'),
+    && p14.includes('Authorization: Bearer <shared-tool-bridge-secret>')
+    && p14.includes('fail closed when FastAPI Tool Bridge is unreachable'),
   'P14 deployment package must document Agent bridge, Tool Bridge token, and CORS env vars',
 )
 for (const required of [
@@ -145,6 +155,7 @@ for (const required of [
   'MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>',
   'Authorization: Bearer <shared-tool-bridge-secret>',
   'both services reject the local `dev-local-token` default',
+  'fail closed when FastAPI Tool Bridge is unreachable',
   'Do not expose this secret to the browser or GitHub Pages build variables.',
 ]) {
   assert(p20.includes(required), `P20 runbook must include Tool Bridge auth contract: ${required}`)

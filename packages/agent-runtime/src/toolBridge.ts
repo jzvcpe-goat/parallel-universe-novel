@@ -28,6 +28,15 @@ function requiresExplicitToolBridgeToken(): boolean {
   return ['1', 'true', 'yes'].includes(explicit) || PROTECTED_DEPLOY_ENVS.has(deployEnv())
 }
 
+export function requiresToolBridgeFailClosed(): boolean {
+  const explicit = String(
+    process.env.MASTRA_REQUIRE_TOOL_BRIDGE
+    || process.env.NARRATIVEOS_REQUIRE_TOOL_BRIDGE
+    || '',
+  ).trim().toLowerCase()
+  return ['1', 'true', 'yes'].includes(explicit) || PROTECTED_DEPLOY_ENVS.has(deployEnv())
+}
+
 export function serviceToken(): string {
   const token = String(process.env.MASTRA_TOOL_BRIDGE_TOKEN || '').trim()
   if (requiresExplicitToolBridgeToken() && (!token || token === DEFAULT_TOOL_BRIDGE_TOKEN)) {
@@ -42,17 +51,23 @@ export async function callToolBridge<T>(
   idempotencyKey: string,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = await fetch(`${fastApiBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${serviceToken()}`,
-      'Idempotency-Key': idempotencyKey,
-    },
-    body: JSON.stringify(payload),
-    signal,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${fastApiBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceToken()}`,
+        'Idempotency-Key': idempotencyKey,
+      },
+      body: JSON.stringify(payload),
+      signal,
+    })
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    throw new ToolBridgeError(`tool_bridge_unavailable:${detail}`)
+  }
 
   if (!response.ok) {
     const body = await response.text()

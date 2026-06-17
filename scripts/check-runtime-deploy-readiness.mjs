@@ -85,6 +85,7 @@ assert(
     && contract.includes('MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && contract.includes('Authorization: Bearer <shared-tool-bridge-secret>')
     && contract.includes('reject the local `dev-local-token` default')
+    && contract.includes('fail closed when FastAPI Tool Bridge is unreachable')
     && contract.includes('Idempotency-Key'),
   'P14 deployment package doc must describe service ownership, Tool Bridge service-token auth, and idempotent write boundary',
 )

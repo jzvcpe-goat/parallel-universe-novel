@@ -111,6 +111,8 @@ Every Tool Bridge call must also include `Authorization: Bearer <shared-tool-bri
 
 In protected deploy envs (`production`, `live`, `staging`, `preview`, `remote`), both services reject the local `dev-local-token` default. If the secret is missing or left as `dev-local-token`, Tool Bridge calls must fail before any runtime state preview is accepted.
 
+Protected Agent Runtime deploys also fail closed when FastAPI Tool Bridge is unreachable. A live creator request must not return a local candidate draft unless FastAPI accepted the Tool Bridge call.
+
 ## GitHub Repository Variables
 
 Set only repository variables, not frontend code defaults:

@@ -104,10 +104,11 @@ cp app/dist/index.html app/dist/404.html
 5. FastAPI Tool Bridge requires `Authorization: Bearer <shared-tool-bridge-secret>` and `Idempotency-Key`.
 6. Protected deploy envs such as `production`, `live`, `staging`, `preview`, and `remote` reject the local `dev-local-token` default.
 7. `NARRATIVEOS_TOOL_BRIDGE_TOKEN` and `MASTRA_TOOL_BRIDGE_TOKEN` must be the same non-default secret in the same environment.
-8. Agent Runtime CORS is restricted with `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io` for public preview.
-9. Creator public build uses `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`.
-10. AI outputs remain `candidate`; no canon write is performed by the public creator chain.
-11. Any future persistent write must pass through FastAPI Tool Bridge with service-token auth and `Idempotency-Key`.
+8. Protected Agent Runtime deploys fail closed when FastAPI Tool Bridge is unreachable; they must not return local candidate drafts as if the backend accepted them.
+9. Agent Runtime CORS is restricted with `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io` for public preview.
+10. Creator public build uses `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`.
+11. AI outputs remain `candidate`; no canon write is performed by the public creator chain.
+12. Any future persistent write must pass through FastAPI Tool Bridge with service-token auth and `Idempotency-Key`.
 
 ## Verification
 
