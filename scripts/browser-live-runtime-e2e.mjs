@@ -205,7 +205,7 @@ try {
   )
   const allowInsecure = process.env.ALLOW_INSECURE_RUNTIME_SMOKE === 'true'
   const seed = process.env.LIVE_RUNTIME_SMOKE_SEED
-    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。'
+    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。开场要包含具体地点、人物压力、证据细节和一个无法立刻解释的反转。'
 
   if (!apiOrigin || !agentOrigin) {
     if (required) {

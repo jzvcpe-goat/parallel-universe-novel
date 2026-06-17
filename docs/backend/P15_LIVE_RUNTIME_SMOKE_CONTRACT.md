@@ -26,6 +26,14 @@ Default mode is safe for local and CI: if remote URLs are not configured, the sc
 npm run qa:live-runtime-browser
 ```
 
+Local live-mode simulation:
+
+```bash
+npm run qa:live-runtime-local
+```
+
+This starts local FastAPI and Agent Runtime services, then runs the same `qa:live-runtime-browser` path with `ALLOW_INSECURE_RUNTIME_SMOKE=true`, `REQUIRE_PUBLIC_RUNTIME=true`, live frontend mode, and local fallback disabled. It also reuses the available backend virtualenv, Playwright module, and local Chrome executable when present. Use it before remote API/Agent URLs exist; it proves the direct workflow preflight, Tool Bridge, live build, and browser submit path are executable.
+
 Required live mode:
 
 ```bash
@@ -39,7 +47,7 @@ npm run qa:live-runtime-browser
 Optional seed override:
 
 ```bash
-LIVE_RUNTIME_SMOKE_SEED="我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据。" \
+LIVE_RUNTIME_SMOKE_SEED="我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。开场要包含具体地点、人物压力、证据细节和一个无法立刻解释的反转。" \
 npm run qa:live-runtime-browser
 ```
 

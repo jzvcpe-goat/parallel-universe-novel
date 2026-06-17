@@ -129,7 +129,7 @@ async function fetchWorkflowPreflight(origin) {
 
   const url = `${normalizeOrigin(origin)}/v1/workflows/socratic-create`
   const seed = process.env.LIVE_RUNTIME_SMOKE_SEED
-    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。'
+    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。开场要包含具体地点、人物压力、证据细节和一个无法立刻解释的反转。'
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), Number(process.env.LIVE_RUNTIME_WORKFLOW_TIMEOUT_MS || 20000))
   try {

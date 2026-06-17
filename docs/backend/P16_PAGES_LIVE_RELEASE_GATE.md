@@ -2,7 +2,7 @@
 
 ## Goal
 
-让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：只有远端 API 与 Agent Runtime URL 都配置好，并且 `qa:live-runtime-browser` 通过，CI 才会构建 live Creator Studio。
+让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：CI 先通过 `qa:live-runtime-local` 证明本地 FastAPI + Agent Runtime + live-mode 浏览器链路可执行；只有远端 API 与 Agent Runtime URL 都配置好，并且 `qa:live-runtime-browser` 通过，CI 才会构建 live Creator Studio。
 
 ## Default State
 
@@ -41,19 +41,23 @@ VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host>
 Before the build step, `.github/workflows/pages.yml` runs:
 
 ```bash
+npm install --no-save playwright
+npx playwright install chromium
 npm run check:public-runtime-preview
+npm run qa:live-runtime-local
 if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
-  npm install --no-save playwright
-  npx playwright install chromium
+  REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 ```
 
 This proves:
 
+- Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - API health is reachable.
 - Agent Runtime health is reachable.
+- Agent workflow preflight can return a public candidate.
 - Creator Studio can submit a story seed in live mode.
 - A candidate draft is returned.
 - Public UI still hides internal implementation terms.
@@ -62,9 +66,10 @@ This proves:
 
 1. `npm run check:pages-live-release-gate` passes.
 2. Static mode still deploys with no remote Runtime variables.
-3. Live mode fails if any required remote URL is missing.
-4. Live mode fails if browser submission cannot create a candidate draft.
-5. Live mode never enables local fallback.
+3. CI always runs `qa:live-runtime-local` before evaluating remote live mode.
+4. Live mode fails if any required remote URL is missing.
+5. Live mode fails if browser submission cannot create a candidate draft.
+6. Live mode never enables local fallback.
 
 ## Operational Rule
 

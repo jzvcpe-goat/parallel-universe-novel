@@ -13,9 +13,12 @@ function assert(condition, message) {
 }
 
 const scriptPath = 'scripts/browser-live-runtime-e2e.mjs'
+const localScriptPath = 'scripts/browser-live-runtime-local-e2e.mjs'
 assert(existsSync(join(root, scriptPath)), `missing ${scriptPath}`)
+assert(existsSync(join(root, localScriptPath)), `missing ${localScriptPath}`)
 
 const liveQa = read(scriptPath)
+const localLiveQa = read(localScriptPath)
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
 const p13Doc = read('docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md')
 const p14Doc = read('docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md')
@@ -69,6 +72,10 @@ assert(
   'package.json must expose qa:live-runtime-browser',
 )
 assert(
+  packageJson.scripts['qa:live-runtime-local'] === 'node scripts/browser-live-runtime-local-e2e.mjs',
+  'package.json must expose qa:live-runtime-local',
+)
+assert(
   packageJson.scripts['check:live-runtime-smoke'] === 'node scripts/check-live-runtime-smoke-contract.mjs',
   'package.json must expose check:live-runtime-smoke',
 )
@@ -78,12 +85,24 @@ assert(
 )
 assert(
   p15Doc.includes('qa:live-runtime-browser')
+    && p15Doc.includes('qa:live-runtime-local')
     && p15Doc.includes('REQUIRE_PUBLIC_RUNTIME=true')
     && p15Doc.includes('candidate')
     && p15Doc.includes('0-2')
     && p15Doc.includes('/v1/workflows/socratic-create')
     && p15Doc.includes('direct workflow preflight'),
   'P15 contract doc must describe the direct workflow preflight, live browser smoke, and acceptance boundary',
+)
+assert(
+  localLiveQa.includes('ALLOW_INSECURE_RUNTIME_SMOKE')
+    && localLiveQa.includes('REQUIRE_PUBLIC_RUNTIME')
+    && localLiveQa.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK')
+    && localLiveQa.includes('scripts/browser-live-runtime-e2e.mjs')
+    && localLiveQa.includes('MASTRA_TOOL_BRIDGE_BASE_URL')
+    && localLiveQa.includes('backendPythonEnv')
+    && localLiveQa.includes('PLAYWRIGHT_MODULE_PATH')
+    && localLiveQa.includes('PLAYWRIGHT_CHROMIUM_EXECUTABLE'),
+  'Local live runtime QA must run the same live browser script against local API and Agent services',
 )
 assert(
   p13Doc.includes('Add live browser QA against the remote preview')
@@ -99,6 +118,7 @@ console.log(JSON.stringify({
   status: 'passed',
   checked: [
     scriptPath,
+    localScriptPath,
     'docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md',
     'package.json',
   ],

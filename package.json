@@ -26,6 +26,7 @@
     "qa:creator-browser": "node scripts/browser-creator-e2e.mjs",
     "qa:pages-browser": "node scripts/browser-pages-preview-e2e.mjs",
     "qa:live-runtime-browser": "node scripts/browser-live-runtime-e2e.mjs",
+    "qa:live-runtime-local": "node scripts/browser-live-runtime-local-e2e.mjs",
     "check:package-identity": "node scripts/check-package-identity.mjs",
     "check:release-sync-manifest": "node scripts/check-release-sync-manifest.mjs",
     "check:public-runtime-boundary": "node scripts/check-public-runtime-boundary.mjs",

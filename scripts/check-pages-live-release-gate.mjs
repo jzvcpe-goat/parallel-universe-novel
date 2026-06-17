@@ -53,6 +53,15 @@ assert(
   'Run runtime checks must receive the same GitHub vars context used by the release gate',
 )
 assert(
+  workflow.includes('Install browser QA dependencies')
+    && workflow.includes('npm install --no-save playwright')
+    && workflow.includes('npx playwright install chromium')
+    && workflow.includes('Run local live runtime browser QA')
+    && workflow.includes('npm run qa:live-runtime-local')
+    && workflow.indexOf('Run local live runtime browser QA') < workflow.indexOf('Gate public runtime release mode'),
+  'Pages workflow must run local live-mode browser QA before the public runtime release gate',
+)
+assert(
   workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
     && workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}'),
   'Pages workflow must source remote API and Agent URLs from GitHub vars',
@@ -96,6 +105,7 @@ assert(
 assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
+    && p16Doc.includes('qa:live-runtime-local')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate and required GitHub vars',
 )

@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P41 本地 live-mode 创作链路 QA
+
+### 现象
+
+P39/P40 已经让远端 live smoke 和 readiness ledger 验证 `POST /v1/workflows/socratic-create`，但在没有远端 API/Agent URL 时，`qa:live-runtime-browser` 会按设计跳过。这样本地开发虽然有 `smoke:creator-chain`，却没有一条真正用 live-mode 前端构建、浏览器提交、direct workflow preflight 和 Tool Bridge 的完整链路。
+
+### 修复原则
+
+1. 本地 QA 不能另写一套“差不多”的浏览器逻辑，必须复用 `scripts/browser-live-runtime-e2e.mjs`。
+2. 本地包装脚本只负责启动 FastAPI 和 Agent Runtime，并通过 `ALLOW_INSECURE_RUNTIME_SMOKE=true` 明确标注这是本地模拟，不是公网上线证据。
+3. 本地 live-mode 也必须设置 `REQUIRE_PUBLIC_RUNTIME=true` 和 `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`，确保服务缺失时失败，而不是回到草稿 fallback。
+4. 远端 URL 未配置时，团队仍能在合并前证明 Creator seed-to-candidate 产品链路可执行。
+
+### 本轮落地
+
+- 新增 `scripts/browser-live-runtime-local-e2e.mjs`。
+- 新增 `npm run qa:live-runtime-local`。
+- `scripts/check-live-runtime-smoke-contract.mjs` 增加本地 live-mode QA 反向检查。
+- `docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md` 补充 local live-mode simulation 命令和边界。
+- 本地包装脚本会自动复用可用的 backend Python venv、Playwright module 和本机 Chrome executable；没有这些依赖时仍显式失败。
+
+### 必跑检查
+
+```bash
+npm run check:live-runtime-smoke
+npm run qa:live-runtime-local
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P40 Readiness ledger 记录真实创作预检
 
 ### 现象
