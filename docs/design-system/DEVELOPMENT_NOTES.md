@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P10 首页创作 CTA 点击遮挡
+
+### 现象
+
+P9 公开页验证时发现：首页“开始创作”CTA 在 1280px 宽度下会被右侧封面按钮的点击层拦截。视觉上按钮存在，但真实点击落到了封面舞台上，用户无法稳定进入创作页。
+
+### 修复原则
+
+1. 首页主 CTA 是商业转化入口，必须用真实浏览器点击验证，不能只看截图。
+2. 同一卡片内存在多个可点击区域时，主 CTA 所在 copy 区域必须有更高层级。
+3. 大屏 grid 要明确左右列归属，避免封面按钮跨列覆盖正文按钮。
+4. 浏览器 E2E 必须从首页点击“开始创作”进入 `/create`，不能直接打开 `/create` 绕过入口。
+
+### 本轮落地
+
+- `.commercial-feature-copy` 层级提高到 `z-index: 2`。
+- 大屏下显式设置 `.commercial-feature-copy` 在第一列、`.commercial-cover-stage` 在第二列。
+- `scripts/browser-creator-e2e.mjs` 改为从首页点击“开始创作”进入 Creator Studio。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+PLAYWRIGHT_MODULE_PATH=/Users/james/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.js \
+PLAYWRIGHT_CHROMIUM_EXECUTABLE="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python \
+npm run qa:creator-browser
+```
+
 ## 2026-06-17 P9 公共部署运行时边界
 
 ### 现象

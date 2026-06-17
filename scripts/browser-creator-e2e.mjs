@@ -184,8 +184,10 @@ try {
   }
   const browser = await playwright.chromium.launch(launchOptions)
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-  await page.goto(`${appBaseUrl}/create?qa=p8-browser-e2e`, { waitUntil: 'networkidle' })
+  await page.goto(`${appBaseUrl}/?qa=p8-browser-e2e`, { waitUntil: 'networkidle' })
+  await page.getByRole('button', { name: /^开始创作$/ }).click()
   await page.getByTestId('creator-conversation-panel').waitFor({ timeout: 15000 })
+  assert(page.url().includes('/create'), 'Home start-creating CTA must navigate to /create')
 
   const seed = '我想写一个现代悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选。'
   await page.locator('textarea').first().fill(seed)

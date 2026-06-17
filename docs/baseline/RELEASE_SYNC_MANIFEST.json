@@ -7,6 +7,7 @@
     "backend/tests/test_creator_dialogue_api.py",
     "backend/tests/test_market_trends_api.py",
     "backend/tests/test_tool_bridge_api.py",
+    "app/src/index.css",
     "app/src/pages/Create.tsx",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/design-system/DEVELOPMENT_NOTES.md",
