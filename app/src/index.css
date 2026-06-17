@@ -1129,6 +1129,36 @@
     line-height: 1.6;
   }
 
+  .creator-direction-confirmation {
+    display: grid;
+    gap: 0.35rem;
+    border-radius: 8px;
+    border: 1px solid rgba(217, 188, 126, 0.28);
+    background:
+      linear-gradient(135deg, rgba(217, 188, 126, 0.12), rgba(90, 178, 214, 0.08)),
+      rgba(255, 255, 255, 0.035);
+    padding: 0.9rem 1rem;
+  }
+
+  .creator-direction-confirmation p {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .creator-direction-confirmation strong {
+    color: var(--ink-paper);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .creator-direction-confirmation span {
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+
   .creator-grid-dialogue {
     grid-template-columns: minmax(0, 1fr);
   }

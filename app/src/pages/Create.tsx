@@ -44,6 +44,12 @@ function seedExamplesFor(marketLabel: string) {
 type StoryNoteSource = '你刚告诉我' | '我已记住' | '方向参考'
 type StoryNoteTone = 'manual' | 'remembered' | 'guide'
 
+interface DirectionNotice {
+  from: string
+  to: string
+  hooks: string
+}
+
 export default function Create() {
   const location = useLocation()
   const { user } = useAuth()
@@ -53,6 +59,7 @@ export default function Create() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [qualityLoading, setQualityLoading] = useState(false)
   const [notice, setNotice] = useState<string>('写下一句话就能开始。')
+  const [directionNotice, setDirectionNotice] = useState<DirectionNotice | null>(null)
   const [marketTrends, setMarketTrends] = useState(marketTrendFallback)
   const initialTemplateId = useMemo(
     () => new URLSearchParams(location.search).get('template') || 'beacon-beyond',
@@ -156,7 +163,17 @@ export default function Create() {
     const activeMarket = trendForTemplate(marketTrends, activeTemplate.id)
     const activeWritingTone = writingToneForTrend(activeMarket)
     const activeContext = buildDialogueContext(activeTemplate.id)
-    if (activeTemplate.id !== selectedTemplate.id) setSelectedTemplateId(activeTemplate.id)
+    const switchedDirection = activeTemplate.id !== selectedTemplate.id
+    if (switchedDirection) {
+      setDirectionNotice({
+        from: selectedMarket.label,
+        to: activeMarket.label,
+        hooks: activeMarket.hooks,
+      })
+      setSelectedTemplateId(activeTemplate.id)
+    } else {
+      setDirectionNotice(null)
+    }
     try {
       if (!session || session.session_id === 'local_creator_dialogue') {
         const request = {
@@ -172,7 +189,9 @@ export default function Create() {
           creatorApi.createDialogueSession(request),
         )
         setSession(next)
-        setNotice('开场写好了。回答下面任意一个问题，就能继续下一段。')
+        setNotice(switchedDirection
+          ? `已按你的输入切换到「${activeMarket.label}」。回答下面任意一个问题，就能继续下一段。`
+          : '开场写好了。回答下面任意一个问题，就能继续下一段。')
       } else {
         const request = {
           message,
@@ -183,7 +202,9 @@ export default function Create() {
           creatorApi.addDialogueTurn(session.session_id, request),
         )
         setSession(next)
-        setNotice('这一段可以继续扩写。')
+        setNotice(switchedDirection
+          ? `已按你的输入切换到「${activeMarket.label}」，这一段可以继续扩写。`
+          : '这一段可以继续扩写。')
       }
       setInput('')
     } catch {
@@ -409,6 +430,14 @@ export default function Create() {
                 </Badge>
               </div>
 
+              {directionNotice ? (
+                <section className="creator-direction-confirmation" aria-live="polite">
+                  <p>已按你的输入调整创作方向</p>
+                  <strong>从「{directionNotice.from}」切换到「{directionNotice.to}」</strong>
+                  <span>接下来会更关注：{directionNotice.hooks}</span>
+                </section>
+              ) : null}
+
               {!session ? (
                 <div className="creator-thread creator-thread-empty">
                   <CreatorConversationPanel
@@ -459,7 +488,10 @@ export default function Create() {
                       key={template.id}
                       type="button"
                       className={`creator-market-pill ${selectedTemplate.id === template.id ? 'creator-market-pill-active' : ''}`}
-                      onClick={() => setSelectedTemplateId(template.id)}
+                      onClick={() => {
+                        setSelectedTemplateId(template.id)
+                        setDirectionNotice(null)
+                      }}
                     >
                       {market.label}
                     </button>
