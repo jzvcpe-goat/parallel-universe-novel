@@ -16,6 +16,22 @@ const workflow = read('.github/workflows/pages.yml')
 const p16Doc = read('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md')
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
 const packageJson = JSON.parse(read('package.json'))
+const node24ActionVersions = [
+  'actions/checkout@v6',
+  'actions/setup-node@v6',
+  'actions/setup-python@v6',
+  'actions/upload-artifact@v7',
+  'actions/configure-pages@v6',
+  'actions/upload-pages-artifact@v5',
+  'actions/deploy-pages@v5',
+]
+
+for (const action of node24ActionVersions) {
+  assert(
+    workflow.includes(action),
+    `Pages workflow must use Node 24-compatible action ${action}`,
+  )
+}
 
 assert(
   workflow.includes('Gate public runtime release mode'),
@@ -56,7 +72,7 @@ assert(
 assert(
   workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('if: always()')
-    && workflow.includes('actions/upload-artifact@v4')
+    && workflow.includes('actions/upload-artifact@v7')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.indexOf('Upload runtime readiness ledger') > workflow.indexOf('Gate public runtime release mode'),
   'Pages workflow must upload the readiness ledger artifact after the runtime gate, including failed live gates',
@@ -99,4 +115,5 @@ console.log(JSON.stringify({
   readinessLedger: 'audit:live-runtime-readiness',
   ledgerArtifact: 'runtime-readiness-ledger',
   liveModeGate: 'qa:live-runtime-browser',
+  actionsRuntime: 'node24',
 }, null, 2))
