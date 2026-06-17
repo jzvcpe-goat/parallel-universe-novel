@@ -44,6 +44,7 @@ Before the build step, `.github/workflows/pages.yml` runs:
 npx playwright install chromium
 npm run check:public-runtime-preview
 npm run qa:live-runtime-local
+# GitHub Actions uploads artifact: local-live-runtime-visual-qa
 if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
   REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
@@ -54,6 +55,7 @@ fi
 This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
+- Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -66,9 +68,10 @@ This proves:
 1. `npm run check:pages-live-release-gate` passes.
 2. Static mode still deploys with no remote Runtime variables.
 3. CI always runs `qa:live-runtime-local` before evaluating remote live mode.
-4. Live mode fails if any required remote URL is missing.
-5. Live mode fails if browser submission cannot create a candidate draft.
-6. Live mode never enables local fallback.
+4. CI uploads local live-mode screenshots as `local-live-runtime-visual-qa`.
+5. Live mode fails if any required remote URL is missing.
+6. Live mode fails if browser submission cannot create a candidate draft.
+7. Live mode never enables local fallback.
 
 ## Operational Rule
 

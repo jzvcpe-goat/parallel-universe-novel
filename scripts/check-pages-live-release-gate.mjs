@@ -61,6 +61,13 @@ assert(
   'Pages workflow must run local live-mode browser QA before the public runtime release gate',
 )
 assert(
+  workflow.includes('Upload local live runtime visual QA')
+    && workflow.includes('local-live-runtime-visual-qa')
+    && workflow.includes('artifacts/visual-qa/p15-live-runtime-e2e-*.png')
+    && workflow.indexOf('Upload local live runtime visual QA') > workflow.indexOf('Run local live runtime browser QA'),
+  'Pages workflow must upload local live runtime visual QA screenshots after the local browser gate',
+)
+assert(
   packageJson.devDependencies?.playwright,
   'package.json must keep Playwright as a controlled devDependency instead of installing it ad hoc in CI',
 )

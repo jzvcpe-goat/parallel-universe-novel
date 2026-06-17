@@ -34,6 +34,8 @@ npm run qa:live-runtime-local
 
 This starts local FastAPI and Agent Runtime services, then runs the same `qa:live-runtime-browser` path with `ALLOW_INSECURE_RUNTIME_SMOKE=true`, `REQUIRE_PUBLIC_RUNTIME=true`, live frontend mode, and local fallback disabled. It also reuses the available backend virtualenv, Playwright module, and local Chrome executable when present. Use it before remote API/Agent URLs exist; it proves the direct workflow preflight, Tool Bridge, live build, and browser submit path are executable.
 
+In GitHub Actions, the local live-mode screenshot is uploaded as artifact `local-live-runtime-visual-qa` from `artifacts/visual-qa/p15-live-runtime-e2e-*.png`.
+
 Required live mode:
 
 ```bash

@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P42 本地 live QA 截图证据上传
+
+### 现象
+
+P41 已经让 CI 跑 `qa:live-runtime-local`，但截图只留在 runner 文件系统里。若本地 live QA 失败或视觉回归，团队只能读日志，无法下载浏览器证据。
+
+### 修复原则
+
+1. 浏览器 QA 产生的视觉证据必须作为 artifact 保留。
+2. 上传步骤使用 `if: always()`，即使 QA 失败也尽量保留已生成截图。
+3. Artifact 只上传 `artifacts/visual-qa/p15-live-runtime-e2e-*.png`，不上传服务日志、账本、secret 或源码目录。
+4. Artifact 名称固定为 `local-live-runtime-visual-qa`，方便交接和验收时定位。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 增加 `Upload local live runtime visual QA`。
+- `scripts/check-pages-live-release-gate.mjs` 反向检查 artifact 名称与路径。
+- P15/P16 文档同步 artifact 名称。
+
+### 必跑检查
+
+```bash
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-17 P41 本地 live-mode 创作链路 QA
 
 ### 现象

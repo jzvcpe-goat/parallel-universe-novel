@@ -59,6 +59,15 @@ jobs:
       - name: Run local live runtime browser QA
         run: npm run qa:live-runtime-local
 
+      - name: Upload local live runtime visual QA
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: local-live-runtime-visual-qa
+          path: artifacts/visual-qa/p15-live-runtime-e2e-*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Gate public runtime release mode
         env:
           GH_TOKEN: ${{ github.token }}
