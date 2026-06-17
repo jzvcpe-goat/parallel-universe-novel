@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P7 发布同步清单门禁补齐
+
+### 现象
+
+源工作区已经有发布同步清单，但 GitHub release 仓库没有完整接入。结果是每次从 source 同步到 release 时，仍然需要人工判断哪些文件能直接复制，哪些文件不能复制；尤其容易把未完成文档段落带入 release，或漏掉 P4/P6 新增扫描脚本。
+
+### 修复原则
+
+1. 所有“必须机械一致”的文件进入 `docs/baseline/RELEASE_SYNC_MANIFEST.json` 的 `syncAsIs`。
+2. 有发布身份差异的文件只能进入 `managedWithReleaseOverrides`，不能进入 `syncAsIs`。
+3. 代表作品匿名引用、runtime rule、kernel/constraint 文档和相关扫描脚本必须被纳入同步门禁。
+4. release 仓库本地检查可以和 source 逐文件比较；GitHub CI 没有 source 根时，也必须完成 manifest 结构和 release-only 文件存在性检查。
+
+### 本轮落地
+
+- 扩展 `RELEASE_SYNC_MANIFEST.json`，覆盖 Creator 链路测试、规则文档、匿名引用文件、P4/P6 扫描脚本和核心 agent workflow。
+- `scripts/check-release-sync-manifest.mjs` 增加重复项检查、release-only 文件检查和 release override 防误同步检查。
+- release 仓库 `npm run test` 串入 `check:release-sync-manifest`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:release-sync-manifest
+
+cd /Users/james/Documents/PUF/releases/parallel-universe-novel-github
+npm run check:release-sync-manifest
+```
+
 ## 2026-06-17 P6 代表作品隐私边界加固
 
 ### 现象
@@ -55,6 +84,36 @@ cd /Users/james/Documents/PUF/workspaces/integration-harness
 npm --workspace @narrativeos/agent-runtime test
 npm run scan:p4-rule-source
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
+## 2026-06-17 P18 发布同步清单
+
+### 现象
+
+源工作区和 GitHub 发布仓库不是同一个 git root。之前同步靠手动复制文件，容易漏掉新增脚本，也容易把 `package.json` 的 release-only 身份覆盖掉。
+
+### 修复原则
+
+1. 允许机械同步的文件必须进入机器可读清单。
+2. `package.json` 这种源/发布身份不同的文件不能列入 `syncAsIs`，只能列入 `managedWithReleaseOverrides`。
+3. 发布仓库测试必须能比较 release 文件和 source 文件是否一致。
+4. 清单本身也必须作为 `syncAsIs` 文件同步。
+
+### 本轮落地
+
+- 新增 `docs/baseline/RELEASE_SYNC_MANIFEST.json`。
+- 新增 `scripts/check-release-sync-manifest.mjs`。
+- 源工作区运行时检查清单结构和源身份；发布仓库运行时额外逐文件比较 `syncAsIs` 与源工作区。
+- 根目录 `npm run test` 已串入 `check:release-sync-manifest`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:release-sync-manifest
+
+cd /Users/james/Documents/PUF/releases/parallel-universe-novel-github
+npm run check:release-sync-manifest
 ```
 
 ## 2026-06-17 P17 发布包身份防回归
