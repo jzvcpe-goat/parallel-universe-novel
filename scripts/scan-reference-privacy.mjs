@@ -5,6 +5,8 @@ import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const vaultPath = join(root, 'docs/product/rules/reference-work-vault.enc.json')
+const publicRefsPath = join(root, 'docs/product/rules/reference-work-public-refs.json')
+const runtimeRulesPath = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
 const defaultKeyPath = '/Users/james/Documents/PUF/private/reference-work-vault.key'
 
 const scanRoots = [
@@ -65,6 +67,103 @@ function lineNumber(text, index) {
 
 const violations = []
 const files = allScanFiles()
+
+function readJson(path) {
+  return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function validateVaultShape() {
+  if (!existsSync(vaultPath)) {
+    violations.push('docs/product/rules/reference-work-vault.enc.json missing encrypted vault')
+    return
+  }
+  const vault = readJson(vaultPath)
+  for (const key of ['algorithm', 'iv', 'tag', 'ciphertext']) {
+    if (!vault[key]) violations.push(`docs/product/rules/reference-work-vault.enc.json missing encrypted field: ${key}`)
+  }
+  for (const forbidden of ['refs', 'titles', 'works', 'items', 'representativeWorks']) {
+    if (Object.prototype.hasOwnProperty.call(vault, forbidden)) {
+      violations.push(`docs/product/rules/reference-work-vault.enc.json must not contain plaintext field: ${forbidden}`)
+    }
+  }
+}
+
+function validatePublicRefs() {
+  if (!existsSync(publicRefsPath)) {
+    violations.push('docs/product/rules/reference-work-public-refs.json missing public ref map')
+    return new Set()
+  }
+  const publicRefs = readJson(publicRefsPath)
+  const refs = Array.isArray(publicRefs.refs) ? publicRefs.refs : []
+  if (Number(publicRefs.refCount || 0) !== refs.length) {
+    violations.push('docs/product/rules/reference-work-public-refs.json refCount does not match refs length')
+  }
+  const ids = new Set()
+  for (const ref of refs) {
+    const id = String(ref.id || '')
+    if (!/^rwref_\d{4}$/.test(id)) {
+      violations.push(`docs/product/rules/reference-work-public-refs.json invalid anonymous ref id: ${id || '<missing>'}`)
+    }
+    if (ids.has(id)) violations.push(`docs/product/rules/reference-work-public-refs.json duplicate ref id: ${id}`)
+    ids.add(id)
+    for (const key of Object.keys(ref)) {
+      if (!['id', 'source_pdfs'].includes(key)) {
+        violations.push(`docs/product/rules/reference-work-public-refs.json ${id} exposes forbidden public key: ${key}`)
+      }
+    }
+    const sourcePdfs = Array.isArray(ref.source_pdfs) ? ref.source_pdfs : []
+    for (const sourcePdf of sourcePdfs) {
+      if (!String(sourcePdf).endsWith('.pdf')) {
+        violations.push(`docs/product/rules/reference-work-public-refs.json ${id} has invalid source pdf label`)
+      }
+    }
+  }
+  return ids
+}
+
+function validateRuntimeSourceRefs(publicIds) {
+  if (!existsSync(runtimeRulesPath)) {
+    violations.push('docs/product/rules/genre-runtime-rules.v1.json missing runtime rule source')
+    return
+  }
+  const runtimeRules = readJson(runtimeRulesPath)
+  if (runtimeRules.privacy?.representativeWorks !== 'encrypted_vault_only') {
+    violations.push('docs/product/rules/genre-runtime-rules.v1.json privacy.representativeWorks must be encrypted_vault_only')
+  }
+  if (runtimeRules.privacy?.publicReferenceField !== 'sourceRefs') {
+    violations.push('docs/product/rules/genre-runtime-rules.v1.json privacy.publicReferenceField must be sourceRefs')
+  }
+  for (const section of ['constraintProfiles', 'genreKernels']) {
+    const items = Array.isArray(runtimeRules[section]) ? runtimeRules[section] : []
+    for (const item of items) {
+      for (const ref of item.sourceRefs || []) {
+        if (!/^rwref_\d{4}$/.test(String(ref))) {
+          violations.push(`docs/product/rules/genre-runtime-rules.v1.json ${section}.${item.id || item.name} has non-anonymous sourceRef: ${ref}`)
+        } else if (!publicIds.has(String(ref))) {
+          violations.push(`docs/product/rules/genre-runtime-rules.v1.json ${section}.${item.id || item.name} references unknown sourceRef: ${ref}`)
+        }
+      }
+    }
+  }
+}
+
+function validateMarkdownSourceRefs(publicIds) {
+  for (const rel of ['docs/product/rules/GENRE_CONSTRAINT_RULES.md', 'docs/product/rules/GENRE_KERNEL_RULES.md']) {
+    const absolute = join(root, rel)
+    if (!existsSync(absolute)) continue
+    const text = readFileSync(absolute, 'utf8')
+    for (const match of text.matchAll(/rwref_\d{4}/g)) {
+      if (!publicIds.has(match[0])) {
+        violations.push(`${rel}:${lineNumber(text, match.index || 0)} unknown sourceRef in public rule doc: ${match[0]}`)
+      }
+    }
+  }
+}
+
+validateVaultShape()
+const publicIds = validatePublicRefs()
+validateRuntimeSourceRefs(publicIds)
+validateMarkdownSourceRefs(publicIds)
 
 for (const file of files) {
   const rel = relative(root, file)

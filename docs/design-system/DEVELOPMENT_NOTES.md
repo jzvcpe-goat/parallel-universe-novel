@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P6 代表作品隐私边界加固
+
+### 现象
+
+kernel 和 constraints 已经使用 `rwref_*` 匿名引用，但旧扫描在 CI 没有本地解密 key 时只能做浅层检查。这样即使 public ref 表误加了 `title` 字段，或 runtime 里引用了不存在的 ref，也可能没有被及时拦住。
+
+### 修复原则
+
+1. 加密 vault 必须只保留密文字段，不能出现 `refs / titles / works / representativeWorks` 等明文字段。
+2. `reference-work-public-refs.json` 只能公开匿名 `id` 和来源 PDF 标签，不能公开作品名、作者名、榜单名或 benchmark title。
+3. `genre-runtime-rules.v1.json` 的 `sourceRefs` 必须全部是 `rwref_0000` 格式，并且必须存在于 public ref 表。
+4. `GENRE_CONSTRAINT_RULES.md` 和 `GENRE_KERNEL_RULES.md` 只能引用已登记的 `rwref_*`。
+5. 有本地 key 时继续解密 vault 做明文标题泄漏扫描；没有 key 时也必须完成结构级隐私检查。
+
+### 本轮落地
+
+- `scripts/scan-reference-privacy.mjs` 增加 vault shape 校验。
+- 同一脚本增加 public refs schema 校验，禁止 `title/name/work` 等额外字段。
+- 同一脚本增加 runtime JSON 和规则 Markdown 的 `sourceRefs` 完整性校验。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run scan:reference-privacy
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P5 文档内核驱动的小说正文 Composer
 
 ### 现象
