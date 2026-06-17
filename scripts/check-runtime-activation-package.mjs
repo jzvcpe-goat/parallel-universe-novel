@@ -127,8 +127,9 @@ for (const required of [
 }
 assert(
   workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser')
+    && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
     && workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
-  'Pages workflow must continue to gate live builds through live browser QA',
+  'Pages workflow must gate live builds through readiness ledger and live browser QA',
 )
 assert(
   workflow.includes('run: npm run test') && !workflow.includes('npm run smoke:creator-chain'),

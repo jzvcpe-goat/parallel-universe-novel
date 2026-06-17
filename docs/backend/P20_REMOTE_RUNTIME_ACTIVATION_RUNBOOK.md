@@ -169,7 +169,7 @@ npm run qa:live-runtime-browser
 
 8. Set GitHub repository variables.
 9. Push or manually dispatch `Deploy Creator Studio Preview`.
-10. Confirm GitHub Actions build and deploy jobs are green.
+10. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
 11. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke

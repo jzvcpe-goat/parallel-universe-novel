@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P24 Readiness ledger 接入 Pages live gate
+
+### 现象
+
+P23 把 live runtime 上线断点做成了 evidence ledger，并纳入 root `npm run test`。但 GitHub Actions 的 public release gate 在 live 模式中仍然直接从 config check 进入浏览器 smoke；如果 root test 没拿到 workflow env，账本可能只记录 disabled 状态，不能代表这次 live 发布的真实变量。
+
+### 修复原则
+
+1. GitHub Pages workflow 的 gate step 必须在同一组 repository variables 环境里生成 readiness ledger。
+2. 默认 disabled 发布可以生成 `blocked` 账本但继续部署静态预览。
+3. `VITE_PUBLIC_RUNTIME_MODE=live` 时必须先跑 `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness`，再跑 `qa:live-runtime-browser`。
+4. 反向检查器要验证 workflow 顺序，避免后续把账本从 release gate 里删掉。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 的 `Gate public runtime release mode` 增加 readiness ledger。
+- live 分支增加 `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness`。
+- `scripts/check-pages-live-release-gate.mjs` 和 `scripts/check-runtime-activation-package.mjs` 反向检查该顺序。
+- P20/P23 文档同步 GitHub Actions live gate 行为。
+
+### 必跑检查
+
+```bash
+npm run check:pages-live-release-gate
+npm run check:runtime-activation-package
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P23 Live runtime 上线证据账本
 
 ### 现象

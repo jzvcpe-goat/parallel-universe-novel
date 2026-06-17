@@ -33,8 +33,14 @@ assert(
 assert(
   workflow.includes('if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then')
     && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview')
+    && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
     && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
-  'Pages workflow must require live checks before any live public build',
+  'Pages workflow must require live checks, readiness ledger, and browser smoke before any live public build',
+)
+assert(
+  workflow.includes('npm run audit:live-runtime-readiness')
+    && workflow.indexOf('npm run audit:live-runtime-readiness') < workflow.indexOf('Build Creator Studio'),
+  'Pages workflow must generate the readiness ledger before the Creator Studio build step',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
@@ -71,5 +77,6 @@ console.log(JSON.stringify({
     'package.json',
   ],
   defaultMode: 'disabled',
+  readinessLedger: 'audit:live-runtime-readiness',
   liveModeGate: 'qa:live-runtime-browser',
 }, null, 2))

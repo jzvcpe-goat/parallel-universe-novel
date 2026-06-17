@@ -54,8 +54,10 @@ jobs:
           VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}
         run: |
           npm run check:public-runtime-preview
+          npm run audit:live-runtime-readiness
           if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
             REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
+            REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
             npm install --no-save playwright
             npx playwright install chromium
             REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
