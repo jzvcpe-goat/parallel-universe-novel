@@ -66,11 +66,27 @@ assertIncludes('packages/agent-runtime/src/workflows.test.ts', [
 assertIncludes('scripts/check-runtime-artifact-contract.mjs', [
   'timeConsistencyReport must pass',
 ])
+assertIncludes('backend/src/narrativeos/services/product_runtime.py', [
+  'plan_time_events',
+  'time_engine_snapshot',
+  'time_event_candidate_ledger_only',
+  'fastapi_durable_time_engine',
+])
+assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
+  'TimeEngineCandidateRequest',
+  '/v1/timeline/worldlines/{worldline_id}/time-engine/candidates',
+  '/v1/timeline/worldlines/{worldline_id}/time-engine',
+])
+assertIncludes('backend/tests/test_product_runtime_api.py', [
+  'test_time_engine_persists_durable_candidate_events',
+  'time_event_candidate_ledger_only',
+  'idempotent_replay',
+])
 assertIncludes('docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md', [
   'time-engine',
   'deterministic TimeEngine',
   'Poisson/Hawkes-style',
-  'Durable FastAPI TimeEngine',
+  'FastAPI TimeEngine candidate ledger',
 ])
 assertIncludes('docs/backend/P49_TIME_ENGINE_CONTRACT.md', [
   'P49 Time Engine Contract',
@@ -79,17 +95,28 @@ assertIncludes('docs/backend/P49_TIME_ENGINE_CONTRACT.md', [
   'Hawkes',
   'candidate-only',
 ])
+assertIncludes('docs/backend/P57_FASTAPI_TIME_ENGINE_SERVICE.md', [
+  'P57 FastAPI TimeEngine Service',
+  'time_event_candidate_ledger_only',
+  'not canon',
+])
 
 const artifact = {
   generatedAt: new Date().toISOString(),
   status: 'passed',
-  scope: 'agent-runtime deterministic candidate event density',
-  inputs: ['GenreKernel.timeControls', 'BeatPlan', 'runId seed'],
-  outputs: ['candidateEvents.source=time_engine', 'acceptedTimeEvents', 'timeConsistencyReport'],
+  scope: 'agent-runtime density plus FastAPI durable candidate event ledger',
+  inputs: ['GenreKernel.timeControls', 'BeatPlan', 'runId seed', 'worldlineId', 'Idempotent timeEngineRunId'],
+  outputs: [
+    'candidateEvents.source=time_engine',
+    'acceptedTimeEvents',
+    'timeConsistencyReport',
+    'time_event_candidate_ledger_only',
+  ],
+  serviceScope: 'fastapi_durable_candidate_ledger',
   stillPartial: [
-    'not yet a durable backend time service',
     'not yet connected to Reader branch publish',
     'not yet writing canon or branch state',
+    'not yet fitted from production telemetry',
   ],
 }
 

@@ -1623,6 +1623,104 @@
         }
       }
     },
+    "/v1/timeline/worldlines/{worldline_id}/time-engine/candidates": {
+      "post": {
+        "tags": [
+          "product-runtime"
+        ],
+        "summary": "Time Engine Candidates",
+        "operationId": "time_engine_candidates_v1_timeline_worldlines__worldline_id__time_engine_candidates_post",
+        "parameters": [
+          {
+            "name": "worldline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Worldline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeEngineCandidateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Time Engine Candidates V1 Timeline Worldlines  Worldline Id  Time Engine Candidates Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/timeline/worldlines/{worldline_id}/time-engine": {
+      "get": {
+        "tags": [
+          "product-runtime"
+        ],
+        "summary": "Time Engine Snapshot",
+        "operationId": "time_engine_snapshot_v1_timeline_worldlines__worldline_id__time_engine_get",
+        "parameters": [
+          {
+            "name": "worldline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Worldline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Time Engine Snapshot V1 Timeline Worldlines  Worldline Id  Time Engine Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/quality/evaluate": {
       "post": {
         "tags": [
@@ -15134,6 +15232,77 @@
           "session_id"
         ],
         "title": "SceneAdvanceRequest"
+      },
+      "TimeEngineCandidateRequest": {
+        "properties": {
+          "source_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Run Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "kernel_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kernel Id"
+          },
+          "active_profile_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Active Profile Ids"
+          },
+          "beat_plan": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Beat Plan"
+          },
+          "beats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Beats"
+          }
+        },
+        "type": "object",
+        "title": "TimeEngineCandidateRequest"
       },
       "StartCheckoutRequest": {
         "properties": {

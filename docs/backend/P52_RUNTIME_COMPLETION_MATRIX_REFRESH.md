@@ -36,6 +36,14 @@ P56 changed Studio/state-writeback evidence:
 - idempotent replay returns the same ledger record,
 - remaining gap is remote live commit, production operator authorization and durable multi-table publish, not absence of a Studio confirmation trace.
 
+P57 changed time-engine evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/time-engine/candidates`,
+- candidate events are persisted as `time_event_candidate_ledger_only`,
+- repeated requests replay the same `time_engine_run_id`,
+- `/v1/timeline/worldlines/{id}/time-engine` and `/loom` expose the latest candidate ledger,
+- remaining gap is Reader public branch publish, production telemetry fitting and branch-publish rollback fixtures, not absence of a durable FastAPI candidate service.
+
 ## Verification
 
 Run:
@@ -51,6 +59,7 @@ npm run check:runtime-completion-refresh
 - canon commit and rollback not proven at all,
 - quality brake not connected to author confirmation.
 - Studio quality evaluation and canon commit not linked by a shared trace.
+- TimeEngine not implemented as a durable backend candidate ledger.
 
 ## Boundary
 
@@ -65,4 +74,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51 improve proof quality, but they do not replace durable backend persistence, production auth, live remote runtime, legal/payment readiness, or reader branch mutation.
+That is intentional: P49/P51/P57 improve proof quality, but they do not replace production auth, live remote runtime, legal/payment readiness, reader branch mutation, database transaction rollback, or fitted TimeEngine telemetry.

@@ -19,12 +19,15 @@ const doc = read('docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md')
 for (const required of [
   'packages/agent-runtime/src/timeEngine.ts',
   'scripts/check-time-engine-contract.mjs',
+  'docs/backend/P57_FASTAPI_TIME_ENGINE_SERVICE.md',
   'scripts/check-state-writeback-safety.mjs',
   'scripts/check-reader-branch-trace.mjs',
   'scripts/check-studio-canon-trace.mjs',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
   'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
   'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
+  'time_event_candidate_ledger_only',
+  'fastapi_durable_time_engine',
   'idempotent_replay',
   'rollback_plan',
   'studio_trace',
@@ -37,9 +40,11 @@ for (const required of [
 
 for (const required of [
   'deterministic TimeEngine',
+  'FastAPI TimeEngine candidate ledger',
   'idempotent canon ledger',
   'check:state-writeback-safety',
   'P52 Runtime Completion Matrix Refresh',
+  'P57 FastAPI TimeEngine Service',
   'P53 Reader Branch Trace Gate',
   'P56 Studio Canon Trace Gate',
   'branch_writeback_summary',
@@ -51,6 +56,8 @@ for (const required of [
 
 for (const stale of [
   'Non-homogeneous Poisson and Hawkes simulation are not yet a durable backend engine.',
+  'not yet a durable backend time service',
+  'Durable FastAPI TimeEngine and fitted event-density for Reader branch publish are not yet proven.',
   'Canon/branch commit and rollback are not proven.',
   'Canon publishing is not yet gated by author confirmation plus quality brake.',
 ]) {
@@ -61,11 +68,17 @@ mkdirSync(outputDir, { recursive: true })
 const artifact = {
   status: 'passed',
   scope: 'runtime completion matrix refresh',
-  refreshedBy: ['P49 Time Engine Contract', 'P51 State Writeback Safety Gate', 'P55 WorldInstance Writeback Candidate Gate', 'P56 Studio Canon Trace Gate'],
+  refreshedBy: [
+    'P49 Time Engine Contract',
+    'P51 State Writeback Safety Gate',
+    'P55 WorldInstance Writeback Candidate Gate',
+    'P56 Studio Canon Trace Gate',
+    'P57 FastAPI TimeEngine Service',
+  ],
   remainingGaps: [
-    'durable FastAPI TimeEngine service',
     'database transaction rollback',
     'Reader public branch publish and durable multi-table WorldInstance writeback',
+    'TimeEngine production telemetry fitting and branch-publish rollback fixtures',
     'production operator authorization',
   ],
 }

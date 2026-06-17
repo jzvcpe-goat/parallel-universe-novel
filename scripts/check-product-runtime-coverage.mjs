@@ -45,13 +45,17 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_scene_advance_persists_reader_branch_trace',
   'test_quality_evaluate_and_canon_commit_gate',
   'test_quality_gate_blocks_engineering_leak_but_keeps_learned_tracks_shadow_only',
+  'test_time_engine_persists_durable_candidate_events',
   'harness_trace',
   'branch_writeback',
   'quality_brake',
   'canon_commit_readiness',
+  'time_event_candidate_ledger_only',
 ])
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/scene/advance")',
+  '@router.post("/v1/timeline/worldlines/{worldline_id}/time-engine/candidates")',
+  '@router.get("/v1/timeline/worldlines/{worldline_id}/time-engine")',
   '@router.post("/v1/quality/evaluate")',
   '@router.post("/v1/canon/commit")',
   'quality_report',
@@ -76,6 +80,7 @@ assertIncludes('docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md', [
   'P48 Product Runtime API Coverage',
   'test_product_runtime_api.py',
   'scene advance',
+  'time engine',
   'quality evaluate',
   'canon commit',
 ])
@@ -85,7 +90,14 @@ const artifact = {
   status: 'passed',
   coverage: {
     backendTarget: 'backend/tests/test_product_runtime_api.py',
-    endpoints: ['/scene/advance', '/timeline/worldlines/{id}/loom', '/quality/evaluate', '/canon/commit'],
+    endpoints: [
+      '/scene/advance',
+      '/timeline/worldlines/{id}/loom',
+      '/timeline/worldlines/{id}/time-engine/candidates',
+      '/timeline/worldlines/{id}/time-engine',
+      '/quality/evaluate',
+      '/canon/commit',
+    ],
     frontendClient: 'app/src/api/runtime.ts',
     traceGate: 'docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md',
   },

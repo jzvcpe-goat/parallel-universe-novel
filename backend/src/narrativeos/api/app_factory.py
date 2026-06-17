@@ -349,6 +349,12 @@ def create_app(
                 str(BASE_DIR / "artifacts" / "canon_commit_ledger"),
             )
         ),
+        time_engine_ledger_dir=Path(
+            os.getenv(
+                "NARRATIVEOS_TIME_ENGINE_LEDGER_DIR",
+                str(BASE_DIR / "artifacts" / "time_engine_ledger"),
+            )
+        ),
     )
 
     def _safe_async_job_heartbeat(job_id: str, *, requested_by: str) -> None:

@@ -29,7 +29,7 @@ npm run check:runtime-engine-completion
 | `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Studio confirmation now carries `studio_trace` into the canon ledger. | Public branch publish and remote live runtime trace are not yet proven. |
 | `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, and `world_instance_patch_candidate_only` readback exist. | Public branch publish and durable multi-table WorldInstance writeback are not yet proven through runtime facade. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
-| `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime. | Durable FastAPI TimeEngine and fitted event-density for Reader branch publish are not yet proven. |
+| `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline. | Reader branch publish does not yet consume fitted event-density or aftershock state; production telemetry fitting remains a future gate. |
 | `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, and WorldInstance relationship/memory patch candidates can be read back. | Transactional multi-table write, public branch publish, and Reader branch rollback fixtures are not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, and canon ledger commit gated by quality plus confirmation with a shared Studio trace. | Production operator auth and Reader live-generation quality gate are not yet proven. |
@@ -58,7 +58,20 @@ P52 refreshed this matrix after P49 and P51:
 - P51 is guarded by `check:state-writeback-safety`.
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
-The matrix remains conservative: durable FastAPI TimeEngine, database transaction rollback, Reader public branch publish, durable multi-table WorldInstance writeback, production operator authorization, and remote live runtime are still future gates.
+The matrix remains conservative: database transaction rollback, Reader public branch publish, durable multi-table WorldInstance writeback, production TimeEngine telemetry fitting, production operator authorization, and remote live runtime are still future gates.
+
+## P57 FastAPI TimeEngine Service
+
+P57 moves the TimeEngine from algorithm proof into a FastAPI candidate service without claiming canon/branch publish:
+
+- `/v1/timeline/worldlines/{id}/time-engine/candidates` creates deterministic candidate events from the selected `GenreKernel`, beat plan and run seed.
+- The service writes only `time_event_candidate_ledger_only` JSON records under the configured TimeEngine ledger directory.
+- Repeating the same request returns `idempotent_replay = true` with the same `time_engine_run_id` and events.
+- `/v1/timeline/worldlines/{id}/time-engine` reads the latest candidate ledger record.
+- `/v1/timeline/worldlines/{id}/loom` exposes `time_engine_summary` and switches density summary to `fastapi_time_engine` when a candidate ledger exists.
+- `check:time-engine-contract` and `check:runtime-engine-completion` require the endpoint, service method, test and document evidence.
+
+Remaining gaps stay explicit: P57 is not canon, not branch write, not Reader public branch publish, and not production telemetry fitting.
 
 ## P53 Reader Branch Trace Gate
 

@@ -3243,3 +3243,25 @@ Reader 页面此前已经会在 UI 上展示选择、分支、下一幕和阅读
 - `backend/tests/test_product_runtime_api.py` 新增 reader branch trace 持久化测试。
 - `scripts/check-reader-branch-trace.mjs` 纳入 root test，防止回退到本地 UI 假状态。
 - P45 矩阵更新为：Reader route-choice ledger 已证明；剩余断点是 branch publish、WorldInstance relationship writeback、事务 rollback 和 remote live runtime。
+
+## 2026-06-17 P57 FastAPI TimeEngine Service
+
+### 现象
+
+时间引擎此前在 Agent Runtime 内已经能生成 deterministic Poisson/Hawkes-style candidate events，但 P45/P52 仍正确指出：这还不是 FastAPI runtime 内可读回、可审计、可回滚的后端服务。
+
+### 修复原则
+
+1. 不重新造一套时间系统，复用 `GenreKernel.timeControls` 和 P49 的候选事件算法形态。
+2. 后端只写 `time_event_candidate_ledger_only`，不写 canon、不写 branch、不发布读者分支。
+3. 同一 worldline、kernel、beat plan 和 source run 必须幂等 replay，方便 Agent Eval、CI 回放和人工排错。
+4. `/loom` 可以展示最新 TimeEngine 摘要，但必须继续声明 candidate 边界。
+5. 任何实现落地都要同步改合同文档、OpenAPI、检查脚本和 release sync manifest，避免旧 gate 把已完成能力误报为未完成。
+
+### 本轮落地
+
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/time-engine/candidates` 和 `/v1/timeline/worldlines/{id}/time-engine`。
+- `ProductRuntimeService.plan_time_events` 持久化候选事件到 TimeEngine ledger。
+- `ProductRuntimeService.worldline` 输出 `time_engine_summary`，存在候选 ledger 时将 density summary 标记为 `fastapi_time_engine`。
+- `backend/tests/test_product_runtime_api.py` 覆盖 candidate write、idempotent replay、snapshot 和 `/loom` 汇总。
+- `P57_FASTAPI_TIME_ENGINE_SERVICE.md` 写明 service contract 和下一步 Reader branch publish gate。

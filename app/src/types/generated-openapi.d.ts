@@ -600,6 +600,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/time-engine/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Time Engine Candidates */
+        post: operations["time_engine_candidates_v1_timeline_worldlines__worldline_id__time_engine_candidates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/timeline/worldlines/{worldline_id}/time-engine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Time Engine Snapshot */
+        get: operations["time_engine_snapshot_v1_timeline_worldlines__worldline_id__time_engine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/quality/evaluate": {
         parameters: {
             query?: never;
@@ -4805,6 +4839,23 @@ export interface components {
             /** User Id */
             user_id?: string | null;
         };
+        /** TimeEngineCandidateRequest */
+        TimeEngineCandidateRequest: {
+            /** Source Run Id */
+            source_run_id?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
+            /** Kernel Id */
+            kernel_id?: string | null;
+            /** Active Profile Ids */
+            active_profile_ids?: string[];
+            /** Beat Plan */
+            beat_plan?: string[];
+            /** Beats */
+            beats?: string[];
+        };
         /** StartCheckoutRequest */
         StartCheckoutRequest: {
             /** Account Id */
@@ -6072,6 +6123,76 @@ export interface operations {
         };
     };
     worldline_runtime_events_v1_timeline_worldlines__worldline_id__loom_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    time_engine_candidates_v1_timeline_worldlines__worldline_id__time_engine_candidates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEngineCandidateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    time_engine_snapshot_v1_timeline_worldlines__worldline_id__time_engine_get: {
         parameters: {
             query?: never;
             header?: never;

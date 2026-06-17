@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 from hashlib import sha256
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -24,6 +27,14 @@ def _idempotency_hash(value: str) -> str:
 
 def _stable_payload_hash(value: Any) -> str:
     return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
+
+
+def _stable_numeric_hash(value: str) -> int:
+    return int(sha256(value.encode("utf-8")).hexdigest()[:8], 16)
+
+
+def _safe_ledger_token(value: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9_.:-]", "_", str(value or "unbound"))[:120]
 
 
 def _stable_reader_run_id(payload: Dict[str, Any]) -> str:
@@ -59,6 +70,119 @@ def _stable_studio_run_id(payload: Dict[str, Any], report: Optional[Dict[str, An
         "target_status": payload.get("target_status"),
     }
     return "studio_run_%s" % _stable_payload_hash(raw)
+
+
+def _clamp(value: float, minimum: float = 0.0, maximum: float = 1.5) -> float:
+    return max(minimum, min(maximum, value))
+
+
+def _deterministic_jitter(seed: str, index: int) -> float:
+    raw = _stable_numeric_hash("%s:%s" % (seed, index)) % 1000
+    return (raw / 1000 - 0.5) * 0.08
+
+
+def _pressure_tag(intensity: float, previous_intensity: float) -> str:
+    if intensity >= 0.95:
+        return "burst"
+    if previous_intensity > intensity and previous_intensity >= 0.9:
+        return "aftermath"
+    if intensity >= 0.62:
+        return "rising"
+    return "calm"
+
+
+def _runtime_rules_path() -> Path:
+    relative = Path("docs/product/rules/genre-runtime-rules.v1.json")
+    candidates = [Path.cwd() / relative]
+    here = Path(__file__).resolve()
+    candidates.extend(parent / relative for parent in here.parents)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise RuntimeError("genre_runtime_rules_not_found")
+
+
+@lru_cache(maxsize=1)
+def _runtime_rules() -> Dict[str, Any]:
+    return json.loads(_runtime_rules_path().read_text(encoding="utf-8"))
+
+
+def _select_time_engine_kernel(payload: Dict[str, Any]) -> Dict[str, Any]:
+    rules = _runtime_rules()
+    kernels = list(rules.get("genreKernels") or [])
+    kernel_id = str(payload.get("kernel_id") or payload.get("kernelId") or "").strip()
+    if kernel_id:
+        for kernel in kernels:
+            if str(kernel.get("id") or "") == kernel_id:
+                return dict(kernel)
+    profile_ids = [str(item) for item in payload.get("active_profile_ids") or payload.get("profile_ids") or []]
+    for profile_id in profile_ids:
+        for kernel in kernels:
+            if profile_id in [str(item) for item in kernel.get("compatibleProfiles", [])]:
+                return dict(kernel)
+    return dict(kernels[0] if kernels else {})
+
+
+def _time_engine_controls(kernel: Dict[str, Any]) -> Dict[str, float]:
+    controls = dict(kernel.get("timeControls") or {})
+    return {
+        "baseRate": float(controls.get("baseRate", 0.32)),
+        "burst": float(controls.get("burst", 0.28)),
+        "decay": float(controls.get("decay", 0.52)),
+        "foreshadowPressure": float(controls.get("foreshadowPressure", 0.44)),
+        "recoveryFloor": float(controls.get("recoveryFloor", 0.14)),
+        "maxOpenLoops": float(controls.get("maxOpenLoops", 3)),
+    }
+
+
+def _simulate_time_engine_events(*, kernel: Dict[str, Any], beats: List[str], seed: str) -> List[Dict[str, Any]]:
+    controls = _time_engine_controls(kernel)
+    safe_beats = [str(item).strip() for item in beats if str(item).strip()] or [
+        "异常出现",
+        "选择压力",
+        "代价回响",
+    ]
+    selected_beats = safe_beats[: max(3, min(6, len(safe_beats)))]
+    max_open_loops = max(1.0, controls["maxOpenLoops"])
+    recovery_floor = controls["recoveryFloor"]
+    previous_intensity = controls["baseRate"]
+    events: List[Dict[str, Any]] = []
+    denominator = max(1, len(safe_beats) - 1)
+    for index, label in enumerate(selected_beats):
+        phase = 1.0 if len(safe_beats) <= 1 else index / denominator
+        phase_curve = 0.68 + math.sin(phase * math.pi) * 0.42
+        hawkes_boost = (
+            0.0
+            if index == 0
+            else controls["burst"] * math.exp(-controls["decay"] * (index - 1)) * _clamp(previous_intensity, 0.1, 1)
+        )
+        open_loop_pressure = min(max_open_loops, index + 1) / max_open_loops
+        foreshadow_pressure = _clamp(
+            controls["foreshadowPressure"] * (0.72 + open_loop_pressure * 0.36) + _deterministic_jitter(seed, index),
+            recovery_floor,
+            1.2,
+        )
+        intensity = _clamp(
+            controls["baseRate"] * phase_curve + hawkes_boost + foreshadow_pressure * 0.22,
+            recovery_floor,
+            1.35,
+        )
+        event = {
+            "id": "time_event_%s" % (index + 1),
+            "label": label,
+            "order": index + 1,
+            "time": round((index + 1) * 1.618 + _deterministic_jitter(seed, index + 11), 3),
+            "baseIntensity": round(controls["baseRate"] * phase_curve, 3),
+            "hawkesBoost": round(hawkes_boost, 3),
+            "intensity": round(intensity, 3),
+            "foreshadowPressure": round(foreshadow_pressure, 3),
+            "pressureTag": _pressure_tag(intensity, previous_intensity),
+            "source": "time_engine",
+            "state": "candidate",
+        }
+        previous_intensity = intensity
+        events.append(event)
+    return events
 
 
 def _build_studio_trace(
@@ -247,10 +371,147 @@ class ProductRuntimeService:
         *,
         session_service: Optional[SessionService] = None,
         canon_ledger_dir: Optional[Path] = None,
+        time_engine_ledger_dir: Optional[Path] = None,
     ) -> None:
         self.repository = repository
         self.session_service = session_service
         self.canon_ledger_dir = Path(canon_ledger_dir or Path.cwd() / "artifacts" / "canon_commit_ledger")
+        self.time_engine_ledger_dir = Path(time_engine_ledger_dir or Path.cwd() / "artifacts" / "time_engine_ledger")
+
+    def _time_engine_latest_path(self, worldline_id: str) -> Path:
+        return self.time_engine_ledger_dir / ("latest_%s.json" % _safe_ledger_token(worldline_id))
+
+    def _time_engine_record_path(self, time_engine_run_id: str) -> Path:
+        return self.time_engine_ledger_dir / ("%s.json" % _safe_ledger_token(time_engine_run_id))
+
+    def _latest_time_engine_record(self, worldline_id: str) -> Optional[Dict[str, Any]]:
+        latest_path = self._time_engine_latest_path(worldline_id)
+        if not latest_path.exists():
+            return None
+        return json.loads(latest_path.read_text(encoding="utf-8"))
+
+    def plan_time_events(self, *, worldline_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        kernel = _select_time_engine_kernel(payload)
+        kernel_id = str(kernel.get("id") or "kernel-general")
+        beats = [
+            str(item).strip()
+            for item in (payload.get("beat_plan") or payload.get("beats") or kernel.get("eventStructure") or [])
+            if str(item).strip()
+        ]
+        source_run_id = str(payload.get("source_run_id") or payload.get("run_id") or "").strip()
+        if not source_run_id:
+            source_run_id = "time_run_%s" % _stable_payload_hash(
+                {
+                    "worldline_id": worldline_id,
+                    "kernel_id": kernel_id,
+                    "beat_plan": beats,
+                }
+            )
+        seed = "%s:%s:%s" % (worldline_id, source_run_id, kernel_id)
+        time_engine_run_id = "time_engine_%s" % _stable_payload_hash(
+            {
+                "worldline_id": worldline_id,
+                "source_run_id": source_run_id,
+                "kernel_id": kernel_id,
+                "beat_plan": beats,
+            }
+        )
+        self.time_engine_ledger_dir.mkdir(parents=True, exist_ok=True)
+        record_path = self._time_engine_record_path(time_engine_run_id)
+        latest_path = self._time_engine_latest_path(worldline_id)
+        if record_path.exists():
+            replay = json.loads(record_path.read_text(encoding="utf-8"))
+            replay["idempotent_replay"] = True
+            replay["ledger_path"] = str(record_path)
+            replay["latest_path"] = str(latest_path)
+            latest_path.write_text(json.dumps(replay, ensure_ascii=False, indent=2), encoding="utf-8")
+            return replay
+
+        events = _simulate_time_engine_events(kernel=kernel, beats=beats, seed=seed)
+        accepted = [
+            {
+                "id": event["id"],
+                "label": event["label"],
+                "order": event["order"],
+                "intensity": event["intensity"],
+                "pressureTag": event["pressureTag"],
+            }
+            for event in events
+        ]
+        record = {
+            "status": "candidate",
+            "capability_mode": "durable_service_contract",
+            "write_scope": "time_event_candidate_ledger_only",
+            "time_engine_run_id": time_engine_run_id,
+            "source_run_id": source_run_id,
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "world_version_id": str(session.metadata.get("world_version_id") or ""),
+            "kernel_id": kernel_id,
+            "kernel_category": str(kernel.get("category") or ""),
+            "beat_plan": beats,
+            "input_hash": "tehash_%s" % _stable_payload_hash(
+                {
+                    "worldline_id": worldline_id,
+                    "source_run_id": source_run_id,
+                    "kernel_id": kernel_id,
+                    "beat_plan": beats,
+                    "timeControls": kernel.get("timeControls"),
+                }
+            ),
+            "candidate_events": events,
+            "time_consistency_report": {
+                "id": "time_consistency_%s" % _stable_payload_hash({"run": time_engine_run_id, "events": accepted}),
+                "runId": source_run_id,
+                "status": "pass",
+                "acceptedTimeEvents": accepted,
+                "timelineConflicts": [],
+                "requiredRepair": [],
+            },
+            "density_summary": {
+                "mode": "fastapi_durable_time_engine",
+                "event_count": len(events),
+                "burst_count": sum(1 for event in events if event["pressureTag"] == "burst"),
+                "aftershock_count": sum(1 for event in events if event["hawkesBoost"] > 0),
+                "max_intensity": max([float(event["intensity"]) for event in events] or [0.0]),
+            },
+            "rollback_plan": {
+                "status": "available_before_public_publish",
+                "method": "delete_time_event_candidate_ledger_record",
+                "time_engine_run_id": time_engine_run_id,
+            },
+            "created_at": _utcnow(),
+            "idempotent_replay": False,
+        }
+        record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        record["ledger_path"] = str(record_path)
+        record["latest_path"] = str(latest_path)
+        latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    def time_engine_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self._latest_time_engine_record(worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "durable_service_contract",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "candidate_events": [],
+                "density_summary": {
+                    "mode": "fastapi_durable_time_engine",
+                    "event_count": 0,
+                    "service_note": "No TimeEngine candidate ledger has been generated for this worldline yet.",
+                },
+            }
+        latest["ledger_path"] = str(self._time_engine_record_path(str(latest.get("time_engine_run_id") or "")))
+        latest["latest_path"] = str(self._time_engine_latest_path(worldline_id))
+        return latest
 
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
@@ -434,6 +695,8 @@ class ProductRuntimeService:
             if dict(choice.get("payload") or {}).get("world_instance_patch_candidate")
         ]
         patch_summaries = [dict(patch.get("snapshot_summary") or {}) for patch in world_instance_patches]
+        time_engine_record = self._latest_time_engine_record(worldline_id)
+        time_engine_events = list(dict(time_engine_record or {}).get("candidate_events") or [])
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -456,10 +719,27 @@ class ProductRuntimeService:
                 "rollback_scope": "discard_patch_candidate_before_public_publish" if world_instance_patches else "none",
             },
             "density_summary": {
-                "mode": "observed_runtime_trace",
-                "burst_count": sum(1 for event in events if float(event["intensity"]) >= 0.72),
-                "aftershock_count": max(0, len(events) - 1),
-                "service_note": "The endpoint exposes persisted runtime events; stochastic parameter fitting remains a later backend task.",
+                "mode": "fastapi_time_engine" if time_engine_record else "observed_runtime_trace",
+                "burst_count": (
+                    sum(1 for event in time_engine_events if str(event.get("pressureTag")) == "burst")
+                    if time_engine_record
+                    else sum(1 for event in events if float(event["intensity"]) >= 0.72)
+                ),
+                "aftershock_count": (
+                    sum(1 for event in time_engine_events if float(event.get("hawkesBoost") or 0) > 0)
+                    if time_engine_record
+                    else max(0, len(events) - 1)
+                ),
+                "service_note": "The endpoint exposes persisted runtime events; public branch publish remains a later backend task.",
+            },
+            "time_engine_summary": {
+                "status": "candidate" if time_engine_record else "waiting",
+                "write_scope": str(dict(time_engine_record or {}).get("write_scope") or "none"),
+                "time_engine_run_id": dict(time_engine_record or {}).get("time_engine_run_id"),
+                "source_run_id": dict(time_engine_record or {}).get("source_run_id"),
+                "candidate_event_count": len(time_engine_events),
+                "density_summary": dict(dict(time_engine_record or {}).get("density_summary") or {}),
+                "rollback_scope": "delete_time_event_candidate_before_public_publish" if time_engine_record else "none",
             },
         }
 

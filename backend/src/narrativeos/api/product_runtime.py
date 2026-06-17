@@ -10,6 +10,16 @@ class ReaderSnapshotRequest(BaseModel):
     session_id: str
 
 
+class TimeEngineCandidateRequest(BaseModel):
+    source_run_id: Optional[str] = None
+    run_id: Optional[str] = None
+    project_id: Optional[str] = None
+    kernel_id: Optional[str] = None
+    active_profile_ids: list[str] = Field(default_factory=list)
+    beat_plan: list[str] = Field(default_factory=list)
+    beats: list[str] = Field(default_factory=list)
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -103,6 +113,31 @@ def worldline_runtime_events(worldline_id: str, request: Request) -> Dict[str, A
             return bridged
     try:
         return request.app.state.product_runtime_service.worldline(worldline_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/time-engine/candidates")
+def time_engine_candidates(
+    worldline_id: str,
+    payload: TimeEngineCandidateRequest,
+    request: Request,
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.plan_time_events(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/time-engine")
+def time_engine_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.time_engine_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

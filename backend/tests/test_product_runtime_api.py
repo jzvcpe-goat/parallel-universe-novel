@@ -8,6 +8,7 @@ from src.narrativeos.repository import SQLAlchemyRepository
 
 def _client(tmp_path: Path, monkeypatch) -> TestClient:
     monkeypatch.setenv("NARRATIVEOS_CANON_LEDGER_DIR", str(tmp_path / "canon_ledger"))
+    monkeypatch.setenv("NARRATIVEOS_TIME_ENGINE_LEDGER_DIR", str(tmp_path / "time_engine_ledger"))
     monkeypatch.delenv("KIMI_API_KEY", raising=False)
     monkeypatch.delenv("MOONSHOT_API_KEY", raising=False)
     app = create_app(
@@ -136,6 +137,66 @@ def test_scene_advance_persists_reader_branch_trace(tmp_path: Path, monkeypatch)
     assert worldline_response.status_code == 200
     assert worldline_response.json()["branch_writeback_summary"]["write_scope"] == "route_choice_ledger_only"
     assert worldline_response.json()["world_instance_writeback_summary"]["patch_count"] == 1
+
+
+def test_time_engine_persists_durable_candidate_events(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_time"})
+    session_id = started.json()["session_id"]
+    beat_plan = ["异常入场", "压力升高", "连锁爆发", "余波回收"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-proof",
+            "beat_plan": beat_plan,
+        },
+    )
+
+    assert planned.status_code == 200
+    payload = planned.json()
+    assert payload["status"] == "candidate"
+    assert payload["capability_mode"] == "durable_service_contract"
+    assert payload["write_scope"] == "time_event_candidate_ledger_only"
+    assert payload["source_run_id"] == "time-run-proof"
+    assert payload["worldline_id"] == session_id
+    assert payload["beat_plan"] == beat_plan
+    assert len(payload["candidate_events"]) >= 3
+    assert all(event["source"] == "time_engine" for event in payload["candidate_events"])
+    assert any(event["hawkesBoost"] > 0 for event in payload["candidate_events"])
+    assert payload["time_consistency_report"]["status"] == "pass"
+    assert payload["time_consistency_report"]["acceptedTimeEvents"]
+    assert payload["density_summary"]["mode"] == "fastapi_durable_time_engine"
+    assert payload["rollback_plan"]["method"] == "delete_time_event_candidate_ledger_record"
+    assert Path(payload["ledger_path"]).exists()
+    assert Path(payload["latest_path"]).exists()
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-proof",
+            "beat_plan": beat_plan,
+        },
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["time_engine_run_id"] == payload["time_engine_run_id"]
+    assert replayed_payload["candidate_events"] == payload["candidate_events"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/time-engine")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["time_engine_run_id"] == payload["time_engine_run_id"]
+    assert snapshot.json()["candidate_events"] == payload["candidate_events"]
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    worldline_payload = worldline.json()
+    assert worldline_payload["time_engine_summary"]["status"] == "candidate"
+    assert worldline_payload["time_engine_summary"]["write_scope"] == "time_event_candidate_ledger_only"
+    assert worldline_payload["time_engine_summary"]["candidate_event_count"] == len(payload["candidate_events"])
+    assert worldline_payload["density_summary"]["mode"] == "fastapi_time_engine"
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

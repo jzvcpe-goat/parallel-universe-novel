@@ -51,6 +51,7 @@
     "docs/backend/P53_READER_BRANCH_TRACE_GATE.md",
     "docs/backend/P55_WORLD_INSTANCE_WRITEBACK_GATE.md",
     "docs/backend/P56_STUDIO_CANON_TRACE_GATE.md",
+    "docs/backend/P57_FASTAPI_TIME_ENGINE_SERVICE.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
