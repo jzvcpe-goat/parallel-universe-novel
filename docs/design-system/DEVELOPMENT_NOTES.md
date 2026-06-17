@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P4 文档核心硬重置
+
+用户要求 P4 从头做，并明确废弃此前围绕某次题材验收形成的约束逻辑。这里不能把旧问题换成另一张禁词表；正确做法是删除样本词表本身，让约束只从文档注册表进入运行时。
+
+本轮修正：
+
+1. `scan-p4-rule-source.mjs` 不再维护任何历史样本词正则，只检查 registry schema、文档同步、匿名引用、无 hardcoded profile/kernel 分支。
+2. `check:p4-document-core` 不再检查旧 anchor 名单，只检查 `document_registry_only`、v3 baseline、人类规则文档、非执行输入和 profile/kernel 兼容关系。
+3. 同一个词项在不同题材里可能是必需元素，也可能破坏世界基底；是否允许必须由 active `ConstraintProfile.rules[]` 决定。
+4. `GenreKernel` 只能把 active profile 转成 BeatPlan、动机压力、冲突机制、高潮回收和时间控制，不能在 workflow 内硬写个别题材例外。
+5. browser QA、provider prompt experiment、后端 review 和人工负例只能作为研究输入；进入产品前必须先抽象进 `GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 和 `genre-runtime-rules.v1.json`。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run scan:p4-rule-source
+npm --workspace @narrativeos/agent-runtime test
+```
+
 ## 2026-06-17 P4 文档权威链重做
 
 用户再次明确：P4 要从头做，早期围绕某个单次题材测试形成的约束逻辑全部弃用。工程上不能把旧事故换成新禁词表，而要把运行时约束完全收敛到文档注册表。
@@ -3342,3 +3362,30 @@ P58/P59 已经能证明候选分支生成和数据库回滚边界，但“谁有
 - `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺幂等键、缺 operator、
   未确认、成功授权、幂等 replay、snapshot 和 `/loom`。
 - `check:branch-publish-authorization` 纳入 root test，防止授权门禁回退。
+
+## 2026-06-17 P61 Branch Commit Draft Gate
+
+### 现象
+
+P60 解决了“谁能授权候选分支继续前进”，但没有证明分支提交草案是否能在多表事务
+边界内被回滚。继续只说“多表提交未证明”会过于粗糙；真正下一层应该是先证明
+commit draft，而不是直接写生产 branch 表。
+
+### 修复原则
+
+1. P61 仍是草案层，不能写 production branch，也不能公开发布。
+2. 必须要求 P60 `branch_publish_authorization_ledger_only`。
+3. 必须用同一个 transaction 同时触碰两张现有表，证明多表 rollback 机制。
+4. 探针 row 必须 rollback 后不可见，且用新 session 复查。
+5. 文档和 gate 要把剩余断点收敛到 production release-owner gate、production
+   branch tables 和 remote live runtime trace。
+
+### 本轮落地
+
+- Repository 新增 `prove_branch_commit_multitable_transaction_rollback`。
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/branches/commit-draft` POST/GET。
+- `ProductRuntimeService.draft_branch_commit` 写入 `branch_commit_draft_ledger_only`。
+- `/loom` 新增 `branch_commit_draft_summary`。
+- `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺授权、缺幂等键、授权不匹配、
+  成功草案、幂等 replay、snapshot 和 `/loom`。
+- `check:branch-commit-draft` 纳入 root test，防止草案门禁回退。

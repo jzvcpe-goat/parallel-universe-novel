@@ -31,20 +31,6 @@ const forbiddenWorkflowPatterns = [
     message: 'workflow must not branch on hardcoded kernel ids; use document-derived kernel fields instead',
   },
 ]
-const deprecatedTemporaryRuntimeAnchors = [
-  {
-    pattern: /西幻|western[-_ ]fantasy/i,
-    message: 'runtime code must not resurrect the retired western-fantasy prompt-case branch',
-  },
-  {
-    pattern: /非游戏化|non[-_ ]game/i,
-    message: 'runtime code must not resurrect the retired non-game prompt-case branch',
-  },
-  {
-    pattern: /古代官署职业|清河县|仵作|县衙/i,
-    message: 'runtime code must not resurrect the retired ancient-office-profession prompt-case branch',
-  },
-]
 const staleDocPatterns = [
   {
     pattern: /\bothers-modern\b/,
@@ -191,12 +177,6 @@ if (!existsSync(runtimeRulesSource)) {
   for (const source of runtimeImplementationSources) {
     if (!existsSync(source)) continue
     const text = readFileSync(source, 'utf8')
-    for (const check of deprecatedTemporaryRuntimeAnchors) {
-      const match = text.match(check.pattern)
-      if (match?.index !== undefined) {
-        violations.push(`${relative(root, source)}:${lineNumber(text, match.index)} ${check.message}`)
-      }
-    }
     for (const id of registryIds) {
       const pattern = new RegExp(`['"\`]${escapeRegExp(id)}['"\`]`)
       const match = text.match(pattern)

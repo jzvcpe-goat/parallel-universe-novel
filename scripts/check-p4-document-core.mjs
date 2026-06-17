@@ -58,11 +58,6 @@ for (const source of core.humanEditableSources) assert(existsSync(join(root, sou
 const forbiddenKeys = collectKeys(rules).filter(key => /promptCase|legacyCase|caseOverride|scenarioPatch|oneOff|adHoc/i.test(key))
 assert(forbiddenKeys.length === 0, `P4 registry contains case-specific override keys: ${forbiddenKeys.join(', ')}`)
 
-const forbiddenRuntimeText = JSON.stringify(rules)
-for (const forbidden of ['western_fantasy_non_game', 'ancient_office_blacklist', 'single_prompt_case']) {
-  assert(!forbiddenRuntimeText.includes(forbidden), `P4 registry must not keep deprecated temporary anchor: ${forbidden}`)
-}
-
 assert(Array.isArray(rules.constraintProfiles) && rules.constraintProfiles.length >= 21, 'P4 registry must expose the document profile set')
 assert(Array.isArray(rules.genreKernels) && rules.genreKernels.length >= rules.constraintProfiles.length, 'P4 registry must expose compatible kernels')
 

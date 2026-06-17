@@ -69,13 +69,13 @@ npm run scan:p4-rule-source
 ```
 
 continues to verify schema shape, registry/document sync, privacy, absence of
-hardcoded registry id branches in runtime code, and absence of retired temporary
-prompt-case anchors in workflow/backend execution paths.
+hardcoded registry id branches in runtime code, and absence of workflow/backend
+branches that bypass the document registry.
 
-The P4 gates intentionally do not turn any one sample into a story rule. A
-browser comment, provider experiment, or manual research note can guide research,
-but it cannot become executable logic until it is generalized into the document
-registry.
+The P4 gates intentionally do not turn any one sample into a story rule or a
+special negative-word list. A browser comment, provider experiment, or manual
+research note can guide research, but it cannot become executable logic until it
+is generalized into the document registry.
 
 ## Handoff Standard
 
