@@ -167,10 +167,24 @@ for (const required of [
   'repoVariables.source',
   'health.api',
   'health.agent',
+  'workflow.socraticCreate',
+  'creator-workflow-preflight',
+  '/v1/workflows/socratic-create',
   'blockedChecks',
 ]) {
   assert(p23.includes(required), `P23 readiness ledger doc must include ${required}`)
 }
+assert(
+  read('scripts/audit-live-runtime-readiness.mjs').includes('/v1/workflows/socratic-create')
+    && read('scripts/audit-live-runtime-readiness.mjs').includes('creator-workflow-preflight')
+    && read('scripts/audit-live-runtime-readiness.mjs').includes('workflowPreflight'),
+  'readiness ledger audit must directly preflight the public Socratic workflow',
+)
+assert(
+  read('scripts/check-runtime-readiness-ledger.mjs').includes('workflow.socraticCreate')
+    && read('scripts/check-runtime-readiness-ledger.mjs').includes('creator-workflow-preflight'),
+  'readiness ledger checker must require workflow.socraticCreate and creator-workflow-preflight',
+)
 assert(
   workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser')
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')

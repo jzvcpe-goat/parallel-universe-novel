@@ -47,6 +47,7 @@ const requiredTopLevel = [
   'repoVariables',
   'runtimeConfig',
   'health',
+  'workflow',
   'checks',
   'blockedChecks',
   'commands',
@@ -85,7 +86,9 @@ if (process.env.CI === 'true') {
 assert(ledger.runtimeConfig && typeof ledger.runtimeConfig === 'object', 'runtimeConfig must be an object')
 assert(ledger.health && typeof ledger.health === 'object', 'health must be an object')
 assert(ledger.health.api && ledger.health.agent, 'health must include api and agent sections')
-assert(Array.isArray(ledger.checks) && ledger.checks.length >= 7, 'checks must include runtime readiness checks')
+assert(ledger.workflow && typeof ledger.workflow === 'object', 'workflow must be an object')
+assert(ledger.workflow.socraticCreate, 'workflow must include socraticCreate preflight')
+assert(Array.isArray(ledger.checks) && ledger.checks.length >= 8, 'checks must include runtime readiness and workflow preflight checks')
 assert(Array.isArray(ledger.blockedChecks), 'blockedChecks must be an array')
 assert(ledger.commands && typeof ledger.commands === 'object', 'commands must be an object')
 
@@ -98,6 +101,7 @@ for (const requiredCheck of [
   'local-fallback-disabled',
   'api-health',
   'agent-health',
+  'creator-workflow-preflight',
 ]) {
   assert(checkIds.has(requiredCheck), `readiness ledger missing check: ${requiredCheck}`)
 }

@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P40 Readiness ledger 记录真实创作预检
+
+### 现象
+
+P39 已经让 `qa:live-runtime-browser` 在浏览器前直接调用 `/v1/workflows/socratic-create`。但 P23 readiness ledger 仍只记录 `/health`，导致上线账本和真实产品验收之间存在断层：账本可能显示 health 通过，但不证明 Creator seed-to-candidate 能跑通。
+
+### 修复原则
+
+1. Readiness ledger 必须记录产品链路摘要，而不是只记录基础设施健康。
+2. 账本只保存公开响应摘要：`responseMode`、`candidateDraft.status`、候选稿长度、追问数量和内部字段泄漏结果。
+3. 账本不能保存候选正文、Tool Bridge payload、模型 provider、system prompt、代表作品映射或任何 secret。
+4. Live 强门禁下，`creator-workflow-preflight` 不通过就不能进入 public live runtime。
+
+### 本轮落地
+
+- `scripts/audit-live-runtime-readiness.mjs` 增加 `fetchWorkflowPreflight()`。
+- Readiness ledger 新增 `workflow.socraticCreate` 与 `creator-workflow-preflight`。
+- `scripts/check-runtime-readiness-ledger.mjs` 强制校验 workflow preflight 存在。
+- `scripts/check-runtime-activation-package.mjs` 反向检查 P23 文档、审计脚本和账本校验器。
+
+### 必跑检查
+
+```bash
+npm run audit:live-runtime-readiness
+npm run check:runtime-readiness-ledger
+npm run check:runtime-activation-package
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P39 Live Creator 链路直接预检
 
 ### 现象

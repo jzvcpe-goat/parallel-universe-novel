@@ -99,6 +99,100 @@ async function fetchHealth(origin) {
   }
 }
 
+function compactLength(value) {
+  return String(value || '').replace(/\s+/g, '').length
+}
+
+function hasInternalFields(payload) {
+  const text = JSON.stringify(payload)
+  return [
+    'runtimeArtifact',
+    'sourceRefs',
+    'kernelId',
+    'profileId',
+    'activeConstraints',
+    'activeKernels',
+    'sourceLabels',
+    'runTrace',
+    'ledger',
+    'cost',
+  ].filter(term => text.includes(term))
+}
+
+async function fetchWorkflowPreflight(origin) {
+  if (!isRemoteHttps(origin)) {
+    return {
+      status: 'skipped',
+      reason: 'remote https agent origin not configured',
+    }
+  }
+
+  const url = `${normalizeOrigin(origin)}/v1/workflows/socratic-create`
+  const seed = process.env.LIVE_RUNTIME_SMOKE_SEED
+    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。'
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), Number(process.env.LIVE_RUNTIME_WORKFLOW_TIMEOUT_MS || 20000))
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId: 'live_runtime_readiness',
+        creatorId: 'live_runtime_readiness',
+        genre: '现代悬疑',
+        seed,
+        context: {
+          smoke: true,
+          source: 'audit-live-runtime-readiness',
+        },
+      }),
+      signal: controller.signal,
+    })
+    const text = await response.text()
+    let payload = null
+    try {
+      payload = text ? JSON.parse(text) : null
+    } catch {
+      payload = null
+    }
+    const responseMode = payload && typeof payload === 'object' ? payload.responseMode : null
+    const candidate = payload && typeof payload === 'object' ? payload.candidateDraft : null
+    const candidateStatus = candidate && typeof candidate === 'object' ? candidate.status : null
+    const draftLength = candidate && typeof candidate === 'object' ? compactLength(candidate.body) : 0
+    const questionCount = Array.isArray(payload?.questions) ? payload.questions.length : null
+    const leakedFields = payload && typeof payload === 'object' ? hasInternalFields(payload) : []
+    const passed = response.ok
+      && responseMode === 'public'
+      && candidateStatus === 'candidate'
+      && draftLength >= 300
+      && draftLength <= 900
+      && typeof questionCount === 'number'
+      && questionCount <= 2
+      && leakedFields.length === 0
+    return {
+      status: passed ? 'passed' : 'failed',
+      httpStatus: response.status,
+      url,
+      responseMode,
+      candidateStatus,
+      draftLength,
+      questionCount,
+      leakedFields,
+    }
+  } catch (error) {
+    return {
+      status: 'failed',
+      url,
+      error: error instanceof Error ? error.message : String(error),
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 function check(id, passed, detail, nextAction) {
   return {
     id,
@@ -152,6 +246,7 @@ const [apiHealth, agentHealth] = await Promise.all([
   fetchHealth(apiOrigin),
   fetchHealth(agentOrigin),
 ])
+const workflowPreflight = await fetchWorkflowPreflight(agentOrigin)
 
 checks.push(check(
   'api-health',
@@ -164,6 +259,12 @@ checks.push(check(
   agentHealth.status === 'passed',
   JSON.stringify(agentHealth),
   'Fix Agent Runtime /health or Tool Bridge hosting before enabling public live mode.',
+))
+checks.push(check(
+  'creator-workflow-preflight',
+  workflowPreflight.status === 'passed',
+  JSON.stringify(workflowPreflight),
+  'Fix Agent workflow, Tool Bridge, and Runtime facade until /v1/workflows/socratic-create returns a public candidate.',
 ))
 
 const blocked = checks.filter(item => item.status !== 'passed')
@@ -194,6 +295,9 @@ const artifact = {
   health: {
     api: apiHealth,
     agent: agentHealth,
+  },
+  workflow: {
+    socraticCreate: workflowPreflight,
   },
   checks,
   blockedChecks: blocked.map(item => item.id),
