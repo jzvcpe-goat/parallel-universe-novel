@@ -2545,3 +2545,34 @@ P31 后依赖审计已经收口，但继续审计 runtime 边界时发现：Agen
 - `docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md` 和 `docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md` 写明服务端共享 secret，不暴露给浏览器。
 - `scripts/check-runtime-deploy-readiness.mjs` 与 `scripts/check-runtime-activation-package.mjs` 把 Tool Bridge token 纳入 root test 门禁。
 - P32 结论：Tool Bridge 的保护现在是 “service token + idempotency key”；后续任何真实写入都必须沿用这个双门禁。
+
+## 2026-06-17 P33 远端部署不能默认使用本地 Tool Bridge token
+
+### 现象
+
+P32 把 Tool Bridge 改成了 service token + idempotency key，但继续推演远端部署时发现另一个断点：如果 API 和 Agent Runtime 都没有配置 token，它们仍会共同回退到 `dev-local-token`。这对本地 smoke 很方便，但对远端服务是隐性风险。
+
+### 原因
+
+1. Docker production 启动时没有明确环境标识，代码无法判断自己是否应该拒绝本地默认 token。
+2. Agent Runtime 和 FastAPI 的默认 token 一致；如果远端忘配 secret，两个服务仍可能“正常工作”。
+3. 这种正常工作是最危险的，因为 CI、health check 和 smoke 可能都绿，但实际内部工具口用了公开默认值。
+4. 需要把“本地可默认、远端必须显式”变成代码、Docker、compose、文档和检查脚本共同执行的规则。
+
+### 修复原则
+
+1. 增加 `NARRATIVEOS_DEPLOY_ENV`。`production`、`live`、`staging`、`preview`、`remote` 都属于受保护环境。
+2. 受保护环境下，缺少 token 或 token 仍是 `dev-local-token` 时，FastAPI Tool Bridge 返回 `tool_bridge_secret_not_configured`。
+3. Agent Runtime 在受保护环境下也拒绝自动回退到 `dev-local-token`。
+4. Dockerfile 默认 `NARRATIVEOS_DEPLOY_ENV=production`；本地 compose 显式设置 `NARRATIVEOS_DEPLOY_ENV=local`。
+5. 远端部署文档必须写明 shared secret 必填，且不能进入浏览器或 GitHub Pages build variables。
+
+### 本轮落地
+
+- `backend/src/narrativeos/api/tool_bridge.py` 增加 protected deploy env 判断。
+- `packages/agent-runtime/src/toolBridge.ts` 增加同样的 service token 策略。
+- FastAPI 与 Agent Runtime 测试分别覆盖 production 环境拒绝默认 token、接受显式 secret。
+- `deploy/api/Dockerfile` 与 `deploy/agent-runtime/Dockerfile` 默认进入 production 保护。
+- `deploy/runtime-preview/docker-compose.yml` 显式声明 local，保留本地 `dev-local-token`。
+- P14/P20 部署文档与 runtime activation 检查脚本同步更新。
+- P33 结论：默认 token 只服务本地开发；远端 runtime 必须显式配置共享 secret 才能接通 Tool Bridge。

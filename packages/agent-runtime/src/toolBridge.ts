@@ -1,6 +1,8 @@
 import type { SocraticCreateInput } from './types.js'
 
 const DEFAULT_FASTAPI_BASE_URL = 'http://127.0.0.1:8787'
+const DEFAULT_TOOL_BRIDGE_TOKEN = 'dev-local-token'
+const PROTECTED_DEPLOY_ENVS = new Set(['production', 'prod', 'live', 'staging', 'preview', 'remote'])
 
 export class ToolBridgeError extends Error {
   constructor(message: string, readonly status?: number) {
@@ -17,8 +19,21 @@ export function fastApiBaseUrl(): string {
   ).replace(/\/+$/, '')
 }
 
+function deployEnv(): string {
+  return String(process.env.NARRATIVEOS_DEPLOY_ENV || process.env.NODE_ENV || '').trim().toLowerCase()
+}
+
+function requiresExplicitToolBridgeToken(): boolean {
+  const explicit = String(process.env.NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS || '').trim().toLowerCase()
+  return ['1', 'true', 'yes'].includes(explicit) || PROTECTED_DEPLOY_ENVS.has(deployEnv())
+}
+
 export function serviceToken(): string {
-  return process.env.MASTRA_TOOL_BRIDGE_TOKEN || 'dev-local-token'
+  const token = String(process.env.MASTRA_TOOL_BRIDGE_TOKEN || '').trim()
+  if (requiresExplicitToolBridgeToken() && (!token || token === DEFAULT_TOOL_BRIDGE_TOKEN)) {
+    throw new ToolBridgeError('tool_bridge_secret_not_configured')
+  }
+  return token || DEFAULT_TOOL_BRIDGE_TOKEN
 }
 
 export async function callToolBridge<T>(

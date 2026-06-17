@@ -26,6 +26,7 @@ Current state from P19:
 FastAPI required environment:
 
 ```bash
+NARRATIVEOS_DEPLOY_ENV=production
 DATABASE_URL=<production-or-preview-database-url>
 NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io
 NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>
@@ -45,6 +46,8 @@ NARRATIVEOS_CREATOR_MODEL=<model-name>
 Agent Runtime required environment:
 
 ```bash
+NARRATIVEOS_DEPLOY_ENV=production
+NODE_ENV=production
 MASTRA_HOST=0.0.0.0
 MASTRA_PORT=4111
 MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>
@@ -106,6 +109,8 @@ Every write-like Tool Bridge call must include `Idempotency-Key`. Public creator
 
 Every Tool Bridge call must also include `Authorization: Bearer <shared-tool-bridge-secret>`. Configure the same value in `NARRATIVEOS_TOOL_BRIDGE_TOKEN` on FastAPI and `MASTRA_TOOL_BRIDGE_TOKEN` on Agent Runtime. Do not expose this secret to the browser or GitHub Pages build variables.
 
+In protected deploy envs (`production`, `live`, `staging`, `preview`, `remote`), both services reject the local `dev-local-token` default. If the secret is missing or left as `dev-local-token`, Tool Bridge calls must fail before any runtime state preview is accepted.
+
 ## GitHub Repository Variables
 
 Set only repository variables, not frontend code defaults:
@@ -126,8 +131,8 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 
 ## Activation Sequence
 
-1. Deploy FastAPI with `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io` and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
-2. Deploy Agent Runtime with `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+1. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+2. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
 3. Verify both health endpoints.
 4. Run local strict config check:
 

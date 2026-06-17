@@ -12,6 +12,8 @@ RUN npm --workspace @narrativeos/agent-runtime run build
 
 ENV MASTRA_HOST=0.0.0.0
 ENV MASTRA_PORT=4111
+ENV NODE_ENV=production
+ENV NARRATIVEOS_DEPLOY_ENV=production
 
 EXPOSE 4111
 

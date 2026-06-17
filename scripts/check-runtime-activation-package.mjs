@@ -72,6 +72,7 @@ assert(
 )
 assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')
+    && compose.includes('NARRATIVEOS_DEPLOY_ENV: local')
     && compose.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN: dev-local-token')
     && compose.includes('MASTRA_TOOL_BRIDGE_TOKEN: dev-local-token')
     && !compose.includes('FASTAPI_TOOL_BRIDGE_BASE_URL: http://api:8787'),
@@ -101,12 +102,15 @@ assert(
 assert(
   apiToolBridge.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN')
     && apiToolBridge.includes('MASTRA_TOOL_BRIDGE_TOKEN')
+    && apiToolBridge.includes('NARRATIVEOS_DEPLOY_ENV')
+    && apiToolBridge.includes('tool_bridge_secret_not_configured')
     && apiToolBridge.includes('_require_tool_bridge_auth')
     && apiToolBridge.includes('Authorization: Bearer <token>'),
   'FastAPI Tool Bridge must enforce service-token bearer auth before accepting runtime tool calls',
 )
 assert(
   p14.includes('MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>')
+    && p14.includes('NARRATIVEOS_DEPLOY_ENV=production')
     && p14.includes('MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && p14.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && p14.includes('MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io')
@@ -136,9 +140,11 @@ for (const command of [
   assert(p20.includes(command), `P20 runbook must include command: ${command}`)
 }
 for (const required of [
+  'NARRATIVEOS_DEPLOY_ENV=production',
   'NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>',
   'MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>',
   'Authorization: Bearer <shared-tool-bridge-secret>',
+  'both services reject the local `dev-local-token` default',
   'Do not expose this secret to the browser or GitHub Pages build variables.',
 ]) {
   assert(p20.includes(required), `P20 runbook must include Tool Bridge auth contract: ${required}`)

@@ -21,16 +21,43 @@ class RuntimeToolRequest(BaseModel):
 
 router = APIRouter(prefix="/v1/tools/runtime", tags=["tool-bridge"])
 
+LOCAL_TOOL_BRIDGE_TOKEN = "dev-local-token"
+PROTECTED_DEPLOY_ENVS = {"production", "prod", "live", "staging", "preview", "remote"}
+
+
+def _deploy_env() -> str:
+    return str(
+        os.getenv("NARRATIVEOS_DEPLOY_ENV")
+        or os.getenv("APP_ENV")
+        or os.getenv("ENVIRONMENT")
+        or ""
+    ).strip().lower()
+
+
+def _requires_explicit_tool_bridge_token() -> bool:
+    explicit = str(os.getenv("NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS") or "").strip().lower()
+    return explicit in {"1", "true", "yes"} or _deploy_env() in PROTECTED_DEPLOY_ENVS
+
 
 def _tool_bridge_token() -> str:
     return (
         os.getenv("NARRATIVEOS_TOOL_BRIDGE_TOKEN")
         or os.getenv("MASTRA_TOOL_BRIDGE_TOKEN")
-        or "dev-local-token"
+        or LOCAL_TOOL_BRIDGE_TOKEN
     )
 
 
 def _require_tool_bridge_auth(authorization: Optional[str]) -> None:
+    expected_token = _tool_bridge_token()
+    if _requires_explicit_tool_bridge_token() and expected_token == LOCAL_TOOL_BRIDGE_TOKEN:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "tool_bridge_secret_not_configured",
+                "reason": "Protected deployments must configure a non-default Tool Bridge service token.",
+            },
+        )
+
     header = str(authorization or "").strip()
     if not header:
         raise HTTPException(
@@ -53,7 +80,7 @@ def _require_tool_bridge_auth(authorization: Optional[str]) -> None:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if not compare_digest(token.strip(), _tool_bridge_token()):
+    if not compare_digest(token.strip(), expected_token):
         raise HTTPException(
             status_code=403,
             detail={

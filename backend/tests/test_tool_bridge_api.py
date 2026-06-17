@@ -188,6 +188,42 @@ def test_tool_bridge_rejects_wrong_service_token(tmp_path: Path):
     assert response.json()["detail"]["code"] == "tool_bridge_auth_invalid"
 
 
+def test_tool_bridge_rejects_default_token_in_protected_deploy_env(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("NARRATIVEOS_DEPLOY_ENV", "production")
+    monkeypatch.delenv("NARRATIVEOS_TOOL_BRIDGE_TOKEN", raising=False)
+    monkeypatch.delenv("MASTRA_TOOL_BRIDGE_TOKEN", raising=False)
+    client = _client(tmp_path)
+    response = client.post(
+        "/v1/tools/runtime/socratic-turn",
+        json=_payload(),
+        headers=_headers("run_demo"),
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "tool_bridge_secret_not_configured"
+
+
+def test_tool_bridge_accepts_explicit_token_in_protected_deploy_env(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("NARRATIVEOS_DEPLOY_ENV", "production")
+    monkeypatch.setenv("NARRATIVEOS_TOOL_BRIDGE_TOKEN", "prod-secret")
+    client = _client(tmp_path)
+    rejected = client.post(
+        "/v1/tools/runtime/socratic-turn",
+        json=_payload(),
+        headers=_headers("run_demo"),
+    )
+    accepted = client.post(
+        "/v1/tools/runtime/socratic-turn",
+        json=_payload(),
+        headers=_headers("run_demo", token="prod-secret"),
+    )
+
+    assert rejected.status_code == 403
+    assert rejected.json()["detail"]["code"] == "tool_bridge_auth_invalid"
+    assert accepted.status_code == 200
+    assert accepted.json()["candidateDraft"]["status"] == "candidate"
+
+
 def test_tool_bridge_requires_idempotency_key(tmp_path: Path):
     client = _client(tmp_path)
     response = client.post("/v1/tools/runtime/socratic-turn", json=_payload(), headers=_headers())

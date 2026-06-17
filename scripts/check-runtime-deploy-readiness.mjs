@@ -56,17 +56,21 @@ assert(
 assert(
   apiDockerfile.includes('uvicorn')
     && apiDockerfile.includes('--host", "0.0.0.0"')
-    && apiDockerfile.includes('--port", "8787"'),
-  'API Dockerfile must run FastAPI on 0.0.0.0:8787',
+    && apiDockerfile.includes('--port", "8787"')
+    && apiDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production'),
+  'API Dockerfile must run FastAPI on 0.0.0.0:8787 with protected production deploy env',
 )
 assert(
   agentDockerfile.includes('MASTRA_HOST=0.0.0.0')
     && agentDockerfile.includes('MASTRA_PORT=4111')
+    && agentDockerfile.includes('NODE_ENV=production')
+    && agentDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production')
     && agentDockerfile.includes('run", "start"'),
-  'Agent Dockerfile must run the production start script on 0.0.0.0:4111',
+  'Agent Dockerfile must run the production start script on 0.0.0.0:4111 with protected production deploy env',
 )
 assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')
+    && compose.includes('NARRATIVEOS_DEPLOY_ENV: local')
     && compose.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN: dev-local-token')
     && compose.includes('MASTRA_TOOL_BRIDGE_TOKEN: dev-local-token')
     && compose.includes('MASTRA_ALLOWED_ORIGINS:')
@@ -80,6 +84,7 @@ assert(
     && contract.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && contract.includes('MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
     && contract.includes('Authorization: Bearer <shared-tool-bridge-secret>')
+    && contract.includes('reject the local `dev-local-token` default')
     && contract.includes('Idempotency-Key'),
   'P14 deployment package doc must describe service ownership, Tool Bridge service-token auth, and idempotent write boundary',
 )

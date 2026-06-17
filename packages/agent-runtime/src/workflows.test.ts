@@ -9,6 +9,7 @@ import {
 } from './constraints.js'
 import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 import { projectPublicSocraticCreateOutput } from './workflows.js'
+import { serviceToken, ToolBridgeError } from './toolBridge.js'
 
 function firstText(values: string[] | undefined, fallback: string): string {
   return values?.find(value => value.trim().length > 0) || fallback
@@ -27,6 +28,45 @@ test('agent runtime exposes shared rulebook metadata', () => {
   assert.equal(agentRuntimeMeta.runtimeRules.kernelCount, genreKernels.length)
   assert.equal(agentRuntimeMeta.runtimeRules.privacy.representativeWorks, 'encrypted_vault_only')
   assert.equal(agentRuntimeMeta.runtimeRules.privacy.publicReferenceField, 'sourceRefs')
+})
+
+test('tool bridge service token default is only allowed outside protected deploy env', () => {
+  const originalDeployEnv = process.env.NARRATIVEOS_DEPLOY_ENV
+  const originalNodeEnv = process.env.NODE_ENV
+  const originalToken = process.env.MASTRA_TOOL_BRIDGE_TOKEN
+  const originalRequireSecrets = process.env.NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS
+
+  try {
+    delete process.env.NARRATIVEOS_DEPLOY_ENV
+    delete process.env.NODE_ENV
+    delete process.env.MASTRA_TOOL_BRIDGE_TOKEN
+    delete process.env.NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS
+    assert.equal(serviceToken(), 'dev-local-token')
+
+    process.env.NARRATIVEOS_DEPLOY_ENV = 'production'
+    assert.throws(
+      () => serviceToken(),
+      (error: unknown) => error instanceof ToolBridgeError && error.message === 'tool_bridge_secret_not_configured',
+    )
+
+    process.env.MASTRA_TOOL_BRIDGE_TOKEN = 'dev-local-token'
+    assert.throws(
+      () => serviceToken(),
+      (error: unknown) => error instanceof ToolBridgeError && error.message === 'tool_bridge_secret_not_configured',
+    )
+
+    process.env.MASTRA_TOOL_BRIDGE_TOKEN = 'prod-secret'
+    assert.equal(serviceToken(), 'prod-secret')
+  } finally {
+    if (originalDeployEnv === undefined) delete process.env.NARRATIVEOS_DEPLOY_ENV
+    else process.env.NARRATIVEOS_DEPLOY_ENV = originalDeployEnv
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV
+    else process.env.NODE_ENV = originalNodeEnv
+    if (originalToken === undefined) delete process.env.MASTRA_TOOL_BRIDGE_TOKEN
+    else process.env.MASTRA_TOOL_BRIDGE_TOKEN = originalToken
+    if (originalRequireSecrets === undefined) delete process.env.NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS
+    else process.env.NARRATIVEOS_REQUIRE_EXPLICIT_SECRETS = originalRequireSecrets
+  }
 })
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
