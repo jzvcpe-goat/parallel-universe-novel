@@ -30,9 +30,8 @@ function beatPlan(kernels: GenreKernel[]): string[] {
   return primary.eventStructure.slice(0, 5)
 }
 
-function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]): string {
+function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], _kernels: GenreKernel[]): string {
   const seed = input.seed.trim()
-  const beats = beatPlan(kernels)
   if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) {
     return [
       `问灵台的铜铃响到第三声时，主角才发现掌心那枚玉简裂开了一道血线。`,
@@ -40,7 +39,6 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `他能借这道灵息跨过第一重关，也必须承受经脉逆行的痛，以及被债主循着因果找上门的风险。`,
       `如果立刻闭关，他会错过山门外那场伏杀；如果先救人，玉简里的灵气会在天亮前散尽。`,
       `长老没有催他，只把一盏快要熄灭的魂灯推到面前。灯芯里映着的不是敌人，而是他未来必须亲手偿还的人。`,
-      `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
   if (profiles.some(profile => profile.id === 'modern-other')) {
@@ -49,7 +47,6 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `主角把证据袋压在掌心，塑封边缘有一道旧裂痕，像是有人在多年以前就替今晚开过封。`,
       `他以为自己收到的是一份普通旧案材料，直到看见照片背面那行字：${seed}`,
       `如果公开，证人会立刻暴露；如果隐瞒，旧案里真正活下来的人会再次消失。`,
-      `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
   if (profiles.some(profile => profile.id === 'game-litrpg')) {
@@ -58,7 +55,6 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `队伍频道里没有人说话，坦克的盾牌耐久正在下坠，治疗职业却迟迟没有进本。`,
       `他知道这不是单人逞强能解决的局面。技能树上唯一亮着的节点，需要队友先完成一次打断。`,
       `如果强开首领，他能抢到第一波掉落；如果等待公会支援，排行榜上的名字会被别人顶替。`,
-      `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
   if (profiles.some(profile => profile.id === 'system-litrpg')) {
@@ -68,7 +64,6 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `他照做了。奖励不是钱，而是一段记忆：七岁那年，他坐在一间完全陌生的厨房里，听见有人喊他另一个名字。`,
       `从那一刻起，任务不再像机会，更像一张慢慢收紧的账单。每完成一次，他能拿回一小块被夺走的过去，也会丢掉一点现在赖以证明自己的证据。`,
       `如果继续执行，他可能查清债务和身份的来源；如果拒绝，下一次惩罚会先落到他最想保护的人身上。`,
-      `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
   if (profiles.some(profile => profile.id === 'comedy-misfit')) {
@@ -77,15 +72,13 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `他也确实说了，只不过第一句是：“你们谁把我的锅拿去炼丹了？”`,
       `本该剑拔弩张的审问现场被这句话拧偏，最紧张的人反而是藏在人群里的真正内鬼。`,
       `如果继续装傻，他能看清谁先露出破绽；如果当场摊牌，所有误会都会变成另一场更大的误会。`,
-      `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
   return [
     `第一盏灯亮起时，所有人都说那只是风。`,
     `主角站在门槛外，手里握着不该出现的线索，意识到自己被推到一个必须选择的位置。`,
-    `故事种子落下：${seed}`,
+    `那句话在他心里落下：${seed}`,
     `他还不知道这句话会改变谁的命运，但已经明白，沉默和开口都会付出代价。`,
-    `本轮节拍：${beats.join(' -> ')}。`,
   ].join('\n\n')
 }
 

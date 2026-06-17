@@ -50,6 +50,24 @@ test('selected system genre produces a full candidate and remains primary', asyn
   assert.ok(result.questions.length <= 2)
 })
 
+test('candidate prose does not expose planning scaffolds', async () => {
+  const cases = [
+    ['仙侠玄幻', '我想写仙侠玄幻，主角突破前必须先还一笔因果债。'],
+    ['现代悬疑', '现代悬疑旧案，主角收到一份矛盾证据。'],
+    ['系统流', '系统流故事，主角每次完成任务都会拿回一段记忆。'],
+    ['轻喜剧', '轻喜剧误会，主角一句话把审问现场带偏。'],
+  ]
+
+  for (const [genre, seed] of cases) {
+    const result = await socraticCreateWorkflow({ genre, seed }, { preferToolBridge: false })
+    const body = result.candidateDraft.body
+    assert.ok(!body.includes('本轮节拍'), `${genre} leaked beat plan label`)
+    assert.ok(!body.includes(' -> '), `${genre} leaked machine planning delimiter`)
+    assert.ok(!body.includes('BeatPlan'), `${genre} leaked internal planning term`)
+    assert.ok(!body.includes('故事种子'), `${genre} leaked seed scaffold`)
+  }
+})
+
 test('state preview workflow never writes canon when tool bridge is unavailable', async () => {
   const result = await statePreviewWorkflow({
     seed: '主角把裂纹玉简放回问灵台，暂时不确认这段正文。',

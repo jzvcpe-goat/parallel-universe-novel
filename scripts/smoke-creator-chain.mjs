@@ -216,6 +216,14 @@ try {
     (created.runTrace || []).some(item => item.step === 'tool_bridge.socratic_turn' && item.status === 'ok'),
     'socratic create must use FastAPI Tool Bridge',
   )
+  assert(
+    !String(created.candidateDraft?.body || '').includes('本轮节拍'),
+    'candidate draft must not expose beat-plan scaffolding',
+  )
+  assert(
+    !String(created.candidateDraft?.body || '').includes(' -> '),
+    'candidate draft must not expose planning delimiters',
+  )
   assertPublicCopy({
     candidateDraft: created.candidateDraft,
     questions: created.questions,
