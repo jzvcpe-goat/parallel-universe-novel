@@ -296,6 +296,7 @@ export default function Studio() {
         confirmed: true,
         confirmed_by: 'studio_operator',
         quality_report: qualityReport,
+        idempotencyKey: `studio-${scene.id}-${scene.status === 'canon_ready' ? 'canon' : 'branch'}`,
       })
       updateSceneCheck(scene.id, {
         ...current,

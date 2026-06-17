@@ -118,6 +118,7 @@ export interface CanonCommitRequest {
   confirmed?: boolean
   confirmed_by?: string
   quality_report?: Record<string, unknown>
+  idempotencyKey?: string
 }
 
 export interface CanonCommitResponse {
@@ -126,6 +127,9 @@ export interface CanonCommitResponse {
   commit_id?: string
   quality_gate: QualityGate
   ledger_path?: string
+  idempotent_replay?: boolean
+  write_scope?: string
+  rollback_plan?: Record<string, unknown>
 }
 
 export const runtimeApi = {
@@ -137,6 +141,13 @@ export const runtimeApi = {
     api.get<WorldlineRuntimeEvents>(`/timeline/worldlines/${worldlineId}/loom`),
   evaluateQuality: (payload: QualityEvaluateRequest) =>
     api.post<QualityEvaluateResponse>('/quality/evaluate', payload),
-  commitCanon: (payload: CanonCommitRequest) =>
-    api.post<CanonCommitResponse>('/canon/commit', payload),
+  commitCanon: ({ idempotencyKey, ...payload }: CanonCommitRequest) => {
+    const key = idempotencyKey
+      || `studio-${payload.candidate_id || payload.chapter_id || 'candidate'}-${payload.target_status || 'canon'}`
+    return api.post<CanonCommitResponse>('/canon/commit', payload, {
+      headers: {
+        'Idempotency-Key': key,
+      },
+    })
+  },
 }

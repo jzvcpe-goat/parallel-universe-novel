@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -15,6 +16,10 @@ from .sessions import ReaderContinueCommand, SessionService
 
 def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _idempotency_hash(value: str) -> str:
+    return sha256(value.strip().encode("utf-8")).hexdigest()[:16]
 
 
 def _fallback_state(*, world_id: str = "unbound_world") -> NarrativeState:
@@ -193,7 +198,7 @@ class ProductRuntimeService:
             "quality_gate": self._quality_gate(report),
         }
 
-    def commit_canon(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def commit_canon(self, payload: Dict[str, Any], *, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         target_status = str(payload.get("target_status") or "canon")
         confirmed = bool(payload.get("confirmed"))
         report = dict(payload.get("quality_report") or payload.get("report") or {})
@@ -204,6 +209,13 @@ class ProductRuntimeService:
                 "reason": "confirmation_required",
                 "quality_gate": add_commit_confirmation_requirement(gate),
             }
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "quality_gate": gate,
+            }
         if target_status == "canon" and not gate["can_commit_canon"]:
             return {
                 "status": "blocked",
@@ -212,8 +224,18 @@ class ProductRuntimeService:
             }
 
         now = _utcnow()
+        key_hash = _idempotency_hash(key)
+        commit_id = "canon_commit_%s" % key_hash
+        self.canon_ledger_dir.mkdir(parents=True, exist_ok=True)
+        ledger_path = self.canon_ledger_dir / ("%s.json" % commit_id)
+        if ledger_path.exists():
+            replay = json.loads(ledger_path.read_text(encoding="utf-8"))
+            replay["ledger_path"] = str(ledger_path)
+            replay["idempotent_replay"] = True
+            return replay
+
         record = {
-            "commit_id": "canon_commit_%s" % uuid4().hex[:12],
+            "commit_id": commit_id,
             "status": "committed",
             "target_status": target_status,
             "candidate_id": payload.get("candidate_id"),
@@ -223,12 +245,18 @@ class ProductRuntimeService:
             "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
             "confirmed_by": payload.get("confirmed_by") or "web_operator",
             "quality_gate": gate,
+            "idempotency_key_hash": key_hash,
+            "write_scope": "canon_ledger_only",
+            "rollback_plan": {
+                "status": "available_before_public_publish",
+                "method": "remove_ledger_record_and_requeue_candidate",
+                "commit_id": commit_id,
+            },
             "created_at": now,
         }
-        self.canon_ledger_dir.mkdir(parents=True, exist_ok=True)
-        ledger_path = self.canon_ledger_dir / ("%s.json" % record["commit_id"])
         ledger_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
         record["ledger_path"] = str(ledger_path)
+        record["idempotent_replay"] = False
         return record
 
     def _quality_gate(self, report: Optional[Dict[str, Any]]) -> Dict[str, Any]:

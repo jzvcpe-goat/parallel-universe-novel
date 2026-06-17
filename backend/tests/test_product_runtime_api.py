@@ -123,6 +123,7 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
 
     committed = client.post(
         "/v1/canon/commit",
+        headers={"Idempotency-Key": "commit-candidate-demo"},
         json={
             "candidate_id": "candidate_demo",
             "target_status": "canon",
@@ -139,9 +140,54 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert committed.status_code == 200
     payload = committed.json()
     assert payload["status"] == "committed"
+    assert payload["idempotent_replay"] is False
+    assert payload["write_scope"] == "canon_ledger_only"
+    assert payload["rollback_plan"]["status"] == "available_before_public_publish"
     assert payload["quality_gate"]["summary"]
     assert payload["quality_gate"]["canon_commit_readiness"]["ready"] is True
     assert Path(payload["ledger_path"]).exists()
+
+    replayed = client.post(
+        "/v1/canon/commit",
+        headers={"Idempotency-Key": "commit-candidate-demo"},
+        json={
+            "candidate_id": "candidate_demo",
+            "target_status": "canon",
+            "confirmed": True,
+            "confirmed_by": "qa_operator",
+            "quality_report": {
+                "chapter_id": "candidate_demo",
+                "decision": {"decision": "pass", "reason": "test-approved"},
+                "issues": [],
+                "scores": {"overall_score": 0.91},
+            },
+        },
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["status"] == "committed"
+    assert replayed_payload["commit_id"] == payload["commit_id"]
+    assert replayed_payload["ledger_path"] == payload["ledger_path"]
+    assert replayed_payload["idempotent_replay"] is True
+
+    missing_key = client.post(
+        "/v1/canon/commit",
+        json={
+            "candidate_id": "candidate_demo_2",
+            "target_status": "canon",
+            "confirmed": True,
+            "confirmed_by": "qa_operator",
+            "quality_report": {
+                "chapter_id": "candidate_demo_2",
+                "decision": {"decision": "pass", "reason": "test-approved"},
+                "issues": [],
+                "scores": {"overall_score": 0.91},
+            },
+        },
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
 
 
 def test_quality_gate_blocks_engineering_leak_but_keeps_learned_tracks_shadow_only(tmp_path: Path, monkeypatch):

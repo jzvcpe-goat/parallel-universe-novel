@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P51 状态回写安全门禁
+
+### 现象
+
+P45 把 state-writeback 标为 partial：已有 `stateWritebackPreview` 和 `/canon/commit`，但“有接口”不等于“提交安全”。最大风险是确认提交缺少幂等键，导致重复点击或重试写出多个 canon ledger。
+
+### 修复原则
+
+1. AI 候选默认 candidate-only，未确认不得写 canon。
+2. 已确认提交必须带 `Idempotency-Key`。
+3. 同一个 key 必须返回同一条 ledger，不重复写入。
+4. 当前阶段只证明 `canon_ledger_only`，不伪装成完整多表事务。
+5. 每条提交记录必须带 `rollback_plan`，说明公开发布前如何撤回。
+
+### 本轮落地
+
+- `/v1/canon/commit` 读取 `Idempotency-Key`。
+- `ProductRuntimeService.commit_canon` 增加幂等重放和缺 key 阻断。
+- `runtimeApi.commitCanon` 和 Studio 提交路径发送确定性 idempotency key。
+- `backend/tests/test_product_runtime_api.py` 增加缺 key、首次提交、重复提交重放断言。
+- 新增 `scripts/check-state-writeback-safety.mjs` 和 `docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md`。
+
+### 必跑检查
+
+```bash
+npm run check:state-writeback-safety
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python node scripts/run-backend-python.mjs -m pytest backend/tests/test_product_runtime_api.py
+```
+
 ## 2026-06-17 P50/P4 文档核心重做
 
 ### 现象

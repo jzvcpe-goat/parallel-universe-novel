@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 
@@ -116,10 +116,17 @@ def quality_evaluate(payload: QualityEvaluateRequest, request: Request) -> Dict[
 
 
 @router.post("/v1/canon/commit")
-def canon_commit(payload: CanonCommitRequest, request: Request) -> Dict[str, Any]:
+def canon_commit(
+    payload: CanonCommitRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
     bridge = _backend_team_bridge(request)
     if bridge is not None:
         bridged = bridge.canon_commit(payload.model_dump())
         if bridged is not None:
             return bridged
-    return request.app.state.product_runtime_service.commit_canon(payload.model_dump())
+    return request.app.state.product_runtime_service.commit_canon(
+        payload.model_dump(),
+        idempotency_key=idempotency_key,
+    )
