@@ -246,6 +246,21 @@ def _runtime_rules() -> Dict[str, Any]:
     raise RuntimeError("genre_runtime_rules_not_found")
 
 
+def _runtime_rules_meta() -> Dict[str, Any]:
+    rules = _runtime_rules()
+    privacy = rules.get("privacy") if isinstance(rules.get("privacy"), dict) else {}
+    return {
+        "version": int(rules.get("version") or 0),
+        "source": "docs/product/rules/genre-runtime-rules.v1.json",
+        "profile_count": len(rules.get("constraintProfiles") or []),
+        "kernel_count": len(rules.get("genreKernels") or []),
+        "privacy": {
+            "representative_works": _clean_text(privacy.get("representativeWorks") or "unknown", limit=80),
+            "public_reference_field": _clean_text(privacy.get("publicReferenceField") or "sourceRefs", limit=80),
+        },
+    }
+
+
 def _matches_by_group(text: str, profile: Dict[str, Any]) -> Dict[str, List[str]]:
     return {
         "signal_terms": _signal_matches(text, [str(item) for item in profile.get("signalTerms", [])]),
@@ -382,6 +397,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                 "user_freeform_intent",
                 "runtime_rule_json",
             ],
+            "runtime_rules": _runtime_rules_meta(),
             "global_prompt_rule": "constraints_and_kernels_resolve_from_shared_runtime_rules",
         },
         "active": active,

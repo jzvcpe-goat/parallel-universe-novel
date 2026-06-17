@@ -1,5 +1,39 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P14 规则版本握手
+
+### 现象
+
+Mastra agent runtime 与 FastAPI Creator Dialogue 都已经读取 `genre-runtime-rules.v1.json`，但没有共同暴露“读到的是哪个版本、多少个 Profile、多少个 Kernel、代表作品是否仍为加密引用”。一旦某侧读到旧文件，页面仍可能看起来正常，实际规则会漂移。
+
+### 原因
+
+1. P4 先完成了同源读取和激活排序，但没有建立跨服务握手。
+2. Agent `/health` 只暴露 workflow/contract 信息，FastAPI `genre_constraint_facts` 只暴露 active profile/kernel。
+3. 没有脚本快速检查编译后的 agent runtime 是否和文档 JSON 保持一致。
+
+### 修复原则
+
+1. 规则事实源仍只有 `docs/product/rules/genre-runtime-rules.v1.json`。
+2. Mastra 与 FastAPI 都必须暴露同一组可审计摘要：version、source、profile count、kernel count、privacy policy。
+3. 这些摘要只用于 QA、调试和后端交接；普通 Creator/Reader UI 不展示。
+4. 增删 Profile/Kernel 后，必须先让版本握手检查通过，再讨论生成效果。
+
+### 本轮落地
+
+- Agent runtime 新增 `runtimeRulesMeta`，并挂到 `/health` 的 `agentRuntimeMeta.runtimeRules`。
+- FastAPI `genre_constraint_facts.runtime_rules` 返回同源规则摘要。
+- 新增 `npm run check:runtime-rule-handshake`，核对编译后的 agent runtime 与 JSON 规则源。
+- 根目录 `npm run test` 已串入该检查。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P13 公开正文洁净度检查
 
 ### 现象

@@ -20,6 +20,11 @@ def _client(tmp_path: Path, monkeypatch, *, payload=None) -> TestClient:
     return TestClient(app)
 
 
+def _runtime_rules_fixture() -> dict:
+    root = Path(__file__).resolve().parents[2]
+    return json.loads((root / "docs/product/rules/genre-runtime-rules.v1.json").read_text(encoding="utf-8"))
+
+
 def test_creator_dialogue_session_without_seed_asks_one_open_question(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
 
@@ -104,6 +109,7 @@ def test_creator_dialogue_seed_generates_story_cards_and_persists(tmp_path: Path
 
 def test_creator_dialogue_uses_shared_runtime_rules_for_all_core_profiles(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
+    rules = _runtime_rules_fixture()
     cases = [
         {
             "genre": "仙侠玄幻",
@@ -163,6 +169,13 @@ def test_creator_dialogue_uses_shared_runtime_rules_for_all_core_profiles(tmp_pa
 
         assert response.status_code == 200
         cards = response.json()["setting_cards"]
+        runtime_rules = cards["genre_constraint_facts"]["runtime_rules"]
+        assert runtime_rules["version"] == rules["version"]
+        assert runtime_rules["source"] == "docs/product/rules/genre-runtime-rules.v1.json"
+        assert runtime_rules["profile_count"] == len(rules["constraintProfiles"])
+        assert runtime_rules["kernel_count"] == len(rules["genreKernels"])
+        assert runtime_rules["privacy"]["representative_works"] == "encrypted_vault_only"
+        assert runtime_rules["privacy"]["public_reference_field"] == "sourceRefs"
         assert cards["genre_signal"] == case["display"]
         constraint_ids = {item["id"] for item in cards["genre_constraints"]}
         assert case["rule_id"] in constraint_ids

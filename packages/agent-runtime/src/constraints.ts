@@ -5,23 +5,28 @@ import type { ConstraintProfile, GenreKernel, SocraticCreateInput } from './type
 
 interface RuntimeRules {
   version: number
+  privacy?: {
+    representativeWorks?: string
+    publicReferenceField?: string
+  }
   constraintProfiles: ConstraintProfile[]
   genreKernels: GenreKernel[]
 }
 
+const runtimeRulesRelativePath = 'docs/product/rules/genre-runtime-rules.v1.json'
+
 function findRulesPath(): string {
-  const relativePath = 'docs/product/rules/genre-runtime-rules.v1.json'
-  const candidates = [join(process.cwd(), relativePath)]
+  const candidates = [join(process.cwd(), runtimeRulesRelativePath)]
   let current = dirname(fileURLToPath(import.meta.url))
   for (let i = 0; i < 8; i += 1) {
-    candidates.push(join(current, relativePath))
+    candidates.push(join(current, runtimeRulesRelativePath))
     const parent = dirname(current)
     if (parent === current) break
     current = parent
   }
   const found = candidates.find(candidate => existsSync(candidate))
   if (!found) {
-    throw new Error(`genre runtime rules not found: ${relativePath}`)
+    throw new Error(`genre runtime rules not found: ${runtimeRulesRelativePath}`)
   }
   return found
 }
@@ -34,6 +39,16 @@ const runtimeRules = loadRuntimeRules()
 
 export const constraintProfiles: ConstraintProfile[] = runtimeRules.constraintProfiles
 export const genreKernels: GenreKernel[] = runtimeRules.genreKernels
+export const runtimeRulesMeta = {
+  version: runtimeRules.version,
+  source: runtimeRulesRelativePath,
+  profileCount: constraintProfiles.length,
+  kernelCount: genreKernels.length,
+  privacy: {
+    representativeWorks: runtimeRules.privacy?.representativeWorks || 'unknown',
+    publicReferenceField: runtimeRules.privacy?.publicReferenceField || 'sourceRefs',
+  },
+}
 
 export const publicProseScaffoldTerms = [
   '本轮节拍',

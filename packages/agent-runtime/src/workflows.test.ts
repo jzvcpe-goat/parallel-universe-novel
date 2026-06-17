@@ -1,7 +1,20 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { evaluatePublicProseHygiene, resolveConstraints } from './constraints.js'
-import { qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+import {
+  constraintProfiles,
+  evaluatePublicProseHygiene,
+  genreKernels,
+  resolveConstraints,
+} from './constraints.js'
+import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+
+test('agent runtime exposes shared rulebook metadata', () => {
+  assert.equal(agentRuntimeMeta.runtimeRules.version, 2)
+  assert.equal(agentRuntimeMeta.runtimeRules.profileCount, constraintProfiles.length)
+  assert.equal(agentRuntimeMeta.runtimeRules.kernelCount, genreKernels.length)
+  assert.equal(agentRuntimeMeta.runtimeRules.privacy.representativeWorks, 'encrypted_vault_only')
+  assert.equal(agentRuntimeMeta.runtimeRules.privacy.publicReferenceField, 'sourceRefs')
+})
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
   const result = await socraticCreateWorkflow({

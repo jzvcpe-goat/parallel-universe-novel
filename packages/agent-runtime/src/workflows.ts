@@ -6,6 +6,7 @@ import {
   repairPublicProseScaffolds,
   resolveConstraints,
   resolveKernels,
+  runtimeRulesMeta,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
 import { qualityCheckTool, socraticTurnTool, statePreviewTool } from './toolBridge.js'
@@ -531,6 +532,7 @@ export const agentRuntimeMeta = {
   framework: 'mastra',
   package: '@mastra/core',
   mode: 'mock-local-first-round',
+  runtimeRules: runtimeRulesMeta,
   contracts: agentContracts,
   workflows: Object.keys(workflowRegistry),
 }
