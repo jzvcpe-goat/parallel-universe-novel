@@ -136,8 +136,10 @@ assert(
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
     && workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
+    && workflow.includes('actions: read')
+    && workflow.includes('GH_TOKEN: ${{ github.token }}')
     && workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
-  'Pages workflow must gate live builds through readiness ledger, upload the ledger artifact, and run live browser QA',
+  'Pages workflow must gate live builds through readiness ledger, audit GitHub repo variables, upload the ledger artifact, and run live browser QA',
 )
 assert(
   workflow.includes('run: npm run test') && !workflow.includes('npm run smoke:creator-chain'),

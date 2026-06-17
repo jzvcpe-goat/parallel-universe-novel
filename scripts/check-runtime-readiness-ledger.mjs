@@ -68,6 +68,12 @@ assert(
   ledger.repoVariables && typeof ledger.repoVariables.checked === 'boolean',
   'repoVariables.checked must be present',
 )
+if (process.env.CI === 'true') {
+  assert(
+    ledger.repoVariables.checked === true,
+    'CI readiness ledger must audit GitHub repository variables using GH_TOKEN',
+  )
+}
 assert(ledger.runtimeConfig && typeof ledger.runtimeConfig === 'object', 'runtimeConfig must be an object')
 assert(ledger.health && typeof ledger.health === 'object', 'health must be an object')
 assert(ledger.health.api && ledger.health.agent, 'health must include api and agent sections')

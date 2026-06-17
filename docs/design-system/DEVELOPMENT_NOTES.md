@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P27 CI readiness ledger 读取 GitHub variables
+
+### 现象
+
+P26 后下载最新 `runtime-readiness-ledger` artifact，发现 `repoVariables.checked=false`。这说明 artifact 虽然存在，也通过了结构与隐私校验，但 CI 没有证明它真的读取了 GitHub repository variables；它只是从 workflow 环境推断当前仍是 disabled runtime。
+
+### 修复原则
+
+1. CI 中的 readiness ledger 必须能调用 `gh variable list`，并把 `repoVariables.checked=true` 写入 artifact。
+2. Workflow 需要给相关步骤注入 `GH_TOKEN: ${{ github.token }}`，并授予 `actions: read`。
+3. 本地运行不强制 GitHub variables 审计，以免开发者没有登录 `gh` 时无法跑测试。
+4. `check:runtime-readiness-ledger` 在 `CI=true` 时强制要求 `repoVariables.checked=true`。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 给 `Run runtime checks` 与 `Gate public runtime release mode` 注入 `GH_TOKEN`。
+- `.github/workflows/pages.yml` 增加 `actions: read` 权限。
+- `scripts/check-runtime-readiness-ledger.mjs` 在 CI 中强制检查 `repoVariables.checked=true`。
+- `scripts/check-pages-live-release-gate.mjs` 与 `scripts/check-runtime-activation-package.mjs` 反向检查 GH_TOKEN 和权限。
+
+### 必跑检查
+
+```bash
+npm run check:pages-live-release-gate
+npm run check:runtime-activation-package
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P26 Readiness ledger 内容和隐私校验
 
 ### 现象
