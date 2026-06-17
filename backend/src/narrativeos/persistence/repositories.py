@@ -2441,6 +2441,51 @@ class SQLAlchemyPlatformRepository:
                 "world_version_id": row.world_version_id,
             }
 
+    def prove_analytics_event_transaction_rollback(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        event_name = str(payload.get("event_name") or "").strip()
+        if not event_name:
+            raise ValueError("event_name_required")
+        occurred_at = payload.get("occurred_at") or utcnow_iso()
+        probe_event_id: Optional[int] = None
+        visible_before_rollback = False
+        with self.SessionLocal() as session:
+            before_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+            row = AnalyticsEventRow(
+                event_name=event_name,
+                reader_id=payload.get("reader_id"),
+                session_id=payload.get("session_id"),
+                world_version_id=payload.get("world_version_id"),
+                payload_json=dict(payload.get("payload_json") or {}),
+                occurred_at=occurred_at,
+            )
+            session.add(row)
+            session.flush()
+            probe_event_id = row.event_id
+            visible_before_rollback = session.get(AnalyticsEventRow, probe_event_id) is not None
+            session.rollback()
+        with self.SessionLocal() as session:
+            persisted_row = session.get(AnalyticsEventRow, probe_event_id) if probe_event_id is not None else None
+            after_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+        return {
+            "event_name": event_name,
+            "probe_event_id": probe_event_id,
+            "insert_visible_before_rollback": visible_before_rollback,
+            "persisted_after_rollback": persisted_row is not None,
+            "rollback_verified": visible_before_rollback and persisted_row is None and len(after_rows) == len(before_rows),
+            "before_count": len(before_rows),
+            "after_count": len(after_rows),
+            "tables_checked": ["analytics_events"],
+            "occurred_at": occurred_at,
+        }
+
     def list_analytics_events(
         self,
         *,

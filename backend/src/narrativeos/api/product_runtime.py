@@ -27,6 +27,11 @@ class BranchPublishCandidateRequest(BaseModel):
     project_id: Optional[str] = None
 
 
+class BranchPublishRollbackFixtureRequest(BaseModel):
+    branch_publish_candidate_id: Optional[str] = None
+    project_id: Optional[str] = None
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -174,6 +179,25 @@ def branch_publish_snapshot(worldline_id: str, request: Request) -> Dict[str, An
         return request.app.state.product_runtime_service.branch_publish_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-rollback-fixture")
+def branch_publish_rollback_fixture(
+    worldline_id: str,
+    payload: BranchPublishRollbackFixtureRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.verify_branch_publish_transaction_rollback(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/v1/quality/evaluate")

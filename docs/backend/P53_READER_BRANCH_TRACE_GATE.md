@@ -57,4 +57,4 @@ The gate requires:
 2. `list_route_choices` surfaced through worldline summary.
 3. `/v1/scene/advance` returns `branch_writeback`.
 4. Reader UI sends `source_run_id`, `worldline_id`, and `branch_id` without showing internal trace words.
-5. P45 matrix names the remaining gap as production public branch publish / transaction rollback, not absence of Reader persistence or candidate publish linkage.
+5. P45 matrix names the remaining gap as production public branch publish / durable multi-table branch commit, not absence of Reader persistence, candidate publish linkage, or P59 rollback fixture proof.

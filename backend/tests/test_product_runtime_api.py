@@ -294,6 +294,96 @@ def test_branch_publish_candidate_consumes_route_choice_and_time_engine(tmp_path
     assert worldline_payload["branch_publish_summary"]["consumed_time_event_count"] == len(
         time_engine_payload["candidate_events"]
     )
+    assert worldline_payload["branch_publish_summary"]["transaction_rollback_fixture"] == "available"
+
+
+def test_branch_publish_rollback_fixture_proves_database_transaction_boundary(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_rollback"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_keep_witness_hidden",
+            "freeform_intent": "先藏起证人，再等待潮汐档案的第二次开门。",
+            "worldline_id": session_id,
+            "branch_id": "rollback-proof-branch",
+            "source_run_id": "reader-run-rollback-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-rollback-proof",
+            "beat_plan": ["选择落点", "压力回潮", "连锁质询", "余波冻结"],
+        },
+    )
+    assert planned.status_code == 200
+
+    missing_candidate = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-rollback-fixture",
+        headers={"Idempotency-Key": "rollback-proof-key"},
+        json={},
+    )
+    assert missing_candidate.status_code == 200
+    assert missing_candidate.json()["status"] == "blocked"
+    assert missing_candidate.json()["reason"] == "branch_publish_candidate_required"
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-rollback-key"},
+        json={
+            "branch_id": "rollback-proof-branch",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-rollback-proof",
+        },
+    )
+    assert published.status_code == 200
+    branch_publish_candidate_id = published.json()["branch_publish_candidate_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-rollback-fixture",
+        json={"branch_publish_candidate_id": branch_publish_candidate_id},
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-rollback-fixture",
+        headers={"Idempotency-Key": "rollback-proof-key"},
+        json={"branch_publish_candidate_id": "branch_publish_wrong"},
+    )
+    assert mismatch.status_code == 200
+    assert mismatch.json()["status"] == "blocked"
+    assert mismatch.json()["reason"] == "branch_publish_candidate_mismatch"
+
+    rollback = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-rollback-fixture",
+        headers={"Idempotency-Key": "rollback-proof-key"},
+        json={"branch_publish_candidate_id": branch_publish_candidate_id},
+    )
+
+    assert rollback.status_code == 200
+    payload = rollback.json()
+    assert payload["status"] == "verified"
+    assert payload["capability_mode"] == "database_transaction_rollback_fixture"
+    assert payload["write_scope"] == "rollback_fixture_only"
+    assert payload["worldline_id"] == session_id
+    assert payload["branch_publish_candidate_id"] == branch_publish_candidate_id
+    assert payload["transaction_probe_id"].startswith("rollback_probe_")
+    assert payload["insert_visible_before_rollback"] is True
+    assert payload["persisted_after_rollback"] is False
+    assert payload["rollback_verified"] is True
+    assert payload["production_public_publish"] is False
+    assert payload["tables_checked"] == ["analytics_events"]
+    assert payload["before_count"] == payload["after_count"]
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

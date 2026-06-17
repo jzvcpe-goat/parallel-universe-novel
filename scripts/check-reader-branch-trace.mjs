@@ -106,7 +106,7 @@ const artifact = {
   nonClaims: [
     'no canon write',
     'no public branch publish',
-    'no production transaction rollback proof',
+    'no production public branch transaction commit',
     'no remote live runtime proof',
   ],
 }

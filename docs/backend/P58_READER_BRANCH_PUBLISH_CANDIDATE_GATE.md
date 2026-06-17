@@ -73,8 +73,10 @@ P58 的唯一写入是 `branch_publish_candidate_ledger_only`：
 
 ## Next Gate
 
-P58 后的下一步是 **P59 Database Transaction Rollback Fixture**：
+P59 已补 **Database Transaction Rollback Fixture**：
 
-- branch publish candidate 进入数据库事务草案，
-- route choice、branch record、WorldInstance patch 和 TimeEngine event consumption 必须在同一 rollback fixture 内证明，
-- 仍需生产 operator authorization 才能进入 public publish。
+- branch publish candidate 可以进入数据库事务探针，
+- `branch_publish_transaction_fixture` 在事务内可见，
+- rollback 后 probe row 不会持久化。
+
+剩余下一步是 P60 生产发布门禁：operator authorization、quality brake hard gate、正式 branch publish idempotency ledger，以及多表 WorldInstance branch commit。

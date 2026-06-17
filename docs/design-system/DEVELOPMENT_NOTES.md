@@ -3287,3 +3287,31 @@ P53 已证明读者选择能进入 `route_choice_ledger_only`，P57 已证明 Ti
 - 成功写入 `branch_publish_candidate_ledger_only`，并带 rollback plan 与 future transaction plan。
 - `backend/tests/test_product_runtime_api.py` 覆盖缺幂等键 blocked、成功写入、idempotent replay、snapshot 和 `/loom` 汇总。
 - `check:reader-branch-publish` 纳入 root test，防止候选发布链路回退。
+
+## 2026-06-17 P59 Database Transaction Rollback Fixture
+
+### 现象
+
+P58 已经能把读者选择、WorldInstance patch candidate 和 TimeEngine candidate
+接成 `branch_publish_candidate_ledger_only`，但 P45/P52 仍然把“数据库事务回滚”
+写成未证明。这里不能直接跳到生产发布，否则会把候选账本误当成正式分支提交。
+
+### 修复原则
+
+1. 先证明事务边界，再谈正式分支发布。
+2. 不新增生产业务表，不污染 canon/branch/WorldInstance；用现有 `analytics_events`
+   做一次事务探针。
+3. 探针必须在事务内可见，rollback 后不可见，且由新 session 复查。
+4. 接口仍要求 `Idempotency-Key`，并要求已有 P58 branch publish candidate。
+5. 文档措辞要区分“P59 单表 rollback fixture 已证明”和“生产多表 branch publish
+   commit 未证明”，避免下一轮重复做同一个断点。
+
+### 本轮落地
+
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/branches/publish-rollback-fixture`。
+- Repository 新增 `prove_analytics_event_transaction_rollback`。
+- `ProductRuntimeService.verify_branch_publish_transaction_rollback` 返回
+  `database_transaction_rollback_fixture` 与 `rollback_fixture_only`。
+- `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺幂等键、候选不匹配和
+  成功回滚证明。
+- `check:branch-publish-rollback-fixture` 纳入 root test，防止事务证明回退。

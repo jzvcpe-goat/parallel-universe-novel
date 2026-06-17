@@ -1691,6 +1691,76 @@
         }
       }
     },
+    "/v1/timeline/worldlines/{worldline_id}/branches/publish-rollback-fixture": {
+      "post": {
+        "tags": [
+          "product-runtime"
+        ],
+        "summary": "Branch Publish Rollback Fixture",
+        "operationId": "branch_publish_rollback_fixture_v1_timeline_worldlines__worldline_id__branches_publish_rollback_fixture_post",
+        "parameters": [
+          {
+            "name": "worldline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Worldline Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BranchPublishRollbackFixtureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Branch Publish Rollback Fixture V1 Timeline Worldlines Worldline Id Branches Publish Rollback Fixture Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/timeline/worldlines/{worldline_id}/loom": {
       "get": {
         "tags": [
@@ -13142,6 +13212,34 @@
         },
         "type": "object",
         "title": "BranchPublishCandidateRequest"
+      },
+      "BranchPublishRollbackFixtureRequest": {
+        "properties": {
+          "branch_publish_candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Publish Candidate Id"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "type": "object",
+        "title": "BranchPublishRollbackFixtureRequest"
       },
       "CanonCommitRequest": {
         "properties": {

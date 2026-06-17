@@ -663,6 +663,91 @@ class ProductRuntimeService:
         latest["latest_path"] = str(self._branch_publish_latest_path(worldline_id))
         return latest
 
+    def verify_branch_publish_transaction_rollback(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "database_transaction_rollback_fixture",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        branch_publish_record = self._latest_branch_publish_record(worldline_id)
+        if branch_publish_record is None:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_candidate_required",
+                "capability_mode": "database_transaction_rollback_fixture",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        requested_candidate_id = str(payload.get("branch_publish_candidate_id") or "").strip()
+        branch_publish_candidate_id = str(branch_publish_record.get("branch_publish_candidate_id") or "")
+        if requested_candidate_id and requested_candidate_id != branch_publish_candidate_id:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_candidate_mismatch",
+                "capability_mode": "database_transaction_rollback_fixture",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+            }
+        key_hash = _idempotency_hash(key)
+        transaction_probe_id = "rollback_probe_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+            }
+        )
+        proof = self.repository.prove_analytics_event_transaction_rollback(
+            {
+                "event_name": "branch_publish_transaction_fixture",
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "session_id": worldline_id,
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "payload_json": {
+                    "transaction_probe_id": transaction_probe_id,
+                    "branch_publish_candidate_id": branch_publish_candidate_id,
+                    "worldline_id": worldline_id,
+                    "time_engine_run_id": branch_publish_record.get("time_engine_run_id"),
+                    "route_choice_event_id": branch_publish_record.get("route_choice_event_id"),
+                    "idempotency_key_hash": key_hash,
+                    "scope": "rollback_fixture_only",
+                },
+            }
+        )
+        rollback_verified = bool(proof.get("rollback_verified"))
+        return {
+            "status": "verified" if rollback_verified else "failed",
+            "capability_mode": "database_transaction_rollback_fixture",
+            "write_scope": "rollback_fixture_only",
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "transaction_probe_id": transaction_probe_id,
+            "idempotency_key_hash": key_hash,
+            "insert_visible_before_rollback": bool(proof.get("insert_visible_before_rollback")),
+            "persisted_after_rollback": bool(proof.get("persisted_after_rollback")),
+            "rollback_verified": rollback_verified,
+            "tables_checked": list(proof.get("tables_checked") or []),
+            "probe_event_id": proof.get("probe_event_id"),
+            "before_count": proof.get("before_count"),
+            "after_count": proof.get("after_count"),
+            "production_public_publish": False,
+            "branch_publish_record_write_scope": str(branch_publish_record.get("write_scope") or ""),
+            "created_at": _utcnow(),
+        }
+
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
         steps = self.repository.list_steps(session_id)
@@ -904,6 +989,7 @@ class ProductRuntimeService:
                 "rollback_scope": "delete_branch_publish_candidate_before_public_publish"
                 if branch_publish_record
                 else "none",
+                "transaction_rollback_fixture": "available" if branch_publish_record else "waiting",
             },
         }
 

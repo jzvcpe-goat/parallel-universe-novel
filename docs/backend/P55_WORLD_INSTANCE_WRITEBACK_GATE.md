@@ -61,4 +61,4 @@ The gate requires:
 3. The patch uses `world_instance_patch_candidate_only`.
 4. Snapshot/worldline endpoints return `world_instance_writeback_summary`.
 5. P45 keeps the remaining gap explicit: this is not public branch publish and
-   not production transaction rollback proof.
+   not durable multi-table WorldInstance branch commit proof.

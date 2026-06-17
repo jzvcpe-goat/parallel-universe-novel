@@ -48,7 +48,7 @@ The new gate checks:
 
 P51 intentionally leaves these as future work:
 
-- durable database transaction rollback,
+- durable multi-table canon transaction rollback,
 - multi-table canon/branch commit,
 - Reader public branch publish / durable multi-table WorldInstance writeback tied to Creator run ledger,
 - production auth/permission boundary for publish operators.

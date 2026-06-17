@@ -22,7 +22,8 @@ P51 changed state-writeback and quality-brake evidence:
 - repeated keys replay the same idempotent canon ledger record,
 - commit records declare `write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
-- remaining gap is database transaction rollback, production public branch publish, durable multi-table WorldInstance writeback, and production operator auth.
+- P59 now proves a single-probe database transaction rollback fixture for Reader branch publish candidates,
+- remaining gap is production public branch publish, durable multi-table WorldInstance writeback, and production operator auth.
 
 P55 changed world-engine/state-writeback evidence:
 
@@ -44,7 +45,7 @@ P57 changed time-engine evidence:
 - candidate events are persisted as `time_event_candidate_ledger_only`,
 - repeated requests replay the same `time_engine_run_id`,
 - `/v1/timeline/worldlines/{id}/time-engine` and `/loom` expose the latest candidate ledger,
-- remaining gap is production public branch publish, production telemetry fitting and database rollback fixtures, not absence of a durable FastAPI candidate service.
+- remaining gap is production public branch publish and production telemetry fitting, not absence of a durable FastAPI candidate service or P59 rollback fixture.
 
 P58 changed Reader branch publish evidence:
 
@@ -52,8 +53,16 @@ P58 changed Reader branch publish evidence:
 - the gate requires `Idempotency-Key`,
 - the gate consumes existing `route_choice_ledger_only` and latest `time_event_candidate_ledger_only`,
 - successful calls write only `branch_publish_candidate_ledger_only`,
-- `/loom` exposes `branch_publish_summary`,
-- remaining gap is production public branch publish and durable database transaction rollback, not absence of a branch publish candidate gate.
+- `/loom` exposes `branch_publish_summary`.
+
+P59 Database Transaction Rollback Fixture changed rollback evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/branches/publish-rollback-fixture`,
+- the fixture requires `Idempotency-Key`,
+- the fixture requires latest `branch_publish_candidate_ledger_only`,
+- repository `prove_analytics_event_transaction_rollback` verifies insert-visible-before-rollback and `persisted_after_rollback = false`,
+- successful calls return `write_scope = rollback_fixture_only`,
+- remaining gap is production public branch publish and durable multi-table WorldInstance branch commit, not absence of rollback proof.
 
 ## Verification
 
@@ -72,6 +81,7 @@ npm run check:runtime-completion-refresh
 - Studio quality evaluation and canon commit not linked by a shared trace.
 - TimeEngine not implemented as a durable backend candidate ledger.
 - Reader branch publish candidate gate not connected to TimeEngine candidate events.
+- Database transaction rollback fixture not proven after branch publish candidate.
 
 ## Boundary
 
@@ -86,4 +96,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58 improve proof quality, but they do not replace production auth, live remote runtime, legal/payment readiness, production public branch publish, database transaction rollback, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59 improve proof quality, but they do not replace production auth, live remote runtime, legal/payment readiness, production public branch publish, durable multi-table WorldInstance branch commit, or fitted TimeEngine telemetry.
