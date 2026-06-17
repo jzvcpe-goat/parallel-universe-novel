@@ -386,6 +386,143 @@ def test_branch_publish_rollback_fixture_proves_database_transaction_boundary(tm
     assert payload["before_count"] == payload["after_count"]
 
 
+def test_branch_publish_authorization_requires_operator_quality_and_rollback(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_authorize"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_keep_witness_hidden",
+            "freeform_intent": "先让证人藏进灯塔底层，再等待王庭记录员到来。",
+            "worldline_id": session_id,
+            "branch_id": "authorization-proof-branch",
+            "source_run_id": "reader-run-authorization-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-authorization-proof",
+            "beat_plan": ["证人藏匿", "王庭迫近", "灯塔回响", "余波待审"],
+        },
+    )
+    assert planned.status_code == 200
+
+    missing_candidate = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-proof-key"},
+        json={"operator_id": "ops-editor", "confirmed": True},
+    )
+    assert missing_candidate.status_code == 200
+    assert missing_candidate.json()["status"] == "blocked"
+    assert missing_candidate.json()["reason"] == "branch_publish_candidate_required"
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-authorization-key"},
+        json={
+            "branch_id": "authorization-proof-branch",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-authorization-proof",
+        },
+    )
+    assert published.status_code == 200
+    branch_publish_candidate_id = published.json()["branch_publish_candidate_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    missing_operator = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-proof-key"},
+        json={"branch_publish_candidate_id": branch_publish_candidate_id, "confirmed": True},
+    )
+    assert missing_operator.status_code == 200
+    assert missing_operator.json()["status"] == "blocked"
+    assert missing_operator.json()["reason"] == "operator_id_required"
+
+    unconfirmed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-proof-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": False,
+        },
+    )
+    assert unconfirmed.status_code == 200
+    assert unconfirmed.json()["status"] == "blocked"
+    assert unconfirmed.json()["reason"] == "operator_confirmation_required"
+
+    authorized = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-proof-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert authorized.status_code == 200
+    payload = authorized.json()
+    assert payload["status"] == "authorized_candidate"
+    assert payload["capability_mode"] == "branch_publish_authorization_gate"
+    assert payload["write_scope"] == "branch_publish_authorization_ledger_only"
+    assert payload["branch_publish_candidate_id"] == branch_publish_candidate_id
+    assert payload["operator_id"] == "ops-editor"
+    assert payload["operator_confirmation"] == "confirmed"
+    assert payload["quality_gate"]["status"] == "pass"
+    assert payload["quality_gate"]["can_authorize_branch_publish"] is True
+    assert payload["rollback_fixture"]["rollback_verified"] is True
+    assert payload["rollback_fixture"]["persisted_after_rollback"] is False
+    assert payload["production_public_publish"] is False
+    assert "durable_multi_table_world_instance_branch_commit" in payload["required_before_public_publish"]
+    assert Path(payload["ledger_path"]).exists()
+    assert Path(payload["latest_path"]).exists()
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-proof-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["authorization_id"] == payload["authorization_id"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["authorization_id"] == payload["authorization_id"]
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    authorization_summary = worldline.json()["branch_publish_authorization_summary"]
+    assert authorization_summary["status"] == "authorized_candidate"
+    assert authorization_summary["write_scope"] == "branch_publish_authorization_ledger_only"
+    assert authorization_summary["authorization_id"] == payload["authorization_id"]
+    assert authorization_summary["production_public_publish"] is False
+
+
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     candidate_body = (

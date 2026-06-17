@@ -618,6 +618,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Branch Publish Authorization Snapshot */
+        get: operations["branch_publish_authorization_snapshot_v1_timeline_worldlines__worldline_id__branches_publish_authorization_get"];
+        put?: never;
+        /** Branch Publish Authorization */
+        post: operations["branch_publish_authorization_v1_timeline_worldlines__worldline_id__branches_publish_authorization_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/timeline/worldlines/{worldline_id}/loom": {
         parameters: {
             query?: never;
@@ -4097,6 +4115,20 @@ export interface components {
             /** Project Id */
             project_id?: string | null;
         };
+        /** BranchPublishAuthorizationRequest */
+        BranchPublishAuthorizationRequest: {
+            /** Branch Publish Candidate Id */
+            branch_publish_candidate_id?: string | null;
+            /** Operator Id */
+            operator_id?: string | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** BranchPublishRollbackFixtureRequest */
         BranchPublishRollbackFixtureRequest: {
             /** Branch Publish Candidate Id */
@@ -6261,6 +6293,78 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["BranchPublishRollbackFixtureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_publish_authorization_snapshot_v1_timeline_worldlines__worldline_id__branches_publish_authorization_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_publish_authorization_v1_timeline_worldlines__worldline_id__branches_publish_authorization_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchPublishAuthorizationRequest"];
             };
         };
         responses: {

@@ -3315,3 +3315,30 @@ P58 已经能把读者选择、WorldInstance patch candidate 和 TimeEngine cand
 - `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺幂等键、候选不匹配和
   成功回滚证明。
 - `check:branch-publish-rollback-fixture` 纳入 root test，防止事务证明回退。
+
+## 2026-06-17 P60 Branch Publish Authorization Gate
+
+### 现象
+
+P58/P59 已经能证明候选分支生成和数据库回滚边界，但“谁有权推进候选分支”
+仍没有后端合同。如果直接把 P59 后的状态叫做发布，就会再次把候选链路误报为
+生产链路。
+
+### 修复原则
+
+1. 发布授权要有独立门禁，不能藏在 branch publish candidate 或 rollback fixture
+   里。
+2. 授权必须要求 `Idempotency-Key`、`operator_id` 和显式 `confirmed = true`。
+3. 授权前必须重跑结构质量门禁和 rollback fixture。
+4. 授权结果只写 `branch_publish_authorization_ledger_only`，仍不写 public branch。
+5. P45/P52 要继续把剩余断点指向“生产公开发布 + 多表提交”，而不是笼统说
+   operator auth 没接。
+
+### 本轮落地
+
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/branches/publish-authorization` POST/GET。
+- `ProductRuntimeService.authorize_branch_publish_candidate` 写入授权候选账本。
+- `/loom` 新增 `branch_publish_authorization_summary`。
+- `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺幂等键、缺 operator、
+  未确认、成功授权、幂等 replay、snapshot 和 `/loom`。
+- `check:branch-publish-authorization` 纳入 root test，防止授权门禁回退。

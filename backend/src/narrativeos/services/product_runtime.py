@@ -406,6 +406,21 @@ class ProductRuntimeService:
             return None
         return json.loads(latest_path.read_text(encoding="utf-8"))
 
+    def _branch_authorization_dir(self) -> Path:
+        return self.branch_publish_ledger_dir / "authorization"
+
+    def _branch_authorization_latest_path(self, worldline_id: str) -> Path:
+        return self._branch_authorization_dir() / ("latest_%s.json" % _safe_ledger_token(worldline_id))
+
+    def _branch_authorization_record_path(self, authorization_id: str) -> Path:
+        return self._branch_authorization_dir() / ("%s.json" % _safe_ledger_token(authorization_id))
+
+    def _latest_branch_authorization_record(self, worldline_id: str) -> Optional[Dict[str, Any]]:
+        latest_path = self._branch_authorization_latest_path(worldline_id)
+        if not latest_path.exists():
+            return None
+        return json.loads(latest_path.read_text(encoding="utf-8"))
+
     def plan_time_events(self, *, worldline_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         session = self.repository.get_session(worldline_id)
         kernel = _select_time_engine_kernel(payload)
@@ -663,6 +678,35 @@ class ProductRuntimeService:
         latest["latest_path"] = str(self._branch_publish_latest_path(worldline_id))
         return latest
 
+    def _branch_publish_authorization_quality_gate(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        time_event_ids = [str(item) for item in list(record.get("consumed_time_event_ids") or []) if str(item)]
+        patch = dict(record.get("world_instance_patch_candidate") or {})
+        checks = [
+            {
+                "id": "branch_publish_candidate_status",
+                "passed": record.get("status") == "candidate",
+            },
+            {
+                "id": "candidate_write_scope",
+                "passed": record.get("write_scope") == "branch_publish_candidate_ledger_only",
+            },
+            {
+                "id": "time_engine_events_consumed",
+                "passed": bool(time_event_ids),
+            },
+            {
+                "id": "world_instance_patch_candidate_present",
+                "passed": patch.get("write_scope") == "world_instance_patch_candidate_only",
+            },
+        ]
+        passed = all(bool(item["passed"]) for item in checks)
+        return {
+            "status": "pass" if passed else "blocked",
+            "can_authorize_branch_publish": passed,
+            "checks": checks,
+            "blocking_reasons": [item["id"] for item in checks if not item["passed"]],
+        }
+
     def verify_branch_publish_transaction_rollback(
         self,
         *,
@@ -747,6 +791,179 @@ class ProductRuntimeService:
             "branch_publish_record_write_scope": str(branch_publish_record.get("write_scope") or ""),
             "created_at": _utcnow(),
         }
+
+    def authorize_branch_publish_candidate(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        branch_publish_record = self._latest_branch_publish_record(worldline_id)
+        if branch_publish_record is None:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_candidate_required",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        requested_candidate_id = str(payload.get("branch_publish_candidate_id") or "").strip()
+        branch_publish_candidate_id = str(branch_publish_record.get("branch_publish_candidate_id") or "")
+        if requested_candidate_id and requested_candidate_id != branch_publish_candidate_id:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_candidate_mismatch",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+            }
+        operator_id = str(payload.get("operator_id") or "").strip()
+        if not operator_id:
+            return {
+                "status": "blocked",
+                "reason": "operator_id_required",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+            }
+        if payload.get("confirmed") is not True:
+            return {
+                "status": "blocked",
+                "reason": "operator_confirmation_required",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+                "operator_id": operator_id,
+            }
+
+        quality_gate = self._branch_publish_authorization_quality_gate(branch_publish_record)
+        if not quality_gate["can_authorize_branch_publish"]:
+            return {
+                "status": "blocked",
+                "reason": "quality_gate_blocked",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+                "operator_id": operator_id,
+                "quality_gate": quality_gate,
+            }
+
+        key_hash = _idempotency_hash(key)
+        authorization_id = "branch_authorization_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+                "operator_id": operator_id,
+            }
+        )
+        self._branch_authorization_dir().mkdir(parents=True, exist_ok=True)
+        record_path = self._branch_authorization_record_path(authorization_id)
+        latest_path = self._branch_authorization_latest_path(worldline_id)
+        if record_path.exists():
+            replay = json.loads(record_path.read_text(encoding="utf-8"))
+            replay["ledger_path"] = str(record_path)
+            replay["latest_path"] = str(latest_path)
+            replay["idempotent_replay"] = True
+            latest_path.write_text(json.dumps(replay, ensure_ascii=False, indent=2), encoding="utf-8")
+            return replay
+
+        rollback_proof = self.repository.prove_analytics_event_transaction_rollback(
+            {
+                "event_name": "branch_publish_authorization_transaction_fixture",
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "session_id": worldline_id,
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "payload_json": {
+                    "authorization_id": authorization_id,
+                    "branch_publish_candidate_id": branch_publish_candidate_id,
+                    "worldline_id": worldline_id,
+                    "operator_id": operator_id,
+                    "idempotency_key_hash": key_hash,
+                    "scope": "authorization_gate_only",
+                },
+            }
+        )
+        rollback_verified = bool(rollback_proof.get("rollback_verified"))
+        if not rollback_verified:
+            return {
+                "status": "blocked",
+                "reason": "rollback_fixture_failed",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+                "operator_id": operator_id,
+                "quality_gate": quality_gate,
+            }
+
+        record = {
+            "status": "authorized_candidate",
+            "capability_mode": "branch_publish_authorization_gate",
+            "write_scope": "branch_publish_authorization_ledger_only",
+            "authorization_id": authorization_id,
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": operator_id,
+            "operator_confirmation": "confirmed",
+            "quality_gate": quality_gate,
+            "rollback_fixture": {
+                "capability_mode": "database_transaction_rollback_fixture",
+                "write_scope": "rollback_fixture_only",
+                "rollback_verified": True,
+                "insert_visible_before_rollback": bool(rollback_proof.get("insert_visible_before_rollback")),
+                "persisted_after_rollback": bool(rollback_proof.get("persisted_after_rollback")),
+                "tables_checked": list(rollback_proof.get("tables_checked") or []),
+            },
+            "required_before_public_publish": [
+                "durable_multi_table_world_instance_branch_commit",
+                "production_release_owner_approval",
+                "remote_live_runtime_trace",
+            ],
+            "production_public_publish": False,
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": False,
+            "created_at": _utcnow(),
+        }
+        record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        record["ledger_path"] = str(record_path)
+        record["latest_path"] = str(latest_path)
+        latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    def branch_publish_authorization_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self._latest_branch_authorization_record(worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "branch_publish_authorization_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No branch publish authorization ledger has been generated for this worldline yet.",
+            }
+        latest["ledger_path"] = str(self._branch_authorization_record_path(str(latest.get("authorization_id") or "")))
+        latest["latest_path"] = str(self._branch_authorization_latest_path(worldline_id))
+        return latest
 
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
@@ -933,6 +1150,7 @@ class ProductRuntimeService:
         time_engine_record = self._latest_time_engine_record(worldline_id)
         time_engine_events = list(dict(time_engine_record or {}).get("candidate_events") or [])
         branch_publish_record = self._latest_branch_publish_record(worldline_id)
+        branch_authorization_record = self._latest_branch_authorization_record(worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -990,6 +1208,18 @@ class ProductRuntimeService:
                 if branch_publish_record
                 else "none",
                 "transaction_rollback_fixture": "available" if branch_publish_record else "waiting",
+            },
+            "branch_publish_authorization_summary": {
+                "status": str(dict(branch_authorization_record or {}).get("status") or "waiting"),
+                "write_scope": str(dict(branch_authorization_record or {}).get("write_scope") or "none"),
+                "authorization_id": dict(branch_authorization_record or {}).get("authorization_id"),
+                "branch_publish_candidate_id": dict(branch_authorization_record or {}).get(
+                    "branch_publish_candidate_id"
+                ),
+                "operator_confirmation": dict(branch_authorization_record or {}).get("operator_confirmation"),
+                "production_public_publish": bool(
+                    dict(branch_authorization_record or {}).get("production_public_publish") or False
+                ),
             },
         }
 

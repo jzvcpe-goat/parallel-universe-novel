@@ -79,4 +79,4 @@ P59 已补 **Database Transaction Rollback Fixture**：
 - `branch_publish_transaction_fixture` 在事务内可见，
 - rollback 后 probe row 不会持久化。
 
-剩余下一步是 P60 生产发布门禁：operator authorization、quality brake hard gate、正式 branch publish idempotency ledger，以及多表 WorldInstance branch commit。
+P60 已补 operator authorization 和结构质量门禁候选账本。剩余下一步是 P61 多表分支提交草案：branch record、WorldInstance patch、TimeEngine event consumption marker 和 authorization reference 需要进入同一个 transaction plan。

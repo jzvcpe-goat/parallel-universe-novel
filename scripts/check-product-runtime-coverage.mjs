@@ -48,6 +48,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_time_engine_persists_durable_candidate_events',
   'test_branch_publish_candidate_consumes_route_choice_and_time_engine',
   'test_branch_publish_rollback_fixture_proves_database_transaction_boundary',
+  'test_branch_publish_authorization_requires_operator_quality_and_rollback',
   'harness_trace',
   'branch_writeback',
   'quality_brake',
@@ -55,6 +56,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'time_event_candidate_ledger_only',
   'branch_publish_candidate_ledger_only',
   'database_transaction_rollback_fixture',
+  'branch_publish_authorization_ledger_only',
 ])
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/scene/advance")',
@@ -63,6 +65,8 @@ assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")',
   '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-rollback-fixture")',
+  '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")',
+  '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")',
   '@router.post("/v1/quality/evaluate")',
   '@router.post("/v1/canon/commit")',
   'quality_report',
@@ -89,6 +93,7 @@ assertIncludes('docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md', [
   'scene advance',
   'time engine',
   'branch publish candidate',
+  'branch publish authorization',
   'quality evaluate',
   'canon commit',
 ])
@@ -105,6 +110,7 @@ const artifact = {
       '/timeline/worldlines/{id}/time-engine',
       '/timeline/worldlines/{id}/branches/publish-candidate',
       '/timeline/worldlines/{id}/branches/publish-rollback-fixture',
+      '/timeline/worldlines/{id}/branches/publish-authorization',
       '/quality/evaluate',
       '/canon/commit',
     ],

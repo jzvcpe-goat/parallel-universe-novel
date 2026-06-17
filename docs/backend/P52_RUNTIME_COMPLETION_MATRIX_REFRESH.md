@@ -64,6 +64,16 @@ P59 Database Transaction Rollback Fixture changed rollback evidence:
 - successful calls return `write_scope = rollback_fixture_only`,
 - remaining gap is production public branch publish and durable multi-table WorldInstance branch commit, not absence of rollback proof.
 
+P60 Branch Publish Authorization Gate changed authorization evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/branches/publish-authorization`,
+- the gate requires `Idempotency-Key`,
+- the gate requires latest `branch_publish_candidate_ledger_only`,
+- the request must include `operator_id` and `confirmed = true`,
+- successful calls write only `branch_publish_authorization_ledger_only`,
+- `/loom` exposes `branch_publish_authorization_summary`,
+- remaining gap is production public branch publish and durable multi-table WorldInstance branch commit, not absence of operator authorization proof.
+
 ## Verification
 
 Run:
@@ -82,6 +92,7 @@ npm run check:runtime-completion-refresh
 - TimeEngine not implemented as a durable backend candidate ledger.
 - Reader branch publish candidate gate not connected to TimeEngine candidate events.
 - Database transaction rollback fixture not proven after branch publish candidate.
+- Branch publish operator authorization not proven after rollback fixture.
 
 ## Boundary
 
@@ -96,4 +107,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59 improve proof quality, but they do not replace production auth, live remote runtime, legal/payment readiness, production public branch publish, durable multi-table WorldInstance branch commit, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59/P60 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, durable multi-table WorldInstance branch commit, or fitted TimeEngine telemetry.

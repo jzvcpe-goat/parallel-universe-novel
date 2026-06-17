@@ -83,10 +83,18 @@ P59 不做：
 
 ## Next Gate
 
-P59 后的下一步是 **P60 Production Public Branch Publish Authorization Gate**：
+P60 已补 **Branch Publish Authorization Gate**：
 
 - operator authorization,
 - quality brake hard gate,
-- production publish idempotency ledger,
-- multi-table WorldInstance branch commit,
-- rollback fixture 从单表 probe 扩展到 branch publish transaction plan。
+- authorization candidate idempotency ledger,
+- rollback fixture before authorization.
+
+剩余下一步是 **P61 Durable Multi-table Branch Commit Draft**：
+
+- branch record,
+- WorldInstance patch,
+- TimeEngine event consumption marker,
+- authorization reference,
+- all inside one transaction plan,
+- still behind production release-owner approval and remote live runtime trace.

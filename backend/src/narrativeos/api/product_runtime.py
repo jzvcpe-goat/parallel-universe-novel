@@ -32,6 +32,13 @@ class BranchPublishRollbackFixtureRequest(BaseModel):
     project_id: Optional[str] = None
 
 
+class BranchPublishAuthorizationRequest(BaseModel):
+    branch_publish_candidate_id: Optional[str] = None
+    operator_id: Optional[str] = None
+    confirmed: bool = False
+    project_id: Optional[str] = None
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -198,6 +205,35 @@ def branch_publish_rollback_fixture(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")
+def branch_publish_authorization(
+    worldline_id: str,
+    payload: BranchPublishAuthorizationRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.authorize_branch_publish_candidate(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")
+def branch_publish_authorization_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.branch_publish_authorization_snapshot(
+            worldline_id=worldline_id
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/v1/quality/evaluate")
