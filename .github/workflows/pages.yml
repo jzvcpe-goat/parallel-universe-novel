@@ -93,6 +93,9 @@ jobs:
           npm --prefix app run build
           cp app/dist/index.html app/dist/404.html
 
+      - name: Scan built Pages privacy
+        run: npm run scan:reference-privacy
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

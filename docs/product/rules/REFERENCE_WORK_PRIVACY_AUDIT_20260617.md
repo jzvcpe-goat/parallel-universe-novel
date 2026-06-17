@@ -19,12 +19,16 @@
 - Runtime rules contain `21` constraint profiles.
 - Runtime rules contain `21` genre kernels.
 - Public reference map contains `45` anonymous refs.
+- Encrypted vault `refCount` matches the public anonymous ref count.
 - Public rule artifacts contain `0` `《...》` title markers.
 - Public rule artifacts expose `0` direct representative work leaks in the current scan.
 - Tracked public repository files are scanned for committed vault key files and concrete `REFERENCE_WORK_VAULT_KEY` values.
+- Runtime readiness artifacts under `artifacts/runtime` are scanned for representative work leaks.
 - When the private key is available, tracked public repository files are scanned against decrypted representative titles.
 - When the private key is available, current `app/dist` text assets are scanned against decrypted representative titles.
+- When the private key is available, decrypted vault refs must match public `rwref_*` IDs and vault `refCount`.
 - When the private key is available, historical Git text blobs are scanned against decrypted representative titles.
+- GitHub Pages CI runs `npm run scan:reference-privacy` after `npm --prefix app run build`, so the uploaded static bundle is scanned after it exists.
 - `npm run scan:reference-privacy` passes.
 
 ## Guardrail Added
@@ -36,6 +40,7 @@
 - English metadata keys such as `authorName`, `workTitle`, `representativeWorkTitle`.
 - Public ref objects with fields beyond `id` and `source_pdfs`.
 - Runtime `sourceRefs` that are not anonymous `rwref_0000` IDs.
+- Public ref count, encrypted vault ref count, and decrypted ref count mismatches.
 - Committed `reference-work-vault.key` files or tracked `private/` key paths.
 - Concrete `REFERENCE_WORK_VAULT_KEY` assignments in tracked source, docs, CI, or config.
 - Decrypted representative titles anywhere in tracked public text files when the private key is available.

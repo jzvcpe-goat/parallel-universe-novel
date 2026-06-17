@@ -15,6 +15,7 @@ const scanRoots = [
   'backend/src/narrativeos',
   'app/src',
   'app/dist',
+  'artifacts/runtime',
   'docs/product/rules',
   'docs/product/breakpoints',
 ]
@@ -168,6 +169,53 @@ function validatePublicRefs() {
     }
   }
   return ids
+}
+
+function validateVaultPublicCount(publicIds) {
+  if (!existsSync(vaultPath)) return
+  const vault = readJson(vaultPath)
+  const vaultRefCount = Number(vault.refCount || 0)
+  if (!Number.isFinite(vaultRefCount) || vaultRefCount <= 0) {
+    violations.push('docs/product/rules/reference-work-vault.enc.json refCount must be a positive number')
+    return
+  }
+  if (vaultRefCount !== publicIds.size) {
+    violations.push('reference-work-vault.enc.json refCount must match reference-work-public-refs.json refCount')
+  }
+}
+
+function validateDecryptedRefs(refs, publicIds) {
+  const vault = existsSync(vaultPath) ? readJson(vaultPath) : {}
+  const vaultRefCount = Number(vault.refCount || 0)
+  if (vaultRefCount && refs.length !== vaultRefCount) {
+    violations.push('decrypted reference vault refs length must match encrypted vault refCount')
+  }
+  if (refs.length !== publicIds.size) {
+    violations.push('decrypted reference vault refs length must match public anonymous ref count')
+  }
+
+  const decryptedIds = new Set()
+  for (const ref of refs) {
+    const id = String(ref.id || '')
+    if (!/^rwref_\d{4}$/.test(id)) {
+      violations.push(`decrypted reference vault contains invalid anonymous ref id: ${id || '<missing>'}`)
+      continue
+    }
+    if (decryptedIds.has(id)) violations.push(`decrypted reference vault contains duplicate ref id: ${id}`)
+    decryptedIds.add(id)
+    if (!publicIds.has(id)) {
+      violations.push(`decrypted reference vault contains id missing from public refs: ${id}`)
+    }
+    if (typeof ref.title !== 'string' || ref.title.trim().length < 2) {
+      violations.push(`decrypted reference vault ${id} must contain a private title for local-only leak scanning`)
+    }
+  }
+
+  for (const id of publicIds) {
+    if (!decryptedIds.has(id)) {
+      violations.push(`public refs contain id missing from decrypted reference vault: ${id}`)
+    }
+  }
 }
 
 function validateRuntimeSourceRefs(publicIds) {
@@ -373,6 +421,7 @@ function validateGitHistoryPrivacy(refs) {
 
 validateVaultShape()
 const publicIds = validatePublicRefs()
+validateVaultPublicCount(publicIds)
 validateRuntimeSourceRefs(publicIds)
 validateMarkdownSourceRefs(publicIds)
 validatePublicRuleTextNoTitleMarkers()
@@ -391,6 +440,7 @@ for (const file of files) {
 
 try {
   const refs = decryptVault()
+  if (refs.length) validateDecryptedRefs(refs, publicIds)
   validateCurrentTextFilesAgainstVault(refs)
   validateGitHistoryPrivacy(refs)
 } catch (error) {

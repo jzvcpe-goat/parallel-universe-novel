@@ -30,11 +30,13 @@ Run:
 npm run scan:reference-privacy
 ```
 
-When the local key is available, the scanner decrypts the vault and checks public runtime/docs, Git object history, and the latest static deployment bundle for accidental plaintext titles. It reports only file and line locations, not the title itself.
+When the local key is available, the scanner decrypts the vault and checks public runtime/docs, Git object history, runtime readiness artifacts, and the current static deployment bundle for accidental plaintext titles. It reports only file and line locations, not the title itself.
 
-The scan covers tracked public repository files, selected source roots, `app/dist`, and Git history, not only the rule directory. This prevents handoff notes, QA reports, generated code, build outputs, or old commits from reintroducing private research titles.
+The scan covers tracked public repository files, selected source roots, `app/dist`, `artifacts/runtime`, and Git history, not only the rule directory. This prevents handoff notes, QA reports, generated code, readiness ledgers, build outputs, or old commits from reintroducing private research titles.
 
-Without the local key, CI still enforces the structural gates: no committed key file, no concrete `REFERENCE_WORK_VAULT_KEY`, no public title metadata in rule artifacts, and no non-anonymous `sourceRefs`.
+GitHub Pages CI runs the privacy scan twice: once inside the root runtime checks, and once immediately after `npm --prefix app run build` so the uploaded Pages artifact is checked after the current bundle exists.
+
+Without the local key, CI still enforces the structural gates: no committed key file, no concrete `REFERENCE_WORK_VAULT_KEY`, no public title metadata in rule artifacts, no non-anonymous `sourceRefs`, and matching encrypted/public ref counts.
 
 The repository must never contain the vault key file or a concrete `REFERENCE_WORK_VAULT_KEY` value. Documentation may mention the variable name, but values belong only in team-controlled local or CI secrets.
 
