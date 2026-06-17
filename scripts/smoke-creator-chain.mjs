@@ -97,6 +97,23 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function assertRuntimeRuleHandshake(agentRules, fastapiRules) {
+  assert(agentRules && typeof agentRules === 'object', 'agent health must expose runtime rule metadata')
+  assert(fastapiRules && typeof fastapiRules === 'object', 'FastAPI creator dialogue must expose runtime rule metadata')
+  assert(agentRules.version === fastapiRules.version, 'agent and FastAPI rule versions must match')
+  assert(agentRules.source === fastapiRules.source, 'agent and FastAPI rule sources must match')
+  assert(agentRules.profileCount === fastapiRules.profile_count, 'agent and FastAPI profile counts must match')
+  assert(agentRules.kernelCount === fastapiRules.kernel_count, 'agent and FastAPI kernel counts must match')
+  assert(
+    agentRules.privacy?.representativeWorks === fastapiRules.privacy?.representative_works,
+    'agent and FastAPI representative work privacy policies must match',
+  )
+  assert(
+    agentRules.privacy?.publicReferenceField === fastapiRules.privacy?.public_reference_field,
+    'agent and FastAPI public reference privacy fields must match',
+  )
+}
+
 function assertPublicCopy(value, path = 'payload') {
   if (value == null) return
   if (typeof value === 'string') {
@@ -172,7 +189,24 @@ try {
     MASTRA_TOOL_BRIDGE_BASE_URL: apiBaseUrl,
   })
 
-  await waitForJson(`${agentBaseUrl}/health`)
+  const agentHealth = await waitForJson(`${agentBaseUrl}/health`)
+  assert(agentHealth.runtimeRules?.version >= 2, 'agent health must expose shared runtime rule version')
+
+  const creatorDialogue = await postJson(`${apiBaseUrl}/v1/creator/dialogue/sessions`, {
+    creator_id: 'smoke_author',
+    seed: '现代悬疑旧案，主角只能依靠证据链追查真相。',
+    genre: '现代悬疑',
+    context: {
+      story_direction: {
+        label: '现代悬疑',
+        keywords: '现代悬疑 旧案 证据链 心理侧写',
+      },
+    },
+  })
+  assertRuntimeRuleHandshake(
+    agentHealth.runtimeRules,
+    creatorDialogue.setting_cards?.genre_constraint_facts?.runtime_rules,
+  )
 
   const seed = '我想写一个系统流故事，主角每完成一次任务都会拿回一段不属于自己的记忆。'
   const createPayload = {

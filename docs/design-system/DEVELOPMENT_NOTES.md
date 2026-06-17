@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P15 真实 HTTP 规则握手 Smoke
+
+### 现象
+
+P14 已经有单测和脚本验证规则版本一致，但它们仍然可能绕过真实服务启动路径。真实 smoke 只证明创作链路可用，还没有证明 FastAPI 与 agent runtime 在同一次启动中读到同一份规则。
+
+### 修复原则
+
+1. `smoke:creator-chain` 必须验证真实 HTTP 服务，而不是只验证模块导入。
+2. Agent `/health` 的 `runtimeRules` 必须和 FastAPI `/v1/creator/dialogue/sessions` 返回的 `setting_cards.genre_constraint_facts.runtime_rules` 对齐。
+3. 规则握手只作为工程验收，不进入普通用户 UI。
+
+### 本轮落地
+
+- `scripts/smoke-creator-chain.mjs` 增加 `assertRuntimeRuleHandshake`。
+- Smoke 在同一组临时端口中启动 FastAPI 与 agent runtime，并核对 version、source、profile count、kernel count、privacy policy。
+- 后续规则文件改动若导致任一服务读错路径，真实链路 smoke 会直接失败。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run smoke:creator-chain
+```
+
 ## 2026-06-17 P14 规则版本握手
 
 ### 现象
