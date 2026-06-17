@@ -49,6 +49,10 @@ assert(
   'npm run test must include check:runtime-activation-package',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run smoke:creator-chain'),
+  'npm run test must include smoke:creator-chain so API + Agent + Tool Bridge are exercised in one gate',
+)
+assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')
     && !compose.includes('FASTAPI_TOOL_BRIDGE_BASE_URL: http://api:8787'),
   'runtime preview compose must use MASTRA_TOOL_BRIDGE_BASE_URL, not the legacy FASTAPI_* name',
@@ -106,6 +110,10 @@ assert(
   'Pages workflow must continue to gate live builds through live browser QA',
 )
 assert(
+  workflow.includes('run: npm run test') && !workflow.includes('npm run smoke:creator-chain'),
+  'Pages workflow must use root npm run test as the single runtime check entrypoint',
+)
+assert(
   liveQa.includes('创作服务可用')
     && liveQa.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK')
     && liveQa.includes('draftLength >= 300'),
@@ -117,4 +125,3 @@ console.log(JSON.stringify({
   checked: requiredFiles,
   activationGate: 'remote runtime URLs + GitHub vars + live browser QA',
 }, null, 2))
-

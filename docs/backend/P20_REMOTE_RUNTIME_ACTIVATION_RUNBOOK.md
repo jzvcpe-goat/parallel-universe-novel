@@ -205,6 +205,7 @@ Capture and attach:
 - Agent health response.
 - `npm run check:public-live-config` output.
 - `npm run check:public-runtime-preview` output.
+- `npm run smoke:creator-chain` output, or `npm run test` output proving the smoke ran inside the root gate.
 - `npm run qa:live-runtime-browser` output and screenshot path.
 - GitHub Actions run URL.
 - Public URL proof after deploy.
@@ -213,4 +214,3 @@ Capture and attach:
 ## Privacy And Product Boundary
 
 Do not expose provider names, API keys, model names, system prompts, raw state, representative work names, source evidence mappings, or decrypted reference vault content in public Creator/Reader UI.
-

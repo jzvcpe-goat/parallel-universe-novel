@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P22 Creator 链路 smoke 纳入 CI 门禁
+
+### 现象
+
+`smoke:creator-chain` 已经能启动 FastAPI 和 Agent Runtime，验证 Socratic create、quality brake、state preview 都通过 Tool Bridge，且候选状态不写 canon/branch。但它只是 workflow 里额外跑的一条命令，root `npm run test` 没包含它。本地开发者只跑 root test 时，可能漏掉最关键的端到端链路。
+
+### 修复原则
+
+1. 根目录 `npm run test` 是唯一可信总门禁，真实 API + Agent + Tool Bridge smoke 必须进入这里。
+2. GitHub Actions 只调用 root test，避免 CI 和本地门禁分叉。
+3. Activation package checker 要反向验证 root test 包含 `smoke:creator-chain`。
+
+### 本轮落地
+
+- `package.json` 将 `npm run smoke:creator-chain` 串入 root `npm run test`。
+- `.github/workflows/pages.yml` 的 runtime checks 改为单行 `npm run test`，不再重复单独调用 smoke。
+- `scripts/check-runtime-activation-package.mjs` 新增 root test/smoke 入口一致性检查。
+- P20 activation runbook 的验收证据补充 creator-chain smoke 输出。
+
+### 必跑检查
+
+```bash
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P21 公共仓库历史隐私审计
 
 ### 现象
