@@ -79,9 +79,9 @@ const artifact = {
     'keeps canon and production public branch publish out of scope',
   ],
   stillPartial: [
-    'not durable multi-table WorldInstance writeback',
+    'not production branch table persistence',
     'not production public branch publish',
-    'not production operator authorization',
+    'not production release-owner approval',
   ],
 }
 

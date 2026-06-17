@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-在 P58 branch publish candidate 和 P59 transaction rollback fixture 之后，补上正式发布前的 operator authorization gate。P60 仍不做 production public branch publish，也不写 durable multi-table WorldInstance branch commit；它只生成可审计的授权候选账本。
+在 P58 branch publish candidate 和 P59 transaction rollback fixture 之后，补上正式发布前的 operator authorization gate。P60 仍不做 production public branch publish，也不写 production branch tables；它只生成可审计的授权候选账本。
 
 命令：
 
@@ -67,7 +67,7 @@ P60 的唯一写入是 `branch_publish_authorization_ledger_only`：
 - not canon
 - not branch state
 - not production public branch publish
-- not durable multi-table WorldInstance writeback
+- not production branch table persistence
 - not remote live runtime proof
 
 ## Acceptance
@@ -85,7 +85,7 @@ P60 的唯一写入是 `branch_publish_authorization_ledger_only`：
 
 ## Next Gate
 
-P60 后的下一步是 **P61 Durable Multi-table Branch Commit Draft**：
+P61 已补 **Branch Commit Draft Gate**：
 
 - branch record,
 - WorldInstance patch,
@@ -93,3 +93,11 @@ P60 后的下一步是 **P61 Durable Multi-table Branch Commit Draft**：
 - operator authorization reference,
 - all inside one transaction plan,
 - still behind production release-owner approval and remote live runtime trace.
+
+剩余下一步是 **P62 Production Release Owner Gate**：
+
+- release-owner approval,
+- remote live runtime trace reference,
+- production branch table migration plan,
+- public publish kill switch,
+- audit trail export for ops/legal review.

@@ -23,7 +23,7 @@ P51 changed state-writeback and quality-brake evidence:
 - commit records declare `write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
 - P59 now proves a single-probe database transaction rollback fixture for Reader branch publish candidates,
-- remaining gap is production public branch publish, durable multi-table WorldInstance writeback, and production operator auth.
+- remaining gap is production public branch publish, production branch table persistence, and release-owner approval.
 
 P55 changed world-engine/state-writeback evidence:
 
@@ -37,7 +37,7 @@ P56 changed Studio/state-writeback evidence:
 - `/v1/quality/evaluate` returns `studio_trace` and `quality_report_hash`,
 - `/v1/canon/commit` stores the same trace in the `canon_ledger_only` record,
 - idempotent replay returns the same ledger record,
-- remaining gap is remote live commit, production operator authorization and durable multi-table publish, not absence of a Studio confirmation trace.
+- remaining gap is remote live commit, production release-owner approval and durable production publish, not absence of a Studio confirmation trace.
 
 P57 changed time-engine evidence:
 
@@ -62,7 +62,7 @@ P59 Database Transaction Rollback Fixture changed rollback evidence:
 - the fixture requires latest `branch_publish_candidate_ledger_only`,
 - repository `prove_analytics_event_transaction_rollback` verifies insert-visible-before-rollback and `persisted_after_rollback = false`,
 - successful calls return `write_scope = rollback_fixture_only`,
-- remaining gap is production public branch publish and durable multi-table WorldInstance branch commit, not absence of rollback proof.
+- remaining gap is production public branch publish and production branch table persistence, not absence of rollback proof.
 
 P60 Branch Publish Authorization Gate changed authorization evidence:
 
@@ -72,7 +72,17 @@ P60 Branch Publish Authorization Gate changed authorization evidence:
 - the request must include `operator_id` and `confirmed = true`,
 - successful calls write only `branch_publish_authorization_ledger_only`,
 - `/loom` exposes `branch_publish_authorization_summary`,
-- remaining gap is production public branch publish and durable multi-table WorldInstance branch commit, not absence of operator authorization proof.
+- remaining gap is production public branch publish and production branch table persistence, not absence of operator authorization proof.
+
+P61 Branch Commit Draft Gate changed commit-draft evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/branches/commit-draft`,
+- the gate requires `Idempotency-Key`,
+- the gate requires latest `branch_publish_authorization_ledger_only`,
+- the repository proves rollback across `route_choices` and `analytics_events`,
+- successful calls write only `branch_commit_draft_ledger_only`,
+- `/loom` exposes `branch_commit_draft_summary`,
+- remaining gap is production public branch publish, production branch tables, and remote live runtime trace, not absence of a branch commit draft.
 
 ## Verification
 
@@ -92,7 +102,8 @@ npm run check:runtime-completion-refresh
 - TimeEngine not implemented as a durable backend candidate ledger.
 - Reader branch publish candidate gate not connected to TimeEngine candidate events.
 - Database transaction rollback fixture not proven after branch publish candidate.
-- Branch publish operator authorization not proven after rollback fixture.
+- Branch publish release-owner gate not proven after commit draft.
+- Branch commit draft not proven after authorization.
 
 ## Boundary
 
@@ -107,4 +118,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, durable multi-table WorldInstance branch commit, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59/P60/P61 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, production branch table persistence, or fitted TimeEngine telemetry.

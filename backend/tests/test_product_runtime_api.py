@@ -523,6 +523,138 @@ def test_branch_publish_authorization_requires_operator_quality_and_rollback(tmp
     assert authorization_summary["production_public_publish"] is False
 
 
+def test_branch_commit_draft_requires_authorization_and_proves_multitable_rollback(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_commit_draft"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_keep_witness_hidden",
+            "freeform_intent": "让证人先留在灯塔暗室，自己去面对王庭的第一轮质询。",
+            "worldline_id": session_id,
+            "branch_id": "commit-draft-proof-branch",
+            "source_run_id": "reader-run-commit-draft-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-commit-draft-proof",
+            "beat_plan": ["暗室藏证", "王庭质询", "灯塔回火", "分支待审"],
+        },
+    )
+    assert planned.status_code == 200
+
+    missing_authorization = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-proof-key"},
+        json={},
+    )
+    assert missing_authorization.status_code == 200
+    assert missing_authorization.json()["status"] == "blocked"
+    assert missing_authorization.json()["reason"] == "branch_publish_candidate_required"
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-commit-draft-key"},
+        json={
+            "branch_id": "commit-draft-proof-branch",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-commit-draft-proof",
+        },
+    )
+    assert published.status_code == 200
+    branch_publish_candidate_id = published.json()["branch_publish_candidate_id"]
+
+    missing_authorization_after_candidate = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-proof-key"},
+        json={},
+    )
+    assert missing_authorization_after_candidate.status_code == 200
+    assert missing_authorization_after_candidate.json()["status"] == "blocked"
+    assert missing_authorization_after_candidate.json()["reason"] == "branch_publish_authorization_required"
+
+    authorized = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-commit-draft-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert authorized.status_code == 200
+    authorization_id = authorized.json()["authorization_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        json={"authorization_id": authorization_id},
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-proof-key"},
+        json={"authorization_id": "branch_authorization_wrong"},
+    )
+    assert mismatch.status_code == 200
+    assert mismatch.json()["status"] == "blocked"
+    assert mismatch.json()["reason"] == "authorization_mismatch"
+
+    drafted = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-proof-key"},
+        json={"authorization_id": authorization_id},
+    )
+    assert drafted.status_code == 200
+    payload = drafted.json()
+    assert payload["status"] == "drafted_candidate"
+    assert payload["capability_mode"] == "branch_commit_draft_gate"
+    assert payload["write_scope"] == "branch_commit_draft_ledger_only"
+    assert payload["authorization_id"] == authorization_id
+    assert payload["branch_publish_candidate_id"] == branch_publish_candidate_id
+    assert payload["multitable_rollback_fixture"]["rollback_verified"] is True
+    assert payload["multitable_rollback_fixture"]["route_persisted_after_rollback"] is False
+    assert payload["multitable_rollback_fixture"]["analytics_persisted_after_rollback"] is False
+    assert payload["multitable_rollback_fixture"]["tables_checked"] == ["route_choices", "analytics_events"]
+    assert payload["transaction_plan"]["status"] == "draft_only"
+    assert payload["production_public_publish"] is False
+    assert Path(payload["ledger_path"]).exists()
+    assert Path(payload["latest_path"]).exists()
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-proof-key"},
+        json={"authorization_id": authorization_id},
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["commit_draft_id"] == payload["commit_draft_id"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/branches/commit-draft")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["commit_draft_id"] == payload["commit_draft_id"]
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    commit_summary = worldline.json()["branch_commit_draft_summary"]
+    assert commit_summary["status"] == "drafted_candidate"
+    assert commit_summary["write_scope"] == "branch_commit_draft_ledger_only"
+    assert commit_summary["commit_draft_id"] == payload["commit_draft_id"]
+    assert commit_summary["production_public_publish"] is False
+
+
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     candidate_body = (

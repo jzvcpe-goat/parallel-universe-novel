@@ -61,8 +61,8 @@ P59 不做：
 - not canon
 - not branch state
 - not production public branch publish
-- not durable multi-table WorldInstance writeback
-- not production operator authorization
+- not production branch table persistence
+- not production release-owner approval
 
 它只证明：
 
@@ -85,7 +85,7 @@ P59 不做：
 
 P60 已补 **Branch Publish Authorization Gate**：
 
-- operator authorization,
+- operator authorization candidate ledger,
 - quality brake hard gate,
 - authorization candidate idempotency ledger,
 - rollback fixture before authorization.

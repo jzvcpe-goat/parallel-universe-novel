@@ -2486,6 +2486,111 @@ class SQLAlchemyPlatformRepository:
             "occurred_at": occurred_at,
         }
 
+    def prove_branch_commit_multitable_transaction_rollback(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        session_id = str(payload.get("session_id") or "").strip()
+        chapter_id = str(payload.get("chapter_id") or "").strip()
+        if not session_id:
+            raise ValueError("session_id_required")
+        if not chapter_id:
+            raise ValueError("chapter_id_required")
+        event_name = str(payload.get("event_name") or "branch_commit_draft_transaction_fixture").strip()
+        choice_id = str(payload.get("choice_id") or "branch_commit_draft_probe").strip()
+        occurred_at = payload.get("occurred_at") or utcnow_iso()
+        route_choice_event_id: Optional[int] = None
+        analytics_event_id: Optional[int] = None
+        route_visible_before_rollback = False
+        analytics_visible_before_rollback = False
+        with self.SessionLocal() as session:
+            session_row = session.get(SessionRow, session_id)
+            if session_row is None:
+                raise KeyError("unknown_session:%s" % session_id)
+            chapter_row = session.get(ChapterRow, chapter_id)
+            if chapter_row is None:
+                raise KeyError("unknown_chapter:%s" % chapter_id)
+            before_route_rows = (
+                session.execute(
+                    select(RouteChoiceRow).where(
+                        RouteChoiceRow.session_id == session_id,
+                        RouteChoiceRow.choice_id == choice_id,
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            before_event_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+            route_row = RouteChoiceRow(
+                session_id=session_id,
+                chapter_id=chapter_id,
+                choice_id=choice_id,
+                selected_at=occurred_at,
+                payload_json=dict(payload.get("route_payload_json") or {}),
+            )
+            analytics_row = AnalyticsEventRow(
+                event_name=event_name,
+                reader_id=payload.get("reader_id"),
+                session_id=session_id,
+                world_version_id=payload.get("world_version_id"),
+                payload_json=dict(payload.get("event_payload_json") or {}),
+                occurred_at=occurred_at,
+            )
+            session.add(route_row)
+            session.add(analytics_row)
+            session.flush()
+            route_choice_event_id = route_row.choice_event_id
+            analytics_event_id = analytics_row.event_id
+            route_visible_before_rollback = session.get(RouteChoiceRow, route_choice_event_id) is not None
+            analytics_visible_before_rollback = session.get(AnalyticsEventRow, analytics_event_id) is not None
+            session.rollback()
+        with self.SessionLocal() as session:
+            route_persisted = (
+                session.get(RouteChoiceRow, route_choice_event_id) if route_choice_event_id is not None else None
+            )
+            event_persisted = session.get(AnalyticsEventRow, analytics_event_id) if analytics_event_id is not None else None
+            after_route_rows = (
+                session.execute(
+                    select(RouteChoiceRow).where(
+                        RouteChoiceRow.session_id == session_id,
+                        RouteChoiceRow.choice_id == choice_id,
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            after_event_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+        rollback_verified = (
+            route_visible_before_rollback
+            and analytics_visible_before_rollback
+            and route_persisted is None
+            and event_persisted is None
+            and len(after_route_rows) == len(before_route_rows)
+            and len(after_event_rows) == len(before_event_rows)
+        )
+        return {
+            "event_name": event_name,
+            "choice_id": choice_id,
+            "route_choice_event_id": route_choice_event_id,
+            "analytics_event_id": analytics_event_id,
+            "route_visible_before_rollback": route_visible_before_rollback,
+            "analytics_visible_before_rollback": analytics_visible_before_rollback,
+            "route_persisted_after_rollback": route_persisted is not None,
+            "analytics_persisted_after_rollback": event_persisted is not None,
+            "rollback_verified": rollback_verified,
+            "before_route_count": len(before_route_rows),
+            "after_route_count": len(after_route_rows),
+            "before_event_count": len(before_event_rows),
+            "after_event_count": len(after_event_rows),
+            "tables_checked": ["route_choices", "analytics_events"],
+            "occurred_at": occurred_at,
+        }
+
     def list_analytics_events(
         self,
         *,

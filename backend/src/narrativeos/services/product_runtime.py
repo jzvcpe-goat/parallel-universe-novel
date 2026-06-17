@@ -421,6 +421,21 @@ class ProductRuntimeService:
             return None
         return json.loads(latest_path.read_text(encoding="utf-8"))
 
+    def _branch_commit_draft_dir(self) -> Path:
+        return self.branch_publish_ledger_dir / "commit_draft"
+
+    def _branch_commit_draft_latest_path(self, worldline_id: str) -> Path:
+        return self._branch_commit_draft_dir() / ("latest_%s.json" % _safe_ledger_token(worldline_id))
+
+    def _branch_commit_draft_record_path(self, commit_draft_id: str) -> Path:
+        return self._branch_commit_draft_dir() / ("%s.json" % _safe_ledger_token(commit_draft_id))
+
+    def _latest_branch_commit_draft_record(self, worldline_id: str) -> Optional[Dict[str, Any]]:
+        latest_path = self._branch_commit_draft_latest_path(worldline_id)
+        if not latest_path.exists():
+            return None
+        return json.loads(latest_path.read_text(encoding="utf-8"))
+
     def plan_time_events(self, *, worldline_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         session = self.repository.get_session(worldline_id)
         kernel = _select_time_engine_kernel(payload)
@@ -965,6 +980,170 @@ class ProductRuntimeService:
         latest["latest_path"] = str(self._branch_authorization_latest_path(worldline_id))
         return latest
 
+    def draft_branch_commit(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        branch_publish_record = self._latest_branch_publish_record(worldline_id)
+        if branch_publish_record is None:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_candidate_required",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        authorization_record = self._latest_branch_authorization_record(worldline_id)
+        if authorization_record is None:
+            return {
+                "status": "blocked",
+                "reason": "branch_publish_authorization_required",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+            }
+        requested_authorization_id = str(payload.get("authorization_id") or "").strip()
+        authorization_id = str(authorization_record.get("authorization_id") or "")
+        if requested_authorization_id and requested_authorization_id != authorization_id:
+            return {
+                "status": "blocked",
+                "reason": "authorization_mismatch",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "authorization_id": authorization_id,
+            }
+        key_hash = _idempotency_hash(key)
+        commit_draft_id = "branch_commit_draft_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "authorization_id": authorization_id,
+                "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+            }
+        )
+        self._branch_commit_draft_dir().mkdir(parents=True, exist_ok=True)
+        record_path = self._branch_commit_draft_record_path(commit_draft_id)
+        latest_path = self._branch_commit_draft_latest_path(worldline_id)
+        if record_path.exists():
+            replay = json.loads(record_path.read_text(encoding="utf-8"))
+            replay["ledger_path"] = str(record_path)
+            replay["latest_path"] = str(latest_path)
+            replay["idempotent_replay"] = True
+            latest_path.write_text(json.dumps(replay, ensure_ascii=False, indent=2), encoding="utf-8")
+            return replay
+
+        chapter_id = str(branch_publish_record.get("chapter_id") or "")
+        proof = self.repository.prove_branch_commit_multitable_transaction_rollback(
+            {
+                "session_id": worldline_id,
+                "chapter_id": chapter_id,
+                "event_name": "branch_commit_draft_transaction_fixture",
+                "choice_id": "branch_commit_draft_probe",
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "route_payload_json": {
+                    "commit_draft_id": commit_draft_id,
+                    "authorization_id": authorization_id,
+                    "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+                    "worldline_id": worldline_id,
+                    "scope": "branch_commit_draft_probe",
+                },
+                "event_payload_json": {
+                    "commit_draft_id": commit_draft_id,
+                    "authorization_id": authorization_id,
+                    "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+                    "worldline_id": worldline_id,
+                    "scope": "branch_commit_draft_probe",
+                },
+            }
+        )
+        if not proof.get("rollback_verified"):
+            return {
+                "status": "blocked",
+                "reason": "multitable_rollback_fixture_failed",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "authorization_id": authorization_id,
+                "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+            }
+
+        record = {
+            "status": "drafted_candidate",
+            "capability_mode": "branch_commit_draft_gate",
+            "write_scope": "branch_commit_draft_ledger_only",
+            "commit_draft_id": commit_draft_id,
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_id": branch_publish_record.get("branch_id"),
+            "branch_publish_candidate_id": branch_publish_record.get("branch_publish_candidate_id"),
+            "authorization_id": authorization_id,
+            "route_choice_event_id": branch_publish_record.get("route_choice_event_id"),
+            "time_engine_run_id": branch_publish_record.get("time_engine_run_id"),
+            "world_instance_patch_candidate": dict(branch_publish_record.get("world_instance_patch_candidate") or {}),
+            "transaction_plan": {
+                "status": "draft_only",
+                "tables": ["route_choices", "analytics_events"],
+                "future_tables": ["branches", "world_instances", "time_event_consumption"],
+                "rollback_verified": True,
+            },
+            "multitable_rollback_fixture": {
+                "rollback_verified": True,
+                "route_visible_before_rollback": bool(proof.get("route_visible_before_rollback")),
+                "analytics_visible_before_rollback": bool(proof.get("analytics_visible_before_rollback")),
+                "route_persisted_after_rollback": bool(proof.get("route_persisted_after_rollback")),
+                "analytics_persisted_after_rollback": bool(proof.get("analytics_persisted_after_rollback")),
+                "tables_checked": list(proof.get("tables_checked") or []),
+            },
+            "required_before_public_publish": [
+                "production_release_owner_approval",
+                "remote_live_runtime_trace",
+                "durable_production_branch_tables",
+            ],
+            "production_public_publish": False,
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": False,
+            "created_at": _utcnow(),
+        }
+        record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        record["ledger_path"] = str(record_path)
+        record["latest_path"] = str(latest_path)
+        latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    def branch_commit_draft_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self._latest_branch_commit_draft_record(worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "branch_commit_draft_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No branch commit draft ledger has been generated for this worldline yet.",
+            }
+        latest["ledger_path"] = str(self._branch_commit_draft_record_path(str(latest.get("commit_draft_id") or "")))
+        latest["latest_path"] = str(self._branch_commit_draft_latest_path(worldline_id))
+        return latest
+
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
         steps = self.repository.list_steps(session_id)
@@ -1151,6 +1330,7 @@ class ProductRuntimeService:
         time_engine_events = list(dict(time_engine_record or {}).get("candidate_events") or [])
         branch_publish_record = self._latest_branch_publish_record(worldline_id)
         branch_authorization_record = self._latest_branch_authorization_record(worldline_id)
+        branch_commit_draft_record = self._latest_branch_commit_draft_record(worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -1219,6 +1399,18 @@ class ProductRuntimeService:
                 "operator_confirmation": dict(branch_authorization_record or {}).get("operator_confirmation"),
                 "production_public_publish": bool(
                     dict(branch_authorization_record or {}).get("production_public_publish") or False
+                ),
+            },
+            "branch_commit_draft_summary": {
+                "status": str(dict(branch_commit_draft_record or {}).get("status") or "waiting"),
+                "write_scope": str(dict(branch_commit_draft_record or {}).get("write_scope") or "none"),
+                "commit_draft_id": dict(branch_commit_draft_record or {}).get("commit_draft_id"),
+                "authorization_id": dict(branch_commit_draft_record or {}).get("authorization_id"),
+                "branch_publish_candidate_id": dict(branch_commit_draft_record or {}).get(
+                    "branch_publish_candidate_id"
+                ),
+                "production_public_publish": bool(
+                    dict(branch_commit_draft_record or {}).get("production_public_publish") or False
                 ),
             },
         }

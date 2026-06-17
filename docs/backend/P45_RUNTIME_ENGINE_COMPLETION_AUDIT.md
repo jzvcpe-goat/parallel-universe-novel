@@ -26,11 +26,11 @@ npm run check:runtime-engine-completion
 
 | Component ID | Module | Status | Evidence Summary | Open Gap |
 | --- | --- | --- | --- | --- |
-| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; Studio confirmation now carries `studio_trace` into the canon ledger. | Production public branch publish, durable multi-table branch transaction and remote live runtime trace are not yet proven. |
-| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, and `branch_publish_candidate_ledger_only` proof exist. | Production public branch publish and durable multi-table WorldInstance writeback are not yet proven through runtime facade. |
+| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; Studio confirmation now carries `studio_trace` into the canon ledger. | Production public branch publish, production branch tables and remote live runtime trace are not yet proven. |
+| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, `branch_publish_candidate_ledger_only`, authorization and `branch_commit_draft_ledger_only` proof exist. | Production public branch publish and durable production WorldInstance branch table writeback are not yet proven through runtime facade. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids. | Production public branch publish does not yet apply fitted event-density or aftershock state; production telemetry fitting remains a future gate. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, and `database_transaction_rollback_fixture` proves rollback does not persist a probe row. | Transactional multi-table write and production public branch publish are not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, and P61 proves branch commit draft rollback across `route_choices` + `analytics_events`. | Production public branch publish and production branch tables are not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, and P60 structural branch authorization gate. | Reader live-generation text quality gate and production public branch publish quality hard gate are not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
@@ -58,7 +58,7 @@ P52 refreshed this matrix after P49 and P51:
 - P51 is guarded by `check:state-writeback-safety`.
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
-The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture and P60 proves candidate operator authorization, while production public branch publish, durable multi-table WorldInstance writeback, production TimeEngine telemetry fitting, and remote live runtime are still future gates.
+The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture, P60 proves candidate operator authorization, and P61 proves branch commit draft rollback across two existing tables, while production public branch publish, production branch tables, production TimeEngine telemetry fitting, and remote live runtime are still future gates.
 
 ## P57 FastAPI TimeEngine Service
 
@@ -135,8 +135,7 @@ production public publish:
 - `check:reader-branch-publish` prevents this from regressing.
 
 Remaining gaps stay explicit: P58 is not canon, not production public branch
-publish, not durable multi-table WorldInstance writeback, and not production
-operator authorization.
+publish, not production branch table persistence, and not release-owner approval.
 
 ## P59 Database Transaction Rollback Fixture
 
@@ -154,8 +153,7 @@ without claiming public publish:
 - `check:branch-publish-rollback-fixture` prevents this proof from regressing.
 
 Remaining gaps stay explicit: P59 is not canon, not production public branch
-publish, not durable multi-table WorldInstance branch commit, and not production
-operator authorization.
+publish, not production branch table persistence, and not release-owner approval.
 
 ## P60 Branch Publish Authorization Gate
 
@@ -175,8 +173,28 @@ publish:
 - `check:branch-publish-authorization` prevents this proof from regressing.
 
 Remaining gaps stay explicit: P60 is not canon, not production public branch
-publish, not durable multi-table WorldInstance branch commit, and not remote
-live runtime proof.
+publish, not production branch table persistence, and not remote live runtime
+proof.
+
+## P61 Branch Commit Draft Gate
+
+P61 proves the branch commit draft layer without claiming public publish:
+
+- `/v1/timeline/worldlines/{id}/branches/commit-draft` requires
+  `Idempotency-Key`.
+- The gate requires latest `branch_publish_authorization_ledger_only`.
+- The repository inserts synthetic `route_choices` and `analytics_events` probe
+  rows in one transaction, flushes both, then rolls back.
+- A fresh session confirms both probes were not persisted.
+- Successful calls write only `branch_commit_draft_ledger_only`.
+- `/v1/timeline/worldlines/{id}/branches/commit-draft` reads back the latest
+  draft.
+- `/v1/timeline/worldlines/{id}/loom` exposes `branch_commit_draft_summary`.
+- `check:branch-commit-draft` prevents this proof from regressing.
+
+Remaining gaps stay explicit: P61 is not canon, not production public branch
+publish, not production branch table persistence, and not remote live runtime
+proof.
 
 ## Privacy Boundary
 

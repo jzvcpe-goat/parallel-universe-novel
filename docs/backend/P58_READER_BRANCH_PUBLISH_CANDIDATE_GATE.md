@@ -55,8 +55,8 @@ P58 的唯一写入是 `branch_publish_candidate_ledger_only`：
 - not canon
 - not branch state
 - not production public branch publish
-- not durable multi-table WorldInstance writeback
-- not production operator authorization
+- not production branch table persistence
+- not production release-owner approval
 
 它的价值是把“读者选择已经进入 ledger”和“时间引擎候选密度已经持久化”接成一个可回放的候选发布点，为下一轮数据库事务和生产发布门禁做准备。
 

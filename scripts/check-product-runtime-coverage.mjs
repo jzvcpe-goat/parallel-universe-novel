@@ -49,6 +49,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_branch_publish_candidate_consumes_route_choice_and_time_engine',
   'test_branch_publish_rollback_fixture_proves_database_transaction_boundary',
   'test_branch_publish_authorization_requires_operator_quality_and_rollback',
+  'test_branch_commit_draft_requires_authorization_and_proves_multitable_rollback',
   'harness_trace',
   'branch_writeback',
   'quality_brake',
@@ -57,6 +58,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'branch_publish_candidate_ledger_only',
   'database_transaction_rollback_fixture',
   'branch_publish_authorization_ledger_only',
+  'branch_commit_draft_ledger_only',
 ])
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/scene/advance")',
@@ -67,6 +69,8 @@ assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-rollback-fixture")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")',
   '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-authorization")',
+  '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/commit-draft")',
+  '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/commit-draft")',
   '@router.post("/v1/quality/evaluate")',
   '@router.post("/v1/canon/commit")',
   'quality_report',
@@ -94,6 +98,7 @@ assertIncludes('docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md', [
   'time engine',
   'branch publish candidate',
   'branch publish authorization',
+  'branch commit draft',
   'quality evaluate',
   'canon commit',
 ])
@@ -111,6 +116,7 @@ const artifact = {
       '/timeline/worldlines/{id}/branches/publish-candidate',
       '/timeline/worldlines/{id}/branches/publish-rollback-fixture',
       '/timeline/worldlines/{id}/branches/publish-authorization',
+      '/timeline/worldlines/{id}/branches/commit-draft',
       '/quality/evaluate',
       '/canon/commit',
     ],

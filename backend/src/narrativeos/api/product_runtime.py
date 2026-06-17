@@ -39,6 +39,11 @@ class BranchPublishAuthorizationRequest(BaseModel):
     project_id: Optional[str] = None
 
 
+class BranchCommitDraftRequest(BaseModel):
+    authorization_id: Optional[str] = None
+    project_id: Optional[str] = None
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -232,6 +237,33 @@ def branch_publish_authorization_snapshot(worldline_id: str, request: Request) -
         return request.app.state.product_runtime_service.branch_publish_authorization_snapshot(
             worldline_id=worldline_id
         )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/branches/commit-draft")
+def branch_commit_draft(
+    worldline_id: str,
+    payload: BranchCommitDraftRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.draft_branch_commit(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/branches/commit-draft")
+def branch_commit_draft_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.branch_commit_draft_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

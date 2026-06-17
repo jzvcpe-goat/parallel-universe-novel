@@ -1873,6 +1873,118 @@
         }
       }
     },
+    "/v1/timeline/worldlines/{worldline_id}/branches/commit-draft": {
+      "post": {
+        "tags": [
+          "product-runtime"
+        ],
+        "summary": "Branch Commit Draft",
+        "operationId": "branch_commit_draft_v1_timeline_worldlines__worldline_id__branches_commit_draft_post",
+        "parameters": [
+          {
+            "name": "worldline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Worldline Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BranchCommitDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Branch Commit Draft V1 Timeline Worldlines Worldline Id Branches Commit Draft Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "product-runtime"
+        ],
+        "summary": "Branch Commit Draft Snapshot",
+        "operationId": "branch_commit_draft_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_draft_get",
+        "parameters": [
+          {
+            "name": "worldline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Worldline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Branch Commit Draft Snapshot V1 Timeline Worldlines Worldline Id Branches Commit Draft Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/timeline/worldlines/{worldline_id}/loom": {
       "get": {
         "tags": [
@@ -13368,6 +13480,34 @@
         },
         "type": "object",
         "title": "BranchPublishAuthorizationRequest"
+      },
+      "BranchCommitDraftRequest": {
+        "properties": {
+          "authorization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorization Id"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "type": "object",
+        "title": "BranchCommitDraftRequest"
       },
       "BranchPublishRollbackFixtureRequest": {
         "properties": {

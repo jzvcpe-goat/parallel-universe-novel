@@ -636,6 +636,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/branches/commit-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Branch Commit Draft Snapshot */
+        get: operations["branch_commit_draft_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_draft_get"];
+        put?: never;
+        /** Branch Commit Draft */
+        post: operations["branch_commit_draft_v1_timeline_worldlines__worldline_id__branches_commit_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/timeline/worldlines/{worldline_id}/loom": {
         parameters: {
             query?: never;
@@ -4129,6 +4147,13 @@ export interface components {
             /** Project Id */
             project_id?: string | null;
         };
+        /** BranchCommitDraftRequest */
+        BranchCommitDraftRequest: {
+            /** Authorization Id */
+            authorization_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** BranchPublishRollbackFixtureRequest */
         BranchPublishRollbackFixtureRequest: {
             /** Branch Publish Candidate Id */
@@ -6365,6 +6390,78 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["BranchPublishAuthorizationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_commit_draft_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_draft_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_commit_draft_v1_timeline_worldlines__worldline_id__branches_commit_draft_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchCommitDraftRequest"];
             };
         };
         responses: {

@@ -85,7 +85,7 @@ const artifact = {
   ],
   stillPartial: [
     'not production public branch publish',
-    'not durable multi-table WorldInstance branch commit',
+    'not production branch table persistence',
     'not remote live runtime proof',
   ],
 }
