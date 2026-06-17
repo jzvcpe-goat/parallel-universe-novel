@@ -49,6 +49,7 @@ npm --prefix app run build
 npm run qa:pages-browser
 npm run qa:live-runtime-browser
 npm run check:runtime-deploy-readiness
+npm run check:pages-live-release-gate
 npm run scan:internal-terms
 npm audit --audit-level=moderate
 ```
@@ -78,6 +79,7 @@ Creator Studio /create
 - Agent Runtime: `deploy/agent-runtime/Dockerfile`
 - 双服务本地预览: `deploy/runtime-preview/docker-compose.yml`
 - Live 验收: `npm run qa:live-runtime-browser`
+- Pages live 门禁: `npm run check:pages-live-release-gate`
 
 ## 关键文档
 
@@ -86,4 +88,5 @@ Creator Studio /create
 - `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`
 - `docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md`
 - `docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md`
+- `docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md`
 - `PARALLEL_UNIVERSE_PROTOTYPE_HANDOFF.md`

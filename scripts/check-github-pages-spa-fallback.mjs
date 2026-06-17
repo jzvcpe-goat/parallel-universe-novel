@@ -19,12 +19,17 @@ assert(
   'GitHub Pages workflow must build with HashRouter so public deep links use /#/route',
 )
 assert(
-  workflow.includes('VITE_PUBLIC_RUNTIME_MODE: disabled'),
-  'GitHub Pages workflow must explicitly declare static preview runtime mode until remote runtime is configured',
+  workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
+  'GitHub Pages workflow must make runtime mode configurable while defaulting to disabled',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'GitHub Pages workflow must disable local creator fallback for public builds',
+)
+assert(
+  workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview')
+    && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
+  'GitHub Pages workflow must run the live runtime gate before live public builds',
 )
 assert(
   workflow.includes('cp app/dist/index.html app/dist/404.html'),
@@ -39,6 +44,6 @@ console.log(JSON.stringify({
   status: 'passed',
   checked: '.github/workflows/pages.yml',
   routerMode: 'hash',
-  runtimeMode: 'disabled',
+  runtimeMode: 'vars_or_disabled',
   fallback: 'app/dist/404.html',
 }, null, 2))

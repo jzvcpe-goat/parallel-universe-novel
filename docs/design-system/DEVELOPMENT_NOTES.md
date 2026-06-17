@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P16 Pages Live Release Gate
+
+### 现象
+
+P15 已经有 live browser smoke，但如果 GitHub Pages workflow 仍然只硬编码静态模式，团队切换 live 可能会绕过验收，或者通过临时改代码打开入口。上线控制应该由仓库 variables 和 CI gate 负责。
+
+### 修复原则
+
+1. GitHub Pages 默认 `disabled`，但 runtime mode 必须由 repository variables 控制。
+2. live 模式必须先跑 `REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser`。
+3. 本地 fallback 在公开构建里永远是 `false`，不能由变量覆盖。
+4. live 切换不改前端代码，只改 GitHub variables，回滚也只改 variables。
+5. gate 必须在 build 前运行，不能在部署后才发现能力没接上。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 支持 `vars.VITE_PUBLIC_RUNTIME_MODE`。
+- `.github/workflows/pages.yml` 支持 `vars.VITE_API_ORIGIN`、`vars.VITE_API_BASE_URL`、`vars.VITE_AGENT_RUNTIME_BASE_URL`。
+- workflow 增加 `Gate public runtime release mode` 步骤。
+- 新增 `docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md`。
+- 新增 `scripts/check-pages-live-release-gate.mjs` 并串入 `npm run test`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:pages-live-release-gate
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P15 远端 Runtime Live Smoke
 
 ### 现象

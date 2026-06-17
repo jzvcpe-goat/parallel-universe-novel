@@ -47,11 +47,30 @@ jobs:
           npm run test
           npm run smoke:creator-chain
 
+      - name: Gate public runtime release mode
+        env:
+          VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}
+          VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
+          VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}
+        run: |
+          npm run check:public-runtime-preview
+          if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
+            REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
+            npm install --no-save playwright
+            npx playwright install chromium
+            REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
+          fi
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
-          VITE_PUBLIC_RUNTIME_MODE: disabled
+          VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}
           VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
+          VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}
         run: |
           npm --prefix app run build
           cp app/dist/index.html app/dist/404.html

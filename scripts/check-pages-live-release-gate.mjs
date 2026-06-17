@@ -1,0 +1,75 @@
+#!/usr/bin/env node
+import { readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+
+const root = resolve(new URL('..', import.meta.url).pathname)
+
+function read(rel) {
+  return readFileSync(join(root, rel), 'utf8')
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message)
+}
+
+const workflow = read('.github/workflows/pages.yml')
+const p16Doc = read('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md')
+const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
+const packageJson = JSON.parse(read('package.json'))
+
+assert(
+  workflow.includes('Gate public runtime release mode'),
+  'Pages workflow must include an explicit public runtime release gate step',
+)
+assert(
+  workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
+  'Pages workflow must default public runtime mode to disabled through GitHub vars',
+)
+assert(
+  workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
+    && workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}'),
+  'Pages workflow must source remote API and Agent URLs from GitHub vars',
+)
+assert(
+  workflow.includes('if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then')
+    && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview')
+    && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
+  'Pages workflow must require live checks before any live public build',
+)
+assert(
+  workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
+  'Pages workflow must always disable local creator fallback for public builds',
+)
+assert(
+  workflow.indexOf('Gate public runtime release mode') < workflow.indexOf('Build Creator Studio'),
+  'Runtime release gate must run before the Creator Studio build step',
+)
+assert(
+  packageJson.scripts['check:pages-live-release-gate'] === 'node scripts/check-pages-live-release-gate.mjs',
+  'package.json must expose check:pages-live-release-gate',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
+  'npm run test must include check:pages-live-release-gate',
+)
+assert(
+  p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
+    && p16Doc.includes('qa:live-runtime-browser')
+    && p16Doc.includes('GitHub repository variables'),
+  'P16 doc must describe the live release gate and required GitHub vars',
+)
+assert(
+  p15Doc.includes('P15 proves those deployed units actually satisfy the Creator Studio product flow.'),
+  'P15 doc must remain the browser-level proof consumed by the P16 release gate',
+)
+
+console.log(JSON.stringify({
+  status: 'passed',
+  checked: [
+    '.github/workflows/pages.yml',
+    'docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md',
+    'package.json',
+  ],
+  defaultMode: 'disabled',
+  liveModeGate: 'qa:live-runtime-browser',
+}, null, 2))

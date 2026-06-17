@@ -1,0 +1,71 @@
+# P16 Pages Live Release Gate
+
+## Goal
+
+让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：只有远端 API 与 Agent Runtime URL 都配置好，并且 `qa:live-runtime-browser` 通过，CI 才会构建 live Creator Studio。
+
+## Default State
+
+GitHub Pages 默认仍是静态预览：
+
+```yaml
+VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
+```
+
+如果没有配置 GitHub repository variables，公开页面会显示“创作服务待连接”，不会生成本地假正文。
+
+## Required GitHub Repository Variables
+
+在仓库 `Settings -> Secrets and variables -> Actions -> Variables` 中配置：
+
+| Variable | Example | Required For Live |
+| --- | --- | --- |
+| `VITE_PUBLIC_RUNTIME_MODE` | `live` | yes |
+| `VITE_API_ORIGIN` | `https://api.example.com` | yes |
+| `VITE_API_BASE_URL` | `https://api.example.com/v1` | optional |
+| `VITE_AGENT_RUNTIME_BASE_URL` | `https://agent.example.com` | yes |
+
+Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK` in repository variables. The workflow hard-codes it to `false`.
+
+Live release is enabled only by setting GitHub repository variables such as:
+
+```bash
+VITE_PUBLIC_RUNTIME_MODE=live
+VITE_API_ORIGIN=https://<api-host>
+VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host>
+```
+
+## Workflow Gate
+
+Before the build step, `.github/workflows/pages.yml` runs:
+
+```bash
+npm run check:public-runtime-preview
+if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
+  REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
+  npm install --no-save playwright
+  npx playwright install chromium
+  REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
+fi
+```
+
+This proves:
+
+- API health is reachable.
+- Agent Runtime health is reachable.
+- Creator Studio can submit a story seed in live mode.
+- A candidate draft is returned.
+- Public UI still hides internal implementation terms.
+
+## Acceptance
+
+1. `npm run check:pages-live-release-gate` passes.
+2. Static mode still deploys with no remote Runtime variables.
+3. Live mode fails if any required remote URL is missing.
+4. Live mode fails if browser submission cannot create a candidate draft.
+5. Live mode never enables local fallback.
+
+## Operational Rule
+
+Do not change public GitHub Pages to live mode by editing frontend code. Change only repository variables, let CI run the gate, and roll back by setting `VITE_PUBLIC_RUNTIME_MODE=disabled`.

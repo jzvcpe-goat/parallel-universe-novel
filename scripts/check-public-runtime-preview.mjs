@@ -47,12 +47,22 @@ assert(
   'Creator page must present runtime connection as product-facing status',
 )
 assert(
-  workflow.includes('VITE_PUBLIC_RUNTIME_MODE: disabled'),
-  'GitHub Pages workflow must explicitly mark the public runtime as disabled until a remote service URL is configured',
+  workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
+  'GitHub Pages workflow must make public runtime mode configurable while defaulting to disabled',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'GitHub Pages workflow must explicitly disable local creator fallback',
+)
+assert(
+  workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}')
+    && workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}'),
+  'GitHub Pages workflow must use repo variables for remote runtime URLs',
+)
+assert(
+  workflow.includes('Gate public runtime release mode')
+    && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
+  'GitHub Pages workflow must gate live mode with live browser QA',
 )
 assert(
   pagesQa.includes("VITE_PUBLIC_RUNTIME_MODE: 'disabled'")
