@@ -17,7 +17,7 @@
     "dev:agents": "npm --workspace @narrativeos/agent-runtime run dev",
     "dev:creator": "npm --prefix app run dev -- --host 127.0.0.1 --port 5173",
     "dev": "node scripts/dev-all.mjs",
-    "test": "npm --workspace @narrativeos/agent-runtime test && npm --prefix app run lint && node scripts/run-backend-python.mjs -m pytest backend/tests/test_tool_bridge_api.py",
+    "test": "npm --workspace @narrativeos/agent-runtime test && npm --prefix app run lint && node scripts/run-backend-python.mjs -m pytest backend/tests/test_tool_bridge_api.py && npm run scan:internal-terms && npm run scan:reference-privacy",
     "test:agents": "npm --workspace @narrativeos/agent-runtime test",
     "test:api": "node scripts/run-backend-python.mjs -m pytest backend/tests/test_tool_bridge_api.py",
     "test:creator": "npm --prefix app run lint",
@@ -25,7 +25,8 @@
     "debug:constraints": "npm --workspace @narrativeos/agent-runtime run debug:constraints --",
     "debug:quality": "npm --workspace @narrativeos/agent-runtime run debug:quality --",
     "debug:cost": "npm --workspace @narrativeos/agent-runtime run debug:cost --",
-    "scan:internal-terms": "node scripts/scan-internal-terms.mjs"
+    "scan:internal-terms": "node scripts/scan-internal-terms.mjs",
+    "scan:reference-privacy": "node scripts/scan-reference-privacy.mjs"
   },
   "keywords": [],
   "author": "",

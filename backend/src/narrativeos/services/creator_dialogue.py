@@ -249,7 +249,7 @@ def _genre_constraint(
     rule: str,
     source: str,
     condition: Optional[Dict[str, Any]] = None,
-    source_evidence: Optional[Dict[str, List[str]]] = None,
+    activation_evidence: Optional[Dict[str, List[str]]] = None,
     prohibited_terms: Optional[List[str]] = None,
     replacement_guidance: Optional[List[str]] = None,
     positive_guidance: str = "",
@@ -267,7 +267,7 @@ def _genre_constraint(
         "prohibited_terms": prohibited_terms or [],
         "replacement_guidance": replacement_guidance or [],
         "source": source,
-        "source_evidence": source_evidence or {"selected_context": [], "user_text": []},
+        "activation_evidence": activation_evidence or {"selected_context": [], "user_text": []},
         "severity": severity,
         "scope": scope,
         "user_override": user_override,
@@ -302,7 +302,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
         "non_game": non_game,
         "local_webnovel_feel": local_feel or (western_fantasy and transmigration),
     }
-    source_evidence = {
+    activation_evidence = {
         "selected_context": selected_western_hits,
         "user_text": user_western_hits,
         "entry_mode": transmigration_hits,
@@ -343,7 +343,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                 prohibited_terms=["县衙", "衙门", "仵作", "宗门", "王朝科举", "清河县"],
                 replacement_guidance=["县令/知县 -> 市政官/领主代理/治安官", "仵作 -> 验尸修士/尸检书记/医师", "宗门 -> 修士会/骑士团/学院/圣堂派系"],
                 source="+".join(sources),
-                source_evidence=source_evidence,
+                activation_evidence=activation_evidence,
             )
         )
         active.append(
@@ -364,7 +364,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                 rule="本土感默认体现为中文网文节奏、主角处事方式、认知差、人性博弈和底层破局，不等于古代中国设定。",
                 positive_guidance="把本土感落实到主角权衡、人情账、风险规避、信息差判断和小人物向上破局，而不是改写世界制度为中式古代。",
                 source="+".join(sources),
-                source_evidence=source_evidence,
+                activation_evidence=activation_evidence,
                 severity="soft",
             )
         )
@@ -390,7 +390,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                     prohibited_terms=["县衙", "衙门", "仵作", "宗门", "王朝", "科举", "大理寺", "锦衣卫", "清河县"],
                     replacement_guidance=["古代官署职业 -> 城邦/圣堂/行会职业", "县域地名 -> 边境城、矿城、港城、领地", "中式办案身份 -> 治安官、验尸修士、书记员、译员"],
                     source="+".join(sources),
-                    source_evidence=source_evidence,
+                    activation_evidence=activation_evidence,
                     user_override="allowed_if_user_explicitly_requests_ancient_chinese_identity",
                 )
             )
@@ -415,7 +415,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                 prohibited_terms=["系统面板", "玩家", "副本奖励", "打怪掉落", "经验值", "等级面板", "职业数值"],
                 replacement_guidance=["副本 -> 地下城/遗迹/矿井/深井/禁区", "奖励 -> 战利品/遗物/契约报酬/生存资源", "职业面板 -> 身份、技艺、契约、训练痕迹"],
                 source="+".join(sources),
-                source_evidence=source_evidence,
+                activation_evidence=activation_evidence,
             )
         )
     return {

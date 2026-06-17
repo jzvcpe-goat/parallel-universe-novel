@@ -48,6 +48,7 @@ export interface ConstraintProfile {
   displayName: string
   layer: 'world' | 'thematic' | 'character' | 'narrative' | 'safety'
   priority: number
+  sourceRefs?: string[]
   signalTerms: string[]
   entryModeSignals: string[]
   toneSignals: string[]
@@ -59,6 +60,7 @@ export interface GenreKernel {
   name: string
   category: string
   compatibleProfiles: string[]
+  sourceRefs?: string[]
   thesis: string
   antiThesis: string
   pacingModel: string
@@ -121,4 +123,3 @@ export interface SocraticCreateOutput {
   }
   ledger: RunLedgerEntry[]
 }
-

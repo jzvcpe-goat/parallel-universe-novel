@@ -15,9 +15,10 @@ import type {
 } from './types.js'
 
 function safeTitle(input: SocraticCreateInput, profiles: ConstraintProfile[]): string {
-  if (profiles.some(profile => profile.id === 'western-fantasy-transmigration-non-game')) return '边境深井'
-  if (profiles.some(profile => profile.id === 'urban-mystery')) return '雨夜证据'
-  if (profiles.some(profile => profile.id === 'xuanhuan-suspense')) return '灯影旧誓'
+  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) return '问灵台'
+  if (profiles.some(profile => profile.id === 'others-modern')) return '雨夜证据'
+  if (profiles.some(profile => profile.id === 'game-litrpg')) return '登录前夜'
+  if (profiles.some(profile => profile.id === 'comedy-misfit')) return '掉马现场'
   return '第一幕'
 }
 
@@ -30,22 +31,40 @@ function beatPlan(kernels: GenreKernel[]): string[] {
 function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]): string {
   const seed = input.seed.trim()
   const beats = beatPlan(kernels)
-  if (profiles.some(profile => profile.id === 'western-fantasy-transmigration-non-game')) {
+  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) {
     return [
-      `他醒在边境矿城的钟声里，背下是潮冷的石粉，耳边有人用陌生的口音喊他欠了三枚银契。`,
-      `深井口的蓝火一明一灭，圣堂书记把一张破损的通行契塞到他掌心，像是早就知道他会从另一个世界跌进来。`,
-      `他没有看见任何界面，也没有获得凭空降下的奖赏；能救命的只有前世残留的判断、眼前人的贪婪，以及那座地下城正在向城墙下方呼吸的事实。`,
-      `如果承认自己不是这里的人，他会被当作灾厄的信标；如果假装熟悉这座城，他必须立刻替一个失踪矿工偿还债务。`,
-      `他把自己的来处压在舌根底下。第一件事不是拔剑，而是先听懂谁在撒谎。`,
+      `问灵台的铜铃响到第三声时，主角才发现掌心那枚玉简裂开了一道血线。`,
+      `师门说这是传承，可传承里第一句话不是功法，而是一笔欠了三代人的旧债。`,
+      `他能借这道灵息跨过第一重关，也必须承受经脉逆行的痛，以及被债主循着因果找上门的风险。`,
+      `如果立刻闭关，他会错过山门外那场伏杀；如果先救人，玉简里的灵气会在天亮前散尽。`,
+      `长老没有催他，只把一盏快要熄灭的魂灯推到面前。灯芯里映着的不是敌人，而是他未来必须亲手偿还的人。`,
       `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
-  if (profiles.some(profile => profile.id === 'urban-mystery')) {
+  if (profiles.some(profile => profile.id === 'others-modern')) {
     return [
       `雨停在凌晨两点十七分，监控里的那个人却还撑着伞。`,
       `主角把证据袋压在掌心，塑封边缘有一道旧裂痕，像是有人在多年以前就替今晚开过封。`,
       `他以为自己收到的是一份普通旧案材料，直到看见照片背面那行字：${seed}`,
       `如果公开，证人会立刻暴露；如果隐瞒，旧案里真正活下来的人会再次消失。`,
+      `本轮节拍：${beats.join(' -> ')}。`,
+    ].join('\n\n')
+  }
+  if (profiles.some(profile => profile.id === 'game-litrpg')) {
+    return [
+      `登录舱合上时，主角看见任务日志只刷新了一行：本次死亡会清空当前身份。`,
+      `队伍频道里没有人说话，坦克的盾牌耐久正在下坠，治疗职业却迟迟没有进本。`,
+      `他知道这不是单人逞强能解决的局面。技能树上唯一亮着的节点，需要队友先完成一次打断。`,
+      `如果强开首领，他能抢到第一波掉落；如果等待公会支援，排行榜上的名字会被别人顶替。`,
+      `本轮节拍：${beats.join(' -> ')}。`,
+    ].join('\n\n')
+  }
+  if (profiles.some(profile => profile.id === 'comedy-misfit')) {
+    return [
+      `主角穿过门帘时，满堂人都以为他要说出惊天秘密。`,
+      `他也确实说了，只不过第一句是：“你们谁把我的锅拿去炼丹了？”`,
+      `本该剑拔弩张的审问现场被这句话拧偏，最紧张的人反而是藏在人群里的真正内鬼。`,
+      `如果继续装傻，他能看清谁先露出破绽；如果当场摊牌，所有误会都会变成另一场更大的误会。`,
       `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
@@ -59,16 +78,28 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
 }
 
 function questionsFor(profiles: ConstraintProfile[]): string[] {
-  if (profiles.some(profile => profile.id === 'western-fantasy-transmigration-non-game')) {
+  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) {
     return [
-      '主角最想隐瞒的“外来者破绽”是什么？',
-      '第一场地下城危机里，他要先救人、保密，还是还债？',
+      '这次突破要付出的第一笔代价是什么？',
+      '主角更怕失去修行机会，还是更怕欠下新的人情债？',
     ]
   }
-  if (profiles.some(profile => profile.id === 'urban-mystery')) {
+  if (profiles.some(profile => profile.id === 'others-modern')) {
     return [
       '这份证据会伤害谁，所以主角不能立刻公开？',
       '主角和旧案之间有什么私人关系？',
+    ]
+  }
+  if (profiles.some(profile => profile.id === 'game-litrpg')) {
+    return [
+      '这次任务失败后，主角最不能承受的惩罚是什么？',
+      '队伍里谁的职业短板会在第一场战斗中暴露？',
+    ]
+  }
+  if (profiles.some(profile => profile.id === 'comedy-misfit')) {
+    return [
+      '这个误会最先伤到谁的面子？',
+      '主角要继续装傻套话，还是当场制造更大的反差？',
     ]
   }
   return [
