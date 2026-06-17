@@ -3,6 +3,7 @@
   "sourceRootMarker": "/workspaces/integration-harness",
   "releaseRootMarker": "/releases/parallel-universe-novel-github",
   "syncAsIs": [
+    ".github/workflows/pages.yml",
     "backend/src/narrativeos/services/creator_dialogue.py",
     "backend/tests/test_creator_dialogue_api.py",
     "backend/tests/test_market_trends_api.py",
@@ -22,6 +23,7 @@
     "packages/agent-runtime/src/workflows.ts",
     "scripts/browser-creator-e2e.mjs",
     "scripts/check-package-identity.mjs",
+    "scripts/check-github-pages-spa-fallback.mjs",
     "scripts/check-public-runtime-boundary.mjs",
     "scripts/check-release-sync-manifest.mjs",
     "scripts/check-runtime-rule-handshake.mjs",
@@ -47,7 +49,6 @@
     }
   ],
   "releaseOnly": [
-    ".github/workflows/pages.yml",
     "README.md"
   ]
 }

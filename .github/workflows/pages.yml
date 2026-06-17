@@ -48,7 +48,9 @@ jobs:
           npm run smoke:creator-chain
 
       - name: Build Creator Studio
-        run: npm --prefix app run build
+        run: |
+          npm --prefix app run build
+          cp app/dist/index.html app/dist/404.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

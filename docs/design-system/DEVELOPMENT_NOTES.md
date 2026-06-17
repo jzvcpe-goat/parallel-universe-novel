@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P11 GitHub Pages 深链接刷新
+
+### 现象
+
+应用内导航可以进入 `/create`、`/story`、`/library`，但用户直接打开或刷新这些路径时，GitHub Pages 返回 404。这是 BrowserRouter 部署到静态 Pages 的典型断点。
+
+### 修复原则
+
+1. GitHub Pages artifact 必须同时包含 `index.html` 和 `404.html`。
+2. `404.html` 必须由当前 build 的 `index.html` 复制生成，不能手写一份可能过期的静态文件。
+3. Pages workflow 也属于工程契约，必须进入 source/release 同步门禁。
+4. 检查脚本必须验证 workflow 在上传 `app/dist` 前生成 `app/dist/404.html`。
+
+### 本轮落地
+
+- `.github/workflows/pages.yml` 在 `npm --prefix app run build` 后执行 `cp app/dist/index.html app/dist/404.html`。
+- 新增 `scripts/check-github-pages-spa-fallback.mjs`。
+- `npm run test` 串入 `check:github-pages-spa-fallback`。
+- `RELEASE_SYNC_MANIFEST.json` 将 Pages workflow 改为 `syncAsIs`，不再当作 release-only。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:github-pages-spa-fallback
+```
+
 ## 2026-06-17 P10 首页创作 CTA 点击遮挡
 
 ### 现象
