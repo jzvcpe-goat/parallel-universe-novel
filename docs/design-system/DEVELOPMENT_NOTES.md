@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P8 Creator Studio 浏览器级 E2E
+
+### 现象
+
+接口 smoke 能证明 Mastra workflow、FastAPI Tool Bridge 和 state preview 能跑通，但不能证明 `/create` 页面真的把用户输入送到 agent runtime，也不能证明页面没有退回本地草稿或泄露内部字段。
+
+### 修复原则
+
+1. Creator Studio 的关键链路必须有真实浏览器证据：打开 `/create`、输入一句故事种子、点击开始、等待候选正文和追问出现。
+2. 浏览器 QA 不能强行进入 CI 主链；Playwright/Chrome 属于本地验收依赖，避免污染产品包和 GitHub Pages 发布速度。
+3. 浏览器 QA 必须检查公共页面边界：不能出现 provider、fallback、rawHash、AgentRun、canon_written 等内部词。
+4. 候选正文必须足够像正文，不能只是一句状态提示；首轮追问不能超过两个。
+5. QA 产物必须保存截图路径，方便人工验收和回归比较。
+
+### 本轮落地
+
+- 新增 `scripts/browser-creator-e2e.mjs`。
+- 新增 `npm run qa:creator-browser`。
+- 脚本会启动临时 FastAPI、Agent Runtime 和 Vite 服务，用真实浏览器提交 `/create`，并输出 draft 长度、追问数量和截图路径。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+PLAYWRIGHT_MODULE_PATH=/Users/james/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.js \
+PLAYWRIGHT_CHROMIUM_EXECUTABLE="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python \
+npm run qa:creator-browser
+```
+
 ## 2026-06-17 P7 发布同步清单门禁补齐
 
 ### 现象

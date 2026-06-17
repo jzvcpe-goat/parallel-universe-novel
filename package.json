@@ -23,6 +23,7 @@
     "test:api": "node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py",
     "test:creator": "npm --prefix app run lint",
     "smoke:creator-chain": "node scripts/smoke-creator-chain.mjs",
+    "qa:creator-browser": "node scripts/browser-creator-e2e.mjs",
     "check:package-identity": "node scripts/check-package-identity.mjs",
     "check:release-sync-manifest": "node scripts/check-release-sync-manifest.mjs",
     "check:template-intent": "node scripts/check-template-intent-routing.mjs",
