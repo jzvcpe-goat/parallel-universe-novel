@@ -69,6 +69,37 @@ Runtime source `genre-runtime-rules.v1.json` is currently version 2 and contains
 - `female-rebirth-revenge` / 女频重生复仇
 - `era-female` / 年代女强
 
+## Complete Constraint Registry
+
+The table below is the complete document-derived P4 coverage surface. It is
+kept public-safe: representative works remain in the encrypted vault, and this
+document only exposes anonymous `rwref_*` IDs or `none yet` when a profile was
+normalized from the 21-type corpus before a public ref was assigned.
+
+| Profile | Layer | Source refs | Rule ids | Kernel |
+| --- | --- | --- | --- | --- |
+| `xuanhuan-xianxia` / 仙侠玄幻 | `world` | `rwref_0013`, `rwref_0030` | `cultivation-must-have-cost`, `xuanhuan-era-substrate` | `kernel-xuanhuan-xianxia` |
+| `modern-other` / 其他现代 | `narrative` | `rwref_0004`, `rwref_0016` | `logical-evidence-required`, `modern-realism-boundary` | `kernel-modern-other` |
+| `modern-supernatural` / 现代都市超能 | `world` | `rwref_0009`, `rwref_0011`, `rwref_0012` | `modern-power-substrate`, `maintain-secret-identity` | `kernel-modern-supernatural` |
+| `game-litrpg` / 游戏异界 | `world` | `rwref_0034`, `rwref_0041` | `system-interface-mandatory`, `guild-and-teamplay-required` | `kernel-game-litrpg` |
+| `system-litrpg` / 系统流 | `world` | `rwref_0005`, `rwref_0017` | `system-must-have-price`, `system-not-author` | `kernel-system-litrpg` |
+| `comedy-misfit` / 喜剧反套路 | `thematic` | `rwref_0008`, `rwref_0010`, `rwref_0014`, `rwref_0019` | `comedy-pressure-release` | `kernel-comedy-misfit` |
+| `quick-transmigration` / 快穿逆袭 | `narrative` | none yet | `bounded-world-arc`, `task-consequence-required` | `kernel-quick-transmigration` |
+| `horror-infinite` / 恐怖无限流 | `world` | `rwref_0021`, `rwref_0025`, `rwref_0027` | `survival-rules-visible`, `fear-has-cost` | `kernel-horror-infinite` |
+| `apocalypse` / 末世 | `world` | `rwref_0020`, `rwref_0040` | `survival-resource-cost`, `community-pressure` | `kernel-apocalypse` |
+| `wuxia-historical` / 武侠历史 | `world` | `rwref_0001`, `rwref_0002` | `martial-honor-cost`, `historical-order` | `kernel-wuxia-historical` |
+| `alchemy-craft` / 炼丹炼器 | `world` | `rwref_0008`, `rwref_0018`, `rwref_0032`, `rwref_0038` | `craft-process-required`, `materials-have-cost` | `kernel-alchemy-craft` |
+| `sci-fi-space` / 科幻文明 | `world` | `rwref_0007`, `rwref_0015`, `rwref_0039` | `science-causal-chain`, `civilization-scale-cost` | `kernel-sci-fi-space` |
+| `transmigration` / 穿越重生 | `narrative` | `rwref_0022`, `rwref_0023` | `era-adaptation-cost`, `knowledge-diff-limited` | `kernel-transmigration` |
+| `male-farming-base` / 男频基建流 | `narrative` | `rwref_0004`, `rwref_0024` | `infrastructure-stepwise`, `community-labor-cost` | `kernel-male-farming-base` |
+| `farming-domestic` / 种田致富 | `character` | `rwref_0031`, `rwref_0033` | `livelihood-details`, `domestic-relationship` | `kernel-farming-domestic` |
+| `family-clan-group` / 群像家族 | `character` | `rwref_0028`, `rwref_0029`, `rwref_0035`, `rwref_0042` | `multi-character-agency`, `family-interest-conflict` | `kernel-family-clan-group` |
+| `sweet-pet-marriage` / 甜宠先婚后爱 | `character` | `rwref_0003`, `rwref_0006`, `rwref_0036`, `rwref_0043` | `intimacy-by-action`, `marriage-contract-cost` | `kernel-sweet-pet-marriage` |
+| `danmei-romance` / 耽美 | `character` | `rwref_0026`, `rwref_0044` | `relationship-agency`, `emotional-subtext` | `kernel-danmei-romance` |
+| `chase-wife-crematorium` / 追妻火葬场 | `character` | `rwref_0037`, `rwref_0045` | `harm-before-repair`, `apology-has-cost` | `kernel-chase-wife-crematorium` |
+| `female-rebirth-revenge` / 女频重生复仇 | `narrative` | none yet | `long-term-revenge-layout`, `household-hierarchy` | `kernel-female-rebirth-revenge` |
+| `era-female` / 年代女强 | `world` | none yet | `historical-policy-substrate`, `no-fantasy-in-era-realism` | `kernel-era-female` |
+
 Activation rule:
 
 - Explicit user-selected genre/template labels win over generic seed keywords.

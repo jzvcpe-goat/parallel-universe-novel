@@ -13,6 +13,19 @@ P4 is rebuilt from the product documents, not from any one-off intake note. The 
 
 The registry declares `documentCore.policy = document_registry_only`. Any browser note, backend review suggestion, provider prompt experiment, or manual research note is non-executable until the team converts it into a reusable `ConstraintProfile` rule and a compatible `GenreKernel` behavior.
 
+The current reset is stricter than the earlier P4 prototype. The authoritative
+path is:
+
+1. final constraint/kernel documents,
+2. human-editable rule docs,
+3. `genre-runtime-rules.v1.json`,
+4. resolver fields,
+5. quality brake.
+
+Temporary prompt examples, browser comments, and special-case negative samples
+are allowed as research notes only. They must not become runtime branches,
+global bans, provider prompt patches, or UI copy.
+
 ## Runtime Boundary
 
 P4 runtime behavior:
@@ -42,6 +55,7 @@ npm run check:p4-document-core
 The gate verifies:
 
 - the runtime registry points to the v3 baseline contract,
+- the runtime registry declares the 21-type document corpus and rejects temporary runtime branches,
 - human-editable source documents exist,
 - research intake notes are marked non-executable,
 - the registry does not contain ad hoc override keys or one-off branches,
@@ -54,9 +68,11 @@ Existing gate:
 npm run scan:p4-rule-source
 ```
 
-continues to verify schema shape, registry/document sync, privacy, and absence of hardcoded registry id branches in runtime code.
+continues to verify schema shape, registry/document sync, privacy, absence of
+hardcoded registry id branches in runtime code, and absence of retired temporary
+prompt-case anchors in workflow/backend execution paths.
 
-The P4 gates intentionally do not carry a list of sample-specific terms. A
+The P4 gates intentionally do not turn any one sample into a story rule. A
 browser comment, provider experiment, or manual research note can guide research,
 but it cannot become executable logic until it is generalized into the document
 registry.

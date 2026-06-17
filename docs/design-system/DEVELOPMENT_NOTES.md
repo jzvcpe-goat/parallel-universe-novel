@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P4 文档权威链重做
+
+用户再次明确：P4 要从头做，早期围绕某个单次题材测试形成的约束逻辑全部弃用。工程上不能把旧事故换成新禁词表，而要把运行时约束完全收敛到文档注册表。
+
+本轮规则：
+
+1. `documentCore.sourceAuthority` 必须声明 `final_constraint_kernel_documents -> human_editable_rule_docs -> runtime registry -> registry_fields_only`。
+2. `GENRE_CONSTRAINT_RULES.md` 和 `GENRE_KERNEL_RULES.md` 必须覆盖完整 21 类，不再只写少量示例。
+3. Agent workflow 和 FastAPI Creator Dialogue 只能通过 `ConstraintProfile` 与 `GenreKernel` 字段运行，不得出现临时题材分支。
+4. 单个 browser QA、prompt experiment、人工负例只能作为 `nonExecutableInputs`，不能进入 resolver、provider prompt、UI 或质量门禁。
+5. 测试必须从注册表抽取规则验证，不再绑定某一个题材事故。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run scan:p4-rule-source
+npm --workspace @narrativeos/agent-runtime test
+```
+
 ## 2026-06-17 P56 Studio 发布确认 Trace
 
 P47 之前只能说明 Studio 有质量评价和确认提交入口，但没有证明它们属于同一条运行链路。这样会导致“先检查、再提交”在 UI 上成立，审计上却无法回放。

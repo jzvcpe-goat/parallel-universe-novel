@@ -37,6 +37,11 @@ assert(core.runtimeTruth === 'docs/product/rules/genre-runtime-rules.v1.json', '
 assert(Array.isArray(core.humanEditableSources), 'P4 must list human-editable sources')
 assert(core.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'P4 must keep GENRE_CONSTRAINT_RULES.md as a human source')
 assert(core.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'P4 must keep GENRE_KERNEL_RULES.md as a human source')
+assert(core.sourceAuthority?.primary === 'final_constraint_kernel_documents', 'P4 must use the final constraint/kernel documents as primary authority')
+assert(core.sourceAuthority?.normalizedCorpus === '21_type_constraint_kernel_pdf_set', 'P4 must anchor to the 21-type document corpus')
+assert(core.sourceAuthority?.compilePath === 'human_editable_rule_docs_then_runtime_registry', 'P4 must compile through human-editable rule docs before runtime registry')
+assert(core.sourceAuthority?.runtimeResolver === 'registry_fields_only', 'P4 runtime resolver must read registry fields only')
+assert(core.sourceAuthority?.temporaryRuntimeBranches === 'rejected', 'P4 must reject temporary runtime branches')
 assert(Array.isArray(core.nonExecutableInputs), 'P4 must declare non-executable research inputs')
 const allowedNonExecutableInputs = new Set([
   'browser_qa_note',
@@ -52,6 +57,11 @@ for (const source of core.humanEditableSources) assert(existsSync(join(root, sou
 
 const forbiddenKeys = collectKeys(rules).filter(key => /promptCase|legacyCase|caseOverride|scenarioPatch|oneOff|adHoc/i.test(key))
 assert(forbiddenKeys.length === 0, `P4 registry contains case-specific override keys: ${forbiddenKeys.join(', ')}`)
+
+const forbiddenRuntimeText = JSON.stringify(rules)
+for (const forbidden of ['western_fantasy_non_game', 'ancient_office_blacklist', 'single_prompt_case']) {
+  assert(!forbiddenRuntimeText.includes(forbidden), `P4 registry must not keep deprecated temporary anchor: ${forbidden}`)
+}
 
 assert(Array.isArray(rules.constraintProfiles) && rules.constraintProfiles.length >= 21, 'P4 registry must expose the document profile set')
 assert(Array.isArray(rules.genreKernels) && rules.genreKernels.length >= rules.constraintProfiles.length, 'P4 registry must expose compatible kernels')
@@ -75,6 +85,7 @@ const artifact = {
   profileCount: rules.constraintProfiles.length,
   kernelCount: rules.genreKernels.length,
   nonExecutableInputs: core.nonExecutableInputs,
+  sourceAuthority: core.sourceAuthority,
 }
 const artifactPath = join(outputDir, `p4-document-core-${Date.now()}.json`)
 writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)

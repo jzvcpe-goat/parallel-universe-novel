@@ -31,6 +31,20 @@ const forbiddenWorkflowPatterns = [
     message: 'workflow must not branch on hardcoded kernel ids; use document-derived kernel fields instead',
   },
 ]
+const deprecatedTemporaryRuntimeAnchors = [
+  {
+    pattern: /西幻|western[-_ ]fantasy/i,
+    message: 'runtime code must not resurrect the retired western-fantasy prompt-case branch',
+  },
+  {
+    pattern: /非游戏化|non[-_ ]game/i,
+    message: 'runtime code must not resurrect the retired non-game prompt-case branch',
+  },
+  {
+    pattern: /古代官署职业|清河县|仵作|县衙/i,
+    message: 'runtime code must not resurrect the retired ancient-office-profession prompt-case branch',
+  },
+]
 const staleDocPatterns = [
   {
     pattern: /\bothers-modern\b/,
@@ -81,6 +95,11 @@ if (!existsSync(runtimeRulesSource)) {
   expect(documentCore.policy === 'document_registry_only', 'runtime rules must declare document_registry_only policy')
   expect(documentCore.baselineContract === 'docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md', 'runtime rules must point to the v3 baseline contract')
   expect(documentCore.runtimeTruth === 'docs/product/rules/genre-runtime-rules.v1.json', 'runtime rules must declare themselves as runtime truth')
+  expect(documentCore.sourceAuthority?.primary === 'final_constraint_kernel_documents', 'runtime rules must use final constraint/kernel documents as primary authority')
+  expect(documentCore.sourceAuthority?.normalizedCorpus === '21_type_constraint_kernel_pdf_set', 'runtime rules must anchor to the 21-type document corpus')
+  expect(documentCore.sourceAuthority?.compilePath === 'human_editable_rule_docs_then_runtime_registry', 'runtime rules must compile through human-editable docs')
+  expect(documentCore.sourceAuthority?.runtimeResolver === 'registry_fields_only', 'runtime resolver must use registry fields only')
+  expect(documentCore.sourceAuthority?.temporaryRuntimeBranches === 'rejected', 'runtime rules must reject temporary branches')
   expectArray(documentCore.humanEditableSources, 'runtime rules must list human-editable source documents')
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'runtime rules must list GENRE_CONSTRAINT_RULES.md as a human source')
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'runtime rules must list GENRE_KERNEL_RULES.md as a human source')
@@ -147,6 +166,9 @@ if (!existsSync(runtimeRulesSource)) {
     for (const profile of profiles) {
       expect(constraintDocText.includes(`\`${profile.id}\``), `GENRE_CONSTRAINT_RULES.md must list profile id ${profile.id}`)
       expect(constraintDocText.includes(profile.displayName), `GENRE_CONSTRAINT_RULES.md must list displayName ${profile.displayName}`)
+      for (const rule of profile.rules || []) {
+        expect(constraintDocText.includes(`\`${rule.id}\``), `GENRE_CONSTRAINT_RULES.md must list rule id ${rule.id}`)
+      }
     }
   } else {
     violations.push(`${relative(root, constraintRuleDoc)} missing human-editable constraint source`)
@@ -157,6 +179,10 @@ if (!existsSync(runtimeRulesSource)) {
     for (const kernel of kernels) {
       expect(kernelDocText.includes(`\`${kernel.id}\``), `GENRE_KERNEL_RULES.md must list kernel id ${kernel.id}`)
       expect(kernelDocText.includes(kernel.name.replace(/内核$/, '')), `GENRE_KERNEL_RULES.md must list kernel name ${kernel.name}`)
+      expect(kernelDocText.includes(kernel.pacingModel), `GENRE_KERNEL_RULES.md must list pacing model for ${kernel.id}`)
+      for (const profileId of kernel.compatibleProfiles || []) {
+        expect(kernelDocText.includes(`\`${profileId}\``), `GENRE_KERNEL_RULES.md must list compatible profile ${profileId}`)
+      }
     }
   } else {
     violations.push(`${relative(root, kernelRuleDoc)} missing human-editable kernel source`)
@@ -165,6 +191,12 @@ if (!existsSync(runtimeRulesSource)) {
   for (const source of runtimeImplementationSources) {
     if (!existsSync(source)) continue
     const text = readFileSync(source, 'utf8')
+    for (const check of deprecatedTemporaryRuntimeAnchors) {
+      const match = text.match(check.pattern)
+      if (match?.index !== undefined) {
+        violations.push(`${relative(root, source)}:${lineNumber(text, match.index)} ${check.message}`)
+      }
+    }
     for (const id of registryIds) {
       const pattern = new RegExp(`['"\`]${escapeRegExp(id)}['"\`]`)
       const match = text.match(pattern)

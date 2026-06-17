@@ -13,6 +13,13 @@
     ],
     "runtimeTruth": "docs/product/rules/genre-runtime-rules.v1.json",
     "activationBoundary": "selected_template_then_user_intent_then_author_override_then_kernel_compatibility_then_quality_brake",
+    "sourceAuthority": {
+      "primary": "final_constraint_kernel_documents",
+      "normalizedCorpus": "21_type_constraint_kernel_pdf_set",
+      "compilePath": "human_editable_rule_docs_then_runtime_registry",
+      "runtimeResolver": "registry_fields_only",
+      "temporaryRuntimeBranches": "rejected"
+    },
     "nonExecutableInputs": [
       "browser_qa_note",
       "research_intake_note",

@@ -146,14 +146,20 @@ test('public socratic projection hides runtime internals', async () => {
   assert.ok(!text.includes('profileId'))
 })
 
-test('constraint preview blocks prohibited mismatched terms', async () => {
+test('constraint preview blocks prohibited terms from the active document profile', async () => {
+  const profile = constraintProfiles.find(item =>
+    item.rules.some(rule => (rule.prohibitedTerms || []).length > 0),
+  ) || constraintProfiles[0]
+  const rule = profile.rules.find(item => (item.prohibitedTerms || []).length > 0) || profile.rules[0]
+  const prohibitedTerm = firstText(rule.prohibitedTerms, '无代价捷径')
   const result = await socraticCreateWorkflow({
-    seed: '现代悬疑旧案，主角通过读心术瞬间破案，还出现未解释证据。',
-    genre: '现代悬疑',
+    seed: `${seedForProfile(profile)} 但候选文本故意写入${prohibitedTerm}。`,
+    genre: profile.displayName,
   }, { preferToolBridge: false })
 
   assert.ok(result.activeConstraints.length > 0)
-  assert.ok(result.activeConstraints[0].prohibitedTerms.includes('读心术'))
+  assert.equal(result.activeConstraints[0].profileId, profile.id)
+  assert.ok(result.activeConstraints.some(item => item.prohibitedTerms.includes(prohibitedTerm)))
 })
 
 test('every document profile can be explicitly selected as the primary active profile and kernel', async () => {
@@ -230,18 +236,23 @@ test('follow-up questions stay conversational and avoid backend planning labels'
 })
 
 test('public prose hygiene follows active genre rules without global genre bans', () => {
-  const modernProfiles = resolveConstraints({
-    seed: '现代悬疑旧案，主角收到一份矛盾证据。',
-    genre: '现代悬疑',
+  const profile = constraintProfiles.find(item =>
+    item.rules.some(rule => (rule.prohibitedTerms || []).length > 0),
+  ) || constraintProfiles[0]
+  const rule = profile.rules.find(item => (item.prohibitedTerms || []).length > 0) || profile.rules[0]
+  const prohibitedTerm = firstText(rule.prohibitedTerms, '无代价捷径')
+  const activeProfiles = resolveConstraints({
+    seed: seedForProfile(profile),
+    genre: profile.displayName,
   })
-  const modernViolations = evaluatePublicProseHygiene(
-    '主角通过读心术瞬间破案，还拿出未解释证据。',
-    modernProfiles,
+  const activeViolations = evaluatePublicProseHygiene(
+    `候选正文故意放入${prohibitedTerm}来验证文档规则。`,
+    activeProfiles,
   )
 
   assert.ok(
-    modernViolations.some(item => item.ruleId === 'logical-evidence-required'),
-    'modern mystery should reject unearned evidence shortcuts from the active profile',
+    activeViolations.some(item => item.ruleId === rule.id),
+    'selected document profile should reject prohibited terms from its own registry rules',
   )
 
   const gameProfiles = resolveConstraints({
@@ -297,11 +308,11 @@ test('state preview workflow never writes canon when tool bridge is unavailable'
 
 test('quality brake suggests repair without committing candidate text', async () => {
   const profile = constraintProfiles.find(item =>
-    item.rules.some(rule => (rule.prohibitedTerms || []).includes('读心术')),
+    item.rules.some(rule => (rule.prohibitedTerms || []).length >= 2),
   ) || constraintProfiles[0]
   const prohibitedTerms = profile.rules.flatMap(rule => rule.prohibitedTerms || []).slice(0, 2)
   const ruleIds = profile.rules.map(rule => rule.id)
-  const violatingBody = `旧案重启当晚，那个人通过${prohibitedTerms[0]}瞬间逼近真相，还拿出${prohibitedTerms[1]}。`
+  const violatingBody = `开场当晚，那个人通过${prohibitedTerms[0]}逼近真相，还拿出${prohibitedTerms[1]}。`
   const result = await qualityBrakeWorkflow({
     seed: `${profile.displayName}，${violatingBody}`,
     genre: profile.displayName,
