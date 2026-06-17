@@ -17,6 +17,7 @@
     "dev:agents": "npm --workspace @narrativeos/agent-runtime run dev",
     "dev:creator": "npm --prefix app run dev -- --host 127.0.0.1 --port 5173",
     "dev": "node scripts/dev-all.mjs",
+    "setup:api": "node scripts/setup-backend-venv.mjs",
     "test": "npm --workspace @narrativeos/agent-runtime test && npm --prefix app run lint && node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py && npm run scan:internal-terms && npm run scan:reference-privacy",
     "test:agents": "npm --workspace @narrativeos/agent-runtime test",
     "test:api": "node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py",

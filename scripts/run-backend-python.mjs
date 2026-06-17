@@ -5,10 +5,11 @@ import { resolve } from 'node:path';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
 const candidates = [
+  process.env.PYTHON_BIN,
   resolve(root, 'backend/.venv/bin/python'),
   'python3',
   'python',
-];
+].filter(Boolean);
 
 function canRun(command) {
   if (command.startsWith('/')) {
@@ -21,7 +22,7 @@ function canRun(command) {
 const python = candidates.find(canRun);
 
 if (!python) {
-  console.error('No Python runtime found. Create backend/.venv or install python3.');
+  console.error('No Python runtime found. Run `npm run setup:api`, create backend/.venv, install python3, or set PYTHON_BIN.');
   process.exit(1);
 }
 
