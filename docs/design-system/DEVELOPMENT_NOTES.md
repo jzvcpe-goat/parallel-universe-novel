@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P16 公开 UI 与运行时元信息边界
+
+### 现象
+
+P14/P15 把规则版本、profile/kernel 数量和隐私策略暴露给 Agent `/health` 与 FastAPI `genre_constraint_facts`，用于工程审计。但这些字段如果被普通 Creator/Reader 页面消费，就会把运行时内部结构泄漏给作者或读者。
+
+### 修复原则
+
+1. `app/src/api` 可以保留工程字段，用于状态回传、质量检查和调试。
+2. 普通用户入口不得消费或渲染 `runtimeRules/runtime_rules/profileCount/kernelCount/sourceRefs/genre_constraint_facts/runTrace/harness_trace` 等运行时字段。
+3. Studio 可作为后台调试入口另行设计，不和 Creator/Reader 公共入口共用边界。
+4. Creator 页面只展示自然语言正文、追问、故事笔记、段落检查和写作记忆摘要。
+
+### 本轮落地
+
+- 新增 `scripts/scan-public-ui-boundary.mjs`。
+- 根目录 `npm run test` 已串入 `scan:public-ui-boundary`。
+- 扫描范围覆盖 `Home / Library / Story / Create / Welcome` 与普通 design-system/pattern/creator/market 组件。
+- API 层仍可持有运行时字段，但普通 UI 层一旦引用会直接失败。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run scan:public-ui-boundary
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P15 真实 HTTP 规则握手 Smoke
 
 ### 现象
