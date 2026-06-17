@@ -14,6 +14,7 @@ const scanRoots = [
   'packages/agent-runtime/src',
   'backend/src/narrativeos',
   'app/src',
+  'app/dist',
   'docs/product/rules',
   'docs/product/breakpoints',
 ]
@@ -76,6 +77,14 @@ function isTextCandidate(file) {
   return !binaryExtensions.has(extname(file).toLowerCase())
 }
 
+function isLikelyTextBuffer(buffer) {
+  return !buffer.includes(0)
+}
+
+function uniqueFiles(files) {
+  return [...new Set(files)]
+}
+
 function decryptVault() {
   const keyValue = process.env.REFERENCE_WORK_VAULT_KEY
     || (existsSync(defaultKeyPath) ? readFileSync(defaultKeyPath, 'utf8').trim() : '')
@@ -90,6 +99,14 @@ function decryptVault() {
     decipher.final(),
   ])
   return JSON.parse(plain.toString('utf8')).refs || []
+}
+
+function gitOutput(args, options = {}) {
+  return execFileSync('git', args, {
+    cwd: root,
+    stdio: ['ignore', 'pipe', 'ignore'],
+    maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
+  })
 }
 
 function lineNumber(text, index) {
@@ -236,6 +253,124 @@ function validateNoCommittedVaultKey() {
   }
 }
 
+function validateCurrentTextFilesAgainstVault(refs) {
+  const currentTextFiles = uniqueFiles([
+    ...trackedFiles,
+    ...files.filter(isTextCandidate),
+  ])
+  for (const file of currentTextFiles) {
+    const rel = relative(root, file)
+    if (rel === 'docs/product/rules/reference-work-vault.enc.json') continue
+    if (!existsSync(file) || !isTextCandidate(file)) continue
+    const text = readFileSync(file, 'utf8')
+    for (const ref of refs) {
+      if (!ref.title || ref.title.length < 2) continue
+      const index = text.indexOf(ref.title)
+      if (index >= 0) {
+        violations.push(`${rel}:${lineNumber(text, index)} encrypted representative work title appears in public current file`)
+      }
+    }
+  }
+}
+
+function validateGitHistoryPrivacy(refs) {
+  let objectRows = []
+  try {
+    objectRows = gitOutput(['rev-list', '--objects', '--all'])
+      .toString('utf8')
+      .split(/\r?\n/)
+      .filter(Boolean)
+  } catch {
+    return
+  }
+
+  const objectsBySha = new Map()
+  for (const row of objectRows) {
+    const [sha, ...pathParts] = row.split(' ')
+    const objectPath = pathParts.join(' ')
+    if (!sha || !objectPath) continue
+    if (!objectsBySha.has(sha)) objectsBySha.set(sha, new Set())
+    objectsBySha.get(sha).add(objectPath)
+  }
+
+  const publicRuleArtifacts = new Set([
+    'docs/product/rules/genre-runtime-rules.v1.json',
+    'docs/product/rules/GENRE_CONSTRAINT_RULES.md',
+    'docs/product/rules/GENRE_KERNEL_RULES.md',
+    'docs/product/rules/reference-work-public-refs.json',
+  ])
+  const titleMarker = /《[^》]{1,80}》/g
+  const metadataMarker = /代表作|代表作品|作品名|书名|作者名|authorName|workTitle|representativeWorkTitle/
+  const keyAssignments = [
+    /^\s*REFERENCE_WORK_VAULT_KEY\s*=\s*["']?[A-Za-z0-9+/=]{32,}["']?\s*$/gm,
+    /["']REFERENCE_WORK_VAULT_KEY["']\s*:\s*["'][A-Za-z0-9+/=]{32,}["']/g,
+    /^\s*reference_work_vault_key\s*:\s*["']?[A-Za-z0-9+/=]{32,}["']?\s*$/gim,
+  ]
+
+  for (const [sha, pathSet] of objectsBySha.entries()) {
+    const paths = [...pathSet]
+    for (const objectPath of paths) {
+      if (/reference-work-vault\.key$|\/private\/|^private\//.test(objectPath)) {
+        violations.push(`${objectPath} appears in git history; keep reference vault keys outside the public repository`)
+      }
+    }
+    if (!paths.some(isTextCandidate)) continue
+
+    let type = ''
+    try {
+      type = gitOutput(['cat-file', '-t', sha]).toString('utf8').trim()
+    } catch {
+      continue
+    }
+    if (type !== 'blob') continue
+
+    let size = 0
+    try {
+      size = Number(gitOutput(['cat-file', '-s', sha]).toString('utf8').trim())
+    } catch {
+      continue
+    }
+    if (!Number.isFinite(size) || size > 4 * 1024 * 1024) continue
+
+    let buffer
+    try {
+      buffer = gitOutput(['cat-file', '-p', sha], { maxBuffer: Math.max(8 * 1024 * 1024, size + 1024) })
+    } catch {
+      continue
+    }
+    if (!isLikelyTextBuffer(buffer)) continue
+    const text = buffer.toString('utf8')
+
+    for (const pattern of keyAssignments) {
+      if (pattern.test(text)) {
+        violations.push(`${paths[0]} appears to contain a concrete REFERENCE_WORK_VAULT_KEY value in git history`)
+        break
+      }
+    }
+
+    for (const objectPath of paths) {
+      if (!publicRuleArtifacts.has(objectPath)) continue
+      for (const match of text.matchAll(titleMarker)) {
+        violations.push(`${objectPath}:${lineNumber(text, match.index || 0)} public rule artifact history must not expose title marker`)
+      }
+      const marker = text.match(metadataMarker)
+      if (marker?.index !== undefined) {
+        violations.push(`${objectPath}:${lineNumber(text, marker.index)} public rule artifact history must not expose title/author metadata`)
+      }
+    }
+
+    if (refs.length) {
+      for (const ref of refs) {
+        if (!ref.title || ref.title.length < 2) continue
+        const index = text.indexOf(ref.title)
+        if (index >= 0) {
+          violations.push(`${paths[0]}:${lineNumber(text, index)} encrypted representative work title appears in git history`)
+        }
+      }
+    }
+  }
+}
+
 validateVaultShape()
 const publicIds = validatePublicRefs()
 validateRuntimeSourceRefs(publicIds)
@@ -246,6 +381,7 @@ validateNoCommittedVaultKey()
 for (const file of files) {
   const rel = relative(root, file)
   if (allowedFiles.has(rel)) continue
+  if (!isTextCandidate(file)) continue
   const text = readFileSync(file, 'utf8')
   const sourceEvidenceMatch = text.match(/source_evidence\s*:\s*(?!rwref_)[^\n\r]+/)
   if (sourceEvidenceMatch?.index !== undefined) {
@@ -255,18 +391,8 @@ for (const file of files) {
 
 try {
   const refs = decryptVault()
-  for (const file of trackedFiles) {
-    const rel = relative(root, file)
-    if (allowedFiles.has(rel)) continue
-    const text = readFileSync(file, 'utf8')
-    for (const ref of refs) {
-      if (!ref.title || ref.title.length < 2) continue
-      const index = text.indexOf(ref.title)
-      if (index >= 0) {
-        violations.push(`${rel}:${lineNumber(text, index)} encrypted representative work title appears in public source`)
-      }
-    }
-  }
+  validateCurrentTextFilesAgainstVault(refs)
+  validateGitHistoryPrivacy(refs)
 } catch (error) {
   violations.push(`reference-work-vault decrypt failed: ${error instanceof Error ? error.message : String(error)}`)
 }

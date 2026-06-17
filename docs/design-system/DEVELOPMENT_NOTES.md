@@ -1,5 +1,31 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P21 公共仓库历史隐私审计
+
+### 现象
+
+P17/P18 已经把当前 `ConstraintProfile`、`GenreKernel` 和公开规则文档里的代表作品名改成匿名 `rwref_*`，并把明文映射放入加密 vault。但法律风险不只在当前文件：如果 Git 历史、静态构建产物或旧提交里出现过明文代表作品名，非团队成员仍可能看到。
+
+### 修复原则
+
+1. 当前源码、规则文档、构建产物和 Git 历史都属于公共暴露面。
+2. CI 无 vault key 时也要做结构性门禁：不能提交 key、不能出现 public rule title markers、不能出现非匿名 sourceRefs。
+3. 本机或团队环境有 vault key 时，必须对当前文件、`app/dist` 和历史 blob 做精确标题匹配。
+4. 扫描器输出只报告文件与行号，不打印解密出的代表作品名。
+
+### 本轮落地
+
+- `scripts/scan-reference-privacy.mjs` 增加 `app/dist` 扫描。
+- 同一脚本增加 Git object history 扫描，覆盖历史中的 key 路径、具体 key 值、公开规则标题标记和 decrypted title 精确匹配。
+- `REFERENCE_WORK_PRIVACY.md` 和 `REFERENCE_WORK_PRIVACY_AUDIT_20260617.md` 更新为当前门禁范围。
+
+### 必跑检查
+
+```bash
+npm run scan:reference-privacy
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P18 代表作品 vault key 分离门禁
 
 ### 现象

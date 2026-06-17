@@ -23,6 +23,8 @@
 - Public rule artifacts expose `0` direct representative work leaks in the current scan.
 - Tracked public repository files are scanned for committed vault key files and concrete `REFERENCE_WORK_VAULT_KEY` values.
 - When the private key is available, tracked public repository files are scanned against decrypted representative titles.
+- When the private key is available, current `app/dist` text assets are scanned against decrypted representative titles.
+- When the private key is available, historical Git text blobs are scanned against decrypted representative titles.
 - `npm run scan:reference-privacy` passes.
 
 ## Guardrail Added
@@ -37,6 +39,9 @@
 - Committed `reference-work-vault.key` files or tracked `private/` key paths.
 - Concrete `REFERENCE_WORK_VAULT_KEY` assignments in tracked source, docs, CI, or config.
 - Decrypted representative titles anywhere in tracked public text files when the private key is available.
+- Decrypted representative titles anywhere in current `app/dist` text assets when the private key is available.
+- Decrypted representative titles anywhere in historical Git text blobs when the private key is available.
+- Historical committed `private/` paths or `reference-work-vault.key` paths.
 
 ## Operational Rule
 
