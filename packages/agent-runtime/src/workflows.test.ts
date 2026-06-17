@@ -57,11 +57,25 @@ test('selected system genre produces a full candidate and remains primary', asyn
   }, { preferToolBridge: false })
 
   assert.equal(result.candidateDraft.status, 'candidate')
-  assert.equal(result.candidateDraft.title, '回声任务')
+  assert.equal(result.candidateDraft.title, '任务回声')
   assert.ok(result.candidateDraft.body.length > 200)
   assert.equal(result.activeConstraints[0].profileId, 'system-litrpg')
   assert.equal(result.activeKernels[0].kernelId, 'kernel-system-litrpg')
   assert.ok(result.questions.length <= 2)
+})
+
+test('candidate opening is generated from the active document kernel instead of hardcoded profile branches', async () => {
+  const result = await socraticCreateWorkflow({
+    seed: '年代女强，主角重回改革初期，用粮票和政策窗口救下家里的小厂。',
+    genre: '年代女强',
+  }, { preferToolBridge: false })
+
+  assert.equal(result.activeConstraints[0].profileId, 'era-female')
+  assert.equal(result.activeKernels[0].kernelId, 'kernel-era-female')
+  assert.ok(result.candidateDraft.body.includes('年代女强'))
+  assert.ok(result.candidateDraft.body.includes('政策'))
+  assert.ok(result.questions[0].includes('年代女强'))
+  assert.equal(result.qualityPreview.result, 'pass')
 })
 
 test('candidate prose does not expose planning scaffolds', async () => {

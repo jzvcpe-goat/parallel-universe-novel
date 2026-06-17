@@ -17,13 +17,27 @@ import type {
   SocraticCreateOutput,
 } from './types.js'
 
-function safeTitle(input: SocraticCreateInput, profiles: ConstraintProfile[]): string {
-  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) return '问灵台'
-  if (profiles.some(profile => profile.id === 'modern-other')) return '雨夜证据'
-  if (profiles.some(profile => profile.id === 'game-litrpg')) return '登录前夜'
-  if (profiles.some(profile => profile.id === 'system-litrpg')) return '回声任务'
-  if (profiles.some(profile => profile.id === 'comedy-misfit')) return '掉马现场'
-  return '第一幕'
+function cleanPublicText(value: string | undefined, fallback: string): string {
+  const text = String(value || '').replace(/\s+/g, ' ').trim()
+  return text || fallback
+}
+
+function publicKernelName(kernel: GenreKernel | undefined, profile: ConstraintProfile | undefined): string {
+  const raw = cleanPublicText(kernel?.name || profile?.displayName, '故事')
+  return raw.replace(/内核$/u, '').replace(/规则$/u, '')
+}
+
+function safeTitle(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]): string {
+  const templateTitle = typeof input.selectedTemplate?.title === 'string' ? input.selectedTemplate.title : ''
+  const contextTemplate = typeof input.context?.main_universe_template === 'object' && input.context.main_universe_template !== null
+    ? input.context.main_universe_template as Record<string, unknown>
+    : {}
+  const contextTitle = typeof contextTemplate.title === 'string' ? contextTemplate.title : ''
+  const productTitle = cleanPublicText(templateTitle || contextTitle, '')
+  if (productTitle) return productTitle.slice(0, 16)
+
+  const name = publicKernelName(kernels[0], profiles[0])
+  return `${name}开场`.slice(0, 16)
 }
 
 function beatPlan(kernels: GenreKernel[]): string[] {
@@ -32,101 +46,122 @@ function beatPlan(kernels: GenreKernel[]): string[] {
   return primary.eventStructure.slice(0, 5)
 }
 
-function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], _kernels: GenreKernel[]): string {
-  const seed = input.seed.trim()
-  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) {
+function firstItem(items: string[] | undefined, fallback: string): string {
+  return cleanPublicText(items?.[0], fallback)
+}
+
+function secondItem(items: string[] | undefined, fallback: string): string {
+  return cleanPublicText(items?.[1] || items?.[0], fallback)
+}
+
+function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]): string {
+  const seed = cleanPublicText(input.seed, '一个必须被写出来的异常')
+  const profile = profiles[0]
+  const kernel = kernels[0]
+  if (!kernel) {
     return [
-      `问灵台的铜铃响到第三声时，主角才发现掌心那枚玉简裂开了一道血线。`,
-      `师门说这是传承，可传承里第一句话不是功法，而是一笔欠了三代人的旧债。`,
-      `他能借这道灵息跨过第一重关，也必须承受经脉逆行的痛，以及被债主循着因果找上门的风险。`,
-      `如果立刻闭关，他会错过山门外那场伏杀；如果先救人，玉简里的灵气会在天亮前散尽。`,
-      `长老没有催他，只把一盏快要熄灭的魂灯推到面前。灯芯里映着的不是敌人，而是他未来必须亲手偿还的人。`,
+      `第一盏灯亮起时，所有人都说那只是风。`,
+      `那个人站在门槛外，手里握着不该出现的线索，意识到自己被推到一个必须选择的位置。`,
+      `那句话在心里落下：${seed}`,
+      `他还不知道这句话会改变谁的命运，但已经明白，沉默和开口都会付出代价。`,
     ].join('\n\n')
   }
-  if (profiles.some(profile => profile.id === 'modern-other')) {
-    return [
-      `雨停在凌晨两点十七分，监控里的那个人却还撑着伞。`,
-      `主角把证据袋压在掌心，塑封边缘有一道旧裂痕，像是有人在多年以前就替今晚开过封。`,
-      `他以为自己收到的是一份普通旧案材料，直到看见照片背面那行字：${seed}`,
-      `如果公开，证人会立刻暴露；如果隐瞒，旧案里真正活下来的人会再次消失。`,
-    ].join('\n\n')
-  }
-  if (profiles.some(profile => profile.id === 'game-litrpg')) {
-    return [
-      `登录舱合上时，主角看见任务日志只刷新了一行：本次死亡会清空当前身份。`,
-      `队伍频道里没有人说话，坦克的盾牌耐久正在下坠，治疗职业却迟迟没有进本。`,
-      `他知道这不是单人逞强能解决的局面。技能树上唯一亮着的节点，需要队友先完成一次打断。`,
-      `如果强开首领，他能抢到第一波掉落；如果等待公会支援，排行榜上的名字会被别人顶替。`,
-    ].join('\n\n')
-  }
-  if (profiles.some(profile => profile.id === 'system-litrpg')) {
-    return [
-      `任务提示第一次响起时，主角正在旧商业街的雨棚下躲债。`,
-      `那行字没有给他金币，也没有许诺奇迹，只要求他在十分钟内救下一个即将穿过马路的陌生人。`,
-      `他照做了。奖励不是钱，而是一段记忆：七岁那年，他坐在一间完全陌生的厨房里，听见有人喊他另一个名字。`,
-      `从那一刻起，任务不再像机会，更像一张慢慢收紧的账单。每完成一次，他能拿回一小块被夺走的过去，也会丢掉一点现在赖以证明自己的证据。`,
-      `如果继续执行，他可能查清债务和身份的来源；如果拒绝，下一次惩罚会先落到他最想保护的人身上。`,
-    ].join('\n\n')
-  }
-  if (profiles.some(profile => profile.id === 'comedy-misfit')) {
-    return [
-      `主角穿过门帘时，满堂人都以为他要说出惊天秘密。`,
-      `他也确实说了，只不过第一句是：“你们谁把我的锅拿去炼丹了？”`,
-      `本该剑拔弩张的审问现场被这句话拧偏，最紧张的人反而是藏在人群里的真正内鬼。`,
-      `如果继续装傻，他能看清谁先露出破绽；如果当场摊牌，所有误会都会变成另一场更大的误会。`,
-    ].join('\n\n')
-  }
+
+  const genreName = publicKernelName(kernel, profile)
+  const openingBeat = firstItem(kernel.eventStructure, '异常出现')
+  const pressureBeat = secondItem(kernel.eventStructure, '选择压力')
+  const motive = firstItem(kernel.motiveRules, '人物必须保护一个无法轻易放下的东西')
+  const conflict = firstItem(kernel.conflictRules, '每个选择都必须改变关系或处境')
+  const climax = firstItem(kernel.climaxRules, '高潮要让人物承担选择后果')
+  const thesis = cleanPublicText(kernel.thesis, '真正的张力来自愿望和代价同时出现。')
+  const antiThesis = cleanPublicText(kernel.antiThesis, '不能让巧合替人物完成行动。')
+
   return [
-    `第一盏灯亮起时，所有人都说那只是风。`,
-    `主角站在门槛外，手里握着不该出现的线索，意识到自己被推到一个必须选择的位置。`,
-    `那句话在他心里落下：${seed}`,
-    `他还不知道这句话会改变谁的命运，但已经明白，沉默和开口都会付出代价。`,
+    `一开始，${seed}。这不是一句设定，而是${genreName}故事里第一个被迫显形的异常。`,
+    `${openingBeat}来得很早，早到那个人还没想好该相信谁。周围的一切都在要求他给出解释，可他更先意识到：${motive}。`,
+    `真正压下来的不是答案，而是${pressureBeat}。${thesis} 所以他不能靠一句巧合越过麻烦，也不能把所有后果推给命运。`,
+    `当${conflict}开始发生，他终于明白第一步不是证明自己正确，而是决定先保住什么、放弃什么。${antiThesis} 这条边界像一道暗线，把每个人都推向不同的代价。`,
+    `这一章的末尾应该停在一个必须回答的问题上：如果继续往前，${climax}；如果停下，前面已经出现的异常会先吞掉他最想保护的东西。`,
   ].join('\n\n')
 }
 
-function questionsFor(profiles: ConstraintProfile[]): string[] {
-  if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) {
+function questionsFor(profiles: ConstraintProfile[], kernels: GenreKernel[]): string[] {
+  const kernel = kernels[0]
+  const profile = profiles[0]
+  if (!kernel) {
     return [
-      '这次突破要付出的第一笔代价是什么？',
-      '主角更怕失去修行机会，还是更怕欠下新的人情债？',
+      '主角现在最不能失去的东西是什么？',
+      '第一章末尾要把选择推给他，还是推给他身边的人？',
     ]
   }
-  if (profiles.some(profile => profile.id === 'modern-other')) {
-    return [
-      '这份证据会伤害谁，所以主角不能立刻公开？',
-      '主角和旧案之间有什么私人关系？',
-    ]
-  }
-  if (profiles.some(profile => profile.id === 'game-litrpg')) {
-    return [
-      '这次任务失败后，主角最不能承受的惩罚是什么？',
-      '队伍里谁的职业短板会在第一场战斗中暴露？',
-    ]
-  }
-  if (profiles.some(profile => profile.id === 'system-litrpg')) {
-    return [
-      '第一条任务真正想迫使主角承认什么身份漏洞？',
-      '任务惩罚会先伤到主角自己，还是先伤到他想保护的人？',
-    ]
-  }
-  if (profiles.some(profile => profile.id === 'comedy-misfit')) {
-    return [
-      '这个误会最先伤到谁的面子？',
-      '主角要继续装傻套话，还是当场制造更大的反差？',
-    ]
-  }
+  const genreName = publicKernelName(kernel, profile)
+  const motive = firstItem(kernel.motiveRules, '主角最想保护的东西')
+  const conflict = firstItem(kernel.conflictRules, '第一场冲突')
   return [
-    '主角现在最不能失去的东西是什么？',
-    '第一章末尾要把选择推给他，还是推给他身边的人？',
+    `这个${genreName}开场里，${motive}具体落在哪个人或哪件物上？`,
+    `${conflict}出现时，你希望主角先保护关系、真相，还是自己的生存位置？`,
   ]
 }
 
+function sourceLabelsFor(profiles: ConstraintProfile[], kernels: GenreKernel[]) {
+  return {
+    seed: 'human',
+    doctrine: kernels[0] ? 'rule_engine' : 'memo',
+    protagonist_gap: 'memo',
+    first_conflict: kernels[0] ? 'rule_engine' : 'memo',
+    genre_constraints: profiles.length ? 'rule_engine' : 'memo',
+    kernel: kernels[0] ? 'rule_engine' : 'memo',
+  } as const
+}
+
 function settingCards(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]) {
+  const primaryKernel = kernels[0]
+  const primaryProfile = profiles[0]
+  const conflict = firstItem(primaryKernel?.conflictRules, '第一场冲突必须改变人物处境')
+  const motive = firstItem(primaryKernel?.motiveRules, '主角要先暴露一个不能失去的东西')
+  const thesis = cleanPublicText(primaryKernel?.thesis, '先写出人物被迫承担的代价，再让世界规则变得可验证。')
+  const publicName = publicKernelName(primaryKernel, primaryProfile)
+  return [
+    {
+      type: 'seed',
+      title: '故事起点',
+      value: input.seed,
+      source: 'human',
+    },
+    {
+      type: 'genre_promise',
+      title: '题材承诺',
+      value: publicName,
+      source: primaryKernel ? 'rule_engine' : 'memo',
+    },
+    {
+      type: 'world_rule',
+      title: '世界压力',
+      value: thesis,
+      source: primaryKernel ? 'rule_engine' : 'memo',
+    },
+    {
+      type: 'character_gap',
+      title: '人物缺口',
+      value: motive,
+      source: 'memo',
+    },
+    {
+      type: 'first_conflict',
+      title: '第一冲突',
+      value: conflict,
+      source: primaryKernel ? 'rule_engine' : 'memo',
+    },
+  ]
+}
+
+function runtimeSettingCards(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]) {
   return {
     seed: input.seed,
-    doctrine: '先写出人物被迫承担的代价，再让世界规则变得可验证。',
-    protagonist_gap: '主角先缺身份、信任或安全感，再获得行动空间。',
-    first_conflict: '公开真相与保住当下生存条件之间的冲突。',
+    doctrine: cleanPublicText(kernels[0]?.thesis, '先写出人物被迫承担的代价，再让世界规则变得可验证。'),
+    protagonist_gap: firstItem(kernels[0]?.motiveRules, '主角先缺身份、信任或安全感，再获得行动空间。'),
+    first_conflict: firstItem(kernels[0]?.conflictRules, '第一场冲突必须改变人物处境。'),
+    story_notes: settingCards(input, profiles, kernels),
     genre_constraints: profiles.map(profile => ({
       id: profile.id,
       display_name: profile.displayName,
@@ -134,14 +169,7 @@ function settingCards(input: SocraticCreateInput, profiles: ConstraintProfile[],
       rule_ids: profile.rules.map(rule => rule.id),
     })),
     kernel: kernels[0]?.id || 'kernel-general-socratic-opening',
-    source_labels: {
-      seed: 'human',
-      doctrine: 'memo',
-      protagonist_gap: 'memo',
-      first_conflict: 'rule_engine',
-      genre_constraints: 'rule_engine',
-      kernel: 'rule_engine',
-    },
+    source_labels: sourceLabelsFor(profiles, kernels),
   }
 }
 
@@ -233,10 +261,10 @@ export async function socraticCreateWorkflow(
   const startedAt = Date.now()
   const profiles = resolveConstraints(input)
   const kernels = resolveKernels(profiles)
-  const title = safeTitle(input, profiles)
+  const title = safeTitle(input, profiles, kernels)
   const body = candidateBody(input, profiles, kernels)
   const violations = evaluatePublicProseHygiene(body, profiles)
-  const cards = settingCards(input, profiles, kernels)
+  const cards = runtimeSettingCards(input, profiles, kernels)
 
   const localOutput: SocraticCreateOutput = {
     runId,
@@ -247,7 +275,7 @@ export async function socraticCreateWorkflow(
       title,
       body,
     },
-    questions: questionsFor(profiles).slice(0, 2),
+    questions: questionsFor(profiles, kernels).slice(0, 2),
     settingCards: cards,
     activeConstraints: profiles.map(profile => ({
       profileId: profile.id,

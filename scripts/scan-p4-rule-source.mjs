@@ -30,6 +30,18 @@ const retiredTerms = [
   '县衙',
 ]
 
+const workflowSource = join(root, 'packages/agent-runtime/src/workflows.ts')
+const forbiddenWorkflowPatterns = [
+  {
+    pattern: /profile\.id\s*={2,3}\s*['"]/,
+    message: 'workflow must not branch on hardcoded profile ids; use active GenreKernel fields instead',
+  },
+  {
+    pattern: /kernel\.id\s*={2,3}\s*['"]/,
+    message: 'workflow must not branch on hardcoded kernel ids; use document-derived kernel fields instead',
+  },
+]
+
 function collectFiles(entry) {
   const absolute = join(root, entry)
   if (!existsSync(absolute)) return []
@@ -65,6 +77,16 @@ for (const file of files) {
     const index = text.indexOf(term)
     if (index >= 0) {
       violations.push(`${relative(root, file)}:${lineNumber(text, index)} retired P4 one-off term appears: ${term}`)
+    }
+  }
+}
+
+if (existsSync(workflowSource)) {
+  const workflowText = readFileSync(workflowSource, 'utf8')
+  for (const check of forbiddenWorkflowPatterns) {
+    const match = workflowText.match(check.pattern)
+    if (match?.index !== undefined) {
+      violations.push(`${relative(root, workflowSource)}:${lineNumber(workflowText, match.index)} ${check.message}`)
     }
   }
 }
