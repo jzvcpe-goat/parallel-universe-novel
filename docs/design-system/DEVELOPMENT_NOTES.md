@@ -97,6 +97,38 @@ cd /Users/james/Documents/PUF/workspaces/integration-harness
 npm run smoke:creator-chain
 ```
 
+## 2026-06-17 P8 Creator UI Runtime QA
+
+### 现象
+
+P7 证明了 API、agent runtime 与 FastAPI Tool Bridge 能通过真实 HTTP 串起来，但还不能证明 `/create` 页面真的消费了这条链路。前端仍可能因为环境变量、自动模板推断、按钮状态或本地降级而显示“看似可用”的草稿。
+
+### 验收方法
+
+1. 临时启动 FastAPI、agent runtime、Vite Creator UI，使用独立端口和临时 sqlite。
+2. Vite 必须显式设置 `VITE_API_ORIGIN` 与 `VITE_AGENT_RUNTIME_BASE_URL`。
+3. 在浏览器打开 `/create`，输入文档内题材种子。
+4. 验证页面显示候选正文、两个以内追问、题材方向、写作记忆按钮。
+5. 点击“整理成写作记忆”，验证页面出现“已整理 X 组写作记忆，等你确认后再固定到作品”。
+6. 检查 FastAPI 日志必须出现 `/v1/tools/runtime/socratic-turn` 与 `/v1/tools/runtime/state-preview` 200。
+7. 页面可见文案不得出现内部词。
+
+### 本轮证据
+
+- 输入：`我想写一个系统流故事，主角每完成一次任务都会拿回一段不属于自己的记忆。`
+- UI 自动切到 `系统流`。
+- 页面出现系统流候选正文：`任务提示第一次响起时...`
+- 页面只追问两件事。
+- 点击“整理成写作记忆”后显示 `已整理 1 组写作记忆，等你确认后再固定到作品。`
+- FastAPI 日志出现：
+  - `POST /v1/tools/runtime/socratic-turn` 200
+  - `POST /v1/tools/runtime/state-preview` 200
+- 页面可见文案未出现 `system prompt / provider / fallback / rawHash / StateVector / AgentRun / CHANGES JSON / canon_written / branch_written`。
+
+### 下一断点
+
+UI 层目前通过人工式浏览器 QA 验证。若后续要把 P8 变成 CI 常规检查，需要引入轻量浏览器测试策略；在此之前，不要为了一个 smoke 直接引入重型浏览器依赖。
+
 ```bash
 cd /Users/james/Documents/PUF/workspaces/integration-harness
 npm run test
