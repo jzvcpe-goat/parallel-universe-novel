@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P18 代表作品 vault key 分离门禁
+
+### 现象
+
+P17 已经证明公开 kernel/constraints 只使用匿名 `rwref_*`，但扫描范围仍主要集中在规则目录。如果后续把 QA 报告、handoff 文档、生成代码或构建产物带入公开仓库，仍可能绕过规则目录扫描，把代表作品明文或解密 key 泄漏出去。
+
+### 修复原则
+
+1. 代表作品隐私门禁必须覆盖整个 tracked public repository，而不只是 `docs/product/rules`。
+2. 公开仓库可以提交 encrypted vault，但不能提交 vault key、具体 `REFERENCE_WORK_VAULT_KEY` 值或任何可逆映射。
+3. 隐私说明文档本身也不能用疑似真实字段示例绕过扫描。
+4. 有本地 key 时扫描器继续解密 vault，对全仓 tracked 文本做精确作品名泄漏扫描。
+
+### 本轮落地
+
+- `scripts/scan-reference-privacy.mjs` 改为读取 `git ls-files`，对 tracked public files 做 key/value 和明文标题扫描。
+- 新增 committed key 检查：禁止 `reference-work-vault.key`、`private/` 路径和具体 `REFERENCE_WORK_VAULT_KEY` 值进入仓库。
+- `REFERENCE_WORK_PRIVACY.md` 去掉会被误解为可公开的明文字段示例，并说明全仓扫描范围。
+- 新增 `REFERENCE_WORK_VAULT_ACCESS.md`，给团队说明解密、轮换、提交和验证流程。
+
+### 必跑检查
+
+```bash
+npm run scan:reference-privacy
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P17 代表作品隐私审计
 
 ### 现象

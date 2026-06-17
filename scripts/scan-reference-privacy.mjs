@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
 import { createDecipheriv } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
+import { extname, join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const vaultPath = join(root, 'docs/product/rules/reference-work-vault.enc.json')
@@ -20,7 +21,20 @@ const scanRoots = [
 const allowedFiles = new Set([
   'docs/product/rules/reference-work-vault.enc.json',
   'docs/product/rules/reference-work-public-refs.json',
-  'docs/product/rules/REFERENCE_WORK_PRIVACY.md',
+])
+
+const binaryExtensions = new Set([
+  '.avif',
+  '.gif',
+  '.ico',
+  '.jpeg',
+  '.jpg',
+  '.pdf',
+  '.png',
+  '.webp',
+  '.woff',
+  '.woff2',
+  '.zip',
 ])
 
 function allScanFiles() {
@@ -45,6 +59,23 @@ function allScanFiles() {
   return files
 }
 
+function allTrackedFiles() {
+  try {
+    return execFileSync('git', ['ls-files', '-z'], { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString('utf8')
+      .split('\0')
+      .filter(Boolean)
+      .map(file => join(root, file))
+      .filter(file => existsSync(file))
+  } catch {
+    return allScanFiles()
+  }
+}
+
+function isTextCandidate(file) {
+  return !binaryExtensions.has(extname(file).toLowerCase())
+}
+
 function decryptVault() {
   const keyValue = process.env.REFERENCE_WORK_VAULT_KEY
     || (existsSync(defaultKeyPath) ? readFileSync(defaultKeyPath, 'utf8').trim() : '')
@@ -67,6 +98,7 @@ function lineNumber(text, index) {
 
 const violations = []
 const files = allScanFiles()
+const trackedFiles = allTrackedFiles().filter(isTextCandidate)
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
@@ -181,11 +213,35 @@ function validatePublicRuleTextNoTitleMarkers() {
   }
 }
 
+function validateNoCommittedVaultKey() {
+  for (const file of trackedFiles) {
+    const rel = relative(root, file)
+    if (/reference-work-vault\.key$|\/private\/|^private\//.test(rel)) {
+      violations.push(`${rel} must not be committed; keep reference vault keys outside the public repository`)
+      continue
+    }
+    const text = readFileSync(file, 'utf8')
+    const keyAssignments = [
+      /^\s*REFERENCE_WORK_VAULT_KEY\s*=\s*["']?[A-Za-z0-9+/=]{32,}["']?\s*$/gm,
+      /["']REFERENCE_WORK_VAULT_KEY["']\s*:\s*["'][A-Za-z0-9+/=]{32,}["']/g,
+      /^\s*reference_work_vault_key\s*:\s*["']?[A-Za-z0-9+/=]{32,}["']?\s*$/gim,
+    ]
+    for (const pattern of keyAssignments) {
+      const match = text.match(pattern)
+      if (match) {
+        violations.push(`${rel} appears to contain a committed REFERENCE_WORK_VAULT_KEY value`)
+        break
+      }
+    }
+  }
+}
+
 validateVaultShape()
 const publicIds = validatePublicRefs()
 validateRuntimeSourceRefs(publicIds)
 validateMarkdownSourceRefs(publicIds)
 validatePublicRuleTextNoTitleMarkers()
+validateNoCommittedVaultKey()
 
 for (const file of files) {
   const rel = relative(root, file)
@@ -199,7 +255,7 @@ for (const file of files) {
 
 try {
   const refs = decryptVault()
-  for (const file of files) {
+  for (const file of trackedFiles) {
     const rel = relative(root, file)
     if (allowedFiles.has(rel)) continue
     const text = readFileSync(file, 'utf8')

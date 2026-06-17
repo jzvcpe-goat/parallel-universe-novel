@@ -21,6 +21,8 @@
 - Public reference map contains `45` anonymous refs.
 - Public rule artifacts contain `0` `《...》` title markers.
 - Public rule artifacts expose `0` direct representative work leaks in the current scan.
+- Tracked public repository files are scanned for committed vault key files and concrete `REFERENCE_WORK_VAULT_KEY` values.
+- When the private key is available, tracked public repository files are scanned against decrypted representative titles.
 - `npm run scan:reference-privacy` passes.
 
 ## Guardrail Added
@@ -32,10 +34,15 @@
 - English metadata keys such as `authorName`, `workTitle`, `representativeWorkTitle`.
 - Public ref objects with fields beyond `id` and `source_pdfs`.
 - Runtime `sourceRefs` that are not anonymous `rwref_0000` IDs.
+- Committed `reference-work-vault.key` files or tracked `private/` key paths.
+- Concrete `REFERENCE_WORK_VAULT_KEY` assignments in tracked source, docs, CI, or config.
+- Decrypted representative titles anywhere in tracked public text files when the private key is available.
 
 ## Operational Rule
 
 Do not add real representative work names to `GenreKernel`, `ConstraintProfile`, public Markdown, frontend data, or backend runtime code. If a team member needs the real mapping, use the encrypted vault with the private key outside the public repository.
+
+See `REFERENCE_WORK_VAULT_ACCESS.md` for the team access and key-rotation workflow.
 
 ## Verification Command
 

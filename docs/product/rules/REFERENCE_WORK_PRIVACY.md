@@ -20,11 +20,7 @@ This project may use market and genre research internally, but public source cod
 
 ## Forbidden Public Fields
 
-```yaml
-source_evidence: Some Representative Work Title
-reference_work: Some Representative Work Title
-benchmark_title: Some Representative Work Title
-```
+Public files must not contain plaintext fields that identify a research work or its author. Use anonymous `rwref_*` IDs only. If a field would reveal a title, author, benchmark item, or source evidence name, keep it out of the public repository and store it only inside the encrypted vault.
 
 ## Engineering Gate
 
@@ -35,6 +31,10 @@ npm run scan:reference-privacy
 ```
 
 When the local key is available, the scanner decrypts the vault and checks public runtime/docs for accidental plaintext titles. It reports only file and line locations, not the title itself.
+
+The scan covers tracked public repository files, not only the rule directory. This prevents handoff notes, QA reports, generated code, or build outputs from reintroducing private research titles.
+
+The repository must never contain the vault key file or a concrete `REFERENCE_WORK_VAULT_KEY` value. Documentation may mention the variable name, but values belong only in team-controlled local or CI secrets.
 
 ## UX Gate
 
@@ -51,4 +51,3 @@ They must not show:
 - source evidence names
 - competitor/platform research labels
 - benchmark title lists
-
