@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P45 Runtime Engine 完成度审计
+
+### 现象
+
+P4-P44 已经补齐了大量局部门禁，但团队仍可能把“某个模块有文件或测试”误读成“产品能力已经完成”。尤其是 Runtime Engine 相关能力横跨世界引擎、类型内核、时间引擎、状态回写、模型编排、质量刹车、Agent Eval、Harness、Reader、Creator 和商业化发布链路，必须有统一矩阵判断当前完成度。
+
+### 修复原则
+
+1. 完成度审计必须机器可跑，不能只靠人工总结。
+2. 每个模块必须有 evidence 文件、status、open gaps 和 next gate。
+3. `partial` 和 `blocked` 是有效审计结果，但不能被产品或团队对外宣称为 done。
+4. 审计 artifact 只保存证据路径、状态和缺口，不保存候选正文、系统提示词、provider secret 或代表作品明文。
+5. 代表作品隐私契约仍然是 `encrypted_vault_only + sourceRefs`。
+
+### 本轮落地
+
+- 新增 `scripts/check-runtime-engine-completion.mjs`。
+- 新增 `docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md`。
+- `package.json` 增加 `check:runtime-engine-completion`，并接入根 `npm run test`。
+- `docs/baseline/RELEASE_SYNC_MANIFEST.json` 纳入 P45 文档和脚本。
+- 脚本生成 `artifacts/runtime/runtime-engine-completion-*.json`，记录 12 个模块的 ready/partial/blocked 状态。
+
+### 必跑检查
+
+```bash
+npm run check:runtime-engine-completion
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P44 源/发布身份漂移门禁
 
 ### 现象
