@@ -39,6 +39,13 @@ assert(
   'Live runtime QA must check both API and Agent health before browser submission',
 )
 assert(
+  liveQa.includes('/v1/workflows/socratic-create')
+    && liveQa.includes('preflightSocraticCreate')
+    && liveQa.includes("candidateDraft?.status === 'candidate'")
+    && liveQa.includes("responseMode === 'public'"),
+  'Live runtime QA must directly preflight the public Socratic workflow before browser submission',
+)
+assert(
   liveQa.includes("page.getByText('创作服务可用')")
     && liveQa.includes('creator-dialogue-thread')
     && liveQa.includes('draftLength >= 300')
@@ -49,8 +56,13 @@ assert(
   liveQa.includes('system prompt')
     && liveQa.includes('provider')
     && liveQa.includes('fallback')
-    && liveQa.includes('AgentRun'),
-  'Live runtime QA must scan browser text for internal term leaks',
+    && liveQa.includes('AgentRun')
+    && liveQa.includes('runtimeArtifact')
+    && liveQa.includes('sourceRefs')
+    && liveQa.includes('sourceLabels')
+    && liveQa.includes('runTrace')
+    && liveQa.includes('ledger'),
+  'Live runtime QA must scan public workflow response and browser text for internal term leaks',
 )
 assert(
   packageJson.scripts['qa:live-runtime-browser'] === 'node scripts/browser-live-runtime-e2e.mjs',
@@ -68,8 +80,10 @@ assert(
   p15Doc.includes('qa:live-runtime-browser')
     && p15Doc.includes('REQUIRE_PUBLIC_RUNTIME=true')
     && p15Doc.includes('candidate')
-    && p15Doc.includes('0-2'),
-  'P15 contract doc must describe the live browser smoke and acceptance boundary',
+    && p15Doc.includes('0-2')
+    && p15Doc.includes('/v1/workflows/socratic-create')
+    && p15Doc.includes('direct workflow preflight'),
+  'P15 contract doc must describe the direct workflow preflight, live browser smoke, and acceptance boundary',
 )
 assert(
   p13Doc.includes('Add live browser QA against the remote preview')

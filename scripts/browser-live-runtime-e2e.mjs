@@ -108,6 +108,62 @@ async function fetchJson(url, options = {}) {
   return response.json()
 }
 
+function compactLength(value) {
+  return String(value || '').replace(/\s+/g, '').length
+}
+
+function assertNoInternalTerms(text, terms, surface) {
+  for (const term of terms) {
+    assert(!text.includes(term), `${surface} leaked internal term: ${term}`)
+  }
+}
+
+function assertPublicSocraticCreateOutput(payload) {
+  assert(payload && typeof payload === 'object', 'Direct workflow preflight must return a JSON object')
+  assert(payload.responseMode === 'public', `Direct workflow preflight must return public mode, got ${payload.responseMode || 'missing'}`)
+  assert(payload.candidateDraft?.status === 'candidate', 'Direct workflow preflight must return candidateDraft.status=candidate')
+  const draftLength = compactLength(payload.candidateDraft?.body)
+  const questionCount = Array.isArray(payload.questions) ? payload.questions.length : -1
+  assert(draftLength >= 300, `Direct workflow preflight expected candidate draft >= 300 chars, got ${draftLength}`)
+  assert(draftLength <= 900, `Direct workflow preflight expected candidate draft <= 900 chars, got ${draftLength}`)
+  assert(questionCount >= 0, 'Direct workflow preflight questions must be an array')
+  assert(questionCount <= 2, `Direct workflow preflight expected at most 2 follow-up questions, got ${questionCount}`)
+
+  const forbiddenFields = [
+    'runtimeArtifact',
+    'sourceRefs',
+    'kernelId',
+    'profileId',
+    'activeConstraints',
+    'activeKernels',
+    'sourceLabels',
+    'runTrace',
+    'ledger',
+    'cost',
+  ]
+  assertNoInternalTerms(JSON.stringify(payload), forbiddenFields, 'Direct workflow preflight response')
+
+  return { draftLength, questionCount }
+}
+
+async function preflightSocraticCreate(agentOrigin, seed) {
+  const payload = await fetchJson(`${agentOrigin}/v1/workflows/socratic-create`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      projectId: 'live_runtime_smoke',
+      creatorId: 'live_runtime_smoke',
+      genre: '现代悬疑',
+      seed,
+      context: {
+        smoke: true,
+        source: 'browser-live-runtime-e2e',
+      },
+    }),
+  })
+  return assertPublicSocraticCreateOutput(payload)
+}
+
 async function loadPlaywright() {
   const modulePath = process.env.PLAYWRIGHT_MODULE_PATH || 'playwright'
   try {
@@ -148,6 +204,8 @@ try {
     process.env.VITE_AGENT_RUNTIME_BASE_URL || process.env.NARRATIVEOS_AGENT_RUNTIME_BASE_URL,
   )
   const allowInsecure = process.env.ALLOW_INSECURE_RUNTIME_SMOKE === 'true'
+  const seed = process.env.LIVE_RUNTIME_SMOKE_SEED
+    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。'
 
   if (!apiOrigin || !agentOrigin) {
     if (required) {
@@ -170,6 +228,7 @@ try {
   assert(apiHealth.status === 'ok' || apiHealth.status === 'healthy', `Unexpected API health payload: ${JSON.stringify(apiHealth)}`)
   const agentHealth = await fetchJson(`${agentOrigin}/health`)
   assert(agentHealth.status === 'ok' || agentHealth.status === 'healthy', `Unexpected Agent health payload: ${JSON.stringify(agentHealth)}`)
+  const directWorkflow = await preflightSocraticCreate(agentOrigin, seed)
 
   const playwright = await loadPlaywright()
   const appPort = await freePort()
@@ -200,8 +259,6 @@ try {
   await page.getByTestId('creator-conversation-panel').waitFor({ timeout: 20000 })
   await page.getByText('创作服务可用').waitFor({ timeout: 20000 })
 
-  const seed = process.env.LIVE_RUNTIME_SMOKE_SEED
-    || '我想写一个雨夜悬疑故事，第一幕是一个人收到不该存在的证据，他必须在公开和隐瞒之间选择。'
   await page.locator('textarea').first().fill(seed)
   await page.getByRole('button', { name: /开始创作|写入下一步/ }).click()
   await page.getByTestId('creator-dialogue-thread').waitFor({ timeout: 45000 })
@@ -210,9 +267,7 @@ try {
   assert(!bodyText.includes('创作服务暂时未连接'), 'Live runtime smoke must not show service-disconnected message')
   assert(!bodyText.includes('先用草稿继续写'), 'Live runtime smoke must not use local draft fallback')
   const forbiddenTerms = ['system prompt', 'provider', 'fallback', 'rawHash', 'StateVector', 'AgentRun', 'CHANGES JSON']
-  for (const term of forbiddenTerms) {
-    assert(!bodyText.includes(term), `Live public UI leaked internal term: ${term}`)
-  }
+  assertNoInternalTerms(bodyText, forbiddenTerms, 'Live public UI')
 
   const assistantMessages = await page.locator('.creator-message-ai').allInnerTexts()
   const draftText = assistantMessages.find(text => text.length > 160) || ''
@@ -232,6 +287,7 @@ try {
     app: appBaseUrl,
     apiOrigin,
     agentOrigin,
+    directWorkflow,
     draftLength,
     questionCount,
     screenshotPath,

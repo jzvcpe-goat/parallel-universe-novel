@@ -8,6 +8,8 @@
 
 - API host is reachable through `GET /health`.
 - Agent Runtime host is reachable through `GET /health`.
+- Agent Runtime can pass a direct workflow preflight through `POST /v1/workflows/socratic-create`.
+- Direct workflow preflight returns a public candidate response before the browser flow begins.
 - Public Creator build uses `VITE_PUBLIC_RUNTIME_MODE=live`.
 - Local creator fallback is disabled.
 - Browser can submit a story seed through the live Agent Runtime.
@@ -45,14 +47,19 @@ npm run qa:live-runtime-browser
 
 1. API `/health` returns JSON with `status=ok` or `status=healthy`.
 2. Agent Runtime `/health` returns JSON with `status=ok` or `status=healthy`.
-3. `/create` shows “创作服务可用”.
-4. Submit renders `creator-dialogue-thread`.
-5. Candidate draft is 300-900 compact characters.
-6. Follow-up questions count is 0-2.
-7. Browser text does not include `system prompt`, `provider`, `fallback`, `rawHash`, `StateVector`, `AgentRun`, or `CHANGES JSON`.
-8. The disconnected-service message is absent.
-9. Local draft fallback message is absent.
-10. Screenshot is written to `artifacts/visual-qa/`.
+3. Direct `POST /v1/workflows/socratic-create` returns `responseMode=public`.
+4. Direct workflow preflight returns `candidateDraft.status=candidate`.
+5. Direct workflow preflight candidate draft is 300-900 compact characters.
+6. Direct workflow preflight follow-up questions count is 0-2.
+7. Direct workflow preflight response does not include internal fields such as `runtimeArtifact`, `sourceRefs`, `kernelId`, `profileId`, `activeConstraints`, `activeKernels`, `sourceLabels`, `runTrace`, `ledger`, or `cost`.
+8. `/create` shows “创作服务可用”.
+9. Submit renders `creator-dialogue-thread`.
+10. Browser candidate draft is 300-900 compact characters.
+11. Browser follow-up questions count is 0-2.
+12. Browser text does not include `system prompt`, `provider`, `fallback`, `rawHash`, `StateVector`, `AgentRun`, or `CHANGES JSON`.
+13. The disconnected-service message is absent.
+14. Local draft fallback message is absent.
+15. Screenshot is written to `artifacts/visual-qa/`.
 
 ## Relationship To P13/P14
 

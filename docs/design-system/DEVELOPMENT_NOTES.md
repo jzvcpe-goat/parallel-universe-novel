@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P39 Live Creator 链路直接预检
+
+### 现象
+
+P15 live browser smoke 已经会检查 API `/health`、Agent `/health`，并在浏览器里提交故事种子。但如果远端 Agent Runtime 健康接口可用、实际 `/v1/workflows/socratic-create` 到 FastAPI Tool Bridge 的链路不可用，浏览器前置状态仍可能看起来“在线”，直到提交时才暴露问题。
+
+### 修复原则
+
+1. “远端服务在线”不能等同于“创作链路可用”。
+2. 浏览器 QA 启动前必须直接调用 `POST /v1/workflows/socratic-create`，验证 Agent workflow、Tool Bridge、Runtime facade 和公开响应投影同时可用。
+3. 直接预检只接受 public response；不得返回 `runtimeArtifact`、`sourceRefs`、`kernelId`、`profileId`、`activeConstraints`、`activeKernels`、`sourceLabels`、`runTrace`、`ledger`、`cost` 等内部字段。
+4. 候选稿仍必须是 `candidate`，长度 300-900 字符，追问不超过 2 个；不能因为是预检就放宽产品标准。
+
+### 本轮落地
+
+- `scripts/browser-live-runtime-e2e.mjs` 增加 `preflightSocraticCreate()`，在浏览器流程前直接调用远端 Agent workflow。
+- `scripts/check-live-runtime-smoke-contract.mjs` 增加反向检查，确保后续不会退回只做 health check。
+- `docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md` 补充 direct workflow preflight 验收项。
+
+### 必跑检查
+
+```bash
+npm run check:live-runtime-smoke
+npm run qa:live-runtime-browser
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P27 CI readiness ledger 读取 GitHub variables
 
 ### 现象
