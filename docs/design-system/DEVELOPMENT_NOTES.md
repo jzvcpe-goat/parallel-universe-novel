@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P52 Runtime 完成度矩阵刷新
+
+### 现象
+
+P49/P51 已经补了时间引擎候选密度模拟和状态回写幂等提交，但 P45 完成度矩阵仍保留旧 gap。如果矩阵不刷新，团队会继续按已解决的问题排期，或者误以为新能力没有进入验收体系。
+
+### 修复原则
+
+1. 完成度矩阵必须随着新证据刷新，但不能把 partial 误报 ready。
+2. 已证明的内容从 open gap 移到 evidence。
+3. 仍未完成的后端持久化、Reader 分支、生产权限继续保留为 gap。
+4. 新增 `check:runtime-completion-refresh` 防止旧描述回流。
+
+### 本轮落地
+
+- `time-engine` evidence 增加 `timeEngine.ts`、测试、P49 gate。
+- `state-writeback` evidence 增加 `/canon/commit` 幂等、P51 gate 和 rollback plan。
+- `quality-brake` evidence 增加质量门禁驱动 canon ledger commit。
+- 新增 `docs/backend/P52_RUNTIME_COMPLETION_MATRIX_REFRESH.md`。
+- 根 `npm run test` 增加 `check:runtime-completion-refresh`。
+
+### 必跑检查
+
+```bash
+npm run check:runtime-engine-completion
+npm run check:runtime-completion-refresh
+```
+
 ## 2026-06-17 P51 状态回写安全门禁
 
 ### 现象

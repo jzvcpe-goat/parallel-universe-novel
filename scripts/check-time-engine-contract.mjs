@@ -68,8 +68,9 @@ assertIncludes('scripts/check-runtime-artifact-contract.mjs', [
 ])
 assertIncludes('docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md', [
   'time-engine',
-  'Non-homogeneous Poisson',
-  'Hawkes',
+  'deterministic TimeEngine',
+  'Poisson/Hawkes-style',
+  'Durable FastAPI TimeEngine',
 ])
 assertIncludes('docs/backend/P49_TIME_ENGINE_CONTRACT.md', [
   'P49 Time Engine Contract',

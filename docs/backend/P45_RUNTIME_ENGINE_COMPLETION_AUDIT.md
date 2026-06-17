@@ -29,10 +29,10 @@ npm run check:runtime-engine-completion
 | `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result. | Reader choice and Studio canon confirmation do not yet share a proven runtime trace. |
 | `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data exist. | WorldInstance branch memory and relationship writeback are not yet proven through runtime facade. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
-| `time-engine` | 时间引擎 | `partial` | `timeControls` and `timeConsistencyReport` exist inside runtime artifact. | Non-homogeneous Poisson and Hawkes simulation are not yet a durable backend engine. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves `canon_written=false` and `branch_written=false`. | Canon/branch commit and rollback are not proven. |
+| `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime. | Durable FastAPI TimeEngine and Reader branch persistence are not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, and `/canon/commit` has idempotent canon ledger proof. | Transactional multi-table write and Reader branch rollback fixtures are not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
-| `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, tests for repair without committing candidate text. | Canon publishing is not yet gated by author confirmation plus quality brake. |
+| `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, and canon ledger commit gated by quality plus confirmation. | Production operator auth and Reader live-generation quality gate are not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks and public UI boundary scan exist. | Reader choices do not yet traverse the same remote runtime facade. |
@@ -48,6 +48,17 @@ The release chain must continue to produce:
 - `github-pages`
 
 The current artifact gate is `check:github-actions-artifacts`. P45 consumes the readiness ledger status but does not rewrite it.
+
+## P52 Runtime Completion Matrix Refresh
+
+P52 refreshed this matrix after P49 and P51:
+
+- P49 proves deterministic TimeEngine candidate density in Agent Runtime.
+- P51 proves idempotent canon ledger commit with `Idempotency-Key`, `idempotent_replay`, and `rollback_plan`.
+- P51 is guarded by `check:state-writeback-safety`.
+- `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
+
+The matrix remains conservative: durable FastAPI TimeEngine, database transaction rollback, Reader branch persistence, production operator authorization, and remote live runtime are still future gates.
 
 ## Privacy Boundary
 
