@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P47 Runtime Trace 连续性门禁
+
+### 现象
+
+P45 的 Runtime Engine、Reader 和 Studio 都是 partial，其中一个根因是三端容易各自形成状态语言：Creator 有 `runId/projectId/sessionId`，Reader 有 `session_id/candidate_scene/harness_trace`，Studio 有 `quality/evaluate` 与 `canon/commit`。如果不先锁定同一套 trace 语义，后续 E2E 会继续漂移。
+
+### 修复原则
+
+1. Creator、Reader、Studio 必须共享 candidate-first 的 runtime trace 词汇。
+2. Creator 公共输出可以暴露 `runId/projectId/sessionId`，但不能暴露 `runtimeArtifact`、ledger、cost、raw state。
+3. Reader 选择必须经过 `advanceScene` 和 snapshot 刷新，不能只修改本地分支 UI。
+4. Studio 发布必须先质量评价，再人工确认，并携带 `quality_report`。
+5. P47 只证明字段和边界连续，不把 Reader/Studio 生产写入误报为完成。
+
+### 本轮落地
+
+- 新增 `scripts/check-runtime-trace-continuity.mjs`。
+- 新增 `docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md`。
+- `package.json` 增加 `check:runtime-trace-continuity`，并接入根 `npm run test`。
+- `docs/baseline/RELEASE_SYNC_MANIFEST.json` 纳入 P47 文档和脚本。
+
+### 必跑检查
+
+```bash
+npm run check:runtime-trace-continuity
+```
+
 ## 2026-06-17 P46 远程 Runtime 激活门禁
 
 ### 现象
