@@ -48,6 +48,8 @@ jobs:
           npm run smoke:creator-chain
 
       - name: Build Creator Studio
+        env:
+          VITE_ROUTER_MODE: hash
         run: |
           npm --prefix app run build
           cp app/dist/index.html app/dist/404.html

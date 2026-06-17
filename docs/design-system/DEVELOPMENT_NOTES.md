@@ -4,18 +4,20 @@
 
 ### 现象
 
-应用内导航可以进入 `/create`、`/story`、`/library`，但用户直接打开或刷新这些路径时，GitHub Pages 返回 404。这是 BrowserRouter 部署到静态 Pages 的典型断点。
+应用内导航可以进入 `/create`、`/story`、`/library`，但用户直接打开或刷新这些路径时，GitHub Pages 返回 404。这是 BrowserRouter 部署到静态 Pages 的典型断点。实测还发现当前 Pages 会把项目路径规范到根域，单靠 `404.html` 不足以保证 `/create` 深链接稳定。
 
 ### 修复原则
 
-1. GitHub Pages artifact 必须同时包含 `index.html` 和 `404.html`。
-2. `404.html` 必须由当前 build 的 `index.html` 复制生成，不能手写一份可能过期的静态文件。
-3. Pages workflow 也属于工程契约，必须进入 source/release 同步门禁。
-4. 检查脚本必须验证 workflow 在上传 `app/dist` 前生成 `app/dist/404.html`。
+1. GitHub Pages build 必须使用 hash router，让公开分享路径变成 `/#/create` 这类静态站可控路径。
+2. GitHub Pages artifact 仍然同时包含 `index.html` 和 `404.html`，作为非 hash 深链接的兜底。
+3. `404.html` 必须由当前 build 的 `index.html` 复制生成，不能手写一份可能过期的静态文件。
+4. Pages workflow 也属于工程契约，必须进入 source/release 同步门禁。
+5. 检查脚本必须验证 workflow 同时设置 `VITE_ROUTER_MODE: hash` 和生成 `app/dist/404.html`。
 
 ### 本轮落地
 
-- `.github/workflows/pages.yml` 在 `npm --prefix app run build` 后执行 `cp app/dist/index.html app/dist/404.html`。
+- `.github/workflows/pages.yml` 在 build 环境设置 `VITE_ROUTER_MODE: hash`。
+- 同一 workflow 在 `npm --prefix app run build` 后执行 `cp app/dist/index.html app/dist/404.html`。
 - 新增 `scripts/check-github-pages-spa-fallback.mjs`。
 - `npm run test` 串入 `check:github-pages-spa-fallback`。
 - `RELEASE_SYNC_MANIFEST.json` 将 Pages workflow 改为 `syncAsIs`，不再当作 release-only。
