@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P17 发布包身份防回归
+
+### 现象
+
+源工作区根包名是 `integration-harness`，GitHub 发布仓库根包名必须是 `parallel-universe-novel`。P14 与 P16 的机械同步都差点把源工作区 `package.json` 直接覆盖到发布仓库，造成发布包身份回退。
+
+### 修复原则
+
+1. 源工作区和发布仓库可以复用脚本，但根包身份不能混用。
+2. 发布仓库必须保持 `name=parallel-universe-novel`，描述必须保持平行宇宙小说产品名。
+3. 这类发布身份不能靠人工检查，必须进入 `npm run test`。
+
+### 本轮落地
+
+- 新增 `scripts/check-package-identity.mjs`。
+- 脚本根据当前路径区分源工作区和发布仓库，分别校验 package name 与 description。
+- 根目录 `npm run test` 已串入 `check:package-identity`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:package-identity
+
+cd /Users/james/Documents/PUF/releases/parallel-universe-novel-github
+npm run check:package-identity
+```
+
 ## 2026-06-17 P16 公开 UI 与运行时元信息边界
 
 ### 现象
