@@ -372,11 +372,15 @@ class ProductRuntimeService:
         session_service: Optional[SessionService] = None,
         canon_ledger_dir: Optional[Path] = None,
         time_engine_ledger_dir: Optional[Path] = None,
+        branch_publish_ledger_dir: Optional[Path] = None,
     ) -> None:
         self.repository = repository
         self.session_service = session_service
         self.canon_ledger_dir = Path(canon_ledger_dir or Path.cwd() / "artifacts" / "canon_commit_ledger")
         self.time_engine_ledger_dir = Path(time_engine_ledger_dir or Path.cwd() / "artifacts" / "time_engine_ledger")
+        self.branch_publish_ledger_dir = Path(
+            branch_publish_ledger_dir or Path.cwd() / "artifacts" / "branch_publish_ledger"
+        )
 
     def _time_engine_latest_path(self, worldline_id: str) -> Path:
         return self.time_engine_ledger_dir / ("latest_%s.json" % _safe_ledger_token(worldline_id))
@@ -386,6 +390,18 @@ class ProductRuntimeService:
 
     def _latest_time_engine_record(self, worldline_id: str) -> Optional[Dict[str, Any]]:
         latest_path = self._time_engine_latest_path(worldline_id)
+        if not latest_path.exists():
+            return None
+        return json.loads(latest_path.read_text(encoding="utf-8"))
+
+    def _branch_publish_latest_path(self, worldline_id: str) -> Path:
+        return self.branch_publish_ledger_dir / ("latest_%s.json" % _safe_ledger_token(worldline_id))
+
+    def _branch_publish_record_path(self, branch_publish_candidate_id: str) -> Path:
+        return self.branch_publish_ledger_dir / ("%s.json" % _safe_ledger_token(branch_publish_candidate_id))
+
+    def _latest_branch_publish_record(self, worldline_id: str) -> Optional[Dict[str, Any]]:
+        latest_path = self._branch_publish_latest_path(worldline_id)
         if not latest_path.exists():
             return None
         return json.loads(latest_path.read_text(encoding="utf-8"))
@@ -511,6 +527,140 @@ class ProductRuntimeService:
             }
         latest["ledger_path"] = str(self._time_engine_record_path(str(latest.get("time_engine_run_id") or "")))
         latest["latest_path"] = str(self._time_engine_latest_path(worldline_id))
+        return latest
+
+    def publish_branch_candidate(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "branch_publish_candidate_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        route_choices = self.repository.list_route_choices(session_id=worldline_id)
+        if not route_choices:
+            return {
+                "status": "blocked",
+                "reason": "route_choice_required",
+                "capability_mode": "branch_publish_candidate_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        route_choice_event_id = str(payload.get("route_choice_event_id") or "").strip()
+        selected_choice = None
+        if route_choice_event_id:
+            selected_choice = next(
+                (choice for choice in route_choices if str(choice.get("choice_event_id")) == route_choice_event_id),
+                None,
+            )
+        selected_choice = selected_choice or route_choices[-1]
+        route_payload = dict(selected_choice.get("payload") or {})
+        time_engine_record = self._latest_time_engine_record(worldline_id)
+        if time_engine_record is None:
+            return {
+                "status": "blocked",
+                "reason": "time_engine_candidate_required",
+                "capability_mode": "branch_publish_candidate_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "route_choice_event_id": selected_choice.get("choice_event_id"),
+            }
+        source_run_id = str(
+            payload.get("source_run_id")
+            or route_payload.get("source_run_id")
+            or time_engine_record.get("source_run_id")
+            or ""
+        ).strip()
+        branch_id = str(
+            payload.get("branch_id") or route_payload.get("branch_id") or payload.get("worldline_id") or worldline_id
+        ).strip()
+        key_hash = _idempotency_hash(key)
+        branch_publish_candidate_id = "branch_publish_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "branch_id": branch_id,
+                "route_choice_event_id": selected_choice.get("choice_event_id"),
+                "time_engine_run_id": time_engine_record.get("time_engine_run_id"),
+            }
+        )
+        self.branch_publish_ledger_dir.mkdir(parents=True, exist_ok=True)
+        record_path = self._branch_publish_record_path(branch_publish_candidate_id)
+        latest_path = self._branch_publish_latest_path(worldline_id)
+        if record_path.exists():
+            replay = json.loads(record_path.read_text(encoding="utf-8"))
+            replay["ledger_path"] = str(record_path)
+            replay["latest_path"] = str(latest_path)
+            replay["idempotent_replay"] = True
+            latest_path.write_text(json.dumps(replay, ensure_ascii=False, indent=2), encoding="utf-8")
+            return replay
+
+        time_events = list(time_engine_record.get("candidate_events") or [])
+        world_instance_patch = dict(route_payload.get("world_instance_patch_candidate") or {})
+        record = {
+            "status": "candidate",
+            "capability_mode": "branch_publish_candidate_gate",
+            "write_scope": "branch_publish_candidate_ledger_only",
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_id": branch_id,
+            "source_run_id": source_run_id,
+            "route_choice_event_id": selected_choice.get("choice_event_id"),
+            "choice_id": selected_choice.get("choice_id"),
+            "chapter_id": selected_choice.get("chapter_id"),
+            "time_engine_run_id": time_engine_record.get("time_engine_run_id"),
+            "consumed_time_event_ids": [str(event.get("id")) for event in time_events if event.get("id")],
+            "consumed_time_density_summary": dict(time_engine_record.get("density_summary") or {}),
+            "world_instance_patch_candidate": world_instance_patch,
+            "transaction_plan": {
+                "status": "future_gate",
+                "required_before_public_publish": [
+                    "database_transaction_rollback_fixture",
+                    "quality_gate_for_branch_publish",
+                    "production_operator_authorization",
+                ],
+            },
+            "rollback_plan": {
+                "status": "available_before_public_publish",
+                "method": "delete_branch_publish_candidate_ledger_record",
+                "branch_publish_candidate_id": branch_publish_candidate_id,
+            },
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": False,
+            "created_at": _utcnow(),
+        }
+        record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        record["ledger_path"] = str(record_path)
+        record["latest_path"] = str(latest_path)
+        latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    def branch_publish_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self._latest_branch_publish_record(worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "branch_publish_candidate_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No branch publish candidate ledger has been generated for this worldline yet.",
+            }
+        latest["ledger_path"] = str(self._branch_publish_record_path(str(latest.get("branch_publish_candidate_id") or "")))
+        latest["latest_path"] = str(self._branch_publish_latest_path(worldline_id))
         return latest
 
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
@@ -697,6 +847,7 @@ class ProductRuntimeService:
         patch_summaries = [dict(patch.get("snapshot_summary") or {}) for patch in world_instance_patches]
         time_engine_record = self._latest_time_engine_record(worldline_id)
         time_engine_events = list(dict(time_engine_record or {}).get("candidate_events") or [])
+        branch_publish_record = self._latest_branch_publish_record(worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -740,6 +891,19 @@ class ProductRuntimeService:
                 "candidate_event_count": len(time_engine_events),
                 "density_summary": dict(dict(time_engine_record or {}).get("density_summary") or {}),
                 "rollback_scope": "delete_time_event_candidate_before_public_publish" if time_engine_record else "none",
+            },
+            "branch_publish_summary": {
+                "status": "candidate" if branch_publish_record else "waiting",
+                "write_scope": str(dict(branch_publish_record or {}).get("write_scope") or "none"),
+                "branch_publish_candidate_id": dict(branch_publish_record or {}).get("branch_publish_candidate_id"),
+                "time_engine_run_id": dict(branch_publish_record or {}).get("time_engine_run_id"),
+                "route_choice_event_id": dict(branch_publish_record or {}).get("route_choice_event_id"),
+                "consumed_time_event_count": len(
+                    list(dict(branch_publish_record or {}).get("consumed_time_event_ids") or [])
+                ),
+                "rollback_scope": "delete_branch_publish_candidate_before_public_publish"
+                if branch_publish_record
+                else "none",
             },
         }
 

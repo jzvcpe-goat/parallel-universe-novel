@@ -20,6 +20,13 @@ class TimeEngineCandidateRequest(BaseModel):
     beats: list[str] = Field(default_factory=list)
 
 
+class BranchPublishCandidateRequest(BaseModel):
+    source_run_id: Optional[str] = None
+    branch_id: Optional[str] = None
+    route_choice_event_id: Optional[Any] = None
+    project_id: Optional[str] = None
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -138,6 +145,33 @@ def time_engine_candidates(
 def time_engine_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
     try:
         return request.app.state.product_runtime_service.time_engine_snapshot(worldline_id=worldline_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")
+def branch_publish_candidate(
+    worldline_id: str,
+    payload: BranchPublishCandidateRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.publish_branch_candidate(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")
+def branch_publish_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.branch_publish_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

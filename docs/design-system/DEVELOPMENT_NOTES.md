@@ -3265,3 +3265,25 @@ Reader 页面此前已经会在 UI 上展示选择、分支、下一幕和阅读
 - `ProductRuntimeService.worldline` 输出 `time_engine_summary`，存在候选 ledger 时将 density summary 标记为 `fastapi_time_engine`。
 - `backend/tests/test_product_runtime_api.py` 覆盖 candidate write、idempotent replay、snapshot 和 `/loom` 汇总。
 - `P57_FASTAPI_TIME_ENGINE_SERVICE.md` 写明 service contract 和下一步 Reader branch publish gate。
+
+## 2026-06-17 P58 Reader Branch Publish Candidate Gate
+
+### 现象
+
+P53 已证明读者选择能进入 `route_choice_ledger_only`，P57 已证明 TimeEngine 能写 `time_event_candidate_ledger_only`，但两者之间还没有一个候选发布门禁。继续把这件事留成“public branch publish 未接”会误导后续团队：真正缺的是生产发布和事务回滚，不是候选链路本身。
+
+### 修复原则
+
+1. 不新增第二套分支系统，复用 route-choice ledger、WorldInstance patch candidate 和 TimeEngine candidate ledger。
+2. Branch publish candidate 必须要求 `Idempotency-Key`，并只写 `branch_publish_candidate_ledger_only`。
+3. 缺 route choice、缺 TimeEngine candidate 或缺幂等键时只返回 blocked，不写任何候选发布账本。
+4. `/loom` 可以展示 `branch_publish_summary`，但 public UI 仍不显示生产发布入口。
+5. 文档和机器 gate 必须同时更新，否则旧矩阵会继续把候选链路误报为没接。
+
+### 本轮落地
+
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/branches/publish-candidate` POST/GET。
+- `ProductRuntimeService.publish_branch_candidate` 消费 route choice 和 TimeEngine candidate events。
+- 成功写入 `branch_publish_candidate_ledger_only`，并带 rollback plan 与 future transaction plan。
+- `backend/tests/test_product_runtime_api.py` 覆盖缺幂等键 blocked、成功写入、idempotent replay、snapshot 和 `/loom` 汇总。
+- `check:reader-branch-publish` 纳入 root test，防止候选发布链路回退。

@@ -77,11 +77,18 @@ FastAPI service 会：
 5. `scripts/check-runtime-engine-completion.mjs` 不再把 TimeEngine 断点描述为缺少后端候选服务。
 6. OpenAPI、generated frontend type 和 release sync manifest 同步。
 
+## P58 Follow-Up
+
+P58 已经把 latest TimeEngine candidate ledger 接到 Reader branch publish candidate gate：
+
+- Reader choice 继续写 `route_choice_ledger_only`。
+- TimeEngine 继续写 `time_event_candidate_ledger_only`。
+- Branch publish candidate 消费 TimeEngine event ids，并写 `branch_publish_candidate_ledger_only`。
+
 ## Next Gate
 
-P57 后的下一步不是重写 TimeEngine，而是把已持久化的候选密度接到 Reader branch publish：
+下一步不是重写 TimeEngine，而是补 `P59 Database Transaction Rollback Fixture`：
 
-- Reader choice 读取 latest TimeEngine candidate ledger。
-- branch publish 只消费通过质量门禁的候选事件。
-- branch publish 写入前要有 rollback fixture。
+- branch publish candidate 进入数据库事务草案，
+- route choice、branch record、WorldInstance patch 和 TimeEngine event consumption 必须能同一事务回滚，
 - production telemetry fitting 只更新 kernel 参数，不直接改作者正文。

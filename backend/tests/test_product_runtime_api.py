@@ -9,6 +9,7 @@ from src.narrativeos.repository import SQLAlchemyRepository
 def _client(tmp_path: Path, monkeypatch) -> TestClient:
     monkeypatch.setenv("NARRATIVEOS_CANON_LEDGER_DIR", str(tmp_path / "canon_ledger"))
     monkeypatch.setenv("NARRATIVEOS_TIME_ENGINE_LEDGER_DIR", str(tmp_path / "time_engine_ledger"))
+    monkeypatch.setenv("NARRATIVEOS_BRANCH_PUBLISH_LEDGER_DIR", str(tmp_path / "branch_publish_ledger"))
     monkeypatch.delenv("KIMI_API_KEY", raising=False)
     monkeypatch.delenv("MOONSHOT_API_KEY", raising=False)
     app = create_app(
@@ -197,6 +198,102 @@ def test_time_engine_persists_durable_candidate_events(tmp_path: Path, monkeypat
     assert worldline_payload["time_engine_summary"]["write_scope"] == "time_event_candidate_ledger_only"
     assert worldline_payload["time_engine_summary"]["candidate_event_count"] == len(payload["candidate_events"])
     assert worldline_payload["density_summary"]["mode"] == "fastapi_time_engine"
+
+
+def test_branch_publish_candidate_consumes_route_choice_and_time_engine(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_publish"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_keep_witness_hidden",
+            "freeform_intent": "先隐藏证人，再公开关键线索。",
+            "worldline_id": session_id,
+            "branch_id": "hidden-witness",
+            "source_run_id": "reader-run-publish-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-publish-proof",
+            "beat_plan": ["选择落点", "证人压力", "连锁追查", "余波封存"],
+        },
+    )
+    assert planned.status_code == 200
+    time_engine_payload = planned.json()
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        json={"branch_id": "hidden-witness", "route_choice_event_id": route_choice_event_id},
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-proof-key"},
+        json={
+            "branch_id": "hidden-witness",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-run-proof",
+        },
+    )
+    assert published.status_code == 200
+    payload = published.json()
+    assert payload["status"] == "candidate"
+    assert payload["capability_mode"] == "branch_publish_candidate_gate"
+    assert payload["write_scope"] == "branch_publish_candidate_ledger_only"
+    assert payload["worldline_id"] == session_id
+    assert payload["branch_id"] == "hidden-witness"
+    assert payload["source_run_id"] == "branch-publish-run-proof"
+    assert payload["route_choice_event_id"] == route_choice_event_id
+    assert payload["time_engine_run_id"] == time_engine_payload["time_engine_run_id"]
+    assert payload["consumed_time_event_ids"] == [event["id"] for event in time_engine_payload["candidate_events"]]
+    assert payload["consumed_time_density_summary"]["mode"] == "fastapi_durable_time_engine"
+    assert payload["world_instance_patch_candidate"]["write_scope"] == "world_instance_patch_candidate_only"
+    assert payload["transaction_plan"]["status"] == "future_gate"
+    assert "database_transaction_rollback_fixture" in payload["transaction_plan"]["required_before_public_publish"]
+    assert payload["rollback_plan"]["method"] == "delete_branch_publish_candidate_ledger_record"
+    assert Path(payload["ledger_path"]).exists()
+    assert Path(payload["latest_path"]).exists()
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-proof-key"},
+        json={
+            "branch_id": "hidden-witness",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-run-proof",
+        },
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["branch_publish_candidate_id"] == payload["branch_publish_candidate_id"]
+    assert replayed_payload["consumed_time_event_ids"] == payload["consumed_time_event_ids"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["branch_publish_candidate_id"] == payload["branch_publish_candidate_id"]
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    worldline_payload = worldline.json()
+    assert worldline_payload["branch_publish_summary"]["status"] == "candidate"
+    assert worldline_payload["branch_publish_summary"]["write_scope"] == "branch_publish_candidate_ledger_only"
+    assert worldline_payload["branch_publish_summary"]["time_engine_run_id"] == time_engine_payload["time_engine_run_id"]
+    assert worldline_payload["branch_publish_summary"]["consumed_time_event_count"] == len(
+        time_engine_payload["candidate_events"]
+    )
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

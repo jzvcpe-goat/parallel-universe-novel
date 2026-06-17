@@ -583,6 +583,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Branch Publish Snapshot */
+        get: operations["branch_publish_snapshot_v1_timeline_worldlines__worldline_id__branches_publish_candidate_get"];
+        put?: never;
+        /** Branch Publish Candidate */
+        post: operations["branch_publish_candidate_v1_timeline_worldlines__worldline_id__branches_publish_candidate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/timeline/worldlines/{worldline_id}/loom": {
         parameters: {
             query?: never;
@@ -4051,6 +4069,17 @@ export interface components {
             /** Requested By */
             requested_by?: string | null;
         };
+        /** BranchPublishCandidateRequest */
+        BranchPublishCandidateRequest: {
+            /** Source Run Id */
+            source_run_id?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** Route Choice Event Id */
+            route_choice_event_id?: unknown | null;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** CanonCommitRequest */
         CanonCommitRequest: {
             /** Candidate Id */
@@ -6097,6 +6126,78 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SceneAdvanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_publish_snapshot_v1_timeline_worldlines__worldline_id__branches_publish_candidate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_publish_candidate_v1_timeline_worldlines__worldline_id__branches_publish_candidate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchPublishCandidateRequest"];
             };
         };
         responses: {

@@ -20,7 +20,7 @@ backend/tests/test_product_runtime_api.py
 
 ## Covered Product Runtime Surface
 
-Machine anchors: scene advance, time engine, quality evaluate, canon commit.
+Machine anchors: scene advance, time engine, branch publish candidate, quality evaluate, canon commit.
 
 | Product path | Backend endpoint | Test responsibility |
 | --- | --- | --- |
@@ -28,6 +28,7 @@ Machine anchors: scene advance, time engine, quality evaluate, canon commit.
 | Reader worldline | `/timeline/worldlines/{id}/loom` | 读回 persisted choice trace 和 `branch_writeback_summary`，仍不声明 public branch publish。 |
 | Runtime time engine | `/timeline/worldlines/{id}/time-engine/candidates` | 生成并持久化 `time_event_candidate_ledger_only`，只作为候选时间事件，不写 canon/branch。 |
 | Runtime time engine snapshot | `/timeline/worldlines/{id}/time-engine` | 读回最新 TimeEngine candidate ledger，供后续 Reader branch publish gate 使用。 |
+| Reader branch publish candidate | `/timeline/worldlines/{id}/branches/publish-candidate` | 消费 route choice 与 TimeEngine candidate events，写入 `branch_publish_candidate_ledger_only`，不做生产 public publish。 |
 | Studio quality evaluate | `/quality/evaluate` | 生成 quality gate、blocking reasons、canon commit readiness。 |
 | Studio canon commit | `/canon/commit` | 没有人工确认或质量未过时必须 blocked；通过后才允许 committed。 |
 

@@ -55,7 +55,8 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
 assertIncludes('docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md', [
   'P55 WorldInstance Writeback Candidate Gate',
   'world_instance_patch_candidate_only',
-  'not public branch publish',
+  'branch publish candidate',
+  'not production public branch',
 ])
 assertIncludes('docs/backend/P55_WORLD_INSTANCE_WRITEBACK_GATE.md', [
   'WorldInstance relationship and memory writeback',
@@ -78,7 +79,7 @@ const artifact = {
     'relationship, promise, fact, and route fingerprint refs remain candidate-only',
   ],
   nonClaims: [
-    'not public branch publish',
+    'not production public branch publish',
     'not canon write',
     'not a multi-table database transaction rollback proof',
     'not remote live runtime proof',

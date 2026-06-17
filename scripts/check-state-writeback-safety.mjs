@@ -73,7 +73,7 @@ const artifact = {
   ],
   stillPartial: [
     'does not yet prove multi-table database transaction rollback',
-    'does not yet connect Reader public branch publish or durable multi-table WorldInstance writeback to Creator run ledger',
+    'does not yet prove production public branch publish or durable multi-table WorldInstance writeback against the shared runtime ledger',
   ],
 }
 const artifactPath = join(outputDir, `state-writeback-safety-${Date.now()}.json`)

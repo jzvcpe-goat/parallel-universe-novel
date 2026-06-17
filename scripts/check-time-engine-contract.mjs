@@ -100,6 +100,10 @@ assertIncludes('docs/backend/P57_FASTAPI_TIME_ENGINE_SERVICE.md', [
   'time_event_candidate_ledger_only',
   'not canon',
 ])
+assertIncludes('docs/backend/P58_READER_BRANCH_PUBLISH_CANDIDATE_GATE.md', [
+  'branch_publish_candidate_ledger_only',
+  'consumed_time_event_ids',
+])
 
 const artifact = {
   generatedAt: new Date().toISOString(),
@@ -114,7 +118,7 @@ const artifact = {
   ],
   serviceScope: 'fastapi_durable_candidate_ledger',
   stillPartial: [
-    'not yet connected to Reader branch publish',
+    'not yet connected to production public branch publish',
     'not yet writing canon or branch state',
     'not yet fitted from production telemetry',
   ],
