@@ -95,6 +95,20 @@ Registry sync table:
 
 Prompt-specific special cases are not kernel rules. Future special constraints must be added as document-derived profiles or user-selected doctrine flags.
 
+## P4 Kernel Boundary
+
+`GenreKernel` is selected only through active `ConstraintProfile.compatibleProfiles`
+relationships in `genre-runtime-rules.v1.json`. It must not infer hidden
+exceptions from a one-off user sample or a past QA prompt. If a new premise
+changes pacing, event structure, motive pressure, conflict pressure, climax
+recovery, or time controls, the team must first update the document registry and
+then let the resolver select the matching kernel through the normal profile
+activation flow.
+
+Kernel logic may transform profile rules into a BeatPlan, but it may not rewrite
+the registry from inside the workflow and may not branch on hardcoded profile or
+kernel IDs.
+
 ### `kernel-xuanhuan-xianxia`
 
 Name: 仙侠玄幻

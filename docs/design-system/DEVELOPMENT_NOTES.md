@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P4 文档优先约束重启
+
+### 现象
+
+P4 虽然已经从单一负例回到 `ConstraintProfile + GenreKernel`，但历史 review 文档仍残留早期场景特判建议。团队如果按这些旧建议继续开发，会把一次 prompt 修复误当成运行时规则。
+
+### 修复原则
+
+1. P4 从头以 `docs/product/rules/genre-runtime-rules.v1.json` 为唯一运行时事实源。
+2. 任何题材、时代、地域、职业、叙事禁项都必须先抽象成 `ConstraintProfile.rules[]`，再由 compatible `GenreKernel` 影响节奏和事件结构。
+3. 历史 QA 样本、后端 review 建议和浏览器评论不能直接进入 workflow、FastAPI 服务分支、provider prompt 或 smoke payload。
+4. 如果文档 registry 没有某个 profile，运行时只能继续苏格拉底式澄清，不能暗自创造 off-registry 约束。
+
+### 本轮落地
+
+- `scan-p4-rule-source.mjs` 新增退休 prompt-case 扫描，覆盖 Agent runtime、FastAPI CreatorDialogue、smoke 和活跃规则合同文档。
+- `GENRE_CONSTRAINT_RULES.md` 与 `GENRE_KERNEL_RULES.md` 写入文档优先边界。
+- `P34_MODEL_AGNOSTIC_CREATOR_RUNTIME.md` 增加 P4 reset 边界和新增 premise rule 的实施顺序。
+- 历史 `BACKEND_TODOLIST_REVIEW_20260615.md` 中的旧场景测试建议改成 registry-driven 测试。
+
+### 必跑检查
+
+```bash
+npm run scan:p4-rule-source
+npm --workspace @narrativeos/agent-runtime test
+./backend/.venv/bin/pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
+```
+
 ## 2026-06-17 P42 本地 live QA 截图证据上传
 
 ### 现象

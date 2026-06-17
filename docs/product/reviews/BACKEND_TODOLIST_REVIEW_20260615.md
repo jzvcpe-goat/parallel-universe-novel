@@ -129,7 +129,7 @@ Missing or not found in package search:
 - selected-genre constraint profiles
 - negative override logic
 - explicit abstractions for user premise conditions
-- scenario-level constraints such as `western_fantasy_transmigration`, `non_game`, `ban_ancient_chinese_official_roles`
+- document-derived scenario constraints selected through the shared runtime registry
 
 The code has a `genre_kernel` field, but the current kernel creation remains mostly suspense-oriented:
 
@@ -144,7 +144,7 @@ Required fix:
 - Add a first-class `genre_constraints` structure to story project state.
 - Derive constraints from selected genre, premise, negative statements, explicit overrides, and world substrate.
 - Store both human-readable cards and machine-enforced facts.
-- Add tests for western fantasy transmigration, non-game dungeon fantasy, no ancient Chinese official roles, no game UI terms, no accidental Chinese-office terms unless explicitly requested.
+- Add tests by iterating the documented `ConstraintProfile` registry; do not promote one historical prompt case into service code.
 
 ### 5. Time Engine Is Only a Candidate Hook System
 
@@ -325,7 +325,7 @@ Required fix:
    - add `setting_cards.genre_constraints`
    - add `genre_constraint_facts`
    - add selected-genre derived constraints
-   - add tests for western-fantasy transmigration and non-game dungeon constraints
+   - add registry-driven tests for every documented profile and compatible kernel
 
 6. Treat time engine, Agent Eval, and commercial production readiness as P1/P2:
    - do not block the next external beta on them
@@ -352,4 +352,3 @@ Reject for direct merge:
 - local desktop pointer master checklist
 - incomplete Agent Eval
 - incomplete PRD time engine
-

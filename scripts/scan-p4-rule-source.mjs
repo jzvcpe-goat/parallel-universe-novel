@@ -21,6 +21,12 @@ const runtimeImplementationSources = [
   join(root, 'backend/tests/test_tool_bridge_api.py'),
   join(root, 'scripts/smoke-creator-chain.mjs'),
 ]
+const activeContractSources = [
+  ...runtimeImplementationSources,
+  join(root, 'docs/backend/P34_MODEL_AGNOSTIC_CREATOR_RUNTIME.md'),
+  join(root, 'docs/product/rules/GENRE_CONSTRAINT_RULES.md'),
+  join(root, 'docs/product/rules/GENRE_KERNEL_RULES.md'),
+]
 const forbiddenWorkflowPatterns = [
   {
     pattern: /profile\.id\s*={2,3}\s*['"]/,
@@ -40,6 +46,20 @@ const staleDocPatterns = [
     pattern: /\bkernel-others-modern\b/,
     message: 'rule docs must use current registry id kernel-modern-other, not stale kernel-others-modern',
   },
+]
+const retiredPromptCasePatterns = [
+  /western_fantasy_transmigration/,
+  /non_game/,
+  /ban_ancient_chinese_official_roles/,
+  /western-fantasy/i,
+  /non-game dungeon/i,
+  /ancient Chinese official roles/i,
+  /西幻/,
+  /非游戏化/,
+  /古代官署/,
+  /清河县/,
+  /仵作/,
+  /县衙/,
 ]
 function lineNumber(text, index) {
   return text.slice(0, index).split(/\r?\n/).length
@@ -177,6 +197,19 @@ for (const docSource of ruleDocSources) {
     const match = text.match(check.pattern)
     if (match?.index !== undefined) {
       violations.push(`${relative(root, docSource)}:${lineNumber(text, match.index)} ${check.message}`)
+    }
+  }
+}
+
+for (const source of activeContractSources) {
+  if (!existsSync(source)) continue
+  const text = readFileSync(source, 'utf8')
+  for (const pattern of retiredPromptCasePatterns) {
+    const match = text.match(pattern)
+    if (match?.index !== undefined) {
+      violations.push(
+        `${relative(root, source)}:${lineNumber(text, match.index)} must not encode retired prompt-case constraints; add document-derived ConstraintProfile rules instead`,
+      )
     }
   }
 }

@@ -106,6 +106,23 @@ Runtime behavior:
 
 Contribution rule for future genres: add or update the document profile first, then update the runtime JSON, resolver tests, quality fixtures, and Creator sample. Do not add direct blacklist logic to prompts, workflows, or provider adapters.
 
+## P4 Reset Boundary
+
+The current P4 implementation supersedes earlier prompt-case experiments. A
+constraint is active only when it is present in `genre-runtime-rules.v1.json` and
+selected by the normal resolver. Historical QA samples, backend package notes,
+and ad hoc negative examples are useful as research material, but they are not
+runtime facts and must not be copied into workflow branches, provider prompts,
+FastAPI service conditionals, or smoke payloads.
+
+When the product needs a new premise boundary, implement it in this order:
+
+1. Add or revise the reusable `ConstraintProfile` rule.
+2. Link or adjust the compatible `GenreKernel`.
+3. Add resolver and quality-brake tests that select the profile through public
+   genre/template/user-intent inputs.
+4. Run `npm run scan:p4-rule-source` before shipping.
+
 ## Ops Evidence
 
 `GET /v1/ops/provider-routing` now includes:
