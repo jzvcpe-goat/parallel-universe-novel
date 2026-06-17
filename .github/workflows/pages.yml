@@ -48,6 +48,7 @@ jobs:
           npm --prefix app run lint
           python -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
           npm run scan:internal-terms
+          npm run scan:p4-rule-source
           npm run scan:reference-privacy
 
       - name: Build Creator Studio

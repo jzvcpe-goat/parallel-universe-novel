@@ -18,7 +18,7 @@
     "dev:creator": "npm --prefix app run dev -- --host 127.0.0.1 --port 5173",
     "dev": "node scripts/dev-all.mjs",
     "setup:api": "node scripts/setup-backend-venv.mjs",
-    "test": "npm --workspace @narrativeos/agent-runtime test && npm --prefix app run lint && node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py && npm run scan:internal-terms && npm run scan:reference-privacy",
+    "test": "npm --workspace @narrativeos/agent-runtime test && npm --prefix app run lint && node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py backend/tests/test_market_trends_api.py && npm run scan:internal-terms && npm run scan:p4-rule-source && npm run scan:reference-privacy",
     "test:agents": "npm --workspace @narrativeos/agent-runtime test",
     "test:api": "node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py",
     "test:creator": "npm --prefix app run lint",
@@ -27,6 +27,7 @@
     "debug:quality": "npm --workspace @narrativeos/agent-runtime run debug:quality --",
     "debug:cost": "npm --workspace @narrativeos/agent-runtime run debug:cost --",
     "scan:internal-terms": "node scripts/scan-internal-terms.mjs",
+    "scan:p4-rule-source": "node scripts/scan-p4-rule-source.mjs",
     "scan:reference-privacy": "node scripts/scan-reference-privacy.mjs"
   },
   "keywords": [],

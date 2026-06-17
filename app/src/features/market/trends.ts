@@ -171,7 +171,7 @@ export const marketTrendFallback: MarketTrendPayload = {
     weight_changes: [],
     manual_locks: [],
   },
-  top_categories: ['脑洞都市', '西幻穿越', '玄幻悬疑', '都市谜案', '仙侠权谋', '历史权谋', '情感成长'],
+  top_categories: ['脑洞都市', '系统流', '玄幻悬疑', '都市谜案', '仙侠权谋', '历史权谋', '情感成长'],
   trends: [
     {
       id: 'urban-brain-system',
@@ -188,18 +188,18 @@ export const marketTrendFallback: MarketTrendPayload = {
       keywords: '算法城市、备份人格、都市高压、异常规则',
     },
     {
-      id: 'western-dungeon-crossing',
+      id: 'system-mission-ledger',
       rank: 2,
-      label: '西幻穿越',
-      category: '西方玄幻',
-      sample: '异大陆、地下城、圣堂博弈',
-      signals: ['穿越', '西方玄幻', '地下城现实化'],
+      label: '系统流',
+      category: '系统流',
+      sample: '任务、代价、身份反噬',
+      signals: ['系统流', '任务代价', '身份反噬'],
       tone: '高热',
       heat: 97,
-      template_id: 'black-gate-translator',
-      template_title: '黑门译者',
-      hooks: '异大陆求生、地下城祷文、圣堂与佣兵利益冲突',
-      keywords: '西方玄幻、穿越、地下城、非游戏化、本土网文、小人物破局',
+      template_id: 'echo-ledger',
+      template_title: '任务回声',
+      hooks: '任务不是奖励、记忆回收、身份反噬',
+      keywords: '系统流、任务代价、记忆回声、身份反噬',
     },
     {
       id: 'xuanhuan-suspense-rules',
@@ -309,7 +309,7 @@ export function trendForTemplate(payload: MarketTrendPayload, templateId: string
 export function writingToneForTrend(item: Pick<MarketTrendItem, 'template_id' | 'tone'>): string {
   const tones: Record<string, string> = {
     'algorithm-city': '快节奏、荒诞、带反转',
-    'black-gate-translator': '西幻现实感、本土网文节奏、小人物谨慎破局',
+    'echo-ledger': '快节奏、任务压迫、身份反噬',
     'beacon-beyond': '阴冷、密集、禁忌感强',
     'rain-bridge': '冷静、潮湿、证据感强',
     'jade-contract': '克制、古典、代价感强',
@@ -321,7 +321,7 @@ export function writingToneForTrend(item: Pick<MarketTrendItem, 'template_id' | 
 
 const creatorSeedSignals: Record<string, string[]> = {
   'algorithm-city': ['算法', '系统', '备份', '记忆', '都市', '异能', '身份', '高压', '清除', '协议'],
-  'black-gate-translator': ['西方玄幻', '西幻', '穿越', '异大陆', '地下城', '圣堂', '佣兵', '矿城', '祷文', '非游戏', '非游戏化', '本土网文'],
+  'echo-ledger': ['系统流', '任务', '奖励', '惩罚', '记忆', '回声', '身份', '债务', '终端'],
   'beacon-beyond': ['灯塔', '灯码', '雾港', '王庭', '古契', '失落', '王朝', '禁忌', '真相'],
   'rain-bridge': ['雨夜', '桥', '桥洞', '录像', '监控', '证据', '旧案', '证人', '冷案', '警方'],
   'jade-contract': ['宗门', '契书', '仙侠', '修仙', '师门', '灵契', '气运', '祭坛', '背叛'],

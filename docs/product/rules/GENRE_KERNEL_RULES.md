@@ -67,7 +67,7 @@ The active kernel IDs are:
 - `kernel-female-rebirth-revenge`
 - `kernel-era-female`
 
-Previous western/non-game/ancient-office special cases are not kernel rules. Future special constraints must be added as document-derived profiles or user-selected doctrine flags.
+Prompt-specific special cases are not kernel rules. Future special constraints must be added as document-derived profiles or user-selected doctrine flags.
 
 ### `kernel-xuanhuan-xianxia`
 

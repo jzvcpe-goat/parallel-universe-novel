@@ -34,11 +34,11 @@ def test_market_trends_expose_weekly_function_call_contract(tmp_path: Path):
     assert payload["ops"]["audit"]["fallback_used"] is True
     assert payload["ops"]["audit"]["dedupe_key"] == "template_id_or_trend_id"
     assert payload["ops"]["source_health"][0]["status"] == "fallback"
-    assert payload["top_categories"][:3] == ["脑洞都市", "西幻穿越", "玄幻悬疑"]
+    assert payload["top_categories"][:3] == ["脑洞都市", "系统流", "玄幻悬疑"]
     assert {item["template_id"] for item in payload["template_recommendations"]}.issuperset(
         {
             "beacon-beyond",
-            "black-gate-translator",
+            "echo-ledger",
             "rain-bridge",
             "jade-contract",
             "lotus-lane",

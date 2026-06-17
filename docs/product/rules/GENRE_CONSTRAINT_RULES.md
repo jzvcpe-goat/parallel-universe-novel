@@ -74,7 +74,7 @@ Activation rule:
 - Explicit user-selected genre/template labels win over generic seed keywords.
 - Seed keywords may add secondary profiles, but must not override the selected genre.
 - Generic mood labels such as `情感成长` must not activate a hard genre profile by themselves.
-- Previous one-off western/non-game/ancient-office constraints are retired from P4 and must not be reintroduced as hardcoded branches.
+- One-off prompt-specific constraints are retired from P4 and must not be reintroduced as hardcoded service branches.
 
 ### `xuanhuan-xianxia`
 
