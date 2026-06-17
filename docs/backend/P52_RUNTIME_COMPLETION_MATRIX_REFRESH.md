@@ -29,6 +29,13 @@ P55 changed world-engine/state-writeback evidence:
 - snapshot/worldline endpoints expose `world_instance_writeback_summary`,
 - remaining gap is public branch publish plus durable multi-table writeback, not absence of a WorldInstance patch candidate.
 
+P56 changed Studio/state-writeback evidence:
+
+- `/v1/quality/evaluate` returns `studio_trace` and `quality_report_hash`,
+- `/v1/canon/commit` stores the same trace in the `canon_ledger_only` record,
+- idempotent replay returns the same ledger record,
+- remaining gap is remote live commit, production operator authorization and durable multi-table publish, not absence of a Studio confirmation trace.
+
 ## Verification
 
 Run:
@@ -43,6 +50,7 @@ npm run check:runtime-completion-refresh
 - time simulation not implemented,
 - canon commit and rollback not proven at all,
 - quality brake not connected to author confirmation.
+- Studio quality evaluation and canon commit not linked by a shared trace.
 
 ## Boundary
 

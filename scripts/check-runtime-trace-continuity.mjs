@@ -97,6 +97,8 @@ assertIncludes('app/src/api/runtime.ts', [
   'quality_brake',
   'harness_trace',
   'branch_writeback',
+  'studio_trace',
+  'source_run_id',
   'CanonCommitRequest',
   'CanonCommitResponse',
 ])
@@ -111,6 +113,8 @@ assertIncludes('app/src/pages/Story.tsx', [
 assertIncludes('app/src/pages/Studio.tsx', [
   'runtimeApi.evaluateQuality',
   'runtimeApi.commitCanon',
+  'studioRunId',
+  'studio_trace',
   'confirmed: true',
   'quality_report',
 ])
@@ -125,6 +129,8 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_quality_evaluate_and_canon_commit_gate',
   'harness_trace',
   'branch_writeback',
+  'studio_trace',
+  'quality_report_hash',
   'canon_commit_readiness',
 ])
 assertIncludes('docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md', [
@@ -132,6 +138,9 @@ assertIncludes('docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md', [
   'Creator',
   'Reader',
   'Studio',
+  'P56',
+  'studio_trace',
+  'quality_report_hash',
   'candidate-only',
   'Same Trace Vocabulary',
 ])
@@ -164,16 +173,15 @@ const gates = [
   ),
   gate(
     'studio-trace',
-    'partial',
+    'ready',
     [
       'Studio uses quality/evaluate before canon/commit.',
       'Canon commit requires explicit confirmation and quality_report.',
+      'P56 proves studio_trace and quality_report_hash are written into the canon ledger.',
+      'Idempotent replay returns the same ledger record with rollback metadata.',
     ],
-    [
-      'Studio commit still uses candidate scene ids from the product demo surface.',
-      'Commit rollback and shared run ledger are not yet proven in the Mastra -> FastAPI chain.',
-    ],
-    'Add Studio canon/branch commit proof with idempotency and rollback fixtures.',
+    [],
+    'Keep P56 local Studio trace proof green; remote live commit and production operator authorization remain later release gates.',
   ),
 ]
 

@@ -200,6 +200,8 @@ export default function Studio() {
     setSceneChecks(previous => ({ ...previous, [sceneId]: next }))
   }
 
+  const studioRunId = (scene: CandidateScene) => `studio-run-${scene.id}`
+
   const refreshMarketTrends = async (cadence: 'weekly' | 'monthly') => {
     setMarketOps(previous => ({
       ...previous,
@@ -242,7 +244,9 @@ export default function Studio() {
     try {
       const evaluation = await runtimeApi.evaluateQuality({
         candidate_id: scene.id,
+        project_id: 'studio-project-beacon-beyond',
         world_id: 'beacon-beyond',
+        source_run_id: studioRunId(scene),
         body: scene.body,
         choices: ['确认转正', '保留分支'],
         character_fidelity_score: scene.status === 'canon_ready' ? 0.82 : 0.68,
@@ -273,7 +277,7 @@ export default function Studio() {
       return
     }
 
-    const qualityReport = current?.evaluation?.report || (
+    const qualityReport: Record<string, unknown> = current?.evaluation?.report || (
       scene.status === 'canon_ready'
         ? {
             chapter_id: scene.id,
@@ -291,11 +295,14 @@ export default function Studio() {
     try {
       const commit = await runtimeApi.commitCanon({
         candidate_id: scene.id,
+        project_id: 'studio-project-beacon-beyond',
         world_id: 'beacon-beyond',
+        source_run_id: studioRunId(scene),
         target_status: scene.status === 'canon_ready' ? 'canon' : 'branch',
         confirmed: true,
         confirmed_by: 'studio_operator',
         quality_report: qualityReport,
+        studio_trace: current?.evaluation?.studio_trace || (qualityReport.studio_trace as Record<string, unknown> | undefined),
         idempotencyKey: `studio-${scene.id}-${scene.status === 'canon_ready' ? 'canon' : 'branch'}`,
       })
       updateSceneCheck(scene.id, {

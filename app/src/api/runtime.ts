@@ -113,8 +113,10 @@ export interface QualityEvaluateRequest {
   body: string
   candidate_id?: string
   session_id?: string
+  project_id?: string
   world_id?: string
   world_version_id?: string
+  source_run_id?: string
   choices?: string[]
   character_fidelity_score?: number
   ending_ready?: boolean
@@ -125,14 +127,18 @@ export interface QualityEvaluateResponse {
   status: 'evaluated'
   report: Record<string, unknown>
   quality_gate: QualityGate
+  studio_trace?: Record<string, unknown>
 }
 
 export interface CanonCommitRequest {
   candidate_id?: string
   session_id?: string
+  project_id?: string
   world_id?: string
   world_version_id?: string
   chapter_id?: string
+  source_run_id?: string
+  studio_trace?: Record<string, unknown>
   target_status?: 'canon' | 'branch'
   confirmed?: boolean
   confirmed_by?: string
@@ -149,6 +155,9 @@ export interface CanonCommitResponse {
   idempotent_replay?: boolean
   write_scope?: string
   rollback_plan?: Record<string, unknown>
+  studio_trace?: Record<string, unknown>
+  source_run_id?: string
+  quality_report_hash?: string
 }
 
 export const runtimeApi = {

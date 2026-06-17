@@ -27,8 +27,10 @@ class QualityEvaluateRequest(BaseModel):
     body: str
     candidate_id: Optional[str] = None
     session_id: Optional[str] = None
+    project_id: Optional[str] = None
     world_id: Optional[str] = None
     world_version_id: Optional[str] = None
+    source_run_id: Optional[str] = None
     choices: list[str] = Field(default_factory=list)
     character_fidelity_score: float = 0.6
     ending_ready: bool = False
@@ -38,10 +40,13 @@ class QualityEvaluateRequest(BaseModel):
 class CanonCommitRequest(BaseModel):
     candidate_id: Optional[str] = None
     session_id: Optional[str] = None
+    project_id: Optional[str] = None
     world_id: Optional[str] = None
     worldline_id: Optional[str] = None
     world_version_id: Optional[str] = None
     chapter_id: Optional[str] = None
+    source_run_id: Optional[str] = None
+    studio_trace: Dict[str, Any] = Field(default_factory=dict)
     target_status: str = "canon"
     confirmed: bool = False
     confirmed_by: Optional[str] = None

@@ -21,10 +21,14 @@ for (const required of [
   'scripts/check-time-engine-contract.mjs',
   'scripts/check-state-writeback-safety.mjs',
   'scripts/check-reader-branch-trace.mjs',
+  'scripts/check-studio-canon-trace.mjs',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
   'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
+  'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
   'idempotent_replay',
   'rollback_plan',
+  'studio_trace',
+  'quality_report_hash',
   'route_choice_ledger_only',
   'Transactional multi-table',
 ]) {
@@ -37,7 +41,10 @@ for (const required of [
   'check:state-writeback-safety',
   'P52 Runtime Completion Matrix Refresh',
   'P53 Reader Branch Trace Gate',
+  'P56 Studio Canon Trace Gate',
   'branch_writeback_summary',
+  'studio_trace',
+  'quality_report_hash',
 ]) {
   assert(doc.includes(required), `P45 audit doc must include refreshed phrase: ${required}`)
 }
@@ -54,7 +61,7 @@ mkdirSync(outputDir, { recursive: true })
 const artifact = {
   status: 'passed',
   scope: 'runtime completion matrix refresh',
-  refreshedBy: ['P49 Time Engine Contract', 'P51 State Writeback Safety Gate', 'P55 WorldInstance Writeback Candidate Gate'],
+  refreshedBy: ['P49 Time Engine Contract', 'P51 State Writeback Safety Gate', 'P55 WorldInstance Writeback Candidate Gate', 'P56 Studio Canon Trace Gate'],
   remainingGaps: [
     'durable FastAPI TimeEngine service',
     'database transaction rollback',

@@ -30,7 +30,22 @@ artifacts/runtime/runtime-trace-continuity-*.json
 
 - Creator: `ready` for local/CI candidate trace.
 - Reader: `partial`; 本地服务合同已证明 route-choice ledger 和 worldline summary，但 public live Reader choice 尚未穿过远端 Agent Runtime facade。
-- Studio: `partial`; 质量评价和确认提交入口已存在，但 shared run ledger、rollback 和远端 commit E2E 未完成。
+- Studio: `ready` for local product runtime trace; P56 proves `quality/evaluate`
+  returns `studio_trace` and `quality_report_hash`, and `canon/commit` writes the
+  same trace into the `canon_ledger_only` record with rollback metadata. Remote
+  live commit, production operator authorization and durable multi-table publish
+  remain future gates.
+
+## P56 Studio Canon Trace Gate
+
+P56 adds a machine-checked Studio confirmation proof:
+
+- `quality/evaluate` returns `studio_trace` with `source_run_id` and
+  `quality_report_hash`.
+- `canon/commit` requires explicit confirmation and `Idempotency-Key`.
+- The canon ledger record stores the same `studio_trace`.
+- Idempotent replay returns the same ledger record.
+- Rollback remains `available_before_public_publish`.
 
 ## Acceptance
 
@@ -38,5 +53,6 @@ artifacts/runtime/runtime-trace-continuity-*.json
 2. Root `npm run test` 包含 `check:runtime-trace-continuity`。
 3. Creator public projection 继续隐藏 runtime internals。
 4. Reader route 必须经过 `advanceScene` + snapshot，并能读回 `branch_writeback_summary`，而不是只改本地分支。
-5. Studio commit 必须包含 `confirmed: true` 和 `quality_report`。
+5. Studio commit 必须包含 `confirmed: true`、`quality_report`、`studio_trace` 和
+   `quality_report_hash`。
 6. Artifact 不包含 secret、system prompt、代表作品或 candidate 全文。

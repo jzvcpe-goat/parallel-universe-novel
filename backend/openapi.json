@@ -12908,6 +12908,17 @@
             ],
             "title": "Session Id"
           },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
           "world_id": {
             "anyOf": [
               {
@@ -12951,6 +12962,22 @@
               }
             ],
             "title": "Chapter Id"
+          },
+          "source_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Run Id"
+          },
+          "studio_trace": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Studio Trace"
           },
           "target_status": {
             "type": "string",
@@ -14479,6 +14506,17 @@
             ],
             "title": "Session Id"
           },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
           "world_id": {
             "anyOf": [
               {
@@ -14500,6 +14538,17 @@
               }
             ],
             "title": "World Version Id"
+          },
+          "source_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Run Id"
           },
           "choices": {
             "items": {

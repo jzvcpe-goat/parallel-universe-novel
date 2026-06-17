@@ -4023,6 +4023,8 @@ export interface components {
             candidate_id?: string | null;
             /** Session Id */
             session_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
             /** World Id */
             world_id?: string | null;
             /** Worldline Id */
@@ -4031,6 +4033,12 @@ export interface components {
             world_version_id?: string | null;
             /** Chapter Id */
             chapter_id?: string | null;
+            /** Source Run Id */
+            source_run_id?: string | null;
+            /** Studio Trace */
+            studio_trace?: {
+                [key: string]: unknown;
+            };
             /**
              * Target Status
              * @default canon
@@ -4588,10 +4596,14 @@ export interface components {
             candidate_id?: string | null;
             /** Session Id */
             session_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
             /** World Id */
             world_id?: string | null;
             /** World Version Id */
             world_version_id?: string | null;
+            /** Source Run Id */
+            source_run_id?: string | null;
             /** Choices */
             choices?: string[];
             /**

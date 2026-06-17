@@ -22,6 +22,10 @@ def _idempotency_hash(value: str) -> str:
     return sha256(value.strip().encode("utf-8")).hexdigest()[:16]
 
 
+def _stable_payload_hash(value: Any) -> str:
+    return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
+
+
 def _stable_reader_run_id(payload: Dict[str, Any]) -> str:
     raw = json.dumps(
         {
@@ -35,6 +39,87 @@ def _stable_reader_run_id(payload: Dict[str, Any]) -> str:
         sort_keys=True,
     )
     return "reader_run_%s" % sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _stable_studio_run_id(payload: Dict[str, Any], report: Optional[Dict[str, Any]] = None) -> str:
+    explicit = str(payload.get("source_run_id") or "").strip()
+    if explicit:
+        return explicit
+    report = dict(report or {})
+    studio_trace = dict(payload.get("studio_trace") or report.get("studio_trace") or {})
+    traced = str(studio_trace.get("source_run_id") or "").strip()
+    if traced:
+        return traced
+    raw = {
+        "candidate_id": payload.get("candidate_id") or report.get("chapter_id"),
+        "session_id": payload.get("session_id") or report.get("session_id"),
+        "world_id": payload.get("world_id"),
+        "world_version_id": payload.get("world_version_id") or report.get("world_version_id"),
+        "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
+        "target_status": payload.get("target_status"),
+    }
+    return "studio_run_%s" % _stable_payload_hash(raw)
+
+
+def _build_studio_trace(
+    *,
+    payload: Dict[str, Any],
+    report: Dict[str, Any],
+    gate: Dict[str, Any],
+    stage: str,
+    idempotency_key_hash: Optional[str] = None,
+    commit_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    source_run_id = _stable_studio_run_id(payload, report)
+    incoming_trace = dict(payload.get("studio_trace") or report.get("studio_trace") or {})
+    report_for_hash = dict(report)
+    report_for_hash.pop("studio_trace", None)
+    quality_report_hash = str(incoming_trace.get("quality_report_hash") or "").strip() or "qhash_%s" % _stable_payload_hash(report_for_hash)
+    trace_seed = {
+        "source_run_id": source_run_id,
+        "candidate_id": payload.get("candidate_id") or report.get("chapter_id"),
+        "session_id": payload.get("session_id") or report.get("session_id"),
+        "world_id": payload.get("world_id"),
+        "world_version_id": payload.get("world_version_id") or report.get("world_version_id"),
+        "quality_report_hash": quality_report_hash,
+    }
+    steps = [
+        {
+            "step": "quality/evaluate",
+            "status": "done",
+            "source_run_id": source_run_id,
+            "quality_report_hash": quality_report_hash,
+        },
+        {
+            "step": "operator/confirm",
+            "status": "done" if stage == "committed" else "waiting",
+            "source_run_id": source_run_id,
+        },
+        {
+            "step": "canon/commit",
+            "status": "done" if stage == "committed" else "waiting",
+            "source_run_id": source_run_id,
+            "commit_id": commit_id,
+        },
+    ]
+    return {
+        "trace_id": "studio_trace_%s" % _stable_payload_hash(trace_seed),
+        "source_run_id": source_run_id,
+        "project_id": payload.get("project_id") or dict(payload.get("studio_trace") or {}).get("project_id"),
+        "session_id": payload.get("session_id") or report.get("session_id"),
+        "world_id": payload.get("world_id"),
+        "world_version_id": payload.get("world_version_id") or report.get("world_version_id"),
+        "candidate_id": payload.get("candidate_id") or report.get("chapter_id"),
+        "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
+        "quality_report_hash": quality_report_hash,
+        "quality_gate_status": gate.get("status"),
+        "quality_gate_decision": gate.get("release_decision") or gate.get("decision"),
+        "write_scope": "canon_ledger_only" if stage == "committed" else "evaluation_only",
+        "idempotency_key_hash": idempotency_key_hash,
+        "commit_id": commit_id,
+        "steps": steps,
+        "next_required": [] if stage == "committed" else ["operator_confirmation", "idempotency_key"],
+    }
 
 
 def _added_items(before: List[Any], after: List[Any]) -> List[Any]:
@@ -407,10 +492,19 @@ class ProductRuntimeService:
             choices=choices,
             paywall_required=bool(payload.get("paywall_required")),
         ).to_dict()
+        gate = self._quality_gate(report)
+        studio_trace = _build_studio_trace(
+            payload=payload,
+            report=report,
+            gate=gate,
+            stage="evaluated",
+        )
+        report["studio_trace"] = studio_trace
         return {
             "status": "evaluated",
             "report": report,
-            "quality_gate": self._quality_gate(report),
+            "quality_gate": gate,
+            "studio_trace": studio_trace,
         }
 
     def commit_canon(self, payload: Dict[str, Any], *, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
@@ -448,6 +542,14 @@ class ProductRuntimeService:
             replay["ledger_path"] = str(ledger_path)
             replay["idempotent_replay"] = True
             return replay
+        studio_trace = _build_studio_trace(
+            payload=payload,
+            report=report,
+            gate=gate,
+            stage="committed",
+            idempotency_key_hash=key_hash,
+            commit_id=commit_id,
+        )
 
         record = {
             "commit_id": commit_id,
@@ -455,17 +557,23 @@ class ProductRuntimeService:
             "target_status": target_status,
             "candidate_id": payload.get("candidate_id"),
             "session_id": payload.get("session_id"),
+            "project_id": payload.get("project_id"),
             "world_id": payload.get("world_id"),
             "world_version_id": payload.get("world_version_id"),
             "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
+            "source_run_id": studio_trace["source_run_id"],
             "confirmed_by": payload.get("confirmed_by") or "web_operator",
             "quality_gate": gate,
+            "quality_report_hash": studio_trace["quality_report_hash"],
+            "studio_trace": studio_trace,
             "idempotency_key_hash": key_hash,
             "write_scope": "canon_ledger_only",
             "rollback_plan": {
                 "status": "available_before_public_publish",
                 "method": "remove_ledger_record_and_requeue_candidate",
                 "commit_id": commit_id,
+                "source_run_id": studio_trace["source_run_id"],
+                "quality_report_hash": studio_trace["quality_report_hash"],
             },
             "created_at": now,
         }

@@ -7934,6 +7934,11 @@ components:
           - type: string
           - type: 'null'
           title: Session Id
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
         world_id:
           anyOf:
           - type: string
@@ -7954,6 +7959,15 @@ components:
           - type: string
           - type: 'null'
           title: Chapter Id
+        source_run_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Run Id
+        studio_trace:
+          additionalProperties: true
+          type: object
+          title: Studio Trace
         target_status:
           type: string
           title: Target Status
@@ -8841,6 +8855,11 @@ components:
           - type: string
           - type: 'null'
           title: Session Id
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
         world_id:
           anyOf:
           - type: string
@@ -8851,6 +8870,11 @@ components:
           - type: string
           - type: 'null'
           title: World Version Id
+        source_run_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Run Id
         choices:
           items:
             type: string

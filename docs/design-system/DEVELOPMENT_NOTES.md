@@ -1,5 +1,24 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P56 Studio 发布确认 Trace
+
+P47 之前只能说明 Studio 有质量评价和确认提交入口，但没有证明它们属于同一条运行链路。这样会导致“先检查、再提交”在 UI 上成立，审计上却无法回放。
+
+本轮规则：
+
+1. `/v1/quality/evaluate` 必须返回 `studio_trace`，包含 `source_run_id` 和 `quality_report_hash`。
+2. `/v1/canon/commit` 必须把同一个 `studio_trace` 写入 `canon_ledger_only` 记录。
+3. `Idempotency-Key` 重放必须返回同一条 ledger。
+4. ledger 必须保留 `rollback_plan`，但不得宣称多表事务或生产发布。
+5. Studio 前端只传递 trace，不在用户界面展示 provider、system prompt、raw state 或代表作品。
+
+必跑检查：
+
+```bash
+npm run check:studio-canon-trace
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_product_runtime_api.py
+```
+
 ## 2026-06-17 P4 文档注册表主权再重置
 
 用户明确要求 P4 从头做，且此前围绕单次创作验收形成的题材约束逻辑全部弃用。这里的关键不是替换一组禁词，而是把“旧验收样本”这个分类从工程事实里拿掉；否则团队仍会把一次人工测试当成可执行产品规则。

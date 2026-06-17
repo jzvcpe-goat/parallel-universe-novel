@@ -151,7 +151,9 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
         "/v1/quality/evaluate",
         json={
             "candidate_id": "candidate_demo",
+            "project_id": "studio-project-test",
             "world_id": "beacon-beyond",
+            "source_run_id": "studio-run-candidate-demo",
             "body": candidate_body,
             "choices": ["公开日志", "隐藏幸存者"],
             "character_fidelity_score": 0.72,
@@ -161,6 +163,10 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert evaluated.status_code == 200
     report = evaluated.json()["report"]
     assert report["chapter_id"] == "candidate_demo"
+    assert report["studio_trace"]["source_run_id"] == "studio-run-candidate-demo"
+    assert evaluated.json()["studio_trace"]["trace_id"] == report["studio_trace"]["trace_id"]
+    assert evaluated.json()["studio_trace"]["write_scope"] == "evaluation_only"
+    assert evaluated.json()["studio_trace"]["next_required"] == ["operator_confirmation", "idempotency_key"]
     gate = evaluated.json()["quality_gate"]
     assert gate["candidate_status"] in {"candidate", "canon_ready"}
     assert "summary" in gate
@@ -198,15 +204,19 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
         headers={"Idempotency-Key": "commit-candidate-demo"},
         json={
             "candidate_id": "candidate_demo",
+            "project_id": "studio-project-test",
             "target_status": "canon",
+            "source_run_id": "studio-run-candidate-demo",
             "confirmed": True,
             "confirmed_by": "qa_operator",
             "quality_report": {
                 "chapter_id": "candidate_demo",
+                "studio_trace": report["studio_trace"],
                 "decision": {"decision": "pass", "reason": "test-approved"},
                 "issues": [],
                 "scores": {"overall_score": 0.91},
             },
+            "studio_trace": report["studio_trace"],
         },
     )
     assert committed.status_code == 200
@@ -214,25 +224,40 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert payload["status"] == "committed"
     assert payload["idempotent_replay"] is False
     assert payload["write_scope"] == "canon_ledger_only"
+    assert payload["source_run_id"] == "studio-run-candidate-demo"
+    assert payload["quality_report_hash"] == report["studio_trace"]["quality_report_hash"]
+    assert payload["studio_trace"]["source_run_id"] == "studio-run-candidate-demo"
+    assert payload["studio_trace"]["write_scope"] == "canon_ledger_only"
+    assert payload["studio_trace"]["steps"][-1]["step"] == "canon/commit"
+    assert payload["studio_trace"]["steps"][-1]["status"] == "done"
     assert payload["rollback_plan"]["status"] == "available_before_public_publish"
+    assert payload["rollback_plan"]["source_run_id"] == "studio-run-candidate-demo"
+    assert payload["rollback_plan"]["quality_report_hash"] == report["studio_trace"]["quality_report_hash"]
     assert payload["quality_gate"]["summary"]
     assert payload["quality_gate"]["canon_commit_readiness"]["ready"] is True
     assert Path(payload["ledger_path"]).exists()
+    ledger = Path(payload["ledger_path"]).read_text(encoding="utf-8")
+    assert "studio-run-candidate-demo" in ledger
+    assert "studio_trace" in ledger
 
     replayed = client.post(
         "/v1/canon/commit",
         headers={"Idempotency-Key": "commit-candidate-demo"},
         json={
             "candidate_id": "candidate_demo",
+            "project_id": "studio-project-test",
             "target_status": "canon",
+            "source_run_id": "studio-run-candidate-demo",
             "confirmed": True,
             "confirmed_by": "qa_operator",
             "quality_report": {
                 "chapter_id": "candidate_demo",
+                "studio_trace": report["studio_trace"],
                 "decision": {"decision": "pass", "reason": "test-approved"},
                 "issues": [],
                 "scores": {"overall_score": 0.91},
             },
+            "studio_trace": report["studio_trace"],
         },
     )
     assert replayed.status_code == 200
@@ -241,6 +266,7 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert replayed_payload["commit_id"] == payload["commit_id"]
     assert replayed_payload["ledger_path"] == payload["ledger_path"]
     assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["studio_trace"]["trace_id"] == payload["studio_trace"]["trace_id"]
 
     missing_key = client.post(
         "/v1/canon/commit",

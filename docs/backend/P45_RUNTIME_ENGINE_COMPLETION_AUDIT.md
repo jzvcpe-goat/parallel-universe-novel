@@ -26,13 +26,13 @@ npm run check:runtime-engine-completion
 
 | Component ID | Module | Status | Evidence Summary | Open Gap |
 | --- | --- | --- | --- | --- |
-| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates. | Studio canon confirmation and public branch publish do not yet share a proven remote runtime trace. |
+| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Studio confirmation now carries `studio_trace` into the canon ledger. | Public branch publish and remote live runtime trace are not yet proven. |
 | `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, and `world_instance_patch_candidate_only` readback exist. | Public branch publish and durable multi-table WorldInstance writeback are not yet proven through runtime facade. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime. | Durable FastAPI TimeEngine and fitted event-density for Reader branch publish are not yet proven. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof, Reader choices persist to route-choice ledger, and WorldInstance relationship/memory patch candidates can be read back. | Transactional multi-table write, public branch publish, and Reader branch rollback fixtures are not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, and WorldInstance relationship/memory patch candidates can be read back. | Transactional multi-table write, public branch publish, and Reader branch rollback fixtures are not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
-| `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, and canon ledger commit gated by quality plus confirmation. | Production operator auth and Reader live-generation quality gate are not yet proven. |
+| `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, and canon ledger commit gated by quality plus confirmation with a shared Studio trace. | Production operator auth and Reader live-generation quality gate are not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, and Reader branch trace gate exist. | Reader choices persist through local service contract, but remote public runtime facade is still disabled. |
@@ -87,6 +87,21 @@ writeback:
 Remaining gaps stay explicit: P55 is `world_instance_patch_candidate_only`, not
 public branch publish, not canon write, and not production transaction rollback
 proof.
+
+## P56 Studio Canon Trace Gate
+
+P56 proves the local Studio confirmation chain without claiming production
+publish:
+
+- `/v1/quality/evaluate` returns `studio_trace` and `quality_report_hash`.
+- `/v1/canon/commit` stores the same trace in the `canon_ledger_only` record.
+- Idempotent replay returns the same ledger record.
+- Rollback metadata remains `available_before_public_publish`.
+- `check:studio-canon-trace` prevents Studio from regressing to an unlinked
+  quality/commit flow.
+
+Remaining gaps stay explicit: P56 is not remote live runtime, not production
+operator authorization, and not durable multi-table canon publishing.
 
 ## Privacy Boundary
 
