@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P9 公共部署运行时边界
+
+### 现象
+
+GitHub Pages 是静态前端。如果没有公开 FastAPI 和 Agent Runtime，`/create` 以前会在请求失败后进入本地草稿兜底。这个逻辑适合 localhost 开发，但不适合公共部署；公共用户会误以为创作链路已经真实接上。
+
+### 修复原则
+
+1. localhost / Vite dev 可以保留本地兜底，用来保证开发不中断。
+2. 公共域名默认不能进入本地假生成；除非显式设置 `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=true`。
+3. 公共运行时失败时必须保留用户输入，并给出普通用户能理解的服务未连接提示。
+4. 提示文案不能出现 backend、provider、fallback、system prompt 等内部词。
+5. 这条边界必须进入 `npm run test`，不能靠人工记忆。
+
+### 本轮落地
+
+- `/create` 增加 `allowLocalCreatorFallback()`。
+- 公共部署无运行时时，提示“创作服务暂时未连接。请稍后再试，或在本地创作环境继续。”并停止本地草稿生成。
+- 新增 `scripts/check-public-runtime-boundary.mjs`。
+- `npm run test` 串入 `check:public-runtime-boundary`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:public-runtime-boundary
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P8 Creator Studio 浏览器级 E2E
 
 ### 现象

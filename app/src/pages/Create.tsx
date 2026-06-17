@@ -119,6 +119,15 @@ export default function Create() {
     [turns],
   )
 
+  function allowLocalCreatorFallback() {
+    const explicit = String(import.meta.env.VITE_ALLOW_LOCAL_CREATOR_FALLBACK || '').trim()
+    if (explicit === 'true') return true
+    if (explicit === 'false') return false
+    if (import.meta.env.DEV) return true
+    if (typeof window === 'undefined') return false
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+  }
+
   useEffect(() => {
     let cancelled = false
     marketApi.getTrends('weekly')
@@ -208,6 +217,11 @@ export default function Create() {
       }
       setInput('')
     } catch {
+      if (!allowLocalCreatorFallback()) {
+        setInput(message)
+        setNotice('创作服务暂时未连接。请稍后再试，或在本地创作环境继续。')
+        return
+      }
       const next = session
         ? localDialogueTurn(session, message)
         : localDialogueSession(message)
