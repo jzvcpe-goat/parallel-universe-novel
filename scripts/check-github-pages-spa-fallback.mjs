@@ -19,6 +19,14 @@ assert(
   'GitHub Pages workflow must build with HashRouter so public deep links use /#/route',
 )
 assert(
+  workflow.includes('VITE_PUBLIC_RUNTIME_MODE: disabled'),
+  'GitHub Pages workflow must explicitly declare static preview runtime mode until remote runtime is configured',
+)
+assert(
+  workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
+  'GitHub Pages workflow must disable local creator fallback for public builds',
+)
+assert(
   workflow.includes('cp app/dist/index.html app/dist/404.html'),
   'GitHub Pages workflow must copy index.html to 404.html for BrowserRouter deep links',
 )
@@ -31,5 +39,6 @@ console.log(JSON.stringify({
   status: 'passed',
   checked: '.github/workflows/pages.yml',
   routerMode: 'hash',
+  runtimeMode: 'disabled',
   fallback: 'app/dist/404.html',
 }, null, 2))

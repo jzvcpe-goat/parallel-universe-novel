@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P13 公开 Runtime 预览契约
+
+### 现象
+
+GitHub Pages 可以发布静态 Creator Studio，但不能承载 FastAPI 或 Agent Runtime。如果公开构建继续隐式使用 `127.0.0.1:4111`，用户提交创作时会把“服务未部署”“服务挂了”“本地兜底”混成同一个失败状态，产品上也会误以为入口已经真实可用。
+
+### 修复原则
+
+1. 公开前端必须显式区分三种状态：本地开发、静态预览、远端 live 预览。
+2. 静态公开预览必须设置 `VITE_PUBLIC_RUNTIME_MODE=disabled` 和 `VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false`。
+3. 公共域名不能默认请求 localhost Agent Runtime。
+4. 用户可见文案只说“创作服务可用 / 待连接”，不展示 Runtime、provider、fallback、system prompt 等内部词。
+5. live 预览上线前必须用 `REQUIRE_PUBLIC_RUNTIME=true` 检查远端 HTTPS API 与 Agent Runtime 配置。
+
+### 本轮落地
+
+- `app/src/api/creator.ts` 增加 `getCreatorRuntimeAvailability()`。
+- GitHub Pages workflow 显式设置静态预览模式。
+- 静态 Pages 浏览器 QA 验证“创作服务待连接”与无假对话。
+- 新增 `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`。
+- 新增 `scripts/check-public-runtime-preview.mjs` 并串入 `npm run test`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:public-runtime-preview
+npm run qa:pages-browser
+```
+
 ## 2026-06-17 P12 静态公开预览浏览器 QA
 
 ### 现象

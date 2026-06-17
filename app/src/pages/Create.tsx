@@ -13,6 +13,7 @@ import {
   applyQualityCheck,
   checkAgentDraftQuality,
   creatorApi,
+  getCreatorRuntimeAvailability,
   localDialogueSession,
   localDialogueTurn,
   previewAgentStoryMemory,
@@ -61,6 +62,7 @@ export default function Create() {
   const [notice, setNotice] = useState<string>('写下一句话就能开始。')
   const [directionNotice, setDirectionNotice] = useState<DirectionNotice | null>(null)
   const [marketTrends, setMarketTrends] = useState(marketTrendFallback)
+  const creatorRuntime = useMemo(() => getCreatorRuntimeAvailability(), [])
   const initialTemplateId = useMemo(
     () => new URLSearchParams(location.search).get('template') || 'beacon-beyond',
     [location.search],
@@ -416,6 +418,9 @@ export default function Create() {
               <Badge variant="gold">创作助手</Badge>
               <Badge variant="outline">先写再问</Badge>
               <Badge variant="outline">{selectedMarket.label}</Badge>
+              <Badge variant={creatorRuntime.canConnect ? 'outline' : 'secondary'}>
+                {creatorRuntime.canConnect ? '创作服务可用' : '创作服务待连接'}
+              </Badge>
             </div>
             <h1 className="mt-3 text-2xl font-semibold leading-tight text-[var(--ink-paper)] md:text-3xl">
               {novelStarterPrompt.promise}
@@ -427,7 +432,11 @@ export default function Create() {
           <div className="creator-hero-context">
             <p>当前灵感方向</p>
             <strong>{selectedMarket.label}</strong>
-            <span>{selectedMarket.hooks}</span>
+            <span>
+              {creatorRuntime.canConnect
+                ? selectedMarket.hooks
+                : '连接创作服务后即可生成候选开场'}
+            </span>
           </div>
         </header>
 

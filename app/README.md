@@ -1,73 +1,47 @@
-# React + TypeScript + Vite
+# Creator Studio Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This Vite + React app is the current product frontend for 平行宇宙小说. It owns the reader-facing gateway, Creator Studio conversation flow, and transitional reader pages.
 
-Currently, two official plugins are available:
+## Runtime Modes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Local development:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev:api
+npm run dev:agents
+npm run dev:creator
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The Creator Studio can use the local Agent Runtime at `http://127.0.0.1:4111`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Public static preview:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+VITE_ROUTER_MODE=hash \
+VITE_PUBLIC_RUNTIME_MODE=disabled \
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
+npm --prefix app run build
+```
+
+The public page may show the creation entry, but it must not generate local fake drafts without a remote Runtime.
+
+Public live preview:
+
+```bash
+VITE_ROUTER_MODE=hash \
+VITE_PUBLIC_RUNTIME_MODE=live \
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
+VITE_AGENT_RUNTIME_BASE_URL=https://agent.example.com \
+VITE_API_ORIGIN=https://api.example.com \
+npm --prefix app run build
+```
+
+The remote services must be checked by `npm run check:public-runtime-preview` before changing the public build mode to live.
+
+## QA
+
+```bash
+npm --prefix app run lint
+npm run qa:creator-browser
+npm run qa:pages-browser
 ```

@@ -46,6 +46,7 @@ npm run dev
 ```bash
 npm run test
 npm --prefix app run build
+npm run qa:pages-browser
 npm run scan:internal-terms
 npm audit --audit-level=moderate
 ```
@@ -62,9 +63,16 @@ Creator Studio /create
   -> 前端展示候选正文、两个以内追问、设定沉淀、运行 trace
 ```
 
+公开 GitHub Pages 链接：
+
+- 首页：`https://jzvcpe-goat.github.io/parallel-universe-novel/`
+- 创作页：`https://jzvcpe-goat.github.io/parallel-universe-novel/#/create`
+
+当前 GitHub Pages 是静态预览模式。公开创作页会显示“创作服务待连接”，不会在没有远端 Runtime 时生成本地假正文。远端 Runtime 接通标准见 `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`。
+
 ## 关键文档
 
 - `docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md`
 - `docs/baseline/REUSE_AUDIT.md`
+- `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`
 - `PARALLEL_UNIVERSE_PROTOTYPE_HANDOFF.md`
-

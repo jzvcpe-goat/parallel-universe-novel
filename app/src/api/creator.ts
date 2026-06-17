@@ -244,12 +244,62 @@ export const creatorApi = {
     api.post<CreatorDialogueSession>(`/creator/dialogue/sessions/${sessionId}/turns`, payload),
 }
 
-const AGENT_RUNTIME_BASE = String(
-  import.meta.env.VITE_AGENT_RUNTIME_BASE_URL || 'http://127.0.0.1:4111',
-).replace(/\/+$/, '')
+export interface CreatorRuntimeAvailability {
+  canConnect: boolean
+  mode: 'remote' | 'local_default' | 'disabled' | 'unconfigured'
+  baseUrl: string
+}
+
+const configuredAgentRuntimeBase = String(import.meta.env.VITE_AGENT_RUNTIME_BASE_URL || '').trim()
+const publicRuntimeMode = String(import.meta.env.VITE_PUBLIC_RUNTIME_MODE || '').trim()
+
+function isLocalBrowserHost(): boolean {
+  if (typeof window === 'undefined') return false
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+}
+
+export function getCreatorRuntimeAvailability(): CreatorRuntimeAvailability {
+  if (configuredAgentRuntimeBase) {
+    return {
+      canConnect: true,
+      mode: 'remote',
+      baseUrl: configuredAgentRuntimeBase.replace(/\/+$/, ''),
+    }
+  }
+
+  if (!import.meta.env.DEV && publicRuntimeMode === 'disabled') {
+    return {
+      canConnect: false,
+      mode: 'disabled',
+      baseUrl: '',
+    }
+  }
+
+  if (import.meta.env.DEV || isLocalBrowserHost()) {
+    return {
+      canConnect: true,
+      mode: 'local_default',
+      baseUrl: 'http://127.0.0.1:4111',
+    }
+  }
+
+  return {
+    canConnect: false,
+    mode: publicRuntimeMode === 'disabled' ? 'disabled' : 'unconfigured',
+    baseUrl: '',
+  }
+}
+
+function getAgentRuntimeBase(): string {
+  const availability = getCreatorRuntimeAvailability()
+  if (!availability.canConnect || !availability.baseUrl) {
+    throw new Error('agent_runtime_not_configured')
+  }
+  return availability.baseUrl
+}
 
 async function postAgentWorkflow(payload: Record<string, unknown>): Promise<AgentSocraticCreateResponse> {
-  const response = await fetch(`${AGENT_RUNTIME_BASE}/v1/workflows/socratic-create`, {
+  const response = await fetch(`${getAgentRuntimeBase()}/v1/workflows/socratic-create`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -264,7 +314,7 @@ async function postAgentWorkflow(payload: Record<string, unknown>): Promise<Agen
 }
 
 async function postAgentMemoryPreview(payload: Record<string, unknown>): Promise<CreatorMemoryPreviewResponse> {
-  const response = await fetch(`${AGENT_RUNTIME_BASE}/v1/workflows/state-preview`, {
+  const response = await fetch(`${getAgentRuntimeBase()}/v1/workflows/state-preview`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -279,7 +329,7 @@ async function postAgentMemoryPreview(payload: Record<string, unknown>): Promise
 }
 
 async function postAgentQualityBrake(payload: Record<string, unknown>): Promise<CreatorQualityCheckResponse> {
-  const response = await fetch(`${AGENT_RUNTIME_BASE}/v1/workflows/quality-brake`, {
+  const response = await fetch(`${getAgentRuntimeBase()}/v1/workflows/quality-brake`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',

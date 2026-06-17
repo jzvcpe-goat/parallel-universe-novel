@@ -119,15 +119,14 @@ try {
   const playwright = await loadPlaywright()
   const appPort = await freePort()
   const unusedApiPort = await freePort()
-  const unusedAgentPort = await freePort()
   const appBaseUrl = `http://127.0.0.1:${appPort}`
 
   await run('npm', ['--prefix', 'app', 'run', 'build'], {
     VITE_ROUTER_MODE: 'hash',
+    VITE_PUBLIC_RUNTIME_MODE: 'disabled',
     VITE_ALLOW_LOCAL_CREATOR_FALLBACK: 'false',
     VITE_API_ORIGIN: `http://127.0.0.1:${unusedApiPort}`,
     VITE_API_BASE_URL: `http://127.0.0.1:${unusedApiPort}/v1`,
-    VITE_AGENT_RUNTIME_BASE_URL: `http://127.0.0.1:${unusedAgentPort}`,
   })
   copyFileSync(join(root, 'app/dist/index.html'), join(root, 'app/dist/404.html'))
 
@@ -145,6 +144,7 @@ try {
 
   await page.goto(`${appBaseUrl}/#/create?qa=p12-pages-preview`, { waitUntil: 'domcontentloaded' })
   await page.getByTestId('creator-conversation-panel').waitFor({ timeout: 15000 })
+  await page.getByText('创作服务待连接').waitFor({ timeout: 15000 })
 
   await page.goto(`${appBaseUrl}/?qa=p12-pages-preview`, { waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: /^开始创作$/ }).click()
@@ -159,7 +159,7 @@ try {
   assert(await page.getByTestId('creator-dialogue-thread').count() === 0, 'Static public preview must not render a fake dialogue thread')
 
   mkdirSync(artifactDir, { recursive: true })
-  const screenshotPath = join(artifactDir, `p12-pages-browser-e2e-${new Date().toISOString().replace(/[:.]/g, '-')}.png`)
+  const screenshotPath = join(artifactDir, `p13-public-pages-e2e-${new Date().toISOString().replace(/[:.]/g, '-')}.png`)
   await page.screenshot({ path: screenshotPath, fullPage: true })
   await browser.close()
 
