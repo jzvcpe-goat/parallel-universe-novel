@@ -34,13 +34,13 @@ function tryGhJson(args) {
 }
 
 function repoVariables() {
-  if (process.env.CHECK_GITHUB_REPO_VARS !== 'true') return { checked: false, values: {} }
+  if (process.env.CHECK_GITHUB_REPO_VARS === 'false') return { checked: false, source: 'disabled_by_env', values: {} }
   const variables = tryGhJson(['variable', 'list', '--repo', repo, '--json', 'name,value']) || []
   const values = {}
   for (const variable of variables) {
     values[String(variable.name)] = String(variable.value || '')
   }
-  return { checked: true, values }
+  return { checked: true, source: 'gh_variable_list', values }
 }
 
 function envOrRepo(name, repoValues) {
@@ -100,6 +100,7 @@ console.log(JSON.stringify({
   status: 'passed',
   repo,
   repoVariablesChecked: vars.checked,
+  repoVariableSource: vars.source,
   mode,
   liveReady: missingForLive.length === 0,
   missingForLive,
@@ -110,4 +111,3 @@ console.log(JSON.stringify({
     VITE_AGENT_RUNTIME_BASE_URL: Boolean(agentOrigin),
   },
 }, null, 2))
-
