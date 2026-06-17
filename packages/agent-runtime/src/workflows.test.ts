@@ -72,9 +72,9 @@ test('candidate opening is generated from the active document kernel instead of 
 
   assert.equal(result.activeConstraints[0].profileId, 'era-female')
   assert.equal(result.activeKernels[0].kernelId, 'kernel-era-female')
-  assert.ok(result.candidateDraft.body.includes('年代女强'))
   assert.ok(result.candidateDraft.body.includes('政策'))
-  assert.ok(result.questions[0].includes('年代女强'))
+  assert.ok(result.candidateDraft.body.includes('粮票'))
+  assert.ok(result.questions[0].includes('具体落在'))
   assert.equal(result.qualityPreview.result, 'pass')
 })
 
@@ -93,7 +93,24 @@ test('candidate prose does not expose planning scaffolds', async () => {
     assert.ok(!body.includes(' -> '), `${genre} leaked machine planning delimiter`)
     assert.ok(!body.includes('BeatPlan'), `${genre} leaked internal planning term`)
     assert.ok(!body.includes('故事种子'), `${genre} leaked seed scaffold`)
+    assert.ok(!body.includes('这不是一句设定'), `${genre} leaked setup explanation`)
+    assert.ok(!body.includes('故事里'), `${genre} leaked genre explanation`)
+    assert.ok(!body.includes('应该停在'), `${genre} leaked author-facing planning advice`)
+    assert.ok(!body.includes('主角'), `${genre} leaked protagonist placeholder instead of prose`)
   }
+})
+
+test('follow-up questions stay conversational and avoid backend planning labels', async () => {
+  const result = await socraticCreateWorkflow({
+    seed: '现代悬疑旧案，主角收到一份矛盾证据。',
+    genre: '现代悬疑',
+  }, { preferToolBridge: false })
+
+  const questionText = result.questions.join(' ')
+  assert.ok(!questionText.includes('kernel'))
+  assert.ok(!questionText.includes('constraint'))
+  assert.ok(!questionText.includes('主角'))
+  assert.ok(result.questions.length <= 2)
 })
 
 test('public prose hygiene follows active genre rules without global genre bans', () => {

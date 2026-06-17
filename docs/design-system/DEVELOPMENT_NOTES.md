@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P5 文档内核驱动的小说正文 Composer
+
+### 现象
+
+P4 返工后，Creator 首段候选已经不再按单一题材写死，但输出仍偏“结构说明”：正文里会出现“这不是一句设定”“某题材故事里第一个异常”“这一章应该停在”这类作者规划口吻。它能证明 kernel 被读取，却不像用户要看的小说正文。
+
+### 修复原则
+
+1. `GenreKernel` 负责提供节奏、动机、冲突和边界，不负责把字段名直接渲染给作者。
+2. Creator 首段必须先进入场景：时间、动作、压力和选择，而不是解释这是哪类故事。
+3. 规则的 `antiThesis` 不能原样进入正文；要转成世界内的边界感，比如“任何捷径都绕不开某个代价”。
+4. 用户写“主角”时，正文要改写成“他/她/那个人”，避免小说正文露出创作占位词。
+5. 后续追问保持苏格拉底式自然语言，不展示 kernel、constraint、profile 或后端字段。
+
+### 本轮落地
+
+- `packages/agent-runtime/src/workflows.ts` 增加通用正文 composer：从 seed 进入场景，再按 active kernel 的 `eventStructure / motiveRules / conflictRules / climaxRules / antiThesis` 组织段落。
+- `packages/agent-runtime/src/constraints.ts` 扩展 `publicProseScaffoldTerms`，把结构说明痕迹纳入统一质量检查。
+- `packages/agent-runtime/src/workflows.test.ts` 增加正文和追问公共文案边界测试。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+npm run scan:p4-rule-source
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P17 发布包身份防回归
 
 ### 现象

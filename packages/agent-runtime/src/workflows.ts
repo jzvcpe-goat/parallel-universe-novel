@@ -54,52 +54,96 @@ function secondItem(items: string[] | undefined, fallback: string): string {
   return cleanPublicText(items?.[1] || items?.[0], fallback)
 }
 
+function subjectFromSeed(seed: string, profiles: ConstraintProfile[]): string {
+  if (/[她女少女姑娘母妻姐妹]/u.test(seed) || profiles.some(profile => /女|甜宠|耽美|追妻/u.test(profile.displayName))) {
+    return '她'
+  }
+  if (/[他男少年男人父兄弟]/u.test(seed)) return '他'
+  return '那个人'
+}
+
+function seedAsOpeningEvent(input: SocraticCreateInput, profiles: ConstraintProfile[], subject: string): string {
+  let text = cleanPublicText(input.seed, '有人发现了一个不该出现的异常')
+  text = text.replace(/^我想写(?:一个|一部)?[^，。；;,.]*故事[，,:：]?\s*/u, '')
+  for (const label of [input.genre, ...profiles.map(profile => profile.displayName)]) {
+    const cleanLabel = cleanPublicText(label, '')
+    if (!cleanLabel) continue
+    text = text.replace(new RegExp(`^${cleanLabel}[，,:：\\s]+`, 'u'), '')
+  }
+  text = text
+    .replace(/主角/g, subject)
+    .replace(/一个(少女|女孩|女人|男人|少年)/g, '$1')
+    .replace(/[。；;,.，]+$/u, '')
+  return `${text}。`
+}
+
+function asProseClause(value: string, subject: string): string {
+  return cleanPublicText(value, '选择的代价开始显形')
+    .replace(/主角/g, subject)
+    .replace(/人物/g, '人')
+    .replace(/高潮/g, '最危险的时候')
+    .replace(/避免/g, '不能')
+    .replace(/不要/g, '不能')
+    .replace(/不得/g, '不能')
+    .replace(/[。；;,.，]+$/u, '')
+}
+
+function antiThesisBoundary(value: string, subject: string): string {
+  const clause = asProseClause(value, subject)
+  const substitute = clause.match(/^不能用(.+?)替代(.+)$/u)
+  if (substitute) {
+    return `任何看似省力的捷径，都绕不开${substitute[2]}`
+  }
+  const letSubstitute = clause.match(/^不能让(.+?)替代(.+)$/u)
+  if (letSubstitute) {
+    return `真正要紧的事，不能交给${letSubstitute[1]}代为完成`
+  }
+  return clause
+}
+
 function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]): string {
-  const seed = cleanPublicText(input.seed, '一个必须被写出来的异常')
-  const profile = profiles[0]
+  const subject = subjectFromSeed(input.seed, profiles)
+  const seed = seedAsOpeningEvent(input, profiles, subject)
   const kernel = kernels[0]
   if (!kernel) {
     return [
       `第一盏灯亮起时，所有人都说那只是风。`,
-      `那个人站在门槛外，手里握着不该出现的线索，意识到自己被推到一个必须选择的位置。`,
-      `那句话在心里落下：${seed}`,
-      `他还不知道这句话会改变谁的命运，但已经明白，沉默和开口都会付出代价。`,
+      `${subject}站在门槛外，手里握着不该出现的线索，意识到自己被推到一个必须选择的位置。`,
+      `真正让空气安静下来的，是${subject}刚刚听见的那句话：${seed}`,
+      `${subject}还不知道这句话会改变谁的命运，但已经明白，沉默和开口都会付出代价。`,
     ].join('\n\n')
   }
 
-  const genreName = publicKernelName(kernel, profile)
-  const openingBeat = firstItem(kernel.eventStructure, '异常出现')
-  const pressureBeat = secondItem(kernel.eventStructure, '选择压力')
-  const motive = firstItem(kernel.motiveRules, '人物必须保护一个无法轻易放下的东西')
-  const conflict = firstItem(kernel.conflictRules, '每个选择都必须改变关系或处境')
-  const climax = firstItem(kernel.climaxRules, '高潮要让人物承担选择后果')
-  const thesis = cleanPublicText(kernel.thesis, '真正的张力来自愿望和代价同时出现。')
-  const antiThesis = cleanPublicText(kernel.antiThesis, '不能让巧合替人物完成行动。')
+  const openingBeat = asProseClause(firstItem(kernel.eventStructure, '异常出现'), subject)
+  const pressureBeat = asProseClause(secondItem(kernel.eventStructure, '选择压力'), subject)
+  const motive = asProseClause(firstItem(kernel.motiveRules, '人必须保护一个无法轻易放下的东西'), subject)
+  const conflict = asProseClause(firstItem(kernel.conflictRules, '每个选择都必须改变关系或处境'), subject)
+  const climax = asProseClause(firstItem(kernel.climaxRules, '人要承担选择后果'), subject)
+  const antiThesis = antiThesisBoundary(kernel.antiThesis, subject)
 
   return [
-    `一开始，${seed}。这不是一句设定，而是${genreName}故事里第一个被迫显形的异常。`,
-    `${openingBeat}来得很早，早到那个人还没想好该相信谁。周围的一切都在要求他给出解释，可他更先意识到：${motive}。`,
-    `真正压下来的不是答案，而是${pressureBeat}。${thesis} 所以他不能靠一句巧合越过麻烦，也不能把所有后果推给命运。`,
-    `当${conflict}开始发生，他终于明白第一步不是证明自己正确，而是决定先保住什么、放弃什么。${antiThesis} 这条边界像一道暗线，把每个人都推向不同的代价。`,
-    `这一章的末尾应该停在一个必须回答的问题上：如果继续往前，${climax}；如果停下，前面已经出现的异常会先吞掉他最想保护的东西。`,
+    `那天，${seed}`,
+    `门外的声响停了一瞬，像是整座城都在等${subject}先抬头。最先露出裂口的是${openingBeat}，它没有给出答案，只把一件必须立刻处理的事推到${subject}面前。`,
+    `${subject}本可以装作没有听见。可${motive}，这念头像一根细线缠住指节，让${pressureBeat}忽然变得沉重。`,
+    `第一次真正的逼迫来自${conflict}。交出去，能换来短暂的清白；藏起来，就要让更多人误会${subject}已经站到了危险那一边。`,
+    `天色慢慢压低，${subject}终于明白，${climax}并不是很远以后的事。${antiThesis}。在作出选择以前，${subject}先把那件东西贴近胸口，听见自己的心跳比远处的钟声更急。`,
   ].join('\n\n')
 }
 
 function questionsFor(profiles: ConstraintProfile[], kernels: GenreKernel[]): string[] {
   const kernel = kernels[0]
-  const profile = profiles[0]
   if (!kernel) {
     return [
-      '主角现在最不能失去的东西是什么？',
-      '第一章末尾要把选择推给他，还是推给他身边的人？',
+      '这个人现在最不能失去的东西是什么？',
+      '第一章末尾要把选择推给这个人，还是推给身边的人？',
     ]
   }
-  const genreName = publicKernelName(kernel, profile)
-  const motive = firstItem(kernel.motiveRules, '主角最想保护的东西')
-  const conflict = firstItem(kernel.conflictRules, '第一场冲突')
+  const subject = subjectFromSeed('', profiles)
+  const motive = asProseClause(firstItem(kernel.motiveRules, '主角最想保护的东西'), subject)
+  const conflict = asProseClause(firstItem(kernel.conflictRules, '第一场冲突'), subject)
   return [
-    `这个${genreName}开场里，${motive}具体落在哪个人或哪件物上？`,
-    `${conflict}出现时，你希望主角先保护关系、真相，还是自己的生存位置？`,
+    `这段开场里，${motive}具体落在哪个人或哪件物上？`,
+    `${conflict}出现时，你希望${subject}先保护关系、真相，还是自己的生存位置？`,
   ]
 }
 

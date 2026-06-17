@@ -55,6 +55,9 @@ export const publicProseScaffoldTerms = [
   'BeatPlan',
   '故事种子',
   ' -> ',
+  '这不是一句设定',
+  '故事里',
+  '应该停在',
 ]
 
 function selectedTextFromInput(input: SocraticCreateInput): string {
