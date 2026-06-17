@@ -102,6 +102,37 @@ export interface CreatorMemoryPreviewResponse {
   runTrace?: Array<{ step: string; status: string; detail: string }>
 }
 
+export interface CreatorQualityCheckResponse {
+  status: 'checked' | 'repair_suggested' | string
+  runId?: string
+  projectId?: string
+  sessionId?: string
+  candidateDraft?: {
+    status: 'candidate' | string
+    title: string
+    body: string
+  }
+  revisedCandidate?: {
+    status: 'candidate' | string
+    title: string
+    body: string
+  }
+  qualityPreview?: {
+    result?: 'pass' | 'warn' | 'rewrite' | 'block' | string
+    violations?: Array<{ ruleId?: string; severity?: string; message?: string }>
+    repairSuggestions?: string[]
+  }
+  repairPlan?: string[]
+  writeback?: {
+    status?: string
+    canon_written?: boolean
+    branch_written?: boolean
+    idempotency_key?: string
+  }
+  runTrace?: Array<{ step: string; status: string; detail: string }>
+}
+
+
 export interface CreatorDialogueSession {
   session_id: string
   creator_id?: string
@@ -131,6 +162,12 @@ export interface CreatorDialogueSession {
       body: string
     }
     memory_preview?: {
+      status: string
+      summary: string
+      item_count: number
+      updated_at: string
+    }
+    quality_check?: {
       status: string
       summary: string
       item_count: number
@@ -239,6 +276,21 @@ async function postAgentMemoryPreview(payload: Record<string, unknown>): Promise
     throw new Error(`agent_runtime_${response.status}`)
   }
   return response.json() as Promise<CreatorMemoryPreviewResponse>
+}
+
+async function postAgentQualityBrake(payload: Record<string, unknown>): Promise<CreatorQualityCheckResponse> {
+  const response = await fetch(`${AGENT_RUNTIME_BASE}/v1/workflows/quality-brake`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    throw new Error(`agent_runtime_${response.status}`)
+  }
+  return response.json() as Promise<CreatorQualityCheckResponse>
 }
 
 function agentWorkflowToDialogueSession(
@@ -368,6 +420,20 @@ export async function previewAgentStoryMemory(session: CreatorDialogueSession): 
   })
 }
 
+export async function checkAgentDraftQuality(session: CreatorDialogueSession): Promise<CreatorQualityCheckResponse> {
+  return postAgentQualityBrake({
+    seed: session.setting_cards.seed || session.assistant.story_text || '',
+    sessionId: session.session_id,
+    projectId: session.setting_cards.project_id,
+    creatorId: session.creator_id,
+    genre: session.setting_cards.genre_signal,
+    context: {
+      mastra_local_output: sessionToLocalOutput(session),
+    },
+    previousSession: session,
+  })
+}
+
 export function applyMemoryPreview(
   session: CreatorDialogueSession,
   preview: CreatorMemoryPreviewResponse,
@@ -386,6 +452,57 @@ export function applyMemoryPreview(
         updated_at: nowIso(),
       },
     },
+    updated_at: nowIso(),
+  }
+}
+
+export function applyQualityCheck(
+  session: CreatorDialogueSession,
+  result: CreatorQualityCheckResponse,
+): CreatorDialogueSession {
+  const violations = result.qualityPreview?.violations || []
+  const revised = result.revisedCandidate || result.candidateDraft || session.setting_cards.candidate_draft
+  const revisedBody = String(revised?.body || '')
+  const summary = violations.length
+    ? `已生成修订候选：${violations.length} 处需要照顾。`
+    : '这一段通过检查，可以继续写下一段。'
+  const assistant = revisedBody
+    ? {
+        ...session.assistant,
+        story_text: revisedBody,
+        quality_notes: result.repairPlan?.length
+          ? result.repairPlan
+          : session.assistant.quality_notes,
+        harness_trace: result.runTrace || session.assistant.harness_trace,
+      }
+    : session.assistant
+  const turns = revisedBody
+    ? session.turns.map((turn, index) => {
+        if (index !== session.turns.length - 1 || turn.role !== 'assistant') return turn
+        return {
+          ...turn,
+          story_text: revisedBody,
+          quality_notes: assistant.quality_notes,
+          harness_trace: assistant.harness_trace,
+        }
+      })
+    : session.turns
+
+  return {
+    ...session,
+    assistant,
+    setting_cards: {
+      ...session.setting_cards,
+      quality_preview: result.qualityPreview || session.setting_cards.quality_preview,
+      candidate_draft: revised || session.setting_cards.candidate_draft,
+      quality_check: {
+        status: result.status || 'checked',
+        summary,
+        item_count: violations.length,
+        updated_at: nowIso(),
+      },
+    },
+    turns,
     updated_at: nowIso(),
   }
 }

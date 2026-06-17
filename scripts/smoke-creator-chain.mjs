@@ -221,6 +221,29 @@ try {
     questions: created.questions,
   }, 'socraticCreate.publicCopy')
 
+  const quality = await postJson(`${agentBaseUrl}/v1/workflows/quality-brake`, {
+    ...createPayload,
+    sessionId: created.sessionId,
+    projectId: created.projectId,
+    context: {
+      ...createPayload.context,
+      mastra_local_output: created,
+    },
+  })
+
+  assert(['checked', 'repair_suggested'].includes(quality.status), 'quality workflow must return a usable status')
+  assert(quality.revisedCandidate?.status === 'candidate', 'quality workflow must keep revised text as candidate')
+  assert(quality.writeback?.canon_written === false, 'quality workflow must not write canon')
+  assert(quality.writeback?.branch_written === false, 'quality workflow must not write branch')
+  assert(
+    (quality.runTrace || []).some(item => item.step === 'fastapi.quality_check' && item.status === 'ok'),
+    'quality workflow must be accepted by FastAPI Tool Bridge',
+  )
+  assertPublicCopy({
+    revisedCandidate: quality.revisedCandidate,
+    repairPlan: quality.repairPlan,
+  }, 'qualityBrake.publicCopy')
+
   const preview = await postJson(`${agentBaseUrl}/v1/workflows/state-preview`, {
     ...createPayload,
     sessionId: created.sessionId,
@@ -249,6 +272,7 @@ try {
     sessionId: created.sessionId,
     activeConstraints: created.activeConstraints.map(item => item.profileId),
     activeKernels: created.activeKernels.map(item => item.kernelId),
+    qualityStatus: quality.status,
     stateDeltaCount: preview.stateDeltaCandidate.length,
     writeback: preview.writeback,
   }, null, 2))

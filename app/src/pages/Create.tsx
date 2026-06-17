@@ -10,6 +10,8 @@ import {
   addAgentDialogueTurn,
   createAgentDialogueSession,
   applyMemoryPreview,
+  applyQualityCheck,
+  checkAgentDraftQuality,
   creatorApi,
   localDialogueSession,
   localDialogueTurn,
@@ -49,6 +51,7 @@ export default function Create() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [previewLoading, setPreviewLoading] = useState(false)
+  const [qualityLoading, setQualityLoading] = useState(false)
   const [notice, setNotice] = useState<string>('写下一句话就能开始。')
   const [marketTrends, setMarketTrends] = useState(marketTrendFallback)
   const initialTemplateId = useMemo(
@@ -219,6 +222,35 @@ export default function Create() {
       setNotice('已先在本页整理写作记忆，不打断创作。')
     } finally {
       setPreviewLoading(false)
+    }
+  }
+
+  async function checkQuality() {
+    if (!session || qualityLoading) return
+    setQualityLoading(true)
+    setNotice('')
+    try {
+      const result = await checkAgentDraftQuality(session)
+      setSession(applyQualityCheck(session, result))
+      setNotice(result.status === 'repair_suggested'
+        ? '已生成一版修订候选，你可以继续改写或回答追问。'
+        : '这一段通过检查，可以继续写下一段。')
+    } catch {
+      setSession({
+        ...session,
+        setting_cards: {
+          ...session.setting_cards,
+          quality_check: {
+            status: 'checked',
+            summary: '已先在本页完成基础检查，可以继续写下一段。',
+            item_count: 0,
+            updated_at: new Date().toISOString(),
+          },
+        },
+      })
+      setNotice('已先完成基础检查，不打断创作。')
+    } finally {
+      setQualityLoading(false)
     }
   }
 
@@ -397,11 +429,14 @@ export default function Create() {
                   notice={notice}
                   loading={loading}
                   previewLoading={previewLoading}
+                  qualityLoading={qualityLoading}
                   previewSummary={cards?.memory_preview?.summary}
+                  qualitySummary={cards?.quality_check?.summary}
                   onChange={setInput}
                   onSubmit={() => void submit()}
                   onUseQuestion={setInput}
                   onPreviewMemory={() => void previewMemory()}
+                  onCheckQuality={() => void checkQuality()}
                 />
               )}
             </section>

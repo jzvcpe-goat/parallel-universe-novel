@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+import { qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
   const result = await socraticCreateWorkflow({
@@ -74,6 +74,44 @@ test('state preview workflow never writes canon when tool bridge is unavailable'
 
   const writeback = result.writeback as Record<string, unknown>
   assert.equal(result.status, 'preview_only')
+  assert.equal(writeback.canon_written, false)
+  assert.equal(writeback.branch_written, false)
+})
+
+test('quality brake suggests repair without committing candidate text', async () => {
+  const result = await qualityBrakeWorkflow({
+    seed: '现代悬疑旧案，主角通过读心术瞬间破案，还出现未解释证据。',
+    genre: '现代悬疑',
+    context: {
+      mastra_local_output: {
+        runId: 'run_quality_demo',
+        projectId: 'project_demo',
+        sessionId: 'session_demo',
+        candidateDraft: {
+          status: 'candidate',
+          title: '雨夜证据',
+          body: '旧案重启当晚，主角通过读心术瞬间破案，还拿出未解释证据逼近真相。',
+        },
+        activeConstraints: [
+          {
+            profileId: 'modern-other',
+            ruleIds: ['modern_other_no_unearned_supernatural'],
+            prohibitedTerms: ['读心术', '未解释证据'],
+          },
+        ],
+        runTrace: [],
+      },
+    },
+  })
+
+  assert.equal(result.status, 'repair_suggested')
+  const qualityPreview = result.qualityPreview as Record<string, unknown>
+  const revisedCandidate = result.revisedCandidate as Record<string, unknown>
+  const writeback = result.writeback as Record<string, unknown>
+  assert.equal(qualityPreview.result, 'block')
+  assert.ok(Array.isArray(qualityPreview.violations))
+  assert.ok(!String(revisedCandidate.body || '').includes('读心术'))
+  assert.ok(!String(revisedCandidate.body || '').includes('未解释证据'))
   assert.equal(writeback.canon_written, false)
   assert.equal(writeback.branch_written, false)
 })

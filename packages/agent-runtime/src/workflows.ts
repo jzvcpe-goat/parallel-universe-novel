@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { agentContracts } from './agents.js'
 import {
+  constraintProfiles,
   evaluateConstraintViolations,
   resolveConstraints,
   resolveKernels,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
-import { socraticTurnTool, statePreviewTool } from './toolBridge.js'
+import { qualityCheckTool, socraticTurnTool, statePreviewTool } from './toolBridge.js'
 import type {
   ConstraintProfile,
   GenreKernel,
@@ -147,6 +148,85 @@ function settingCards(input: SocraticCreateInput, profiles: ConstraintProfile[],
       kernel: 'rule_engine',
     },
   }
+}
+
+function localOutputFromInput(input: SocraticCreateInput, runId: string): Record<string, unknown> {
+  const contextOutput = input.context?.mastra_local_output
+  if (typeof contextOutput === 'object' && contextOutput !== null) {
+    return contextOutput as Record<string, unknown>
+  }
+  return {
+    runId,
+    projectId: input.projectId || `project_${randomUUID().slice(0, 8)}`,
+    sessionId: input.sessionId || `creator_dialogue_${randomUUID().slice(0, 12)}`,
+    candidateDraft: {
+      status: 'candidate',
+      title: '第一幕',
+      body: input.seed,
+    },
+    questions: [],
+    settingCards: {},
+    activeConstraints: [],
+    activeKernels: [],
+    qualityPreview: { result: 'pass', violations: [], repairSuggestions: [] },
+    runTrace: [],
+    cost: { mode: 'mock_local', estimatedTokens: 0, estimatedCostUsd: 0 },
+  }
+}
+
+function candidateFromLocalOutput(
+  localOutput: Record<string, unknown>,
+  input: SocraticCreateInput,
+): SocraticCreateOutput['candidateDraft'] {
+  const candidate = typeof localOutput.candidateDraft === 'object' && localOutput.candidateDraft !== null
+    ? localOutput.candidateDraft as Record<string, unknown>
+    : {}
+  return {
+    status: 'candidate',
+    title: String(candidate.title || '第一幕'),
+    body: String(candidate.body || input.seed || ''),
+  }
+}
+
+function profileIdsFromLocalOutput(localOutput: Record<string, unknown>): string[] {
+  const active = Array.isArray(localOutput.activeConstraints) ? localOutput.activeConstraints : []
+  return active
+    .map(item => {
+      if (typeof item !== 'object' || item === null) return ''
+      return String((item as Record<string, unknown>).profileId || '')
+    })
+    .filter(Boolean)
+}
+
+function profilesForQuality(input: SocraticCreateInput, localOutput: Record<string, unknown>): ConstraintProfile[] {
+  const selectedIds = profileIdsFromLocalOutput(localOutput)
+  const fromLocal = constraintProfiles.filter(profile => selectedIds.includes(profile.id))
+  const fromInput = resolveConstraints(input)
+  const merged = new Map<string, ConstraintProfile>()
+  for (const profile of [...fromLocal, ...fromInput]) merged.set(profile.id, profile)
+  return [...merged.values()].sort((a, b) => b.priority - a.priority)
+}
+
+function repairBody(body: string, profiles: ConstraintProfile[]): string {
+  let repaired = body
+  for (const profile of profiles) {
+    for (const rule of profile.rules) {
+      const replacement = rule.replacementGuidance?.[0] || '符合当前题材的表达'
+      for (const term of rule.prohibitedTerms || []) {
+        repaired = repaired.split(term).join(replacement)
+      }
+    }
+  }
+  return repaired
+}
+
+function repairPlanFor(violations: Array<{ ruleId: string; severity: string; message: string }>): string[] {
+  if (!violations.length) {
+    return ['当前段落可以继续写；下一轮重点看人物选择是否会推动新的代价。']
+  }
+  return violations.slice(0, 4).map(item => (
+    `${item.message}；先改成该题材内部可解释、可验证的表达，再继续扩写。`
+  ))
 }
 
 export async function socraticCreateWorkflow(
@@ -338,11 +418,116 @@ export async function statePreviewWorkflow(
   }
 }
 
+export async function qualityBrakeWorkflow(
+  input: SocraticCreateInput,
+  options: { signal?: AbortSignal } = {},
+): Promise<Record<string, unknown>> {
+  const runId = `quality_${randomUUID()}`
+  const startedAt = Date.now()
+  const localOutput = localOutputFromInput(input, runId)
+  const candidate = candidateFromLocalOutput(localOutput, input)
+  const profiles = profilesForQuality(input, localOutput)
+  const violations = evaluateConstraintViolations(candidate.body, profiles)
+  const revisedBody = violations.length ? repairBody(candidate.body, profiles) : candidate.body
+  const revisedCandidate = {
+    ...candidate,
+    body: revisedBody,
+  }
+  const qualityPreview = {
+    result: violations.some(item => item.severity === 'hard') ? 'block' as const : violations.length ? 'warn' as const : 'pass' as const,
+    violations,
+    repairSuggestions: repairPlanFor(violations),
+  }
+  const status = violations.length ? 'repair_suggested' : 'checked'
+  const runTrace = [
+    ...(Array.isArray(localOutput.runTrace) ? localOutput.runTrace as Array<{ step: string; status: string; detail: string }> : []),
+    {
+      step: 'quality.inspect',
+      status: violations.length ? 'warn' : 'ok',
+      detail: violations.length ? '当前候选段落需要修订后再确认。' : '当前候选段落通过本轮检查。',
+    },
+    {
+      step: 'quality.revise_candidate',
+      status: 'ok',
+      detail: violations.length ? '已生成一版可替换的修订候选。' : '无需生成替换文本。',
+    },
+  ]
+  const bridgeOutput = {
+    ...localOutput,
+    runId,
+    candidateDraft: revisedCandidate,
+    qualityPreview,
+    runTrace,
+  }
+  const writeback = {
+    status: 'preview_only',
+    canon_written: false,
+    branch_written: false,
+    idempotency_key: runId,
+  }
+  const localResult = {
+    status,
+    runId,
+    projectId: String(localOutput.projectId || input.projectId || 'project_preview'),
+    sessionId: String(localOutput.sessionId || input.sessionId || `preview_${runId.slice(0, 12)}`),
+    candidateDraft: revisedCandidate,
+    revisedCandidate,
+    qualityPreview,
+    repairPlan: qualityPreview.repairSuggestions,
+    writeback,
+    runTrace,
+    ledger: [
+      ledgerEntry({
+        runId,
+        projectId: String(localOutput.projectId || input.projectId || 'project_preview'),
+        agentType: 'Workflow',
+        input,
+        output: bridgeOutput,
+        startedAt,
+        qualityResult: qualityPreview,
+        stateDeltaCandidate: [],
+      }),
+    ],
+  }
+
+  try {
+    const bridged = await qualityCheckTool(
+      {
+        ...input,
+        context: {
+          ...(input.context || {}),
+          mastra_local_output: bridgeOutput,
+        },
+      },
+      runId,
+      options.signal,
+    )
+    const bridgedTrace = Array.isArray(bridged.runTrace) ? bridged.runTrace : runTrace
+    return {
+      ...localResult,
+      qualityPreview: (bridged.qualityPreview as typeof qualityPreview | undefined) || qualityPreview,
+      runTrace: bridgedTrace,
+    }
+  } catch {
+    return {
+      ...localResult,
+      runTrace: [
+        ...runTrace,
+        {
+          step: 'quality.runtime_sync',
+          status: 'warn',
+          detail: '本轮检查结果先保留在当前页面，等待后续同步。',
+        },
+      ],
+    }
+  }
+}
+
 export const workflowRegistry = {
   socraticCreateWorkflow,
   draftSceneWorkflow: socraticCreateWorkflow,
   extractChangesWorkflow: socraticCreateWorkflow,
-  qualityBrakeWorkflow: socraticCreateWorkflow,
+  qualityBrakeWorkflow,
   statePreviewWorkflow,
 }
 

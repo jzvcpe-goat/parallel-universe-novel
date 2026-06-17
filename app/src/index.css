@@ -1011,7 +1011,8 @@
     padding-top: 1rem;
   }
 
-  .creator-memory-preview {
+  .creator-memory-preview,
+  .creator-quality-preview {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1023,7 +1024,8 @@
   }
 
   @media (max-width: 760px) {
-    .creator-memory-preview {
+    .creator-memory-preview,
+    .creator-quality-preview {
       align-items: stretch;
       flex-direction: column;
     }

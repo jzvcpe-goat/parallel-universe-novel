@@ -1,4 +1,4 @@
-import { Loader2, Send, Sparkles } from 'lucide-react'
+import { Loader2, Send, ShieldCheck, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type CreatorTurn = Record<string, unknown>
@@ -13,8 +13,11 @@ interface CreatorDialogueThreadProps {
   onSubmit: () => void
   onUseQuestion: (question: string) => void
   onPreviewMemory?: () => void
+  onCheckQuality?: () => void
   previewLoading?: boolean
+  qualityLoading?: boolean
   previewSummary?: string
+  qualitySummary?: string
 }
 
 function turnRole(turn: CreatorTurn) {
@@ -41,8 +44,11 @@ export function CreatorDialogueThread({
   onSubmit,
   onUseQuestion,
   onPreviewMemory,
+  onCheckQuality,
   previewLoading = false,
+  qualityLoading = false,
   previewSummary,
+  qualitySummary,
 }: CreatorDialogueThreadProps) {
   return (
     <div className="creator-dialogue-flow" data-testid="creator-dialogue-thread">
@@ -96,6 +102,21 @@ export function CreatorDialogueThread({
           <Button variant="outline" onClick={onPreviewMemory} disabled={previewLoading}>
             {previewLoading ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
             整理成写作记忆
+          </Button>
+        </section>
+      ) : null}
+
+      {onCheckQuality ? (
+        <section className="creator-quality-preview">
+          <div>
+            <p className="text-sm font-semibold text-[var(--ink-paper)]">段落检查</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
+              {qualitySummary || '检查当前段落的题材一致性、节奏和可继续性；只生成修订候选，等你确认后再继续。'}
+            </p>
+          </div>
+          <Button variant="outline" onClick={onCheckQuality} disabled={qualityLoading}>
+            {qualityLoading ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+            检查并修订
           </Button>
         </section>
       ) : null}

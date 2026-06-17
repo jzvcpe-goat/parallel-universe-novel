@@ -57,3 +57,11 @@ export async function statePreviewTool(
 ): Promise<Record<string, unknown>> {
   return callToolBridge('/v1/tools/runtime/state-preview', input, runId, signal)
 }
+
+export async function qualityCheckTool(
+  input: SocraticCreateInput,
+  runId: string,
+  signal?: AbortSignal,
+): Promise<Record<string, unknown>> {
+  return callToolBridge('/v1/tools/runtime/quality-check', input, runId, signal)
+}
