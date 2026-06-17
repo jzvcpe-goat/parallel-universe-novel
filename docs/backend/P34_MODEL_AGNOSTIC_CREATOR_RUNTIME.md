@@ -86,7 +86,7 @@ P4 constraints are document-derived runtime facts, not global prompt text and no
 
 The backend stores two public-safe fields in `setting_cards`:
 
-- `genre_constraint_facts`: normalized activation evidence. It may record selected template labels, seed signals, matched profile ids, matched kernel ids, source `rwref_*` ids, and whether an author override was explicit. It must not store provider details, prompts, raw model state, representative work names, or ad hoc booleans tied to a single historical test case.
+- `genre_constraint_facts`: normalized activation evidence. It may record selected template labels, seed signals, matched profile ids, matched kernel ids, source `rwref_*` ids, and whether an author override was explicit. It must not store provider details, prompts, raw model state, representative work names, or ad hoc booleans tied to a one-off intake note.
 - `genre_constraints`: active structured rules projected from the document registry. Each rule should include `id`, `display_name`, `layer`, `rule_ids`, `prohibited_terms`, `replacement_guidance`, `severity`, `fail_behavior`, `source_refs`, and `applies_to`.
 
 Activation order:
@@ -108,12 +108,12 @@ Contribution rule for future genres: add or update the document profile first, t
 
 ## P4 Reset Boundary
 
-The current P4 implementation supersedes earlier prompt-case experiments. A
+The current P4 implementation supersedes earlier one-off experiments. A
 constraint is active only when it is present in `genre-runtime-rules.v1.json` and
-selected by the normal resolver. Historical QA samples, backend package notes,
-and ad hoc negative examples are useful as research material, but they are not
-runtime facts and must not be copied into workflow branches, provider prompts,
-FastAPI service conditionals, or smoke payloads.
+selected by the normal resolver. QA notes, backend package notes, and manual
+research examples are useful as research material, but they are not runtime facts
+and must not be copied into workflow branches, provider prompts, FastAPI service
+conditionals, or smoke payloads.
 
 When the product needs a new premise boundary, implement it in this order:
 

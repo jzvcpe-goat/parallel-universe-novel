@@ -4,14 +4,14 @@ Date: 2026-06-17
 
 ## Goal
 
-P4 is rebuilt from the product documents, not from any historical prompt case. The active runtime source is now the versioned document registry:
+P4 is rebuilt from the product documents, not from any one-off intake note. The active runtime source is now the versioned document registry:
 
 - `docs/product/rules/genre-runtime-rules.v1.json`
 - `docs/product/rules/GENRE_CONSTRAINT_RULES.md`
 - `docs/product/rules/GENRE_KERNEL_RULES.md`
 - `docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md`
 
-The registry declares `documentCore.policy = document_registry_only`. Any browser note, backend review suggestion, provider prompt experiment, or historical negative sample is non-executable until the team converts it into a reusable `ConstraintProfile` rule and a compatible `GenreKernel` behavior.
+The registry declares `documentCore.policy = document_registry_only`. Any browser note, backend review suggestion, provider prompt experiment, or manual research note is non-executable until the team converts it into a reusable `ConstraintProfile` rule and a compatible `GenreKernel` behavior.
 
 ## Runtime Boundary
 
@@ -25,7 +25,7 @@ P4 runtime behavior:
 
 P4 does not allow:
 
-- prompt-case branches in workflows,
+- one-off branches in workflows,
 - backend service conditionals that bypass the registry,
 - provider-adapter prompt patches,
 - public UI copy that exposes profile ids, kernel ids, source refs, provider details, or prompt plumbing,
@@ -43,8 +43,8 @@ The gate verifies:
 
 - the runtime registry points to the v3 baseline contract,
 - human-editable source documents exist,
-- historical negative samples are marked non-executable,
-- the registry does not contain ad hoc override keys such as prompt-case branches,
+- research intake notes are marked non-executable,
+- the registry does not contain ad hoc override keys or one-off branches,
 - all profiles and kernels use anonymous `rwref_*` source refs,
 - every kernel maps back to at least one document profile.
 
@@ -56,10 +56,10 @@ npm run scan:p4-rule-source
 
 continues to verify schema shape, registry/document sync, privacy, and absence of hardcoded registry id branches in runtime code.
 
-The P4 gates intentionally do not carry a list of historical sample terms. A
-failed browser comment, prompt experiment, or manual negative sample can guide
-research, but it cannot become executable logic until it is generalized into the
-document registry.
+The P4 gates intentionally do not carry a list of sample-specific terms. A
+browser comment, provider experiment, or manual research note can guide research,
+but it cannot become executable logic until it is generalized into the document
+registry.
 
 ## Handoff Standard
 

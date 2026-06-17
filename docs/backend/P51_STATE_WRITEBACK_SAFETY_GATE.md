@@ -50,5 +50,5 @@ P51 intentionally leaves these as future work:
 
 - durable database transaction rollback,
 - multi-table canon/branch commit,
-- Reader branch publish / full WorldInstance writeback tied to Creator run ledger,
+- Reader public branch publish / durable multi-table WorldInstance writeback tied to Creator run ledger,
 - production auth/permission boundary for publish operators.

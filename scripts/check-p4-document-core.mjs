@@ -38,7 +38,15 @@ assert(Array.isArray(core.humanEditableSources), 'P4 must list human-editable so
 assert(core.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'P4 must keep GENRE_CONSTRAINT_RULES.md as a human source')
 assert(core.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'P4 must keep GENRE_KERNEL_RULES.md as a human source')
 assert(Array.isArray(core.nonExecutableInputs), 'P4 must declare non-executable research inputs')
-assert(core.nonExecutableInputs.includes('historical_negative_sample'), 'P4 must mark historical negative samples as non-executable')
+const allowedNonExecutableInputs = new Set([
+  'browser_qa_note',
+  'research_intake_note',
+  'provider_prompt_experiment',
+  'backend_review_suggestion',
+])
+const unexpectedInputs = core.nonExecutableInputs.filter(input => !allowedNonExecutableInputs.has(input))
+assert(unexpectedInputs.length === 0, `P4 non-executable inputs must stay generic research intake types: ${unexpectedInputs.join(', ')}`)
+assert(core.nonExecutableInputs.includes('research_intake_note'), 'P4 must keep manual research notes non-executable until generalized into the registry')
 assert(existsSync(join(root, core.baselineContract)), `missing ${core.baselineContract}`)
 for (const source of core.humanEditableSources) assert(existsSync(join(root, source)), `missing ${source}`)
 

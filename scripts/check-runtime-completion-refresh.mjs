@@ -54,11 +54,11 @@ mkdirSync(outputDir, { recursive: true })
 const artifact = {
   status: 'passed',
   scope: 'runtime completion matrix refresh',
-  refreshedBy: ['P49 Time Engine Contract', 'P51 State Writeback Safety Gate'],
+  refreshedBy: ['P49 Time Engine Contract', 'P51 State Writeback Safety Gate', 'P55 WorldInstance Writeback Candidate Gate'],
   remainingGaps: [
     'durable FastAPI TimeEngine service',
     'database transaction rollback',
-    'Reader branch publish and full WorldInstance writeback',
+    'Reader public branch publish and durable multi-table WorldInstance writeback',
     'production operator authorization',
   ],
 }

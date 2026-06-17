@@ -31,7 +31,7 @@ The response includes `branch_writeback`. `/v1/reader/snapshot` and `/v1/timelin
 
 ## Non-Claims
 
-This is not public branch publish. It does not write canon. It does not yet provide full WorldInstance relationship writeback. It does not prove remote live Reader generation.
+This is not public branch publish. It does not write canon. P55 adds a candidate WorldInstance patch layer, but durable multi-table WorldInstance writeback remains future work. P53 does not prove remote live Reader generation.
 
 ## Acceptance
 

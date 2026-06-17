@@ -74,12 +74,12 @@ Activation rule:
 - Explicit user-selected genre/template labels win over generic seed keywords.
 - Seed keywords may add secondary profiles, but must not override the selected genre.
 - Generic mood labels such as `情感成长` must not activate a hard genre profile by themselves.
-- One-off prompt-specific constraints are retired from P4 and must not be reintroduced as hardcoded service branches.
+- One-off intake notes are retired from P4 execution and must not be reintroduced as hardcoded service branches.
 
 ## P4 Document-First Reset
 
 P4 only accepts constraints that exist in the document registry. A user test case,
-browser QA note, backend review suggestion, or one-time negative sample is not an
+browser QA note, backend review suggestion, or research intake note is not an
 executable product rule until the team has converted it into:
 
 1. a `ConstraintProfile.rules[]` entry in `genre-runtime-rules.v1.json`,
@@ -90,7 +90,7 @@ executable product rule until the team has converted it into:
 
 Rules must describe the story substrate, reader expectation, time/setting
 boundary, or character-action boundary in reusable terms. Do not encode a single
-historical prompt as a private branch in workflow, backend service code, provider
+intake note as a private branch in workflow, backend service code, provider
 adapter prompts, smoke payloads, or public UI copy.
 
 ### `xuanhuan-xianxia`

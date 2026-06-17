@@ -37,6 +37,88 @@ def _stable_reader_run_id(payload: Dict[str, Any]) -> str:
     return "reader_run_%s" % sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
+def _added_items(before: List[Any], after: List[Any]) -> List[Any]:
+    before_keys = {json.dumps(item, ensure_ascii=False, sort_keys=True) for item in before}
+    return [
+        item
+        for item in after
+        if json.dumps(item, ensure_ascii=False, sort_keys=True) not in before_keys
+    ]
+
+
+def _relationship_key(edge: Dict[str, Any]) -> str:
+    return "%s->%s" % (edge.get("source") or "", edge.get("target") or "")
+
+
+def _changed_relationship_edges(before: List[Dict[str, Any]], after: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    before_by_key = {_relationship_key(edge): edge for edge in before}
+    changes: List[Dict[str, Any]] = []
+    for edge in after:
+        key = _relationship_key(edge)
+        previous = before_by_key.get(key)
+        if previous != edge:
+            changes.append(edge)
+    return changes
+
+
+def _world_instance_patch_candidate(
+    *,
+    step: Any,
+    source_run_id: str,
+    worldline_id: str,
+    branch_id: str,
+    choice_id: str,
+    chapter_id: str,
+) -> Dict[str, Any]:
+    before = step.state_before.to_dict()
+    after = step.state_after.to_dict()
+    fact_additions = _added_items(list(before.get("world_facts") or []), list(after.get("world_facts") or []))
+    promise_additions = _added_items(list(before.get("open_promises") or []), list(after.get("open_promises") or []))
+    route_additions = _added_items(list(before.get("route_fingerprint") or []), list(after.get("route_fingerprint") or []))
+    before_edges = list(before.get("relationship_graph") or [])
+    after_edges = list(after.get("relationship_graph") or [])
+    changed_edges = _changed_relationship_edges(before_edges, after_edges)
+    state_refs = [
+        ref
+        for ref, changed in [
+            ("world_facts", bool(fact_additions)),
+            ("open_promises", bool(promise_additions)),
+            ("relationship_graph", bool(changed_edges) or bool(after_edges)),
+            ("route_fingerprint", bool(route_additions)),
+        ]
+        if changed
+    ]
+    return {
+        "status": "candidate",
+        "write_scope": "world_instance_patch_candidate_only",
+        "source_run_id": source_run_id,
+        "worldline_id": worldline_id,
+        "branch_id": branch_id,
+        "choice_id": choice_id,
+        "chapter_id": chapter_id,
+        "state_refs": state_refs,
+        "patch": {
+            "world_facts_added": fact_additions[:8],
+            "open_promises_added": promise_additions[:8],
+            "relationship_edges_changed": changed_edges[:8],
+            "route_fingerprint_added": route_additions[:8],
+        },
+        "snapshot_summary": {
+            "world_fact_count": len(list(after.get("world_facts") or [])),
+            "open_promise_count": len(list(after.get("open_promises") or [])),
+            "relationship_edge_count": len(after_edges),
+            "route_fingerprint_count": len(list(after.get("route_fingerprint") or [])),
+            "chapter_index": int(after.get("chapter_index") or 0),
+            "story_phase": after.get("story_phase"),
+        },
+        "rollback_plan": {
+            "status": "available_before_public_publish",
+            "method": "discard_world_instance_patch_candidate",
+            "chapter_id": chapter_id,
+        },
+    }
+
+
 def _fallback_state(*, world_id: str = "unbound_world") -> NarrativeState:
     return NarrativeState.from_dict(
         {
@@ -144,18 +226,43 @@ class ProductRuntimeService:
             chapter_view = result.get("chapter_view") or {}
             chapter_id = str(chapter_view.get("chapterId") or "")
             if choice_id and chapter_id:
+                worldline_id = str(payload.get("worldline_id") or session_id)
+                branch_id = str(payload.get("branch_id") or payload.get("worldline_id") or session_id)
+                latest_step = self.repository.get_latest_step(session_id)
+                world_instance_patch = (
+                    _world_instance_patch_candidate(
+                        step=latest_step,
+                        source_run_id=source_run_id,
+                        worldline_id=worldline_id,
+                        branch_id=branch_id,
+                        choice_id=choice_id,
+                        chapter_id=chapter_id,
+                    )
+                    if latest_step is not None
+                    else {
+                        "status": "unavailable",
+                        "write_scope": "none",
+                        "source_run_id": source_run_id,
+                        "worldline_id": worldline_id,
+                        "branch_id": branch_id,
+                        "choice_id": choice_id,
+                        "chapter_id": chapter_id,
+                        "reason": "latest_step_missing",
+                    }
+                )
                 recorded_choice = self.repository.save_route_choice(
                     session_id=session_id,
                     chapter_id=chapter_id,
                     choice_id=choice_id,
                     payload_json={
                         "source_run_id": source_run_id,
-                        "worldline_id": payload.get("worldline_id") or session_id,
-                        "branch_id": payload.get("branch_id") or payload.get("worldline_id") or session_id,
+                        "worldline_id": worldline_id,
+                        "branch_id": branch_id,
                         "freeform_intent": payload.get("freeform_intent"),
                         "scene_id": payload.get("scene_id"),
                         "chapter_index": chapter_view.get("chapterIndex"),
                         "write_scope": "route_choice_ledger_only",
+                        "world_instance_patch_candidate": world_instance_patch,
                     },
                 )
                 branch_writeback = {
@@ -164,15 +271,22 @@ class ProductRuntimeService:
                     "write_scope": "route_choice_ledger_only",
                     "source_run_id": source_run_id,
                     "session_id": session_id,
-                    "worldline_id": payload.get("worldline_id") or session_id,
-                    "branch_id": payload.get("branch_id") or payload.get("worldline_id") or session_id,
+                    "worldline_id": worldline_id,
+                    "branch_id": branch_id,
                     "choice_id": choice_id,
                     "chapter_id": chapter_id,
                     "choice_event_id": recorded_choice["choice_event_id"],
                     "selected_at": recorded_choice["selected_at"],
+                    "world_instance_writeback": {
+                        "status": world_instance_patch["status"],
+                        "write_scope": world_instance_patch["write_scope"],
+                        "state_refs": list(world_instance_patch.get("state_refs") or []),
+                        "snapshot_summary": dict(world_instance_patch.get("snapshot_summary") or {}),
+                    },
+                    "world_instance_patch_candidate": world_instance_patch,
                     "rollback_plan": {
                         "status": "available_before_public_publish",
-                        "method": "delete_route_choice_ledger_record",
+                        "method": "delete_route_choice_ledger_record_and_discard_world_instance_patch",
                         "choice_event_id": recorded_choice["choice_event_id"],
                     },
                 }
@@ -209,6 +323,7 @@ class ProductRuntimeService:
             chapter_id = "chapter_%s_%s" % (worldline_id, step.step_index)
             route_choice = choices_by_chapter.get(chapter_id)
             route_payload = dict(route_choice.get("payload") or {}) if route_choice else {}
+            world_instance_patch = dict(route_payload.get("world_instance_patch_candidate") or {}) if route_payload else {}
             events.append(
                 {
                     "id": chosen.get("event_id") or "event_%s_%s" % (worldline_id, index),
@@ -222,11 +337,18 @@ class ProductRuntimeService:
                     "source_run_id": route_payload.get("source_run_id"),
                     "choice_event_id": route_choice.get("choice_event_id") if route_choice else None,
                     "write_scope": route_payload.get("write_scope"),
+                    "world_instance_patch_candidate": world_instance_patch or None,
                     "tags": list(chosen.get("tags") or []),
                     "created_at": step.created_at,
                 }
             )
         linked_choices = [choice for choice in route_choices if dict(choice.get("payload") or {}).get("source_run_id")]
+        world_instance_patches = [
+            dict(dict(choice.get("payload") or {}).get("world_instance_patch_candidate") or {})
+            for choice in route_choices
+            if dict(choice.get("payload") or {}).get("world_instance_patch_candidate")
+        ]
+        patch_summaries = [dict(patch.get("snapshot_summary") or {}) for patch in world_instance_patches]
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -239,6 +361,14 @@ class ProductRuntimeService:
                 "write_scope": "route_choice_ledger_only" if route_choices else "none",
                 "linked_choice_count": len(linked_choices),
                 "route_choice_count": len(route_choices),
+                "world_instance_patch_count": len(world_instance_patches),
+            },
+            "world_instance_writeback_summary": {
+                "status": "candidate" if world_instance_patches else ("waiting" if route_choices else "none"),
+                "write_scope": "world_instance_patch_candidate_only" if world_instance_patches else "none",
+                "patch_count": len(world_instance_patches),
+                "latest_snapshot_summary": patch_summaries[-1] if patch_summaries else {},
+                "rollback_scope": "discard_patch_candidate_before_public_publish" if world_instance_patches else "none",
             },
             "density_summary": {
                 "mode": "observed_runtime_trace",

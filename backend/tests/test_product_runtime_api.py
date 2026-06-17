@@ -93,6 +93,30 @@ def test_scene_advance_persists_reader_branch_trace(tmp_path: Path, monkeypatch)
     assert payload["branch_writeback"]["source_run_id"] == "reader-run-branch-proof"
     assert payload["branch_writeback"]["branch_id"] == "public-signal"
     assert payload["branch_writeback"]["rollback_plan"]["status"] == "available_before_public_publish"
+    assert payload["branch_writeback"]["world_instance_writeback"]["status"] == "candidate"
+    assert payload["branch_writeback"]["world_instance_writeback"]["write_scope"] == "world_instance_patch_candidate_only"
+    assert "relationship_graph" in payload["branch_writeback"]["world_instance_writeback"]["state_refs"]
+    patch = payload["branch_writeback"]["world_instance_patch_candidate"]
+    assert patch["status"] == "candidate"
+    assert patch["write_scope"] == "world_instance_patch_candidate_only"
+    assert patch["source_run_id"] == "reader-run-branch-proof"
+    assert patch["rollback_plan"]["method"] == "discard_world_instance_patch_candidate"
+    assert set(patch["patch"]).issuperset(
+        {
+            "world_facts_added",
+            "open_promises_added",
+            "relationship_edges_changed",
+            "route_fingerprint_added",
+        }
+    )
+    assert set(patch["snapshot_summary"]).issuperset(
+        {
+            "world_fact_count",
+            "open_promise_count",
+            "relationship_edge_count",
+            "route_fingerprint_count",
+        }
+    )
     assert all(step["source_run_id"] == "reader-run-branch-proof" for step in payload["harness_trace"])
 
     snapshot = client.get("/v1/reader/snapshot", params={"session_id": session_id})
@@ -100,12 +124,18 @@ def test_scene_advance_persists_reader_branch_trace(tmp_path: Path, monkeypatch)
     worldline = snapshot.json()["worldline"]
     assert worldline["route_choice_count"] == 1
     assert worldline["branch_writeback_summary"]["status"] == "linked"
+    assert worldline["branch_writeback_summary"]["world_instance_patch_count"] == 1
+    assert worldline["world_instance_writeback_summary"]["status"] == "candidate"
+    assert worldline["world_instance_writeback_summary"]["write_scope"] == "world_instance_patch_candidate_only"
+    assert worldline["world_instance_writeback_summary"]["latest_snapshot_summary"]["relationship_edge_count"] >= 0
     assert worldline["events"][0]["choice_id"] == "choice_public_signal"
     assert worldline["events"][0]["source_run_id"] == "reader-run-branch-proof"
+    assert worldline["events"][0]["world_instance_patch_candidate"]["status"] == "candidate"
 
     worldline_response = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
     assert worldline_response.status_code == 200
     assert worldline_response.json()["branch_writeback_summary"]["write_scope"] == "route_choice_ledger_only"
+    assert worldline_response.json()["world_instance_writeback_summary"]["patch_count"] == 1
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

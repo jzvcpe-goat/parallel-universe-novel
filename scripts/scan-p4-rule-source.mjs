@@ -85,6 +85,15 @@ if (!existsSync(runtimeRulesSource)) {
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'runtime rules must list GENRE_CONSTRAINT_RULES.md as a human source')
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'runtime rules must list GENRE_KERNEL_RULES.md as a human source')
   expectArray(documentCore.nonExecutableInputs, 'runtime rules must name non-executable research inputs')
+  const allowedNonExecutableInputs = new Set([
+    'browser_qa_note',
+    'research_intake_note',
+    'provider_prompt_experiment',
+    'backend_review_suggestion',
+  ])
+  for (const inputType of documentCore.nonExecutableInputs || []) {
+    expect(allowedNonExecutableInputs.has(inputType), `runtime rules must use generic research intake types, not ${inputType}`)
+  }
   expectArray(profiles, 'runtime rules must contain ConstraintProfile entries')
   expectArray(kernels, 'runtime rules must contain GenreKernel entries')
   expect(!hasPlainReferenceLeak(runtimeRules), 'runtime rules must not expose representative work titles or author fields')

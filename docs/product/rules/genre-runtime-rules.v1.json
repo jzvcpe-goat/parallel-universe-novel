@@ -15,7 +15,7 @@
     "activationBoundary": "selected_template_then_user_intent_then_author_override_then_kernel_compatibility_then_quality_brake",
     "nonExecutableInputs": [
       "browser_qa_note",
-      "historical_negative_sample",
+      "research_intake_note",
       "provider_prompt_experiment",
       "backend_review_suggestion"
     ]

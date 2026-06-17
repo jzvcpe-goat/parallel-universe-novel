@@ -1,5 +1,43 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P4 文档注册表主权再重置
+
+用户明确要求 P4 从头做，且此前围绕单次创作验收形成的题材约束逻辑全部弃用。这里的关键不是替换一组禁词，而是把“旧验收样本”这个分类从工程事实里拿掉；否则团队仍会把一次人工测试当成可执行产品规则。
+
+新的工程标准：
+
+1. P4 的唯一事实源是 `genre-runtime-rules.v1.json`、`GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 和 v3 baseline。
+2. `documentCore.nonExecutableInputs` 只保留通用研究输入类型，例如 `research_intake_note`；不得保留样本特定分类。
+3. 所有可执行约束必须落到 `ConstraintProfile.rules[]`，节奏、动机、冲突和高潮回收必须通过兼容 `GenreKernel` 生效。
+4. 门禁使用允许清单、匿名引用、schema 完整性和无 hardcoded registry 分支来验收，不维护样本词表。
+5. 新增题材边界时，先改人类可编辑规则文档，再同步 runtime JSON、resolver 测试和 Quality Brake fixture。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run scan:p4-rule-source
+```
+
+## 2026-06-17 P55 WorldInstance 关系/记忆候选写回
+
+P53 证明 Reader 选择能写入 `route_choices`，但它只说明“选择被记录了”，还不能说明世界实例的关系、承诺、事实和路线记忆会被整理出来。下一步不能直接跳到 public branch publish，否则会绕过质量刹车和回滚边界。
+
+本轮规则：
+
+1. Reader 选择成功后，从 `StepRecord.state_before/state_after` 生成 `world_instance_patch_candidate`。
+2. patch 只进入 `world_instance_patch_candidate_only`，不写 canon，不公开发布 branch。
+3. patch 包含世界事实、open promises、relationship graph、route fingerprint 的候选差异和当前快照计数。
+4. `/reader/snapshot` 和 `/timeline/worldlines/{id}/loom` 必须能读回 `world_instance_writeback_summary`。
+5. P45 仍保持 partial，剩余 gap 是 public branch publish、durable multi-table WorldInstance writeback、database rollback 和 remote live runtime。
+
+必跑检查：
+
+```bash
+npm run check:world-instance-writeback
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_product_runtime_api.py
+```
+
 ## 2026-06-17 P4 文档核心重新收敛
 
 用户再次明确：此前围绕单个 prompt-case 形成的临时约束逻辑全部弃用，P4 必须以文档里的 `ConstraintProfile + GenreKernel` 为核心。这次修正的重点不是增加或替换某组禁词，而是移除扫描器中的历史样本词表，避免把一次验收样本继续伪装成产品规则。

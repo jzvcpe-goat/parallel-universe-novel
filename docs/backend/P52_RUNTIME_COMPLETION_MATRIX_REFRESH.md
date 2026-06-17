@@ -21,7 +21,13 @@ P51 changed state-writeback and quality-brake evidence:
 - repeated keys replay the same idempotent canon ledger record,
 - commit records declare `write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
-- remaining gap is database transaction rollback, branch publish/full WorldInstance writeback, and production operator auth.
+- remaining gap is database transaction rollback, public branch publish, durable multi-table WorldInstance writeback, and production operator auth.
+
+P55 changed world-engine/state-writeback evidence:
+
+- Reader choices now produce `world_instance_patch_candidate_only`,
+- snapshot/worldline endpoints expose `world_instance_writeback_summary`,
+- remaining gap is public branch publish plus durable multi-table writeback, not absence of a WorldInstance patch candidate.
 
 ## Verification
 

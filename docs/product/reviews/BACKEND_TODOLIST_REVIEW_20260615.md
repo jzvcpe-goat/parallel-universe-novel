@@ -144,7 +144,7 @@ Required fix:
 - Add a first-class `genre_constraints` structure to story project state.
 - Derive constraints from selected genre, premise, negative statements, explicit overrides, and world substrate.
 - Store both human-readable cards and machine-enforced facts.
-- Add tests by iterating the documented `ConstraintProfile` registry; do not promote one historical prompt case into service code.
+- Add tests by iterating the documented `ConstraintProfile` registry; do not promote one-off intake notes into service code.
 
 ### 5. Time Engine Is Only a Candidate Hook System
 

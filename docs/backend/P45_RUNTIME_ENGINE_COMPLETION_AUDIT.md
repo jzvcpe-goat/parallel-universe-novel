@@ -26,11 +26,11 @@ npm run check:runtime-engine-completion
 
 | Component ID | Module | Status | Evidence Summary | Open Gap |
 | --- | --- | --- | --- | --- |
-| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result. | Reader choice and Studio canon confirmation do not yet share a proven runtime trace. |
-| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, and Reader route-choice ledger proof exist. | Full WorldInstance relationship writeback and branch publish are not yet proven through runtime facade. |
+| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates. | Studio canon confirmation and public branch publish do not yet share a proven remote runtime trace. |
+| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, and `world_instance_patch_candidate_only` readback exist. | Public branch publish and durable multi-table WorldInstance writeback are not yet proven through runtime facade. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime. | Durable FastAPI TimeEngine and fitted event-density for Reader branch publish are not yet proven. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof, and Reader choices persist to route-choice ledger. | Transactional multi-table write, branch publish, and Reader branch rollback fixtures are not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof, Reader choices persist to route-choice ledger, and WorldInstance relationship/memory patch candidates can be read back. | Transactional multi-table write, public branch publish, and Reader branch rollback fixtures are not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, and canon ledger commit gated by quality plus confirmation. | Production operator auth and Reader live-generation quality gate are not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
@@ -58,7 +58,7 @@ P52 refreshed this matrix after P49 and P51:
 - P51 is guarded by `check:state-writeback-safety`.
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
-The matrix remains conservative: durable FastAPI TimeEngine, database transaction rollback, Reader branch publish, full WorldInstance writeback, production operator authorization, and remote live runtime are still future gates.
+The matrix remains conservative: durable FastAPI TimeEngine, database transaction rollback, Reader public branch publish, durable multi-table WorldInstance writeback, production operator authorization, and remote live runtime are still future gates.
 
 ## P53 Reader Branch Trace Gate
 
@@ -69,7 +69,24 @@ P53 proves the Reader side of branch persistence without claiming public branch 
 - `/v1/reader/snapshot` and `/v1/timeline/worldlines/{id}/loom` expose a `branch_writeback_summary`.
 - `check:reader-branch-trace` prevents Reader branch persistence from regressing to local-only state.
 
-Remaining gaps are still explicit: this is `route_choice_ledger_only`, not a full WorldInstance relationship writeback, not public branch publish, and not remote live runtime proof.
+Remaining gaps are still explicit: this is `route_choice_ledger_only`, not public branch publish, not durable multi-table WorldInstance writeback, and not remote live runtime proof.
+
+## P55 WorldInstance Writeback Candidate Gate
+
+P55 proves the candidate layer of WorldInstance relationship and memory
+writeback:
+
+- `/v1/scene/advance` derives `world_instance_patch_candidate` from
+  `StepRecord.state_before` and `StepRecord.state_after`.
+- The patch includes world facts, open promises, relationship graph changes,
+  route fingerprint changes, snapshot counts, and rollback metadata.
+- `/v1/reader/snapshot` and `/v1/timeline/worldlines/{id}/loom` expose
+  `world_instance_writeback_summary`.
+- `check:world-instance-writeback` prevents this from regressing.
+
+Remaining gaps stay explicit: P55 is `world_instance_patch_candidate_only`, not
+public branch publish, not canon write, and not production transaction rollback
+proof.
 
 ## Privacy Boundary
 
