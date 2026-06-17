@@ -27,6 +27,34 @@ npm run scan:reference-privacy
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
 ```
 
+## 2026-06-17 P19 公开 live runtime 配置审计
+
+### 现象
+
+GitHub Pages 已经能稳定发布 Creator Studio，但公开页面仍是 `VITE_PUBLIC_RUNTIME_MODE=disabled`。如果只看页面可访问，会误以为产品已经具备公网创作能力；实际上远端 FastAPI 与 Agent Runtime URL 没有配置时，公开页面必须保持“创作服务待连接”。
+
+### 修复原则
+
+1. live 能力必须通过 GitHub repository variables 启用，不能通过前端代码改默认值。
+2. `VITE_API_ORIGIN` 和 `VITE_AGENT_RUNTIME_BASE_URL` 必须是 remote HTTPS，不能是 localhost、示例域名或空值。
+3. 静态 preview 可发布，但必须清楚标记为 runtime 未连接；不能生成本地假正文。
+4. 切到 live 前必须跑浏览器级 `qa:live-runtime-browser`。
+
+### 本轮落地
+
+- 新增 `scripts/check-public-live-config.mjs`。
+- 新增 `npm run check:public-live-config` 并纳入 root test。
+- 新增 `docs/backend/P19_PUBLIC_LIVE_RUNTIME_CONFIG_AUDIT.md`，记录当前 repo vars/secrets 为空、公开站点仍是 disabled runtime。
+- 脚本支持 `CHECK_GITHUB_REPO_VARS=true` 审计 GitHub repo vars，也支持 `REQUIRE_PUBLIC_LIVE_CONFIG=true` 作为强制 live 门禁。
+
+### 必跑检查
+
+```bash
+npm run check:public-live-config
+CHECK_GITHUB_REPO_VARS=true npm run check:public-live-config
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P17 代表作品隐私审计
 
 ### 现象
