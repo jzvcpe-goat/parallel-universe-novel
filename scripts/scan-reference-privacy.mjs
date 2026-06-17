@@ -160,10 +160,32 @@ function validateMarkdownSourceRefs(publicIds) {
   }
 }
 
+function validatePublicRuleTextNoTitleMarkers() {
+  const publicRuleFiles = [
+    'docs/product/rules/genre-runtime-rules.v1.json',
+    'docs/product/rules/GENRE_CONSTRAINT_RULES.md',
+    'docs/product/rules/GENRE_KERNEL_RULES.md',
+    'docs/product/rules/reference-work-public-refs.json',
+  ]
+  for (const rel of publicRuleFiles) {
+    const absolute = join(root, rel)
+    if (!existsSync(absolute)) continue
+    const text = readFileSync(absolute, 'utf8')
+    for (const match of text.matchAll(/《[^》]{1,80}》/g)) {
+      violations.push(`${rel}:${lineNumber(text, match.index || 0)} public rule artifact must not expose representative work title marker: ${match[0]}`)
+    }
+    const authorMarker = text.match(/代表作|代表作品|作品名|书名|作者名|authorName|workTitle|representativeWorkTitle/)
+    if (authorMarker?.index !== undefined) {
+      violations.push(`${rel}:${lineNumber(text, authorMarker.index)} public rule artifact must not expose representative work title/author metadata`)
+    }
+  }
+}
+
 validateVaultShape()
 const publicIds = validatePublicRefs()
 validateRuntimeSourceRefs(publicIds)
 validateMarkdownSourceRefs(publicIds)
+validatePublicRuleTextNoTitleMarkers()
 
 for (const file of files) {
   const rel = relative(root, file)

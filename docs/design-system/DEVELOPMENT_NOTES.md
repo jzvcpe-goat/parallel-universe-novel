@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P17 代表作品隐私审计
+
+### 现象
+
+GenreKernel 和 ConstraintProfile 需要从主流小说中提炼结构，但公开仓库不能暴露代表作品名称、作者名或可还原的作品元数据。否则产品和法律风险会从“参考结构”变成“明示借鉴对象”。
+
+### 修复原则
+
+1. 公开规则只能出现 `rwref_0000` 形式的匿名引用。
+2. 真实作品名只能存在于加密 vault，不能进入 kernel、constraints、前端或后端 runtime。
+3. 公开规则文件禁止出现 `《...》` 书名标记。
+4. 公开 ref map 只能包含 `id` 和 `source_pdfs`，不能出现 title、author、name、work 等字段。
+5. 隐私扫描必须进入 `npm run test`，不能靠人工记忆。
+
+### 本轮落地
+
+- 审计 `genre-runtime-rules.v1.json`、`GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md`、public refs 和 encrypted vault。
+- `scripts/scan-reference-privacy.mjs` 新增公开规则书名/作者元数据扫描。
+- 新增 `docs/product/rules/REFERENCE_WORK_PRIVACY_AUDIT_20260617.md`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run scan:reference-privacy
+```
+
 ## 2026-06-17 P16 Pages Live Release Gate
 
 ### 现象

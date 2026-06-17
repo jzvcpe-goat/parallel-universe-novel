@@ -24,6 +24,7 @@
     "deploy/runtime-preview/docker-compose.yml",
     "docs/product/rules/GENRE_CONSTRAINT_RULES.md",
     "docs/product/rules/GENRE_KERNEL_RULES.md",
+    "docs/product/rules/REFERENCE_WORK_PRIVACY_AUDIT_20260617.md",
     "docs/product/rules/REFERENCE_WORK_PRIVACY.md",
     "docs/product/rules/genre-runtime-rules.v1.json",
     "docs/product/rules/reference-work-public-refs.json",
