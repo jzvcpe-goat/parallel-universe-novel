@@ -55,6 +55,17 @@ if (isRelease && existsSync(sourceRoot)) {
     const releaseText = readFileSync(releasePath, 'utf8')
     assert(sourceText === releaseText, `release syncAsIs file differs from source: ${rel}`)
   }
+  for (const entry of manifest.managedWithReleaseOverrides) {
+    const sourcePath = join(sourceRoot, entry.file)
+    assert(existsSync(sourcePath), `source managed file missing: ${entry.file}`)
+    const sourceJson = readJson(sourcePath)
+    for (const [key, value] of Object.entries(entry.sourceJson || {})) {
+      assert(
+        sourceJson[key] === value,
+        `source managed file ${entry.file} expected ${key}=${value}, got ${sourceJson[key]}`,
+      )
+    }
+  }
 }
 
 console.log(JSON.stringify({

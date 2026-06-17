@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P44 源/发布身份漂移门禁
+
+### 现象
+
+P43 同步时发现源工作区 `package.json` 曾被覆盖成 release 仓库身份。由于 `package.json` 属于 `managedWithReleaseOverrides`，release 侧原本只检查自己的 release identity，不能在本地发现 source workspace 已经漂移。
+
+### 修复原则
+
+1. `syncAsIs` 文件要逐字节一致。
+2. `managedWithReleaseOverrides` 文件不能逐字节同步，但 source/release 两边的身份都必须被机器验证。
+3. 当 release 仓库旁边存在 source workspace 时，release 侧 `check:release-sync-manifest` 也要验证 source managed file 的 `sourceJson`。
+4. 发现 source package 被 release package 覆盖时，先恢复 source identity，再同步新增脚本入口，不能把 release 身份继续扩散。
+
+### 本轮落地
+
+- `scripts/check-release-sync-manifest.mjs` 在 release 模式下额外检查 source root 的 managed files。
+- 源工作区 `package.json` 恢复为 `integration-harness` 身份，并保留 `check:github-actions-artifacts` 脚本入口。
+
+### 必跑检查
+
+```bash
+npm run check:release-sync-manifest
+cd /Users/james/Documents/PUF/workspaces/integration-harness && npm run check:package-identity
+```
+
 ## 2026-06-17 P43 CI artifact 证据门禁
 
 ### 现象
