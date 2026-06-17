@@ -146,7 +146,18 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-6. Run Live Smoke:
+6. Generate the readiness ledger:
+
+```bash
+REQUIRE_LIVE_RUNTIME_READY=true \
+VITE_PUBLIC_RUNTIME_MODE=live \
+VITE_API_ORIGIN=https://<api-host> \
+VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host> \
+VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
+npm run audit:live-runtime-readiness
+```
+
+7. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -156,10 +167,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-7. Set GitHub repository variables.
-8. Push or manually dispatch `Deploy Creator Studio Preview`.
-9. Confirm GitHub Actions build and deploy jobs are green.
-10. Open public `/#/create` and verify it shows `创作服务可用`.
+8. Set GitHub repository variables.
+9. Push or manually dispatch `Deploy Creator Studio Preview`.
+10. Confirm GitHub Actions build and deploy jobs are green.
+11. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 
@@ -205,6 +216,7 @@ Capture and attach:
 - Agent health response.
 - `npm run check:public-live-config` output.
 - `npm run check:public-runtime-preview` output.
+- `npm run audit:live-runtime-readiness` output and generated `artifacts/runtime/live-runtime-readiness-*.json`.
 - `npm run smoke:creator-chain` output, or `npm run test` output proving the smoke ran inside the root gate.
 - `npm run qa:live-runtime-browser` output and screenshot path.
 - GitHub Actions run URL.

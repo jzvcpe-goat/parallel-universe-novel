@@ -19,11 +19,13 @@ const requiredFiles = [
   'docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md',
   'docs/backend/P19_PUBLIC_LIVE_RUNTIME_CONFIG_AUDIT.md',
   'docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md',
+  'docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md',
   'deploy/runtime-preview/docker-compose.yml',
   'packages/agent-runtime/src/server.ts',
   'packages/agent-runtime/src/toolBridge.ts',
   'backend/src/narrativeos/api/app_factory.py',
   '.github/workflows/pages.yml',
+  'scripts/audit-live-runtime-readiness.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -33,6 +35,7 @@ for (const file of requiredFiles) {
 const packageJson = JSON.parse(read('package.json'))
 const p14 = read('docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md')
 const p20 = read('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md')
+const p23 = read('docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
 const agentServer = read('packages/agent-runtime/src/server.ts')
 const toolBridge = read('packages/agent-runtime/src/toolBridge.ts')
@@ -47,6 +50,14 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
+)
+assert(
+  packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
+  'package.json must expose audit:live-runtime-readiness',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run audit:live-runtime-readiness'),
+  'npm run test must include audit:live-runtime-readiness so live rollout blockers are materialized as an evidence ledger',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run smoke:creator-chain'),
@@ -101,8 +112,18 @@ for (const command of [
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',
   'gh variable set VITE_AGENT_RUNTIME_BASE_URL',
+  'npm run audit:live-runtime-readiness',
 ]) {
   assert(p20.includes(command), `P20 runbook must include command: ${command}`)
+}
+for (const required of [
+  'REQUIRE_LIVE_RUNTIME_READY=true',
+  'artifacts/runtime/live-runtime-readiness',
+  'health.api',
+  'health.agent',
+  'blockedChecks',
+]) {
+  assert(p23.includes(required), `P23 readiness ledger doc must include ${required}`)
 }
 assert(
   workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser')

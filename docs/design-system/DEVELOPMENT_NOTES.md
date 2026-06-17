@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P23 Live runtime 上线证据账本
+
+### 现象
+
+P19/P20/P22 已经让 public live runtime 有了变量门禁、activation runbook 和真实 Creator 链路 smoke，但上线断点仍然分散在多个命令输出里。部署方说“远端已经好了”时，前端侧缺少一份统一账本来记录 GitHub variables、API health、Agent health、public URL 和阻塞项。
+
+### 修复原则
+
+1. 上线事实必须落成 artifact，而不是散落在终端截图和口头描述里。
+2. 当前未配置远端时，审计命令应该清楚输出 `blocked`，但不能阻塞静态预览 CI。
+3. 真正切 live 前，使用 `REQUIRE_LIVE_RUNTIME_READY=true` 把同一条命令升级成强门禁。
+4. 账本只能记录 URL、health 和 checks，不能记录 provider secret、API key、system prompt、数据库连接串或代表作品映射。
+
+### 本轮落地
+
+- 新增 `scripts/audit-live-runtime-readiness.mjs`。
+- 新增 `npm run audit:live-runtime-readiness` 并纳入 root `npm run test`。
+- 新增 `docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md`。
+- P20 activation runbook 增加 readiness ledger 步骤和验收证据。
+- `scripts/check-runtime-activation-package.mjs` 反向检查 P23 脚本、文档和 package script。
+
+### 必跑检查
+
+```bash
+npm run audit:live-runtime-readiness
+REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P22 Creator 链路 smoke 纳入 CI 门禁
 
 ### 现象
