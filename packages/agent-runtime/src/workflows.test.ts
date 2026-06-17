@@ -110,6 +110,7 @@ test('socratic workflow returns candidate draft and at most two questions', asyn
   assert.equal(result.runtimeArtifact.version, 1)
   assert.equal(result.runtimeArtifact.narrativeRun.decision, 'candidate')
   assert.ok(result.runtimeArtifact.scenePlan.beats.length > 0)
+  assert.ok(result.runtimeArtifact.scenePlan.candidateEvents.every(event => event.source === 'time_engine'))
   assert.ok(result.runtimeArtifact.stateWritebackPreview.length > 0)
   assert.equal(result.runtimeArtifact.timeConsistencyReport.status, 'pass')
   assert.equal(result.runtimeArtifact.qualityBrakeReport.result, 'pass')

@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P49 Time Engine 合同
+
+### 现象
+
+P45 把时间引擎标成 partial：当时只有 `timeControls` 和 `timeConsistencyReport`，没有一个可测试的事件密度模拟。这样 GenreKernel 的时间参数仍然像文档字段，而不是运行时能力。
+
+### 修复原则
+
+1. 先做 deterministic TimeEngine，保证同一 runId 和 kernel 输出可回放。
+2. 使用 `baseRate/burst/decay/foreshadowPressure` 生成 Poisson/Hawkes 风格候选事件密度。
+3. TimeEngine 只进入 `runtimeArtifact.scenePlan.candidateEvents` 和 `timeConsistencyReport`，不写 canon、不写 branch。
+4. P49 仍然不是后端持久化 TimeEngine，不能把 `time-engine` 误报为 ready。
+
+### 本轮落地
+
+- 新增 `packages/agent-runtime/src/timeEngine.ts`。
+- 新增 `packages/agent-runtime/src/timeEngine.test.ts`。
+- `socraticCreateWorkflow` 的 candidate events 改为 `source: 'time_engine'`。
+- 新增 `scripts/check-time-engine-contract.mjs`。
+- 新增 `docs/backend/P49_TIME_ENGINE_CONTRACT.md`。
+
+### 必跑检查
+
+```bash
+npm --workspace @narrativeos/agent-runtime test
+npm run check:time-engine-contract
+```
+
 ## 2026-06-17 P48 Product Runtime API 覆盖门禁
 
 ### 现象

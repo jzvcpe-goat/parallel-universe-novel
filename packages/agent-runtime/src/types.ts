@@ -107,7 +107,7 @@ export interface RuntimeArtifact {
     candidateEvents: Array<{
       id: string
       label: string
-      source: 'kernel' | 'seed'
+      source: 'kernel' | 'seed' | 'time_engine'
       intensity: number
     }>
     choiceSlots: Array<{

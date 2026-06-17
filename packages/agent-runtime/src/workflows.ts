@@ -9,6 +9,7 @@ import {
   runtimeRulesMeta,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
+import { simulateKernelEventDensity } from './timeEngine.js'
 import { qualityCheckTool, requiresToolBridgeFailClosed, socraticTurnTool, statePreviewTool } from './toolBridge.js'
 import type {
   ConstraintProfile,
@@ -301,10 +302,11 @@ function runtimeArtifactFor(args: {
       ? 'rewrite'
       : 'candidate'
   const stateWritebackPreview = runtimeStatePatch(args)
-  const acceptedTimeEvents = beats.slice(0, 5).map((label, index) => ({
-    id: `time_event_${index + 1}`,
-    label,
-    order: index + 1,
+  const timeEvents = simulateKernelEventDensity(primaryKernel, beats, args.runId)
+  const acceptedTimeEvents = timeEvents.map(event => ({
+    id: event.id,
+    label: event.label,
+    order: event.order,
   }))
 
   return {
@@ -339,11 +341,11 @@ function runtimeArtifactFor(args: {
         'setting_cards.open_questions',
         'quality.preview',
       ],
-      candidateEvents: beats.slice(0, 5).map((label, index) => ({
-        id: `event_${index + 1}`,
-        label,
-        source: 'kernel',
-        intensity: Number(((primaryKernel?.timeControls.baseRate || 0.35) + index * 0.08).toFixed(2)),
+      candidateEvents: timeEvents.map(event => ({
+        id: event.id.replace('time_event', 'event'),
+        label: event.label,
+        source: 'time_engine',
+        intensity: event.intensity,
       })),
       choiceSlots: args.questions.slice(0, 2).map((question, index) => ({
         id: `choice_slot_${index + 1}`,
