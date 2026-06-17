@@ -18,6 +18,8 @@ class SceneAdvanceRequest(BaseModel):
     reader_id: Optional[str] = None
     worldline_id: Optional[str] = None
     scene_id: Optional[str] = None
+    branch_id: Optional[str] = None
+    source_run_id: Optional[str] = None
     user_id: Optional[str] = None
 
 

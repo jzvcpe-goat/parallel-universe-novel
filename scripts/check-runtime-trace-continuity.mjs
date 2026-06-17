@@ -96,6 +96,7 @@ assertIncludes('app/src/api/runtime.ts', [
   'candidate_scene',
   'quality_brake',
   'harness_trace',
+  'branch_writeback',
   'CanonCommitRequest',
   'CanonCommitResponse',
 ])
@@ -104,6 +105,7 @@ assertIncludes('app/src/pages/Story.tsx', [
   'runtimeApi.getReaderSnapshot',
   'candidate_scene',
   'quality_brake',
+  'source_run_id',
   'nextSceneBody',
 ])
 assertIncludes('app/src/pages/Studio.tsx', [
@@ -119,8 +121,10 @@ assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
 ])
 assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_scene_advance_returns_candidate_scene_and_quality_trace',
+  'test_scene_advance_persists_reader_branch_trace',
   'test_quality_evaluate_and_canon_commit_gate',
   'harness_trace',
+  'branch_writeback',
   'canon_commit_readiness',
 ])
 assertIncludes('docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md', [
@@ -150,12 +154,13 @@ const gates = [
     [
       'Reader runtime API has snapshot, scene advance, candidate scene, quality brake and harness trace DTOs.',
       'Story page calls advanceScene then snapshot refresh on reader choice.',
+      'Reader choice is persisted into the route-choice ledger with source_run_id and branch writeback summary.',
     ],
     [
       'Reader choice is not yet proven against the remote Agent Runtime facade in public live mode.',
-      'Reader worldline mutation is not yet tied to the Creator run ledger.',
+      'Reader worldline mutation is ledger-only and not yet promoted to public branch publish.',
     ],
-    'Add reader choice E2E after remote Runtime origins are configured.',
+    'Add reader choice E2E after remote Runtime origins are configured and branch publish owners are assigned.',
   ),
   gate(
     'studio-trace',

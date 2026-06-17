@@ -22,6 +22,21 @@ def _idempotency_hash(value: str) -> str:
     return sha256(value.strip().encode("utf-8")).hexdigest()[:16]
 
 
+def _stable_reader_run_id(payload: Dict[str, Any]) -> str:
+    raw = json.dumps(
+        {
+            "session_id": payload.get("session_id"),
+            "choice_id": payload.get("choice_id"),
+            "freeform_intent": payload.get("freeform_intent"),
+            "worldline_id": payload.get("worldline_id"),
+            "branch_id": payload.get("branch_id"),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    return "reader_run_%s" % sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
 def _fallback_state(*, world_id: str = "unbound_world") -> NarrativeState:
     return NarrativeState.from_dict(
         {
@@ -98,18 +113,69 @@ class ProductRuntimeService:
         if self.session_service is None:
             raise RuntimeError("session_service_required")
         session_id = str(payload.get("session_id") or "")
+        choice_id = str(payload.get("choice_id") or "").strip()
+        source_run_id = str(payload.get("source_run_id") or "").strip() or _stable_reader_run_id(payload)
         result = self.session_service.continue_story(
             ReaderContinueCommand(
                 session_id=session_id,
-                choice_id=payload.get("choice_id"),
+                choice_id=choice_id or None,
                 freeform_intent=payload.get("freeform_intent"),
             ),
             reader_id=payload.get("reader_id") or payload.get("account_id"),
         )
         latest_report = None
+        branch_writeback: Dict[str, Any] = {
+            "status": "not_persisted",
+            "branch_written": False,
+            "write_scope": "none",
+            "source_run_id": source_run_id,
+            "session_id": session_id,
+            "worldline_id": payload.get("worldline_id") or session_id,
+            "branch_id": payload.get("branch_id") or payload.get("worldline_id") or session_id,
+            "choice_id": choice_id or None,
+            "rollback_plan": {
+                "status": "not_required",
+                "method": "no_branch_record_written",
+            },
+        }
         if result.get("status") == "ok":
             reports = self.repository.list_evaluation_reports(session_id=session_id)
             latest_report = reports[0] if reports else None
+            chapter_view = result.get("chapter_view") or {}
+            chapter_id = str(chapter_view.get("chapterId") or "")
+            if choice_id and chapter_id:
+                recorded_choice = self.repository.save_route_choice(
+                    session_id=session_id,
+                    chapter_id=chapter_id,
+                    choice_id=choice_id,
+                    payload_json={
+                        "source_run_id": source_run_id,
+                        "worldline_id": payload.get("worldline_id") or session_id,
+                        "branch_id": payload.get("branch_id") or payload.get("worldline_id") or session_id,
+                        "freeform_intent": payload.get("freeform_intent"),
+                        "scene_id": payload.get("scene_id"),
+                        "chapter_index": chapter_view.get("chapterIndex"),
+                        "write_scope": "route_choice_ledger_only",
+                    },
+                )
+                branch_writeback = {
+                    "status": "persisted",
+                    "branch_written": True,
+                    "write_scope": "route_choice_ledger_only",
+                    "source_run_id": source_run_id,
+                    "session_id": session_id,
+                    "worldline_id": payload.get("worldline_id") or session_id,
+                    "branch_id": payload.get("branch_id") or payload.get("worldline_id") or session_id,
+                    "choice_id": choice_id,
+                    "chapter_id": chapter_id,
+                    "choice_event_id": recorded_choice["choice_event_id"],
+                    "selected_at": recorded_choice["selected_at"],
+                    "rollback_plan": {
+                        "status": "available_before_public_publish",
+                        "method": "delete_route_choice_ledger_record",
+                        "choice_event_id": recorded_choice["choice_event_id"],
+                    },
+                }
         return {
             "status": result.get("status", "unknown"),
             "session_id": result.get("session_id") or session_id,
@@ -122,39 +188,58 @@ class ProductRuntimeService:
             },
             "quality_brake": self._quality_gate(latest_report),
             "harness_trace": [
-                {"step": "plan", "status": "done", "detail": "Loaded session, world runtime, entitlement posture."},
-                {"step": "draft", "status": "done" if result.get("status") == "ok" else "blocked", "detail": "Generated candidate scene through reader continuation."},
-                {"step": "tool/eval", "status": "done" if latest_report else "waiting", "detail": "Quality brake report attached when a chapter was rendered."},
-                {"step": "confirm", "status": "waiting", "detail": "Canon commit still requires explicit confirmation."},
+                {"step": "plan", "status": "done", "detail": "Loaded session, world runtime, entitlement posture.", "source_run_id": source_run_id},
+                {"step": "draft", "status": "done" if result.get("status") == "ok" else "blocked", "detail": "Generated candidate scene through reader continuation.", "source_run_id": source_run_id},
+                {"step": "tool/eval", "status": "done" if latest_report else "waiting", "detail": "Quality brake report attached when a chapter was rendered.", "source_run_id": source_run_id},
+                {"step": "branch/writeback", "status": "done" if branch_writeback["branch_written"] else "waiting", "detail": "Reader choice is written to the route-choice ledger before public publish.", "source_run_id": source_run_id},
+                {"step": "confirm", "status": "waiting", "detail": "Canon commit still requires explicit confirmation.", "source_run_id": source_run_id},
             ],
+            "branch_writeback": branch_writeback,
             "raw_continue": result,
         }
 
     def worldline(self, worldline_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(worldline_id)
         steps = self.repository.list_steps(worldline_id)
+        route_choices = self.repository.list_route_choices(session_id=worldline_id)
+        choices_by_chapter = {str(choice["chapter_id"]): choice for choice in route_choices}
         events: List[Dict[str, Any]] = []
         for index, step in enumerate(steps, start=1):
             chosen = step.chosen_event.to_dict() if step.chosen_event else {}
+            chapter_id = "chapter_%s_%s" % (worldline_id, step.step_index)
+            route_choice = choices_by_chapter.get(chapter_id)
+            route_payload = dict(route_choice.get("payload") or {}) if route_choice else {}
             events.append(
                 {
                     "id": chosen.get("event_id") or "event_%s_%s" % (worldline_id, index),
                     "chapter_index": step.step_index,
-                    "type": "canon_candidate",
+                    "type": "branch_candidate" if route_choice else "canon_candidate",
                     "title": chosen.get("title") or (step.reader_view.chapter_title if step.reader_view else "未命名章节"),
                     "intensity": round(min(0.95, 0.25 + index * 0.14 + float(step.state_after.tension) * 0.25), 3),
                     "state": "candidate",
                     "choice_text": step.player_input,
+                    "choice_id": route_choice.get("choice_id") if route_choice else None,
+                    "source_run_id": route_payload.get("source_run_id"),
+                    "choice_event_id": route_choice.get("choice_event_id") if route_choice else None,
+                    "write_scope": route_payload.get("write_scope"),
                     "tags": list(chosen.get("tags") or []),
                     "created_at": step.created_at,
                 }
             )
+        linked_choices = [choice for choice in route_choices if dict(choice.get("payload") or {}).get("source_run_id")]
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
             "source": "reader_session_steps",
             "event_count": len(events),
+            "route_choice_count": len(route_choices),
             "events": events,
+            "branch_writeback_summary": {
+                "status": "linked" if linked_choices else ("waiting" if not route_choices else "missing_source_run"),
+                "write_scope": "route_choice_ledger_only" if route_choices else "none",
+                "linked_choice_count": len(linked_choices),
+                "route_choice_count": len(route_choices),
+            },
             "density_summary": {
                 "mode": "observed_runtime_trace",
                 "burst_count": sum(1 for event in events if float(event["intensity"]) >= 0.72),

@@ -571,6 +571,63 @@ class SQLAlchemyPlatformRepository:
             session.commit()
         return report.to_dict()
 
+    def save_route_choice(
+        self,
+        *,
+        session_id: str,
+        chapter_id: str,
+        choice_id: str,
+        payload_json: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        selected_at = utcnow_iso()
+        with self.SessionLocal() as session:
+            session_row = session.get(SessionRow, session_id)
+            if session_row is None:
+                raise KeyError("unknown_session:%s" % session_id)
+            chapter_row = session.get(ChapterRow, chapter_id)
+            if chapter_row is None:
+                raise KeyError("unknown_chapter:%s" % chapter_id)
+            row = RouteChoiceRow(
+                session_id=session_id,
+                chapter_id=chapter_id,
+                choice_id=choice_id,
+                selected_at=selected_at,
+                payload_json=dict(payload_json or {}),
+            )
+            session.add(row)
+            session.commit()
+            return {
+                "choice_event_id": row.choice_event_id,
+                "session_id": row.session_id,
+                "chapter_id": row.chapter_id,
+                "choice_id": row.choice_id,
+                "selected_at": row.selected_at,
+                "payload": dict(row.payload_json or {}),
+            }
+
+    def list_route_choices(self, *, session_id: str) -> List[Dict[str, Any]]:
+        with self.SessionLocal() as session:
+            rows = (
+                session.execute(
+                    select(RouteChoiceRow)
+                    .where(RouteChoiceRow.session_id == session_id)
+                    .order_by(RouteChoiceRow.selected_at.asc(), RouteChoiceRow.choice_event_id.asc())
+                )
+                .scalars()
+                .all()
+            )
+            return [
+                {
+                    "choice_event_id": row.choice_event_id,
+                    "session_id": row.session_id,
+                    "chapter_id": row.chapter_id,
+                    "choice_id": row.choice_id,
+                    "selected_at": row.selected_at,
+                    "payload": dict(row.payload_json or {}),
+                }
+                for row in rows
+            ]
+
     def get_evaluation_report(self, chapter_id: str) -> Optional[Dict[str, Any]]:
         with self.SessionLocal() as session:
             row = session.get(ChapterRow, chapter_id)

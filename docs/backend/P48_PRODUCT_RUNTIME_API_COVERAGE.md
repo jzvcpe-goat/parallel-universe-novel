@@ -24,7 +24,8 @@ Machine anchors: scene advance, quality evaluate, canon commit.
 
 | Product path | Backend endpoint | Test responsibility |
 | --- | --- | --- |
-| Reader choice | `/scene/advance` | 返回 candidate scene、quality trace、harness trace，不直接写 canon。 |
+| Reader choice | `/scene/advance` | 返回 candidate scene、quality trace、harness trace，并写入 route-choice branch ledger，不直接写 canon。 |
+| Reader worldline | `/timeline/worldlines/{id}/loom` | 读回 persisted choice trace 和 `branch_writeback_summary`，仍不声明 public branch publish。 |
 | Studio quality evaluate | `/quality/evaluate` | 生成 quality gate、blocking reasons、canon commit readiness。 |
 | Studio canon commit | `/canon/commit` | 没有人工确认或质量未过时必须 blocked；通过后才允许 committed。 |
 

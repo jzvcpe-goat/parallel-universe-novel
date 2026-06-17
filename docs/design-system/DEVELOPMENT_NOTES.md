@@ -3125,3 +3125,26 @@ GitHub Pages 已经持续成功发布，但公开 Creator 仍处于 `VITE_PUBLIC
 - `scripts/check-public-live-config.mjs` 默认调用 `gh variable list --repo jzvcpe-goat/parallel-universe-novel`。
 - 输出新增 `repoVariableSource`。
 - 当前断点仍是外部配置：缺少 `VITE_PUBLIC_RUNTIME_MODE=live`、`VITE_API_ORIGIN`、`VITE_AGENT_RUNTIME_BASE_URL`。
+
+## 2026-06-17 P53 Reader Branch Trace Gate
+
+### 现象
+
+Reader 页面此前已经会在 UI 上展示选择、分支、下一幕和阅读反馈，但运行时矩阵里仍把 Reader branch persistence 记为未证明。真正的问题不是没有选择交互，而是选择是否穿过后端合同并能被 snapshot/worldline 读回。
+
+### 修复原则
+
+1. 读者端不能只改本地 state；选择必须进入后端可审计 ledger。
+2. 复用已有 `route_choices` 表和 reader session step，不新增重复分支系统。
+3. Public UI 不展示 `runId/ledger/provider/system` 等内部词；内部 trace 只进入 DTO、测试和后台文档。
+4. 已证明能力必须写成 `route_choice_ledger_only`，不能夸大成 public branch publish 或完整 WorldInstance writeback。
+5. P45 矩阵和检查脚本要同步更新，避免旧断点继续误导后续团队。
+
+### 本轮落地
+
+- `/v1/scene/advance` 接收 `source_run_id`、`worldline_id`、`branch_id`。
+- `ProductRuntimeService.advance_scene` 在候选下一幕成功后写入 `route_choices` ledger。
+- `/v1/reader/snapshot` 与 `/v1/timeline/worldlines/{id}/loom` 返回 `branch_writeback_summary`。
+- `backend/tests/test_product_runtime_api.py` 新增 reader branch trace 持久化测试。
+- `scripts/check-reader-branch-trace.mjs` 纳入 root test，防止回退到本地 UI 假状态。
+- P45 矩阵更新为：Reader route-choice ledger 已证明；剩余断点是 branch publish、WorldInstance relationship writeback、事务 rollback 和 remote live runtime。

@@ -685,6 +685,9 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
         choice_id: choice.id,
         freeform_intent: choice.label,
         account_id: READER_ACCOUNT_ID,
+        worldline_id: sessionId,
+        branch_id: choice.branchId,
+        source_run_id: `reader-${sessionId}-${choice.id}`,
       })
       let snapshot = runtimeState.snapshot
       try {

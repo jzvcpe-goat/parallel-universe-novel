@@ -13,7 +13,7 @@ P49 changed time-engine status evidence:
 - deterministic TimeEngine exists in Agent Runtime,
 - candidate event density uses Poisson/Hawkes-style pressure,
 - `candidateEvents.source = time_engine`,
-- remaining gap is durable FastAPI TimeEngine plus Reader branch persistence, not absence of simulation.
+- remaining gap is durable FastAPI TimeEngine plus fitted event-density for branch publish, not absence of simulation.
 
 P51 changed state-writeback and quality-brake evidence:
 
@@ -21,7 +21,7 @@ P51 changed state-writeback and quality-brake evidence:
 - repeated keys replay the same idempotent canon ledger record,
 - commit records declare `write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
-- remaining gap is database transaction rollback, Reader branch persistence, and production operator auth.
+- remaining gap is database transaction rollback, branch publish/full WorldInstance writeback, and production operator auth.
 
 ## Verification
 

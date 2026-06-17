@@ -23,13 +23,13 @@ artifacts/runtime/runtime-trace-continuity-*.json
 | Surface | Required Fields | Boundary |
 | --- | --- | --- |
 | Creator | `runId`, `projectId`, `sessionId`, `candidateDraft`, `qualityPreview` | 公共 UI 可见候选正文和追问，但不暴露 `runtimeArtifact`、ledger、cost、raw state。 |
-| Reader | `session_id`, `candidate_scene`, `quality_brake`, `harness_trace`, snapshot | 选择只生成 candidate next scene；确认前不覆盖主线。 |
+| Reader | `session_id`, `candidate_scene`, `quality_brake`, `harness_trace`, `branch_writeback`, snapshot | 选择生成 candidate next scene，并写入 route-choice ledger；确认前不覆盖主线。 |
 | Studio | `quality/evaluate`, `canon/commit`, `confirmed`, `quality_report` | 发布必须先质量评价，再人工确认；失败时只能 blocked/branch，不能静默写 canon。 |
 
 ## Current Status
 
 - Creator: `ready` for local/CI candidate trace.
-- Reader: `partial`; DTO 和页面调用已存在，但 public live Reader choice 尚未穿过远端 Agent Runtime facade。
+- Reader: `partial`; 本地服务合同已证明 route-choice ledger 和 worldline summary，但 public live Reader choice 尚未穿过远端 Agent Runtime facade。
 - Studio: `partial`; 质量评价和确认提交入口已存在，但 shared run ledger、rollback 和远端 commit E2E 未完成。
 
 ## Acceptance
@@ -37,6 +37,6 @@ artifacts/runtime/runtime-trace-continuity-*.json
 1. `package.json` 暴露 `check:runtime-trace-continuity`。
 2. Root `npm run test` 包含 `check:runtime-trace-continuity`。
 3. Creator public projection 继续隐藏 runtime internals。
-4. Reader route 必须经过 `advanceScene` + snapshot，而不是只改本地分支。
+4. Reader route 必须经过 `advanceScene` + snapshot，并能读回 `branch_writeback_summary`，而不是只改本地分支。
 5. Studio commit 必须包含 `confirmed: true` 和 `quality_report`。
 6. Artifact 不包含 secret、system prompt、代表作品或 candidate 全文。

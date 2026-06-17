@@ -63,7 +63,49 @@ def test_scene_advance_returns_candidate_scene_and_quality_trace(tmp_path: Path,
     assert payload["status"] == "ok"
     assert payload["candidate_scene"]["status"] == "candidate"
     assert payload["quality_brake"]["decision"] in {"pass", "rewrite", "block", "pending"}
-    assert [step["step"] for step in payload["harness_trace"]] == ["plan", "draft", "tool/eval", "confirm"]
+    assert [step["step"] for step in payload["harness_trace"]] == ["plan", "draft", "tool/eval", "branch/writeback", "confirm"]
+
+
+def test_scene_advance_persists_reader_branch_trace(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_branch"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_public_signal",
+            "freeform_intent": "公开证据，但先保护证人。",
+            "worldline_id": session_id,
+            "branch_id": "public-signal",
+            "source_run_id": "reader-run-branch-proof",
+        },
+    )
+
+    assert advanced.status_code == 200
+    payload = advanced.json()
+    assert payload["status"] == "ok"
+    assert payload["branch_writeback"]["status"] == "persisted"
+    assert payload["branch_writeback"]["branch_written"] is True
+    assert payload["branch_writeback"]["write_scope"] == "route_choice_ledger_only"
+    assert payload["branch_writeback"]["source_run_id"] == "reader-run-branch-proof"
+    assert payload["branch_writeback"]["branch_id"] == "public-signal"
+    assert payload["branch_writeback"]["rollback_plan"]["status"] == "available_before_public_publish"
+    assert all(step["source_run_id"] == "reader-run-branch-proof" for step in payload["harness_trace"])
+
+    snapshot = client.get("/v1/reader/snapshot", params={"session_id": session_id})
+    assert snapshot.status_code == 200
+    worldline = snapshot.json()["worldline"]
+    assert worldline["route_choice_count"] == 1
+    assert worldline["branch_writeback_summary"]["status"] == "linked"
+    assert worldline["events"][0]["choice_id"] == "choice_public_signal"
+    assert worldline["events"][0]["source_run_id"] == "reader-run-branch-proof"
+
+    worldline_response = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline_response.status_code == 200
+    assert worldline_response.json()["branch_writeback_summary"]["write_scope"] == "route_choice_ledger_only"
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

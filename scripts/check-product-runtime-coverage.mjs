@@ -42,9 +42,11 @@ assert(
 
 assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_scene_advance_returns_candidate_scene_and_quality_trace',
+  'test_scene_advance_persists_reader_branch_trace',
   'test_quality_evaluate_and_canon_commit_gate',
   'test_quality_gate_blocks_engineering_leak_but_keeps_learned_tracks_shadow_only',
   'harness_trace',
+  'branch_writeback',
   'quality_brake',
   'canon_commit_readiness',
 ])
@@ -60,6 +62,7 @@ assertIncludes('app/src/api/runtime.ts', [
   'evaluateQuality',
   'commitCanon',
   'SceneAdvanceResponse',
+  'branch_writeback',
   'QualityEvaluateResponse',
   'CanonCommitResponse',
 ])
@@ -82,7 +85,7 @@ const artifact = {
   status: 'passed',
   coverage: {
     backendTarget: 'backend/tests/test_product_runtime_api.py',
-    endpoints: ['/scene/advance', '/quality/evaluate', '/canon/commit'],
+    endpoints: ['/scene/advance', '/timeline/worldlines/{id}/loom', '/quality/evaluate', '/canon/commit'],
     frontendClient: 'app/src/api/runtime.ts',
     traceGate: 'docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md',
   },

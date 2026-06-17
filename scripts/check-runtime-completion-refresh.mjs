@@ -20,9 +20,12 @@ for (const required of [
   'packages/agent-runtime/src/timeEngine.ts',
   'scripts/check-time-engine-contract.mjs',
   'scripts/check-state-writeback-safety.mjs',
+  'scripts/check-reader-branch-trace.mjs',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
+  'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
   'idempotent_replay',
   'rollback_plan',
+  'route_choice_ledger_only',
   'Transactional multi-table',
 ]) {
   assert(script.includes(required), `runtime completion script must include ${required}`)
@@ -33,6 +36,8 @@ for (const required of [
   'idempotent canon ledger',
   'check:state-writeback-safety',
   'P52 Runtime Completion Matrix Refresh',
+  'P53 Reader Branch Trace Gate',
+  'branch_writeback_summary',
 ]) {
   assert(doc.includes(required), `P45 audit doc must include refreshed phrase: ${required}`)
 }
@@ -53,7 +58,7 @@ const artifact = {
   remainingGaps: [
     'durable FastAPI TimeEngine service',
     'database transaction rollback',
-    'Reader branch persistence tied to Creator run ledger',
+    'Reader branch publish and full WorldInstance writeback',
     'production operator authorization',
   ],
 }

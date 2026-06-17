@@ -22,6 +22,9 @@ export interface SceneAdvanceRequest {
   freeform_intent?: string
   account_id?: string
   reader_id?: string
+  worldline_id?: string
+  branch_id?: string
+  source_run_id?: string
 }
 
 export interface SceneAdvanceResponse {
@@ -36,6 +39,20 @@ export interface SceneAdvanceResponse {
   }
   quality_brake: QualityGate
   harness_trace: Array<{ step: string; status: string; detail: string }>
+  branch_writeback?: {
+    status: string
+    branch_written: boolean
+    write_scope: string
+    source_run_id?: string
+    session_id?: string
+    worldline_id?: string
+    branch_id?: string
+    choice_id?: string
+    chapter_id?: string
+    choice_event_id?: number
+    selected_at?: string
+    rollback_plan?: Record<string, unknown>
+  }
   raw_continue?: Record<string, unknown>
 }
 
@@ -44,7 +61,9 @@ export interface WorldlineRuntimeEvents {
   world_id: string
   source: string
   event_count: number
+  route_choice_count?: number
   events: Array<Record<string, unknown>>
+  branch_writeback_summary?: Record<string, unknown>
   density_summary: Record<string, unknown>
 }
 

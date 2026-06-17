@@ -88,7 +88,7 @@ const artifact = {
   outputs: ['candidateEvents.source=time_engine', 'acceptedTimeEvents', 'timeConsistencyReport'],
   stillPartial: [
     'not yet a durable backend time service',
-    'not yet connected to Reader branch persistence',
+    'not yet connected to Reader branch publish',
     'not yet writing canon or branch state',
   ],
 }
