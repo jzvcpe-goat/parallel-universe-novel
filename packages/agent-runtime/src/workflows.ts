@@ -13,6 +13,7 @@ import { qualityCheckTool, socraticTurnTool, statePreviewTool } from './toolBrid
 import type {
   ConstraintProfile,
   GenreKernel,
+  PublicSocraticCreateOutput,
   RuntimeArtifact,
   SocraticCreateInput,
   SocraticCreateOutput,
@@ -201,8 +202,10 @@ function settingCards(input: SocraticCreateInput, profiles: ConstraintProfile[],
 }
 
 function runtimeSettingCards(input: SocraticCreateInput, profiles: ConstraintProfile[], kernels: GenreKernel[]) {
+  const publicName = publicKernelName(kernels[0], profiles[0])
   return {
     seed: input.seed,
+    genre_promise: publicName,
     doctrine: cleanPublicText(kernels[0]?.thesis, '先写出人物被迫承担的代价，再让世界规则变得可验证。'),
     protagonist_gap: firstItem(kernels[0]?.motiveRules, '主角先缺身份、信任或安全感，再获得行动空间。'),
     first_conflict: firstItem(kernels[0]?.conflictRules, '第一场冲突必须改变人物处境。'),
@@ -408,6 +411,90 @@ function localOutputFromInput(input: SocraticCreateInput, runId: string): Record
     qualityPreview: { result: 'pass', violations: [], repairSuggestions: [] },
     runTrace: [],
     cost: { mode: 'mock_local', estimatedTokens: 0, estimatedCostUsd: 0 },
+  }
+}
+
+function publicSettingCards(cards: Record<string, unknown>): PublicSocraticCreateOutput['settingCards'] {
+  return {
+    seed: cards.seed,
+    genre_promise: cards.genre_promise,
+    doctrine: cards.doctrine,
+    protagonist_gap: cards.protagonist_gap,
+    first_conflict: cards.first_conflict,
+    story_notes: cards.story_notes,
+  }
+}
+
+function publicQualityPreview(
+  qualityPreview: SocraticCreateOutput['qualityPreview'] | Record<string, unknown> | undefined,
+): PublicSocraticCreateOutput['qualityPreview'] {
+  const result = qualityPreview?.result
+  const safeResult = result === 'warn' || result === 'rewrite' || result === 'block' ? result : 'pass'
+  const rawViolations = Array.isArray(qualityPreview?.violations) ? qualityPreview.violations : []
+  const violations = rawViolations.map(item => {
+    const value = typeof item === 'object' && item !== null ? item as Record<string, unknown> : {}
+    return {
+      severity: String(value.severity || 'warn'),
+      message: String(value.message || '候选内容需要继续确认。'),
+    }
+  })
+  const repairSuggestions = Array.isArray(qualityPreview?.repairSuggestions)
+    ? qualityPreview.repairSuggestions.map(item => String(item))
+    : []
+  return {
+    result: safeResult,
+    violations,
+    repairSuggestions,
+  }
+}
+
+export function projectPublicSocraticCreateOutput(output: SocraticCreateOutput): PublicSocraticCreateOutput {
+  return {
+    responseMode: 'public',
+    runId: output.runId,
+    projectId: output.projectId,
+    sessionId: output.sessionId,
+    candidateDraft: output.candidateDraft,
+    questions: output.questions.slice(0, 2),
+    settingCards: publicSettingCards(output.settingCards),
+    qualityPreview: publicQualityPreview(output.qualityPreview),
+  }
+}
+
+export function projectPublicStatePreviewOutput(output: Record<string, unknown>): Record<string, unknown> {
+  const deltas = Array.isArray(output.stateDeltaCandidate) ? output.stateDeltaCandidate : []
+  return {
+    responseMode: 'public',
+    status: output.status || 'preview_only',
+    projectId: output.projectId,
+    sessionId: output.sessionId,
+    memoryPreview: {
+      status: 'preview_only',
+      summary: deltas.length
+        ? `已整理 ${deltas.length} 组写作记忆，等你确认后再固定到作品。`
+        : '已整理这一段的写作记忆，等你确认后再固定到作品。',
+      itemCount: deltas.length,
+    },
+    candidateState: 'candidate_only',
+  }
+}
+
+export function projectPublicQualityBrakeOutput(output: Record<string, unknown>): Record<string, unknown> {
+  return {
+    responseMode: 'public',
+    status: output.status || 'checked',
+    runId: output.runId,
+    projectId: output.projectId,
+    sessionId: output.sessionId,
+    candidateDraft: output.candidateDraft,
+    revisedCandidate: output.revisedCandidate,
+    qualityPreview: publicQualityPreview(
+      typeof output.qualityPreview === 'object' && output.qualityPreview !== null
+        ? output.qualityPreview as Record<string, unknown>
+        : undefined,
+    ),
+    repairPlan: Array.isArray(output.repairPlan) ? output.repairPlan.map(item => String(item)) : [],
+    candidateState: 'candidate_only',
   }
 }
 

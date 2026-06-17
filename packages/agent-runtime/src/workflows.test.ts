@@ -8,6 +8,7 @@ import {
   resolveKernels,
 } from './constraints.js'
 import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+import { projectPublicSocraticCreateOutput } from './workflows.js'
 
 function firstText(values: string[] | undefined, fallback: string): string {
   return values?.find(value => value.trim().length > 0) || fallback
@@ -49,6 +50,32 @@ test('socratic workflow returns candidate draft and at most two questions', asyn
   assert.equal(result.qualityPreview.result, 'pass')
   assert.ok(result.ledger[0].inputHash)
   assert.ok(result.ledger[0].stateDeltaCandidate?.length)
+})
+
+test('public socratic projection hides runtime internals', async () => {
+  const profile = constraintProfiles.find(item => item.displayName === '现代悬疑') || constraintProfiles[0]
+  const result = await socraticCreateWorkflow({
+    seed: seedForProfile(profile),
+    genre: profile.displayName,
+  }, { preferToolBridge: false })
+
+  const projected = projectPublicSocraticCreateOutput(result) as unknown as Record<string, unknown>
+  const text = JSON.stringify(projected)
+
+  assert.equal(projected.responseMode, 'public')
+  assert.ok(projected.candidateDraft)
+  assert.ok(projected.settingCards)
+  assert.ok(!('runtimeArtifact' in projected))
+  assert.ok(!('activeConstraints' in projected))
+  assert.ok(!('activeKernels' in projected))
+  assert.ok(!('sourceLabels' in projected))
+  assert.ok(!('runTrace' in projected))
+  assert.ok(!('ledger' in projected))
+  assert.ok(!('cost' in projected))
+  assert.ok(!text.includes('runtimeArtifact'))
+  assert.ok(!text.includes('sourceRefs'))
+  assert.ok(!text.includes('kernelId'))
+  assert.ok(!text.includes('profileId'))
 })
 
 test('constraint preview blocks prohibited mismatched terms', async () => {

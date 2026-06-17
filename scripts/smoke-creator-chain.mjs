@@ -84,12 +84,13 @@ async function waitForJson(url, timeoutMs = 30000) {
   throw new Error(`Timed out waiting for ${url}: ${lastError}`)
 }
 
-async function postJson(url, payload) {
+async function postJson(url, payload, headers = {}) {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...headers,
     },
     body: JSON.stringify(payload),
   })
@@ -151,6 +152,30 @@ function assertPublicCopy(value, path = 'payload') {
   }
 }
 
+function assertNoPublicInternals(payload, path = 'payload') {
+  const blockedKeys = [
+    'runtimeArtifact',
+    'activeConstraints',
+    'activeKernels',
+    'sourceLabels',
+    'runTrace',
+    'ledger',
+    'cost',
+    'stateDeltaCandidate',
+    'writeback',
+  ]
+  if (payload == null) return
+  if (Array.isArray(payload)) {
+    payload.forEach((item, index) => assertNoPublicInternals(item, `${path}[${index}]`))
+    return
+  }
+  if (typeof payload !== 'object') return
+  for (const [key, child] of Object.entries(payload)) {
+    assert(!blockedKeys.includes(key), `${path}.${key} must not be exposed in public agent response`)
+    assertNoPublicInternals(child, `${path}.${key}`)
+  }
+}
+
 function shutdown() {
   for (const child of children) {
     if (child.killed) continue
@@ -205,6 +230,7 @@ try {
     MASTRA_HOST: '127.0.0.1',
     MASTRA_PORT: String(agentPort),
     MASTRA_TOOL_BRIDGE_BASE_URL: apiBaseUrl,
+    MASTRA_DEBUG_RESPONSE_KEY: 'smoke-debug-key',
   })
 
   const agentHealth = await waitForJson(`${agentBaseUrl}/health`)
@@ -254,7 +280,24 @@ try {
     },
   }
 
-  const created = await postJson(`${agentBaseUrl}/v1/workflows/socratic-create`, createPayload)
+  const publicCreated = await postJson(`${agentBaseUrl}/v1/workflows/socratic-create`, createPayload)
+  assert(publicCreated.responseMode === 'public', 'public socratic create must declare public response mode')
+  assert(publicCreated.candidateDraft?.status === 'candidate', 'public candidate draft status must be candidate')
+  assert(String(publicCreated.candidateDraft?.body || '').length >= 200, 'public candidate draft must contain a readable opening')
+  assert(Array.isArray(publicCreated.questions) && publicCreated.questions.length <= 2, 'public workflow must ask at most two questions')
+  assert(publicCreated.settingCards?.genre_promise, 'public workflow must keep product-facing genre promise')
+  assertNoPublicInternals(publicCreated, 'publicCreated')
+  assertPublicCopy({
+    candidateDraft: publicCreated.candidateDraft,
+    questions: publicCreated.questions,
+    settingCards: publicCreated.settingCards,
+  }, 'socraticCreate.publicResponse')
+
+  const created = await postJson(
+    `${agentBaseUrl}/v1/workflows/socratic-create`,
+    createPayload,
+    { 'X-NarrativeOS-Debug-Key': 'smoke-debug-key' },
+  )
   assert(created.candidateDraft?.status === 'candidate', 'candidate draft status must be candidate')
   assert(String(created.candidateDraft?.body || '').length >= 200, 'candidate draft must contain a readable opening')
   assert(Array.isArray(created.questions) && created.questions.length <= 2, 'workflow must ask at most two questions')
@@ -300,7 +343,7 @@ try {
     questions: created.questions,
   }, 'socraticCreate.publicCopy')
 
-  const quality = await postJson(`${agentBaseUrl}/v1/workflows/quality-brake`, {
+  const publicQuality = await postJson(`${agentBaseUrl}/v1/workflows/quality-brake`, {
     ...createPayload,
     sessionId: created.sessionId,
     projectId: created.projectId,
@@ -309,6 +352,19 @@ try {
       mastra_local_output: created,
     },
   })
+  assert(publicQuality.responseMode === 'public', 'public quality response must declare public response mode')
+  assert(['checked', 'repair_suggested'].includes(publicQuality.status), 'public quality workflow must return a usable status')
+  assertNoPublicInternals(publicQuality, 'publicQuality')
+
+  const quality = await postJson(`${agentBaseUrl}/v1/workflows/quality-brake`, {
+    ...createPayload,
+    sessionId: created.sessionId,
+    projectId: created.projectId,
+    context: {
+      ...createPayload.context,
+      mastra_local_output: created,
+    },
+  }, { 'X-NarrativeOS-Debug-Key': 'smoke-debug-key' })
 
   assert(['checked', 'repair_suggested'].includes(quality.status), 'quality workflow must return a usable status')
   assert(quality.revisedCandidate?.status === 'candidate', 'quality workflow must keep revised text as candidate')
@@ -323,7 +379,7 @@ try {
     repairPlan: quality.repairPlan,
   }, 'qualityBrake.publicCopy')
 
-  const preview = await postJson(`${agentBaseUrl}/v1/workflows/state-preview`, {
+  const publicPreview = await postJson(`${agentBaseUrl}/v1/workflows/state-preview`, {
     ...createPayload,
     sessionId: created.sessionId,
     projectId: created.projectId,
@@ -332,6 +388,20 @@ try {
       mastra_local_output: created,
     },
   })
+  assert(publicPreview.responseMode === 'public', 'public state preview must declare public response mode')
+  assert(publicPreview.status === 'preview_only', 'public state preview must remain preview_only')
+  assert(publicPreview.memoryPreview?.summary, 'public state preview must return a product-facing memory summary')
+  assertNoPublicInternals(publicPreview, 'publicPreview')
+
+  const preview = await postJson(`${agentBaseUrl}/v1/workflows/state-preview`, {
+    ...createPayload,
+    sessionId: created.sessionId,
+    projectId: created.projectId,
+    context: {
+      ...createPayload.context,
+      mastra_local_output: created,
+    },
+  }, { 'X-NarrativeOS-Debug-Key': 'smoke-debug-key' })
 
   assert(preview.status === 'preview_only', 'state preview must remain preview_only')
   assert(Array.isArray(preview.stateDeltaCandidate) && preview.stateDeltaCandidate.length > 0, 'state preview must return candidate state deltas')

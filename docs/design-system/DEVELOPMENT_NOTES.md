@@ -1004,6 +1004,41 @@ npm run smoke:creator-chain
 npm run check:release-sync-manifest
 ```
 
+## 2026-06-17 P30 公开响应与内部调试响应拆分
+
+### 现象
+
+P29 已经证明 `runtimeArtifact` 本身没有代表作品和 source refs 泄漏，但仍有一个更实际的断点：Agent Runtime HTTP 服务默认把 full workflow output 返回给浏览器。即使 UI 没有渲染，普通用户仍可能在 network response 里看到 `runtimeArtifact / activeConstraints / activeKernels / sourceLabels / runTrace / ledger / cost / stateDeltaCandidate / writeback` 等内部结构。
+
+### 修复原则
+
+1. Workflow 内部仍保留 full output，供 Studio、Tool Bridge、测试和后端调试使用。
+2. Agent HTTP 默认返回 public projection；普通 `/create` 只能拿到候选正文、追问、产品化故事笔记和质量摘要。
+3. Full output 只能通过显式内部调试密钥取得：`MASTRA_DEBUG_RESPONSE_KEY` + `X-NarrativeOS-Debug-Key`。
+4. 公开 `state-preview` 不返回状态补丁，只返回产品化 memory summary。
+5. 公开 `quality-brake` 不返回写入状态和 run trace，只返回候选修订、质量摘要和修复建议。
+6. 前端 `AgentSocraticCreateResponse` 类型必须是 public contract，不能建模内部字段。
+
+### 本轮落地
+
+- 新增 `PublicSocraticCreateOutput` 类型。
+- 新增 `projectPublicSocraticCreateOutput / projectPublicStatePreviewOutput / projectPublicQualityBrakeOutput`。
+- `packages/agent-runtime/src/server.ts` 默认返回 public projection；仅内部调试密钥匹配时返回 full output。
+- `/create` 的 Agent 响应类型去掉 `runtimeArtifact / activeConstraints / activeKernels / sourceLabels / runTrace / cost` 等字段。
+- `smoke:creator-chain` 拆成公开响应与内部调试响应两层：公开响应断言看不到内部对象，调试响应继续验证 runtime artifact、Tool Bridge、状态预览和质量刹车。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+npm --prefix app run lint
+npm --prefix app run build
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run smoke:creator-chain
+npm run check:runtime-artifact-contract
+npm run scan:public-ui-boundary
+```
+
 ## 2026-06-17 P29 Runtime Artifact 隐私与边界扫描
 
 ### 现象

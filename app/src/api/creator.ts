@@ -55,6 +55,7 @@ export interface CreatorDialogueAssistant {
 }
 
 export interface AgentSocraticCreateResponse {
+  responseMode?: 'public'
   runId: string
   projectId: string
   sessionId: string
@@ -64,27 +65,18 @@ export interface AgentSocraticCreateResponse {
     body: string
   }
   questions: string[]
-  settingCards: Record<string, unknown>
-  activeConstraints: Array<{
-    profileId: string
-    ruleIds: string[]
-    prohibitedTerms: string[]
-  }>
-  activeKernels: Array<{
-    kernelId: string
-    beatPlan: string[]
-  }>
-  sourceLabels: Record<string, string>
+  settingCards: {
+    seed?: unknown
+    genre_promise?: unknown
+    doctrine?: unknown
+    protagonist_gap?: unknown
+    first_conflict?: unknown
+    story_notes?: unknown
+  }
   qualityPreview: {
     result: 'pass' | 'warn' | 'rewrite' | 'block'
-    violations: Array<{ ruleId: string; severity: string; message: string }>
+    violations: Array<{ ruleId?: string; severity?: string; message: string }>
     repairSuggestions: string[]
-  }
-  runTrace: Array<{ step: string; status: string; detail: string }>
-  cost: {
-    mode: string
-    estimatedTokens: number
-    estimatedCostUsd: number
   }
 }
 
@@ -93,6 +85,11 @@ export interface CreatorMemoryPreviewResponse {
   projectId?: string
   sessionId?: string
   stateDeltaCandidate?: Array<Record<string, unknown>>
+  memoryPreview?: {
+    status?: string
+    summary?: string
+    itemCount?: number
+  }
   writeback?: {
     status?: string
     canon_written?: boolean
@@ -369,7 +366,6 @@ function agentWorkflowToDialogueSession(
       generated_at: now,
       secret_exposure: 'server_env_only',
     },
-    harness_trace: result.runTrace,
     created_at: now,
   }
 
@@ -388,13 +384,11 @@ function agentWorkflowToDialogueSession(
       seed: previous?.setting_cards?.seed || message,
       confirmed,
       open_questions: result.questions.slice(0, 2),
-      genre_constraints: result.activeConstraints,
-      active_kernels: result.activeKernels,
-      source_labels: result.sourceLabels,
       quality_preview: result.qualityPreview,
       candidate_draft: result.candidateDraft,
       run_id: result.runId,
       project_id: result.projectId,
+      genre_signal: String(cards.genre_promise || previous?.setting_cards?.genre_signal || ''),
     },
     turns: previous ? [...previous.turns, userTurn, assistantTurn] : [userTurn, assistantTurn],
     source: {
@@ -452,7 +446,7 @@ function sessionToLocalOutput(session: CreatorDialogueSession): Record<string, u
     activeConstraints: session.setting_cards.genre_constraints || [],
     activeKernels: session.setting_cards.active_kernels || [],
     qualityPreview: session.setting_cards.quality_preview || { result: 'pass', violations: [], repairSuggestions: [] },
-    runTrace: session.assistant.harness_trace || [],
+    runTrace: [],
     cost: { mode: 'mock_local', estimatedTokens: 0, estimatedCostUsd: 0 },
   }
 }
@@ -489,16 +483,17 @@ export function applyMemoryPreview(
   preview: CreatorMemoryPreviewResponse,
 ): CreatorDialogueSession {
   const count = Array.isArray(preview.stateDeltaCandidate) ? preview.stateDeltaCandidate.length : 0
+  const summary = preview.memoryPreview?.summary || (count
+    ? `已整理 ${count} 组写作记忆，等你确认后再固定到作品。`
+    : '已整理这一段的写作记忆，等你确认后再固定到作品。')
   return {
     ...session,
     setting_cards: {
       ...session.setting_cards,
       memory_preview: {
         status: preview.status || 'preview_only',
-        summary: count
-          ? `已整理 ${count} 组写作记忆，等你确认后再固定到作品。`
-          : '已整理这一段的写作记忆，等你确认后再固定到作品。',
-        item_count: count,
+        summary,
+        item_count: preview.memoryPreview?.itemCount ?? count,
         updated_at: nowIso(),
       },
     },
@@ -523,7 +518,6 @@ export function applyQualityCheck(
         quality_notes: result.repairPlan?.length
           ? result.repairPlan
           : session.assistant.quality_notes,
-        harness_trace: result.runTrace || session.assistant.harness_trace,
       }
     : session.assistant
   const turns = revisedBody
@@ -533,7 +527,6 @@ export function applyQualityCheck(
           ...turn,
           story_text: revisedBody,
           quality_notes: assistant.quality_notes,
-          harness_trace: assistant.harness_trace,
         }
       })
     : session.turns

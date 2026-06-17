@@ -198,3 +198,25 @@ export interface SocraticCreateOutput {
   }
   ledger: RunLedgerEntry[]
 }
+
+export interface PublicSocraticCreateOutput {
+  responseMode: 'public'
+  runId: string
+  projectId: string
+  sessionId: string
+  candidateDraft: SocraticCreateOutput['candidateDraft']
+  questions: string[]
+  settingCards: {
+    seed?: unknown
+    genre_promise?: unknown
+    doctrine?: unknown
+    protagonist_gap?: unknown
+    first_conflict?: unknown
+    story_notes?: unknown
+  }
+  qualityPreview: {
+    result: SocraticCreateOutput['qualityPreview']['result']
+    violations: Array<{ severity: string; message: string }>
+    repairSuggestions: string[]
+  }
+}

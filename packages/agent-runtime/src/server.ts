@@ -1,6 +1,14 @@
 import { createServer } from 'node:http'
 import { agentContracts } from './agents.js'
-import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
+import {
+  agentRuntimeMeta,
+  projectPublicQualityBrakeOutput,
+  projectPublicSocraticCreateOutput,
+  projectPublicStatePreviewOutput,
+  qualityBrakeWorkflow,
+  socraticCreateWorkflow,
+  statePreviewWorkflow,
+} from './workflows.js'
 
 const port = Number(process.env.MASTRA_PORT || 4111)
 const host = process.env.MASTRA_HOST || '127.0.0.1'
@@ -27,9 +35,16 @@ function sendJson(req: import('node:http').IncomingMessage, res: import('node:ht
     'Access-Control-Allow-Origin': origin,
     ...(origin === '*' ? {} : { Vary: 'Origin' }),
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,Idempotency-Key',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,Idempotency-Key,X-NarrativeOS-Debug-Key',
   })
   res.end(JSON.stringify(payload))
+}
+
+function shouldReturnInternalPayload(req: import('node:http').IncomingMessage): boolean {
+  const expected = String(process.env.MASTRA_DEBUG_RESPONSE_KEY || '').trim()
+  if (!expected) return false
+  const received = String(req.headers['x-narrativeos-debug-key'] || '').trim()
+  return received === expected
 }
 
 async function readJson(req: import('node:http').IncomingMessage) {
@@ -52,17 +67,23 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/v1/workflows/socratic-create') {
       const body = await readJson(req)
       const output = await socraticCreateWorkflow(body)
-      return sendJson(req, res, 200, output)
+      return sendJson(req, res, 200, shouldReturnInternalPayload(req)
+        ? output
+        : projectPublicSocraticCreateOutput(output))
     }
     if (req.method === 'POST' && url.pathname === '/v1/workflows/state-preview') {
       const body = await readJson(req)
       const output = await statePreviewWorkflow(body)
-      return sendJson(req, res, 200, output)
+      return sendJson(req, res, 200, shouldReturnInternalPayload(req)
+        ? output
+        : projectPublicStatePreviewOutput(output))
     }
     if (req.method === 'POST' && url.pathname === '/v1/workflows/quality-brake') {
       const body = await readJson(req)
       const output = await qualityBrakeWorkflow(body)
-      return sendJson(req, res, 200, output)
+      return sendJson(req, res, 200, shouldReturnInternalPayload(req)
+        ? output
+        : projectPublicQualityBrakeOutput(output))
     }
     return sendJson(req, res, 404, { code: 'not_found' })
   } catch (error) {
