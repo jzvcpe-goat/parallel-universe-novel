@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">平行宇宙小说品牌标记</title>
+  <desc id="desc">深色宇宙底上的金色星轨与青色平行世界线。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07101a"/>
+      <stop offset="1" stop-color="#050b14"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd16a"/>
+      <stop offset="1" stop-color="#f6b315"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#45d8ff"/>
+      <stop offset="1" stop-color="#1677ff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.27 0 0 0 0 0.85 0 0 0 0 1 0 0 0 .7 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="42" fill="url(#bg)"/>
+  <path d="M38 168C78 94 139 62 218 52" fill="none" stroke="url(#cyan)" stroke-width="8" stroke-linecap="round" opacity=".72"/>
+  <path d="M44 194C94 134 151 103 218 96" fill="none" stroke="#263c55" stroke-width="6" stroke-linecap="round" opacity=".82"/>
+  <path d="M70 135l38-8 20-42 20 42 38 8-31 29 8 43-35-22-36 22 8-43-30-29z" fill="url(#gold)" filter="url(#glow)"/>
+  <circle cx="205" cy="66" r="6" fill="#ffd16a"/>
+  <circle cx="54" cy="82" r="4" fill="#45d8ff"/>
+  <circle cx="202" cy="168" r="4" fill="#dce7e3"/>
+</svg>

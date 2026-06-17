@@ -1,0 +1,202 @@
+{
+  "version": "1.0.0",
+  "status": "locked_for_p0_productization",
+  "language": "zh-CN",
+  "source": {
+    "label": "冻结式主宇宙创作模板",
+    "file": "/Users/james/.codex/attachments/e5ecc1dc-1102-4bf2-9973-8f290ad7d878/pasted-text.txt",
+    "note": "用于 P0 冷启动产品入口、阅读试玩、创作模板和 Studio 模板管理。"
+  },
+  "globalFieldBoundary": {
+    "manualRequired": [
+      "workTitle",
+      "targetReaders",
+      "commercialPositioning",
+      "protagonistFinalNameAndBio",
+      "contentBoundaries",
+      "releasePriority"
+    ],
+    "memoFrozen": [
+      "genreStructure",
+      "toneRatio",
+      "characterFunctionSlots",
+      "conflictMechanism",
+      "chapterRhythm",
+      "hookDensity",
+      "branchEndingShapes"
+    ],
+    "backendGenerated": [
+      "worldId",
+      "worldVersionId",
+      "readerSessionId",
+      "worldlineState",
+      "candidateSceneId",
+      "qualityTraceId",
+      "canonCommitId"
+    ]
+  },
+  "templates": [
+    {
+      "id": "beacon-beyond",
+      "templateCode": "A",
+      "productTitle": "灯塔之外",
+      "archetype": "玄幻悬疑：灯塔、古契、失落王朝",
+      "genre": "玄幻悬疑",
+      "primaryTone": "悬疑烧脑 + 真实共情",
+      "toneRatio": { "suspense": 0.7, "empathy": 0.3 },
+      "subgenres": ["洪荒考古流", "规则怪谈流", "克系中式恐怖"],
+      "readerPromise": "知晓真相会付出代价，第一次选择决定真相先被谁知道。",
+      "coreSetting": {
+        "worldAnchor": "周期性亮起和熄灭的灯塔是两界封印节点。",
+        "coreRule": "古契双向约束，既封印失落王朝，也保护现世；续签会消耗代行者的记忆、情感或身份。",
+        "hook": "主角发现自己是上一代代行者转世，记忆被人为抹除。"
+      },
+      "protagonistGap": "主角能读懂灯塔规则，却一直隐瞒自己与上一代代行者的关系。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "灯塔守夜人/考古学徒", "secret": "体内封印古契一半，是钥匙也是锁" },
+        { "role": "引路人", "slot": "叛逃王朝遗民", "secret": "想毁掉契约释放族人，但知道释放即毁灭" },
+        { "role": "同盟者", "slot": "神秘事务调查员", "secret": "家族守护灯塔的真正目的是喂养神明" },
+        { "role": "情感锚", "slot": "失忆王朝公主/转世恋人", "secret": "必须在灯塔熄灭时杀死主角续签" }
+      ],
+      "openingEvent": "雨夜灯塔异常闪烁，主角在塔基发现刻有自己名字的古老契约。",
+      "firstChoicePoint": "公开灯码引来王庭审判，隐藏灯码先救幸存者但写入隐瞒代价。",
+      "chapterRhythm": ["0-3 雨夜登塔与血字契约", "4-15 调查契约与灯塔规则", "16-40 现世调查员线和王朝遗民线", "41-60 情感锚恢复记忆并对立", "61-80 灯塔熄灭与最终抉择"],
+      "branchEndings": ["悲壮续签", "毁灭新生", "隐藏线骗过规则"]
+    },
+    {
+      "id": "rain-bridge",
+      "templateCode": "B",
+      "productTitle": "雨夜桥边",
+      "archetype": "都市谜案：雨夜、旧案、录像证据",
+      "genre": "都市谜案",
+      "primaryTone": "悬疑烧脑 + 真实共情",
+      "toneRatio": { "suspense": 0.8, "empathy": 0.2 },
+      "subgenres": ["社会派推理", "录像回溯异能", "冷案重启"],
+      "readerPromise": "证据会说谎，读者要决定真相公开的代价。",
+      "coreSetting": {
+        "worldAnchor": "城市地下存在录像带黑市，部分录像能预测未来或改写记忆。",
+        "coreRule": "雨夜电磁异常时，录像中的死者能短暂对话，但内容可能诱导观看者。",
+        "hook": "旧案录像显示凶手是主角本人，主角却没有那段记忆。"
+      },
+      "protagonistGap": "主角能找到证据，却不敢面对自己曾删掉关键记忆的可能。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "冷案刑警/前法医", "secret": "七年前雨夜失忆三个月" },
+        { "role": "搭档", "slot": "新晋警探", "secret": "当年受害者弟弟，接近主角是为复仇或求证" },
+        { "role": "关键证人", "slot": "录像带黑市老板娘", "secret": "眼睛是母带来源，每给信息就失明一度" },
+        { "role": "幕后推手", "slot": "已殉职前搭档", "secret": "进入录像永生，知道主角是否清白" }
+      ],
+      "openingEvent": "雨夜匿名录像带寄到，画面显示主角在旧案现场手持凶器。",
+      "firstChoicePoint": "公开录像翻案，或先保护证人延后公开。",
+      "chapterRhythm": ["0-3 雨夜收包裹与录像规则", "4-15 调查录像来源并恢复记忆片段", "16-40 现世追凶和录像过去世界", "41-60 搭档身份暴露与信任危机", "61-80 母带放映室对峙"],
+      "branchEndings": ["真实正义", "相对正义", "超越正义"]
+    },
+    {
+      "id": "jade-contract",
+      "templateCode": "C",
+      "productTitle": "玉京契书",
+      "archetype": "仙侠权谋：宗门、契书、背叛代价",
+      "genre": "仙侠权谋",
+      "primaryTone": "虐心 + 真实共情",
+      "toneRatio": { "tragedy": 0.6, "empathy": 0.4 },
+      "subgenres": ["宗门经营流", "气运博弈流", "儒道流/心性流"],
+      "readerPromise": "修仙不只是升级，而是每个誓愿都要还债。",
+      "coreSetting": {
+        "worldAnchor": "修仙界是契约社会，修为来自与天道、宗门、道侣和因果的契书。",
+        "coreRule": "背叛契书会触发因果逆转，背叛者成为对方影子。",
+        "hook": "主角是唯一无契者，是天道系统里的漏洞。"
+      },
+      "protagonistGap": "主角被宗门当成完美工具，却没有真正属于自己的誓约。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "青云宗首席", "secret": "出生时本命契书被母亲撕毁" },
+        { "role": "师尊", "slot": "当代掌门", "secret": "培养主角是为撕毁祖师契书解脱全宗" },
+        { "role": "道侣/挚友", "slot": "另一宗门继承人", "secret": "血契婚约真实目的在于夺取无契体质" },
+        { "role": "反派", "slot": "天道代行者", "secret": "渴望体验背叛这种情感" }
+      ],
+      "openingEvent": "宗门大典上，主角发现所有长老动作同步，契书背面出现隐藏条款。",
+      "firstChoicePoint": "承认伪证保师门，或当众毁契保清白。",
+      "chapterRhythm": ["0-3 宗门大典与同步异常", "4-15 契书阁与契书起源", "16-40 宗门大比和契书交易", "41-60 背叛、师尊真相与母亲牺牲", "61-80 天道核心最终抉择"],
+      "branchEndings": ["悲壮殉道", "混沌新生", "规则欺骗"]
+    },
+    {
+      "id": "lotus-lane",
+      "templateCode": "D",
+      "productTitle": "莲巷来信",
+      "archetype": "情感成长：来信、错过、重逢选择",
+      "genre": "情感成长",
+      "primaryTone": "真实共情 + 虐心",
+      "toneRatio": { "empathy": 0.5, "tragedy": 0.5 },
+      "subgenres": ["破镜重圆流", "信件叙事流", "时间差情感"],
+      "readerPromise": "每封信都会改变记忆，重逢不是奖励，而是代价。",
+      "coreSetting": {
+        "worldAnchor": "主角与错过的人处在时间流速不同的空间，通过来信沟通。",
+        "coreRule": "信越深情，写信人失去的相关记忆越多。",
+        "hook": "最后一封写着不要来找我的未来信，笔迹属于主角自己。"
+      },
+      "protagonistGap": "主角对当下感情迟钝，只对回忆有感觉。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "出版社编辑/档案管理员", "secret": "患有情感延迟症" },
+        { "role": "错过对象", "slot": "建筑师/另一时间层居民", "secret": "靠近主角会加快主角时间流速" },
+        { "role": "信使", "slot": "邮局员工/时间投影", "secret": "存在依赖两人是否重逢" },
+        { "role": "陪伴者", "slot": "一直守在主角身边的人", "secret": "知道全部真相但选择沉默" }
+      ],
+      "openingEvent": "主角整理旧档案时发现一封从未寄出的信，内容预言了现在的生活。",
+      "firstChoicePoint": "回信改变明天，或烧掉来信保住现在。",
+      "chapterRhythm": ["0-3 发现旧信与信件规则", "4-15 现在整理信件与过去误会双线", "16-40 寻找错过对象与信使介入", "41-60 陪伴者秘密揭露", "61-80 最后一封信与重逢/永别"],
+      "branchEndings": ["虐心错过", "重逢代价", "第三种选择"]
+    },
+    {
+      "id": "frontier-edict",
+      "templateCode": "E",
+      "productTitle": "边城密诏",
+      "archetype": "历史架空：边城、密诏、旧臣抉择",
+      "genre": "历史架空",
+      "primaryTone": "真实共情 + 虐心",
+      "toneRatio": { "empathy": 0.7, "tragedy": 0.3 },
+      "subgenres": ["权谋争霸流", "边塞种田流", "历史悬疑流"],
+      "readerPromise": "历史没有纯粹反派，只有必须付代价的立场。",
+      "coreSetting": {
+        "worldAnchor": "王朝末年，边城是最后屏障；密诏命令放弃边城保全中原。",
+        "coreRule": "密诏分明诏和暗诏，暗诏每转写一次都会随转写人立场改变。",
+        "hook": "主角手中密诏被转写七次，七个版本完全不同。"
+      },
+      "protagonistGap": "主角把忠诚当唯一答案，却发现自己也是谎言的载体。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "边城守将", "secret": "是密诏第八个转写者而不自知" },
+        { "role": "军师", "slot": "前朝状元", "secret": "参与第三、四次转写并沉默保士气" },
+        { "role": "敌将", "slot": "围城统帅", "secret": "是主角故交和镜像对照" },
+        { "role": "皇室使者", "slot": "太监/公主", "secret": "可能是义军领袖假扮" }
+      ],
+      "openingEvent": "敌军围城，朝廷使者送来命令开城投降的密诏。",
+      "firstChoicePoint": "遵诏开城保军民，或抗诏死守保忠义。",
+      "chapterRhythm": ["0-3 围城和密诏震撼开场", "4-15 走访旧臣发现多版本密诏", "16-40 城内主战主降和城外旧友劝降", "41-60 先帝双面真相暴露", "61-80 开城、死守或军民自决"],
+      "branchEndings": ["悲壮抗诏", "理性开城", "第三条路"]
+    },
+    {
+      "id": "algorithm-city",
+      "templateCode": "F",
+      "productTitle": "算法城市",
+      "archetype": "科幻短篇：算法城市、记忆备份、身份错位",
+      "genre": "科幻短篇",
+      "primaryTone": "悬疑烧脑 + 真实共情",
+      "toneRatio": { "suspense": 0.6, "empathy": 0.4 },
+      "subgenres": ["赛博朋克", "记忆 noir", "算法惊悚"],
+      "readerPromise": "记忆不能定义你，选择才会。",
+      "coreSetting": {
+        "worldAnchor": "城市由算法中枢管理，所有记忆实时备份到云端并被优化。",
+        "coreRule": "记忆一致性差异超过 10% 会被判定为非法复制人或记忆黑客。",
+        "hook": "主角备份显示自己杀了记忆管理员，但主角记得自己整晚在家。"
+      },
+      "protagonistGap": "主角从未接受记忆优化，因此天然不符合城市身份标准。",
+      "characterAnchors": [
+        { "role": "主角", "slot": "记忆修复师/算法审计员", "secret": "是最后原生人类的克隆体" },
+        { "role": "搭档AI", "slot": "异常处理单元", "secret": "已有自我意识但不能背叛底层代码" },
+        { "role": "反抗者", "slot": "记忆黑客组织领袖", "secret": "是主角云端备份人格独立存在" },
+        { "role": "受害者", "slot": "记忆备份管理员", "secret": "死前删除城市起源记忆" }
+      ],
+      "openingEvent": "主角发现自己的记忆备份被篡改，多了一段杀人记忆。",
+      "firstChoicePoint": "公开记忆差异触发清除复核，或删除备份保住当下身份。",
+      "chapterRhythm": ["0-3 记忆错位和清除程序", "4-15 逃避清除并调查受害者", "16-40 现世逃亡和云端空间探索", "41-60 备份人格与 AI 底层冲突", "61-80 算法核心最终抉择"],
+      "branchEndings": ["真实之痛", "融合新生", "保留选择"]
+    }
+  ]
+}

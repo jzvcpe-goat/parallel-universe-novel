@@ -1,0 +1,35 @@
+.DS_Store
+
+# Dependencies
+node_modules/
+app/node_modules/
+packages/*/node_modules/
+
+# Build outputs
+app/dist/
+packages/*/dist/
+backend/dist/
+backend/build/
+backend/src/*.egg-info/
+
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+.pytest_cache/
+
+# Runtime data and local secrets
+*.db
+*.sqlite
+.env
+.env.*
+!.env.example
+!**/.env.example
+backend/.env
+
+# Local harness/generated artifacts
+artifacts/
+.overlays/
+.toolchain/
+.harness-baseline
+.harness-sources

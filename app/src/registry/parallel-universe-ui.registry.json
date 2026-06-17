@@ -1,0 +1,175 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "parallel-universe-ui",
+  "homepage": "https://jzvcpe-goat.github.io/parallel-universe-novel-prototype/",
+  "items": [
+    {
+      "name": "parallel-universe-shell",
+      "type": "registry:component",
+      "title": "Parallel Universe Shell",
+      "description": "Unified public product shell with the rail: 发现, 阅读, 书城, 创作, 会员. Studio and operator settings stay direct or backstage.",
+      "files": [
+        {
+          "path": "src/components/design-system/ParallelUniverseShell.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reading-paper",
+      "type": "registry:component",
+      "title": "Reading Paper",
+      "description": "Light manuscript reading surface for long-form Chinese fiction.",
+      "files": [
+        {
+          "path": "src/components/design-system/ReadingPaper.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "book-card",
+      "type": "registry:component",
+      "title": "Book Card",
+      "description": "Commercial book/universe card for discovery, library and template detail flows.",
+      "files": [
+        {
+          "path": "src/components/design-system/BookCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "topic-filter-bar",
+      "type": "registry:component",
+      "title": "Topic Filter Bar",
+      "description": "Shared hot-topic filter bar for discovery and library routes, with route-aware topic selection.",
+      "files": [
+        {
+          "path": "src/components/design-system/TopicFilterBar.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "ranked-world-list",
+      "type": "registry:component",
+      "title": "Ranked World List",
+      "description": "Shared ranked story list for discovery and library side panels.",
+      "files": [
+        {
+          "path": "src/components/design-system/RankedWorldList.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "choice-card",
+      "type": "registry:component",
+      "title": "Choice Card",
+      "description": "Reader-facing branch choice card with consequence and worldline action.",
+      "files": [
+        {
+          "path": "src/components/design-system/ChoiceCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-conversation-panel",
+      "type": "registry:component",
+      "title": "Creator Conversation Panel",
+      "description": "Socratic creator entry panel with prompt, textarea, action state and responsive story-seed examples.",
+      "files": [
+        {
+          "path": "src/components/design-system/CreatorConversationPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-dialogue-thread",
+      "type": "registry:component",
+      "title": "Creator Dialogue Thread",
+      "description": "Post-seed creator dialogue pattern with user seed, readable opening draft, two follow-up questions and composer.",
+      "files": [
+        {
+          "path": "src/components/design-system/CreatorDialogueThread.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-reasoning-map",
+      "type": "registry:component",
+      "title": "Creator Reasoning Map",
+      "description": "Visible author-facing creative reasoning summary for hook, character gap, scene pressure, world rule and tone without exposing raw model reasoning.",
+      "files": [
+        {
+          "path": "src/components/design-system/CreatorReasoningMap.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-story-notes",
+      "type": "registry:component",
+      "title": "Creator Story Notes",
+      "description": "Author-facing story notes that keep character, scene, rule, conflict and hook context without implementation copy.",
+      "files": [
+        {
+          "path": "src/components/design-system/CreatorStoryNotes.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "studio-trend-ops-panel",
+      "type": "registry:component",
+      "title": "Studio Trend Ops Panel",
+      "description": "Backstage trend refresh and scan-contract panel for operators; keeps scanning details out of public pages.",
+      "files": [
+        {
+          "path": "src/components/design-system/StudioTrendOpsPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "capability-map-panel",
+      "type": "registry:component",
+      "title": "Capability Map Panel",
+      "description": "Backstage frontend/service capability map for handoff and ops review.",
+      "files": [
+        {
+          "path": "src/components/design-system/CapabilityMapPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "setting-card",
+      "type": "registry:component",
+      "title": "Setting Card",
+      "description": "Creator/Studio setting card for confirmed configuration and backstage review surfaces.",
+      "files": [
+        {
+          "path": "src/components/design-system/SettingCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "plan-card",
+      "type": "registry:component",
+      "title": "Plan Card",
+      "description": "Billing plan card for Free, Pro and Team plans.",
+      "files": [
+        {
+          "path": "src/components/design-system/PlanCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}
