@@ -37,6 +37,38 @@ interface GenreKernel {
 
 ## Active Kernels
 
+Runtime source `genre-runtime-rules.v1.json` is currently version 2 and contains one kernel for each active ConstraintProfile. Kernel selection follows the sorted active profile order:
+
+1. Explicit selected genre/template profile.
+2. Secondary profiles inferred from the seed.
+3. Compatible kernels sorted by profile order.
+
+The active kernel IDs are:
+
+- `kernel-xuanhuan-xianxia`
+- `kernel-modern-other`
+- `kernel-modern-supernatural`
+- `kernel-game-litrpg`
+- `kernel-system-litrpg`
+- `kernel-comedy-misfit`
+- `kernel-quick-transmigration`
+- `kernel-horror-infinite`
+- `kernel-apocalypse`
+- `kernel-wuxia-historical`
+- `kernel-alchemy-craft`
+- `kernel-sci-fi-space`
+- `kernel-transmigration`
+- `kernel-male-farming-base`
+- `kernel-farming-domestic`
+- `kernel-family-clan-group`
+- `kernel-sweet-pet-marriage`
+- `kernel-danmei-romance`
+- `kernel-chase-wife-crematorium`
+- `kernel-female-rebirth-revenge`
+- `kernel-era-female`
+
+Previous western/non-game/ancient-office special cases are not kernel rules. Future special constraints must be added as document-derived profiles or user-selected doctrine flags.
+
 ### `kernel-xuanhuan-xianxia`
 
 Name: 仙侠玄幻
@@ -107,4 +139,3 @@ Pacing model:
 2. Update `sourceRefs` only with IDs from `reference-work-public-refs.json`.
 3. Sync runtime edits to `packages/agent-runtime/src/constraints.ts`.
 4. Run `npm run scan:reference-privacy` and `npm run test`.
-

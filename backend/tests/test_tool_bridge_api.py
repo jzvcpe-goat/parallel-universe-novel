@@ -16,8 +16,8 @@ def _client(tmp_path: Path) -> TestClient:
 def _payload():
     return {
         "projectId": "project_demo",
-        "seed": "我想写一个穿越到西方玄幻边境地下城的故事，不要游戏系统。",
-        "genre": "西方玄幻",
+        "seed": "我想写一个仙侠玄幻故事，主角得到裂纹玉简后必须偿还因果债。",
+        "genre": "仙侠玄幻",
         "context": {
             "mastra_local_output": {
                 "runId": "run_demo",
@@ -25,29 +25,29 @@ def _payload():
                 "sessionId": "session_demo",
                 "candidateDraft": {
                     "status": "candidate",
-                    "title": "边境深井",
-                    "body": "他醒在边境矿城的钟声里。",
+                    "title": "问灵台",
+                    "body": "问灵台的铜铃响到第三声。",
                 },
-                "questions": ["主角最想隐瞒的外来者破绽是什么？", "他先救人还是先还债？"],
+                "questions": ["这次突破要付出的第一笔代价是什么？", "他更怕失去修行机会还是欠下人情债？"],
                 "settingCards": {
                     "genre_constraints": [
                         {
-                            "id": "western-fantasy-transmigration-non-game",
-                            "rule_ids": ["wf-world-substrate", "wf-no-game-interface"],
+                            "id": "xuanhuan-xianxia",
+                            "rule_ids": ["cultivation-must-have-cost", "xuanhuan-era-substrate"],
                         }
                     ]
                 },
                 "activeConstraints": [
                     {
-                        "profileId": "western-fantasy-transmigration-non-game",
-                        "ruleIds": ["wf-world-substrate", "wf-no-game-interface"],
-                        "prohibitedTerms": ["系统面板", "清河县", "仵作"],
+                        "profileId": "xuanhuan-xianxia",
+                        "ruleIds": ["cultivation-must-have-cost", "xuanhuan-era-substrate"],
+                        "prohibitedTerms": ["一键升级", "手机", "汽车"],
                     }
                 ],
                 "activeKernels": [
                     {
-                        "kernelId": "kernel-western-frontier-transmigration",
-                        "beatPlan": ["异界醒来", "身份代价"],
+                        "kernelId": "kernel-xuanhuan-xianxia",
+                        "beatPlan": ["传承触发", "资源稀缺"],
                     }
                 ],
                 "qualityPreview": {
@@ -84,7 +84,7 @@ def test_tool_bridge_returns_candidate_without_canon_write(tmp_path: Path):
     assert payload["writeback"]["canon_written"] is False
     assert payload["writeback"]["branch_written"] is False
     assert len(payload["questions"]) <= 2
-    assert payload["activeConstraints"][0]["profileId"] == "western-fantasy-transmigration-non-game"
+    assert payload["activeConstraints"][0]["profileId"] == "xuanhuan-xianxia"
     assert payload["runTrace"][-1]["step"] == "fastapi.socratic_turn"
 
 
@@ -100,4 +100,3 @@ def test_tool_bridge_state_preview_is_preview_only(tmp_path: Path):
     payload = response.json()
     assert payload["status"] == "preview_only"
     assert payload["writeback"]["canon_written"] is False
-

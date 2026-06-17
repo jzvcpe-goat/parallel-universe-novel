@@ -45,6 +45,37 @@ Representative work titles from research materials are not public runtime data.
 
 ## Active Profiles
 
+Runtime source `genre-runtime-rules.v1.json` is currently version 2 and contains 21 document-derived profiles:
+
+- `xuanhuan-xianxia` / 仙侠玄幻
+- `modern-other` / 其他现代
+- `modern-supernatural` / 现代都市超能
+- `game-litrpg` / 游戏异界
+- `system-litrpg` / 系统流
+- `comedy-misfit` / 喜剧反套路
+- `quick-transmigration` / 快穿逆袭
+- `horror-infinite` / 恐怖无限流
+- `apocalypse` / 末世
+- `wuxia-historical` / 武侠历史
+- `alchemy-craft` / 炼丹炼器
+- `sci-fi-space` / 科幻文明
+- `transmigration` / 穿越重生
+- `male-farming-base` / 男频基建流
+- `farming-domestic` / 种田致富
+- `family-clan-group` / 群像家族
+- `sweet-pet-marriage` / 甜宠先婚后爱
+- `danmei-romance` / 耽美
+- `chase-wife-crematorium` / 追妻火葬场
+- `female-rebirth-revenge` / 女频重生复仇
+- `era-female` / 年代女强
+
+Activation rule:
+
+- Explicit user-selected genre/template labels win over generic seed keywords.
+- Seed keywords may add secondary profiles, but must not override the selected genre.
+- Generic mood labels such as `情感成长` must not activate a hard genre profile by themselves.
+- Previous one-off western/non-game/ancient-office constraints are retired from P4 and must not be reintroduced as hardcoded branches.
+
 ### `xuanhuan-xianxia`
 
 Display name: 仙侠玄幻
@@ -120,4 +151,3 @@ After editing this document, update:
 - `packages/agent-runtime/src/workflows.test.ts`
 - `npm run scan:reference-privacy`
 - `npm run test`
-

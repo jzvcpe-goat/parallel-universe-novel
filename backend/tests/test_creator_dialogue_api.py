@@ -101,75 +101,81 @@ def test_creator_dialogue_seed_generates_story_cards_and_persists(tmp_path: Path
     assert fetched.json()["turns"][0]["role"] == "user"
 
 
-def test_creator_dialogue_applies_genre_constraints_from_selected_context(tmp_path: Path, monkeypatch):
+
+def test_creator_dialogue_uses_shared_runtime_rules_for_all_core_profiles(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
-
-    response = client.post(
-        "/v1/creator/dialogue/sessions",
-        json={
-            "creator_id": "author_1",
-            "seed": "一个普通中文系毕业生醒来后成了边境矿城的翻译，城外地下城会吐出魔物和失踪者遗物。不要系统面板和游戏术语。",
-            "genre": "西方玄幻穿越",
-            "context": {
-                "story_direction": {
-                    "label": "西方玄幻穿越",
-                    "tone": "本土网文节奏、异大陆求生、人性博弈",
-                    "hooks": "地下城不是游戏副本，而是现实世界的危险边界",
-                    "keywords": "穿越, 异大陆, 地下城, 非游戏化",
-                },
-                "main_universe_template": {
-                    "id": "western-dungeon-crossing",
-                    "title": "黑门之下",
-                    "genre": "西方玄幻穿越",
-                    "opening_premise": "现代小人物进入异大陆边境矿城",
-                    "first_choice_point": "公开遗物真相还是先保护幸存者",
-                },
-            },
+    cases = [
+        {
+            "genre": "仙侠玄幻",
+            "display": "仙侠玄幻",
+            "seed": "主角得到一枚裂纹玉简，突破前必须先还一笔因果债。",
+            "profile_id": "xuanhuan-xianxia",
+            "kernel_id": "kernel-xuanhuan-xianxia",
+            "rule_id": "cultivation-must-have-cost",
+            "source_ref": "rwref_0013",
         },
-    )
-
-    assert response.status_code == 200
-    payload = response.json()
-    cards = payload["setting_cards"]
-    assert cards["genre_signal"] == "西方玄幻穿越"
-    assert "地下城是世界的一部分" in cards["world_rule_hint"]
-    assert "系统面板" in cards["world_rule_hint"]
-    constraint_ids = {item["id"] for item in cards["genre_constraints"]}
-    constraints_by_id = {item["id"]: item for item in cards["genre_constraints"]}
-    assert "western_fantasy_world_substrate" in constraint_ids
-    assert "transmigration_local_feel" in constraint_ids
-    assert "no_ancient_chinese_official_default" in constraint_ids
-    assert "no_game_ui_or_loot_terms" in constraint_ids
-    assert any("禁止自动生成古代中国官署" in item["rule"] for item in cards["genre_constraints"])
-    assert any("游戏化表达" in item["rule"] for item in cards["genre_constraints"])
-    assert constraints_by_id["western_fantasy_world_substrate"]["category"] == "world_substrate"
-    assert constraints_by_id["western_fantasy_world_substrate"]["condition"]["required"] == {
-        "genre_family": "western_fantasy",
-        "entry_mode": "transmigration",
-    }
-    assert "仵作" in constraints_by_id["no_ancient_chinese_official_default"]["prohibited_terms"]
-    assert "清河县" in constraints_by_id["no_ancient_chinese_official_default"]["prohibited_terms"]
-    assert any(
-        "验尸修士" in item
-        for item in constraints_by_id["no_ancient_chinese_official_default"]["replacement_guidance"]
-    )
-    assert "系统面板" in constraints_by_id["no_game_ui_or_loot_terms"]["prohibited_terms"]
-    assert constraints_by_id["no_game_ui_or_loot_terms"]["condition"]["observed"]["non_game_requested"] is True
-    assert constraints_by_id["transmigration_local_feel"]["severity"] == "soft"
-    assert cards["genre_constraint_facts"]["western_fantasy"] is True
-    assert cards["genre_constraint_facts"]["non_game_requested"] is True
-    assert cards["genre_constraint_facts"]["genre_family"] == "western_fantasy"
-    assert cards["genre_constraint_facts"]["entry_mode"] == "transmigration"
-    assert cards["genre_constraint_facts"]["tone_constraints"]["non_game"] is True
-    assert cards["genre_constraint_facts"]["activation_inputs"]["selected_context"]["genre_family"] == "western_fantasy"
-    assert cards["genre_constraint_facts"]["activation_order"] == [
-        "selected_topic_template_direction",
-        "user_freeform_intent",
-        "explicit_user_overrides",
+        {
+            "genre": "现代悬疑",
+            "display": "其他现代",
+            "seed": "雨夜旧案重启，主角只能依靠证据链和心理侧写追查真相。",
+            "profile_id": "modern-other",
+            "kernel_id": "kernel-modern-other",
+            "rule_id": "logical-evidence-required",
+            "source_ref": "rwref_0016",
+        },
+        {
+            "genre": "游戏异界",
+            "display": "游戏异界",
+            "seed": "主角登录虚拟游戏后进入公会副本，任务失败会清空当前身份。",
+            "profile_id": "game-litrpg",
+            "kernel_id": "kernel-game-litrpg",
+            "rule_id": "system-interface-mandatory",
+            "source_ref": "rwref_0034",
+        },
+        {
+            "genre": "喜剧反套路",
+            "display": "喜剧反套路",
+            "seed": "反派掉马现场，主角用一句吐槽把审问变成误会升级。",
+            "profile_id": "comedy-misfit",
+            "kernel_id": "kernel-comedy-misfit",
+            "rule_id": "comedy-pressure-release",
+            "source_ref": "rwref_0010",
+        },
     ]
 
+    for case in cases:
+        response = client.post(
+            "/v1/creator/dialogue/sessions",
+            json={
+                "creator_id": "author_1",
+                "seed": case["seed"],
+                "genre": case["genre"],
+                "context": {
+                    "story_direction": {
+                        "label": case["genre"],
+                        "tone": case["genre"],
+                        "hooks": case["seed"],
+                        "keywords": case["genre"],
+                    },
+                },
+            },
+        )
 
-def test_creator_dialogue_does_not_apply_western_constraints_to_other_selected_genres(tmp_path: Path, monkeypatch):
+        assert response.status_code == 200
+        cards = response.json()["setting_cards"]
+        assert cards["genre_signal"] == case["display"]
+        constraint_ids = {item["id"] for item in cards["genre_constraints"]}
+        assert case["rule_id"] in constraint_ids
+        assert case["profile_id"] in cards["genre_constraint_facts"]["active_profile_ids"]
+        assert case["kernel_id"] in cards["genre_constraint_facts"]["active_kernel_ids"]
+        assert cards["genre_kernels"][0]["id"] == case["kernel_id"]
+        assert case["source_ref"] in cards["genre_constraint_facts"]["active_profiles"][0]["source_refs"]
+        serialized = json.dumps(cards, ensure_ascii=False)
+        assert "source_evidence" not in serialized
+        assert case["source_ref"] in serialized
+
+
+def test_creator_dialogue_does_not_apply_constraints_to_unmatched_selected_genres(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
 
     response = client.post(
@@ -185,84 +191,21 @@ def test_creator_dialogue_does_not_apply_western_constraints_to_other_selected_g
                     "hooks": "错过、重逢、选择代价",
                     "keywords": "情感, 成长, 关系",
                 },
-                "main_universe_template": {
-                    "id": "lotus-lane",
-                    "title": "莲巷来信",
-                    "genre": "情感成长",
-                },
             },
         },
     )
 
     assert response.status_code == 200
     cards = response.json()["setting_cards"]
-    assert cards["genre_signal"] != "西方玄幻穿越"
+    assert cards["genre_signal"] != "仙侠玄幻"
     assert cards["genre_constraints"] == []
-    assert cards["genre_constraint_facts"]["western_fantasy"] is False
-    assert cards["genre_constraint_facts"]["activation_inputs"]["selected_context"]["genre_family"] == ""
-
-
-def test_creator_dialogue_allows_explicit_ancient_identity_override(tmp_path: Path, monkeypatch):
-    client = _client(tmp_path, monkeypatch)
-
-    response = client.post(
-        "/v1/creator/dialogue/sessions",
-        json={
-            "creator_id": "author_1",
-            "seed": "我明确想写古代仵作穿越到西方玄幻地下城，保留县衙办案经验，但不要系统面板。",
-            "genre": "西方玄幻穿越",
-            "context": {
-                "story_direction": {
-                    "label": "西方玄幻穿越",
-                    "tone": "本土网文节奏",
-                    "hooks": "地下城现实灾厄",
-                    "keywords": "穿越, 地下城, 非游戏化",
-                },
-            },
-        },
-    )
-
-    assert response.status_code == 200
-    cards = response.json()["setting_cards"]
-    constraint_ids = {item["id"] for item in cards["genre_constraints"]}
-    assert "western_fantasy_world_substrate" in constraint_ids
-    assert "no_game_ui_or_loot_terms" in constraint_ids
-    assert "no_ancient_chinese_official_default" not in constraint_ids
-    assert cards["genre_constraint_facts"]["explicit_ancient_chinese_identity"] is True
-    assert cards["genre_constraint_facts"]["user_overrides"]["ancient_chinese_identity"] is True
-    assert "仵作" in cards["genre_constraint_facts"]["activation_inputs"]["explicit_overrides"]["ancient_chinese_identity_terms"]
-
-
-def test_creator_dialogue_does_not_treat_negative_ancient_terms_as_override(tmp_path: Path, monkeypatch):
-    client = _client(tmp_path, monkeypatch)
-
-    response = client.post(
-        "/v1/creator/dialogue/sessions",
-        json={
-            "creator_id": "author_1",
-            "seed": "一个现代编辑穿越到西方玄幻地下城矿城。不要县衙、仵作、宗门这些时代错位词，也不要系统面板。",
-            "genre": "西方玄幻穿越",
-            "context": {
-                "story_direction": {
-                    "label": "西方玄幻穿越",
-                    "tone": "本土网文节奏",
-                    "hooks": "地下城现实灾厄",
-                    "keywords": "穿越, 地下城, 非游戏化",
-                },
-            },
-        },
-    )
-
-    assert response.status_code == 200
-    cards = response.json()["setting_cards"]
-    constraint_ids = {item["id"] for item in cards["genre_constraints"]}
-    assert "no_ancient_chinese_official_default" in constraint_ids
-    assert cards["genre_constraint_facts"]["explicit_ancient_chinese_identity"] is False
-    assert cards["genre_constraint_facts"]["user_overrides"]["ancient_chinese_identity"] is False
-    override_inputs = cards["genre_constraint_facts"]["activation_inputs"]["explicit_overrides"]
-    assert override_inputs["ancient_chinese_identity_terms"] == []
-    assert "仵作" in override_inputs["negated_ancient_chinese_identity_terms"]
-
+    assert cards["genre_kernels"] == []
+    assert cards["genre_constraint_facts"]["active_profile_ids"] == []
+    assert cards["genre_constraint_facts"]["activation_order"] == [
+        "selected_topic_template_direction",
+        "user_freeform_intent",
+        "runtime_rule_json",
+    ]
 
 def test_creator_dialogue_turn_continues_the_same_session(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
@@ -345,10 +288,10 @@ def test_creator_dialogue_sanitizes_prohibited_terms_from_model_output(tmp_path:
         tmp_path,
         monkeypatch,
         payload={
-            "message": "我先写一个西幻穿越开场。",
-            "story_text": "主角没有系统面板，也不是玩家，不能靠副本奖励活下去。",
-            "questions": ["下一段要不要继续强调系统面板不存在？"],
-            "setting_cards_delta": ["场景：地下城"],
+            "message": "我先写一个仙侠玄幻开场。",
+            "story_text": "主角拿出手机叫汽车去医院，准备一键升级。",
+            "questions": ["下一段要不要继续强调手机的作用？"],
+            "setting_cards_delta": ["场景：问灵台"],
             "next_actions": ["继续写。"],
             "quality_notes": ["测试禁用词净化。"],
         },
@@ -358,14 +301,14 @@ def test_creator_dialogue_sanitizes_prohibited_terms_from_model_output(tmp_path:
         "/v1/creator/dialogue/sessions",
         json={
             "creator_id": "author_1",
-            "seed": "一个现代编辑穿越到西方玄幻地下城矿城。不要系统面板、玩家、副本奖励。",
-            "genre": "西方玄幻穿越",
+            "seed": "仙侠玄幻，主角得到玉简后必须付出因果债。",
+            "genre": "仙侠玄幻",
             "context": {
                 "story_direction": {
-                    "label": "西方玄幻穿越",
-                    "tone": "本土网文节奏",
-                    "hooks": "地下城现实灾厄",
-                    "keywords": "穿越, 地下城, 非游戏化",
+                    "label": "仙侠玄幻",
+                    "tone": "逆天改命",
+                    "hooks": "玉简传承和因果债",
+                    "keywords": "修真, 玄幻, 玉简, 天劫",
                 },
             },
         },
@@ -374,11 +317,12 @@ def test_creator_dialogue_sanitizes_prohibited_terms_from_model_output(tmp_path:
     assert response.status_code == 200
     payload = response.json()
     assistant_text = json.dumps(payload["assistant"], ensure_ascii=False)
-    for forbidden in ["系统面板", "玩家", "副本奖励"]:
+    for forbidden in ["手机", "汽车", "医院", "一键升级"]:
         assert forbidden not in assistant_text
-    assert "可见提示" in assistant_text
-    assert "外来者" in assistant_text
-    assert "契约报酬" in assistant_text
+    assert "传音玉简" in assistant_text
+    assert "飞剑" in assistant_text
+    assert "医修洞府" in assistant_text
+    assert "闭关突破" in assistant_text
 
 
 def test_creator_dialogue_uses_creator_scoped_openai_compatible_provider(tmp_path: Path, monkeypatch):

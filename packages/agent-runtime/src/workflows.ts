@@ -16,7 +16,7 @@ import type {
 
 function safeTitle(input: SocraticCreateInput, profiles: ConstraintProfile[]): string {
   if (profiles.some(profile => profile.id === 'xuanhuan-xianxia')) return '问灵台'
-  if (profiles.some(profile => profile.id === 'others-modern')) return '雨夜证据'
+  if (profiles.some(profile => profile.id === 'modern-other')) return '雨夜证据'
   if (profiles.some(profile => profile.id === 'game-litrpg')) return '登录前夜'
   if (profiles.some(profile => profile.id === 'comedy-misfit')) return '掉马现场'
   return '第一幕'
@@ -41,7 +41,7 @@ function candidateBody(input: SocraticCreateInput, profiles: ConstraintProfile[]
       `本轮节拍：${beats.join(' -> ')}。`,
     ].join('\n\n')
   }
-  if (profiles.some(profile => profile.id === 'others-modern')) {
+  if (profiles.some(profile => profile.id === 'modern-other')) {
     return [
       `雨停在凌晨两点十七分，监控里的那个人却还撑着伞。`,
       `主角把证据袋压在掌心，塑封边缘有一道旧裂痕，像是有人在多年以前就替今晚开过封。`,
@@ -84,7 +84,7 @@ function questionsFor(profiles: ConstraintProfile[]): string[] {
       '主角更怕失去修行机会，还是更怕欠下新的人情债？',
     ]
   }
-  if (profiles.some(profile => profile.id === 'others-modern')) {
+  if (profiles.some(profile => profile.id === 'modern-other')) {
     return [
       '这份证据会伤害谁，所以主角不能立刻公开？',
       '主角和旧案之间有什么私人关系？',

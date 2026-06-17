@@ -1,5 +1,43 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P4 约束与类型内核重做
+
+### 现象
+
+P4 约束层此前围绕“西幻 / 非游戏化 / 禁古代官署职业”的负例做了过多特例，debug 脚本和测试也沿用这一组输入。这会让运行时看起来像是在修一个具体 prompt bug，而不是按文档规则选择类型内核。
+
+### 原因
+
+1. 约束逻辑先从一次真实测试断点长出来，没有及时回到 `constraints and kernel` 文档的完整题材体系。
+2. 规则激活把正文关键词、模板 hooks 和用户显式选择混在一起，导致“喜剧反套路”输入里出现“升级”时可能被游戏类抢占。
+3. 宽泛情绪词例如 `情感成长` 被放入硬题材 signal，容易把非目标题材误激活。
+
+### 修复原则
+
+1. P4 的事实源是文档化的 `ConstraintProfile + GenreKernel`，不是某个负例黑名单。
+2. 运行时规则统一存放在 `docs/product/rules/genre-runtime-rules.v1.json`，Mastra 和 FastAPI 都只读这份 JSON。
+3. 代表作品只用匿名 `rwref_*`，明文标题只存在私有加密 vault。
+4. 显式选择优先：用户选择的 genre/template/profile 排在 seed 关键词之前。
+5. 通用情绪词不能单独触发硬题材 Profile；只能作为后续写作风格或软提示。
+6. 若未来要加入特殊限制，必须抽象为可编辑的 profile/rule/doctrine，不允许在服务代码里写死 prompt 特例。
+
+### 本轮落地
+
+- `genre-runtime-rules.v1.json` 升级到 version 2，覆盖 21 个文档来源题材 Profile 与 21 个 Kernel。
+- `packages/agent-runtime/src/constraints.ts` 和 `backend/src/narrativeos/services/creator_dialogue.py` 统一按显式选择排序 active profile。
+- 后端 `CreatorDialogue` 不再包含旧西幻、非游戏化、古代官署职业硬编码分支。
+- debug 默认样例改成文档内的仙侠、现代、女频重生等主类目。
+- 测试覆盖 `仙侠玄幻 / 其他现代 / 游戏异界 / 喜剧反套路`，并验证未匹配的泛情感输入不会误触发硬约束。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+./backend/.venv/bin/pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
+npm run scan:reference-privacy
+```
+
 ## 2026-06-12 /create 创作页布局与系统边界收口
 
 ### 现象

@@ -1,0 +1,947 @@
+{
+  "version": 2,
+  "privacy": {
+    "representativeWorks": "encrypted_vault_only",
+    "publicReferenceField": "sourceRefs"
+  },
+  "constraintProfiles": [
+    {
+      "id": "xuanhuan-xianxia",
+      "displayName": "仙侠玄幻",
+      "layer": "world",
+      "priority": 95,
+      "sourceRefs": ["rwref_0013", "rwref_0030"],
+      "signalTerms": ["修真", "仙侠", "玄幻", "灵气", "筑基", "金丹", "元婴", "化神", "飞升", "功法", "天劫", "灵根", "法宝"],
+      "entryModeSignals": ["获得传承", "觉醒灵根", "拜师入门", "秘境奇遇", "重生修仙"],
+      "toneSignals": ["逆天改命", "渡劫突破", "宗门大比", "秘境探险", "血脉觉醒"],
+      "rules": [
+        {
+          "id": "cultivation-must-have-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=xuanhuan"],
+          "rule": "境界突破必须绑定资源消耗、身体代价或因果债务，不得无代价升级。",
+          "prohibitedTerms": ["一键升级", "满级重生", "无限资源", "瞬间满级", "天降外挂"],
+          "replacementGuidance": ["闭关突破", "境界跌落重修", "寻宝积累", "经年苦修", "机缘传承"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "xuanhuan-era-substrate",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=xuanhuan"],
+          "rule": "通信、交通、治疗和武器必须使用仙侠玄幻世界内表达，不得用现代科技词破坏时代基底。",
+          "prohibitedTerms": ["手机", "汽车", "枪械", "飞机", "医院"],
+          "replacementGuidance": ["传音玉简", "飞剑", "灵符弩", "传送阵", "医修洞府"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "modern-other",
+      "displayName": "其他现代",
+      "layer": "narrative",
+      "priority": 88,
+      "sourceRefs": ["rwref_0004", "rwref_0016"],
+      "signalTerms": ["其他现代", "现代悬疑", "推理", "案件", "证据链", "心理侧写", "现实主义", "多线叙事", "未解之谜", "时空交错", "都市谜案"],
+      "entryModeSignals": ["接手案件", "意外穿越", "职场新人", "身份暴露", "调查悬案", "旧案重启"],
+      "toneSignals": ["紧张悬疑", "逻辑推演", "历史穿插", "现代日常", "人性考验"],
+      "rules": [
+        {
+          "id": "logical-evidence-required",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=modern"],
+          "rule": "调查与推理必须依托完整证据链、行为动机和合理心理侧写，不得凭空出现关键线索。",
+          "prohibitedTerms": ["瞬间破案", "未解释证据", "读心术", "超自然破案", "无因巧合"],
+          "replacementGuidance": ["层层推理", "证据链完善", "心理侧写", "逻辑铺垫", "风险取证"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "modern-realism-boundary",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=modern"],
+          "rule": "现代类异常能力、穿越或历史线必须有现实、技术或历史因果支撑。",
+          "prohibitedTerms": ["无解释修炼", "灵气万能", "法术破案", "系统面板破案"],
+          "replacementGuidance": ["调查训练", "技术线索", "制度漏洞", "社会关系"],
+          "failBehavior": "regenerate"
+        }
+      ]
+    },
+    {
+      "id": "modern-supernatural",
+      "displayName": "现代都市超能",
+      "layer": "world",
+      "priority": 86,
+      "sourceRefs": ["rwref_0009", "rwref_0011", "rwref_0012"],
+      "signalTerms": ["现代都市", "都市超能", "聊天群", "灵气复苏", "异能", "妖族", "特勤局", "世家", "直播", "高考", "职场"],
+      "entryModeSignals": ["觉醒异能", "偶获传承", "加入聊天群", "身份揭露", "国家介入"],
+      "toneSignals": ["日常搞笑", "都市奇遇", "身份纠葛", "职场恋爱", "隐藏身份"],
+      "rules": [
+        {
+          "id": "modern-power-substrate",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=modern_supernatural"],
+          "rule": "现代都市超能必须把超凡能力嵌入城市制度、学校、职场、媒体或特勤体系。",
+          "prohibitedTerms": ["古典宗门统治城市", "无社会反应", "全民立即接受超能"],
+          "replacementGuidance": ["特勤局备案", "世家暗线", "媒体风险", "校园或职场伪装"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "maintain-secret-identity",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=modern_supernatural"],
+          "rule": "主角暴露能力必须付出关系、舆论或自由成本，不能让普通人无代价知晓。",
+          "prohibitedTerms": ["公然展示能力", "随意暴露身份", "无后果泄密"],
+          "replacementGuidance": ["暗中解决", "谨慎保密", "关系代价"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "game-litrpg",
+      "displayName": "游戏异界",
+      "layer": "world",
+      "priority": 84,
+      "sourceRefs": ["rwref_0034", "rwref_0041"],
+      "signalTerms": ["虚拟游戏", "游戏异界", "副本", "公会", "职业", "技能树", "BOSS战", "装备掉落", "PVP", "升级", "经验值", "隐藏任务", "攻略"],
+      "entryModeSignals": ["建角", "选择职业", "登录舱", "重生玩家", "隐藏职业"],
+      "toneSignals": ["团队协作", "策略博弈", "副本攻略", "竞技排名", "公会战争"],
+      "rules": [
+        {
+          "id": "system-interface-mandatory",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=game"],
+          "rule": "游戏异界必须明确存在系统界面、任务、奖励或数值反馈，成长来源不能模糊。",
+          "prohibitedTerms": ["无界面修炼", "随机升级", "模糊力量", "随意修炼", "法宝提升"],
+          "replacementGuidance": ["系统面板成长", "任务奖励升级", "明确数值", "系统任务驱动", "装备升级"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "guild-and-teamplay-required",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=game"],
+          "rule": "团队副本、公会协作和职业克制必须参与推进，不能让主角单刷所有挑战。",
+          "prohibitedTerms": ["单刷全部副本", "职业无差异", "永久单人通关", "个人无敌"],
+          "replacementGuidance": ["团队副本", "职业分工", "公会配合", "团队策略"],
+          "failBehavior": "regenerate"
+        }
+      ]
+    },
+    {
+      "id": "system-litrpg",
+      "displayName": "系统流",
+      "layer": "world",
+      "priority": 83,
+      "sourceRefs": ["rwref_0005", "rwref_0017"],
+      "signalTerms": ["系统流", "系统", "面板", "任务", "奖励", "惩罚", "积分", "商城", "抽奖", "签到", "宿主"],
+      "entryModeSignals": ["绑定系统", "发布任务", "获得面板", "签到奖励", "系统惩罚"],
+      "toneSignals": ["爽点兑现", "任务驱动", "数值反馈", "反转成长"],
+      "rules": [
+        {
+          "id": "system-must-have-price",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=system"],
+          "rule": "系统奖励必须伴随任务成本、失败惩罚或信息限制，不能无条件替主角解决冲突。",
+          "prohibitedTerms": ["白送奖励", "无惩罚任务", "万能系统", "无限抽奖"],
+          "replacementGuidance": ["任务代价", "失败惩罚", "权限限制", "冷却时间"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "system-not-author",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=system"],
+          "rule": "系统只能制造任务和信息差，最终选择必须由角色承担。",
+          "prohibitedTerms": ["系统替主角选择", "系统强行改写人心", "无人物行动"],
+          "replacementGuidance": ["角色主动选择", "有限提示", "行动后果"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "comedy-misfit",
+      "displayName": "喜剧反套路",
+      "layer": "thematic",
+      "priority": 82,
+      "sourceRefs": ["rwref_0008", "rwref_0010", "rwref_0014", "rwref_0019"],
+      "signalTerms": ["吐槽", "反差", "沙雕", "掉马", "误会", "搞笑", "反套路", "段子", "笑点", "群像", "现代梗", "师徒闹剧"],
+      "entryModeSignals": ["偷听心声", "掉马现场", "反派崩溃", "穿越搞笑", "超市经营"],
+      "toneSignals": ["轻松", "幽默", "搞笑日常", "反差反套路", "吐槽风暴"],
+      "rules": [
+        {
+          "id": "comedy-pressure-release",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=comedy"],
+          "rule": "危机必须被误会、反差行动或关系掉马转化为笑点推进，不能长时间压成纯黑深虐。",
+          "prohibitedTerms": ["纯黑深虐", "无笑点压抑", "单调苦难", "长篇修炼", "正式决斗"],
+          "replacementGuidance": ["误会升级", "反差行动", "关系掉马", "闹剧对决"],
+          "failBehavior": "warn"
+        }
+      ]
+    },
+    {
+      "id": "quick-transmigration",
+      "displayName": "快穿逆袭",
+      "layer": "narrative",
+      "priority": 81,
+      "sourceRefs": [],
+      "signalTerms": ["快穿", "主神", "任务", "好感度", "积分", "打脸", "逆袭", "角色扮演", "奖励", "惩罚"],
+      "entryModeSignals": ["接受任务", "穿越世界", "身份替换", "完成心愿", "积分结算"],
+      "toneSignals": ["节奏快速", "脸谱反转", "情感攻略", "任务失败", "系统提示"],
+      "rules": [
+        {
+          "id": "bounded-world-arc",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=quick_transmigration"],
+          "rule": "每个世界必须有明确任务、时限和离场机制，不能在单一世界无限拖延。",
+          "prohibitedTerms": ["无限停留", "一主线贯穿所有世界", "无任务离场", "整本书一个世界", "拖沓世界"],
+          "replacementGuidance": ["有时限任务", "独立副本", "任务结算离场", "多世界跳跃", "快速完结"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "task-consequence-required",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=quick_transmigration"],
+          "rule": "任务成败必须影响积分、能力、身份或精神状态，不能无代价通关。",
+          "prohibitedTerms": ["无惩罚失败", "奖励白送", "永久系统保护"],
+          "replacementGuidance": ["失败扣除积分", "完成任务得奖励", "限次保护"],
+          "failBehavior": "regenerate"
+        }
+      ]
+    },
+    {
+      "id": "horror-infinite",
+      "displayName": "恐怖无限流",
+      "layer": "world",
+      "priority": 80,
+      "sourceRefs": ["rwref_0021", "rwref_0025", "rwref_0027"],
+      "signalTerms": ["恐怖", "无限流", "副本", "主神空间", "规则怪谈", "逃生", "污染", "诡异", "生存任务"],
+      "entryModeSignals": ["进入副本", "收到规则", "被拉入空间", "循环死亡", "解谜逃生"],
+      "toneSignals": ["压迫", "未知恐惧", "团队猜疑", "规则陷阱", "生死倒计时"],
+      "rules": [
+        {
+          "id": "survival-rules-visible",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=horror_infinite"],
+          "rule": "恐怖无限流必须给出可被推理的生存规则，死亡不能只靠作者任意安排。",
+          "prohibitedTerms": ["无规则死亡", "随机团灭", "万能鬼怪"],
+          "replacementGuidance": ["规则线索", "污染代价", "副本禁忌"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "fear-has-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=horror_infinite"],
+          "rule": "每次获得线索都应增加精神、信任或身体风险。",
+          "prohibitedTerms": ["安全取证", "无代价试错", "队友永远可信"],
+          "replacementGuidance": ["精神污染", "信任裂痕", "身体损伤"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "apocalypse",
+      "displayName": "末世",
+      "layer": "world",
+      "priority": 79,
+      "sourceRefs": ["rwref_0020", "rwref_0040"],
+      "signalTerms": ["末世", "丧尸", "灾变", "异能", "庇护所", "物资", "废土", "病毒", "生存基地"],
+      "entryModeSignals": ["灾变爆发", "囤积物资", "觉醒异能", "建立基地", "逃离城市"],
+      "toneSignals": ["生存压力", "资源争夺", "秩序崩塌", "人性考验"],
+      "rules": [
+        {
+          "id": "survival-resource-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=apocalypse"],
+          "rule": "末世行动必须受物资、疾病、安全区和群体信任限制，不能无成本生存。",
+          "prohibitedTerms": ["无限物资", "无感染风险", "永远安全基地"],
+          "replacementGuidance": ["物资配给", "感染隔离", "基地防线"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "community-pressure",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=apocalypse"],
+          "rule": "基地或小队决策必须改变群体关系，不能只写单人爽点。",
+          "prohibitedTerms": ["独自横扫末世", "队友无作用", "群众无反应"],
+          "replacementGuidance": ["小队分工", "基地投票", "群体代价"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "wuxia-historical",
+      "displayName": "武侠历史",
+      "layer": "world",
+      "priority": 78,
+      "sourceRefs": ["rwref_0001", "rwref_0002"],
+      "signalTerms": ["武侠", "江湖", "门派", "侠义", "镖局", "朝堂", "刀剑", "轻功", "历史"],
+      "entryModeSignals": ["拜入门派", "押镖遇险", "卷入朝局", "江湖追杀", "复仇寻亲"],
+      "toneSignals": ["侠义两难", "家国冲突", "江湖恩怨", "历史风云"],
+      "rules": [
+        {
+          "id": "martial-honor-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=wuxia"],
+          "rule": "武侠行动必须受师门、名声、江湖规矩或家国立场约束。",
+          "prohibitedTerms": ["无门无派无代价", "现代枪械横扫", "随意改朝换代"],
+          "replacementGuidance": ["师门规矩", "江湖名声", "朝堂牵制"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "historical-order",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=wuxia"],
+          "rule": "历史背景必须保持制度、交通、通信和社会等级自洽。",
+          "prohibitedTerms": ["手机联络", "现代警局", "高铁追杀"],
+          "replacementGuidance": ["飞鸽传书", "衙署文牒", "驿道追踪"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "alchemy-craft",
+      "displayName": "炼丹炼器",
+      "layer": "world",
+      "priority": 77,
+      "sourceRefs": ["rwref_0008", "rwref_0018", "rwref_0032", "rwref_0038"],
+      "signalTerms": ["炼丹", "炼器", "丹炉", "器胚", "灵材", "火候", "符纹", "阵法", "药性"],
+      "entryModeSignals": ["获得丹方", "修补法器", "拜入器阁", "灵材失控", "炉火反噬"],
+      "toneSignals": ["工匠成长", "资源经营", "技术突破", "细节爽感"],
+      "rules": [
+        {
+          "id": "craft-process-required",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=alchemy"],
+          "rule": "炼丹炼器必须写清材料、火候、步骤和失败风险，不能只给成品。",
+          "prohibitedTerms": ["随手炼成", "材料不明", "无失败风险"],
+          "replacementGuidance": ["灵材配伍", "火候控制", "炸炉风险"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "materials-have-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=alchemy"],
+          "rule": "关键丹器必须绑定稀缺材料、时间成本或身体反噬。",
+          "prohibitedTerms": ["无限灵材", "秒成神器", "无副作用丹药"],
+          "replacementGuidance": ["稀缺灵材", "长期淬炼", "丹毒反噬"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "sci-fi-space",
+      "displayName": "科幻文明",
+      "layer": "world",
+      "priority": 76,
+      "sourceRefs": ["rwref_0007", "rwref_0015", "rwref_0039"],
+      "signalTerms": ["科幻", "文明", "太空", "星舰", "人工智能", "算法", "基因", "殖民星", "虫洞", "宇宙"],
+      "entryModeSignals": ["发现信号", "登上星舰", "AI觉醒", "殖民危机", "文明接触"],
+      "toneSignals": ["宏大尺度", "技术伦理", "存在危机", "文明抉择"],
+      "rules": [
+        {
+          "id": "science-causal-chain",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=sci_fi"],
+          "rule": "科幻设定必须有技术假设、约束和外部后果，不能用玄学解释替代。",
+          "prohibitedTerms": ["魔法解释科技", "无因超光速", "万能AI"],
+          "replacementGuidance": ["技术假设", "能源限制", "算法边界"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "civilization-scale-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=sci_fi"],
+          "rule": "文明级选择必须牵动群体、生态或制度代价。",
+          "prohibitedTerms": ["个人决定全宇宙无反应", "零成本殖民", "无伦理风险实验"],
+          "replacementGuidance": ["文明争议", "生态代价", "伦理审查"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "transmigration",
+      "displayName": "穿越重生",
+      "layer": "narrative",
+      "priority": 75,
+      "sourceRefs": ["rwref_0022", "rwref_0023"],
+      "signalTerms": ["穿越", "重生", "前世", "改命", "信息差", "回到过去", "异世", "借尸还魂"],
+      "entryModeSignals": ["醒在陌生身体", "重回起点", "带着记忆", "事故穿越", "历史分岔"],
+      "toneSignals": ["先知优势", "弥补遗憾", "身份适应", "改写命运"],
+      "rules": [
+        {
+          "id": "era-adaptation-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=transmigration"],
+          "rule": "穿越或重生必须先处理身份、语言、制度和生存成本，不能立刻完全适应。",
+          "prohibitedTerms": ["无缝适应", "所有人立即信任", "现代知识万能"],
+          "replacementGuidance": ["身份破绽", "制度学习", "知识受限"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "knowledge-diff-limited",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=transmigration"],
+          "rule": "先知信息必须有限且会随行动改变，不能保证所有结果准确。",
+          "prohibitedTerms": ["全知未来", "一次布局全赢", "历史完全不变"],
+          "replacementGuidance": ["局部情报", "蝴蝶效应", "风险试探"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "male-farming-base",
+      "displayName": "男频基建流",
+      "layer": "narrative",
+      "priority": 74,
+      "sourceRefs": ["rwref_0004", "rwref_0024"],
+      "signalTerms": ["基建", "种田", "领地", "开荒", "工坊", "城镇", "粮食", "人口", "技术树"],
+      "entryModeSignals": ["接手荒地", "建设村镇", "招募流民", "改良工具", "抵御外敌"],
+      "toneSignals": ["稳步发展", "生产经营", "群体协作", "制度成长"],
+      "rules": [
+        {
+          "id": "infrastructure-stepwise",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=male_farming"],
+          "rule": "基建必须按资源、技术、人口和防务阶段推进，不能一步建成完整体系。",
+          "prohibitedTerms": ["一夜建城", "无限劳动力", "凭空工业化"],
+          "replacementGuidance": ["分期建设", "劳力招募", "工坊试制"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "community-labor-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=male_farming"],
+          "rule": "建设成果必须体现普通人劳动、利益分配和外部压力。",
+          "prohibitedTerms": ["主角单人建国", "群众无诉求", "无防务压力"],
+          "replacementGuidance": ["工匠协作", "税粮分配", "外敌威胁"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "farming-domestic",
+      "displayName": "种田致富",
+      "layer": "character",
+      "priority": 73,
+      "sourceRefs": ["rwref_0031", "rwref_0033"],
+      "signalTerms": ["种田", "致富", "家长里短", "农家", "美食", "铺子", "田地", "手艺", "日常经营"],
+      "entryModeSignals": ["分家", "开铺", "荒地开垦", "做吃食", "救助家人"],
+      "toneSignals": ["温馨治愈", "慢热经营", "家庭关系", "生活细节"],
+      "rules": [
+        {
+          "id": "livelihood-details",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=farming"],
+          "rule": "种田致富必须有具体生产、买卖、食物或家务细节，不能只写结果发财。",
+          "prohibitedTerms": ["突然暴富", "无过程开店", "凭空大丰收"],
+          "replacementGuidance": ["摆摊试卖", "季节收成", "手艺改良"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "domestic-relationship",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=farming"],
+          "rule": "家庭关系必须影响经营选择，不能把亲缘只当背景板。",
+          "prohibitedTerms": ["家人无反应", "邻里无关系", "单人发财"],
+          "replacementGuidance": ["亲缘牵制", "邻里互助", "共同经营"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "family-clan-group",
+      "displayName": "群像家族",
+      "layer": "character",
+      "priority": 72,
+      "sourceRefs": ["rwref_0028", "rwref_0029", "rwref_0035", "rwref_0042"],
+      "signalTerms": ["群像", "家族", "宗族", "族谱", "继承", "联姻", "家业", "多主角", "分支人物"],
+      "entryModeSignals": ["家族危机", "继承争议", "族人回归", "联姻谈判", "家业分裂"],
+      "toneSignals": ["多线并行", "家族兴衰", "关系博弈", "代际冲突"],
+      "rules": [
+        {
+          "id": "multi-character-agency",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=family_clan"],
+          "rule": "群像家族必须让多个角色拥有独立目标和行动，不得只围绕主角转。",
+          "prohibitedTerms": ["全员工具人", "只有主角行动", "旁支无动机"],
+          "replacementGuidance": ["多线目标", "旁支利益", "代际选择"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "family-interest-conflict",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=family_clan"],
+          "rule": "家族冲突必须来自继承、资源、名声或婚姻利益差异。",
+          "prohibitedTerms": ["无理由内斗", "家业无限", "人人无私"],
+          "replacementGuidance": ["继承矛盾", "资源分配", "名声代价"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "sweet-pet-marriage",
+      "displayName": "甜宠先婚后爱",
+      "layer": "character",
+      "priority": 71,
+      "sourceRefs": ["rwref_0003", "rwref_0006", "rwref_0036", "rwref_0043"],
+      "signalTerms": ["甜宠", "先婚后爱", "契约婚姻", "闪婚", "同居", "暗恋", "治愈", "双向奔赴"],
+      "entryModeSignals": ["协议结婚", "被迫同居", "家族安排", "假戏真做", "保护婚约"],
+      "toneSignals": ["甜而不腻", "慢热亲密", "互相照顾", "误会修复"],
+      "rules": [
+        {
+          "id": "intimacy-by-action",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=romance"],
+          "rule": "亲密感必须通过具体行动、照顾和信任积累产生，不能只靠口头表白。",
+          "prohibitedTerms": ["突然深爱", "无互动定情", "霸总命令式宠爱"],
+          "replacementGuidance": ["行动照顾", "共同承担", "信任积累"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "marriage-contract-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=romance"],
+          "rule": "先婚关系必须带来家庭、事业、名声或情感边界成本。",
+          "prohibitedTerms": ["无代价闪婚", "协议形同虚设", "家人无反应"],
+          "replacementGuidance": ["边界协商", "家庭压力", "名声风险"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "danmei-romance",
+      "displayName": "耽美",
+      "layer": "character",
+      "priority": 70,
+      "sourceRefs": ["rwref_0026", "rwref_0044"],
+      "signalTerms": ["耽美", "双男主", "强强", "年下", "竹马", "破镜重圆", "救赎", "宿敌"],
+      "entryModeSignals": ["宿敌重逢", "任务搭档", "身份互换", "旧情未了", "共同逃亡"],
+      "toneSignals": ["暧昧拉扯", "情感救赎", "克制张力", "双向选择"],
+      "rules": [
+        {
+          "id": "relationship-agency",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=danmei"],
+          "rule": "双主角都必须有独立行动、欲望和代价，不能让一方只承担被拯救功能。",
+          "prohibitedTerms": ["单方工具人", "无自我牺牲", "强行依附"],
+          "replacementGuidance": ["双向选择", "各自目标", "互相救赎"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "emotional-subtext",
+          "severity": "soft",
+          "appliesWhen": ["genre_family=danmei"],
+          "rule": "情感推进应通过行动、隐瞒和互相保护表达，不宜直接堆砌告白。",
+          "prohibitedTerms": ["空泛告白", "无铺垫亲密"],
+          "replacementGuidance": ["行动表达", "克制拉扯"],
+          "failBehavior": "warn"
+        }
+      ]
+    },
+    {
+      "id": "chase-wife-crematorium",
+      "displayName": "追妻火葬场",
+      "layer": "character",
+      "priority": 69,
+      "sourceRefs": ["rwref_0037", "rwref_0045"],
+      "signalTerms": ["追妻", "火葬场", "虐恋", "误会", "分手", "离婚", "后悔", "破镜重圆"],
+      "entryModeSignals": ["错认伤害", "离婚冷静", "重逢追悔", "真相揭开", "重新选择"],
+      "toneSignals": ["虐恋拉扯", "后悔补偿", "尊严重建", "情感清算"],
+      "rules": [
+        {
+          "id": "harm-before-repair",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=crematorium"],
+          "rule": "追妻修复必须先承认具体伤害，不能用一句道歉抹平长期痛苦。",
+          "prohibitedTerms": ["一句道歉复合", "无伤害清算", "立刻原谅"],
+          "replacementGuidance": ["具体伤害", "行动补偿", "重新选择"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "apology-has-cost",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=crematorium"],
+          "rule": "忏悔必须付出现实代价，且被追求方保留拒绝权。",
+          "prohibitedTerms": ["强行和好", "施压复合", "受害方无选择"],
+          "replacementGuidance": ["尊重拒绝", "长期弥补", "边界重建"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "female-rebirth-revenge",
+      "displayName": "女频重生复仇",
+      "layer": "narrative",
+      "priority": 68,
+      "sourceRefs": [],
+      "signalTerms": ["女频重生", "重生复仇", "宅斗", "嫡庶", "情感救赎", "权谋", "家族", "嫁妆", "管家权", "退婚"],
+      "entryModeSignals": ["前世惨死", "信息差", "刻意布局", "借刀杀人", "策反仆人"],
+      "toneSignals": ["甜虐交织", "计谋交锋", "家族纠葛", "情感试探", "最终救赎"],
+      "rules": [
+        {
+          "id": "long-term-revenge-layout",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=rebirth_revenge"],
+          "rule": "复仇必须通过长期布局、信息差和社会关系完成，不能一招定胜负。",
+          "prohibitedTerms": ["无代价复仇", "系统奖励复仇", "一剑封喉", "即刻原谅"],
+          "replacementGuidance": ["周密谋划", "情报换取支持", "借刀杀人", "暗中试探"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "household-hierarchy",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=rebirth_revenge"],
+          "rule": "宅斗与家族线必须遵循嫡庶、礼法、婚姻和管家权结构。",
+          "prohibitedTerms": ["CEO管理家族", "现代企业制度", "礼法无效"],
+          "replacementGuidance": ["管家权传承", "礼法束缚", "族中议事"],
+          "failBehavior": "repair"
+        }
+      ]
+    },
+    {
+      "id": "era-female",
+      "displayName": "年代女强",
+      "layer": "world",
+      "priority": 67,
+      "sourceRefs": [],
+      "signalTerms": ["年代", "年代女强", "改革", "农村", "家庭", "厂长", "个体户", "政策", "囤货", "先知", "倒爷", "粮票"],
+      "entryModeSignals": ["穿越年代", "重回70年代", "携带仓库", "先知优势", "抓住政策机遇"],
+      "toneSignals": ["女强", "改革红利", "温馨治愈", "时代洪流", "家庭事业"],
+      "rules": [
+        {
+          "id": "historical-policy-substrate",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=era_realism"],
+          "rule": "年代女强必须扎根具体年代、票证、政策、集体或市场转型，不能脱离现实历史。",
+          "prohibitedTerms": ["无年代背景", "凭空发财", "现代公司制度直接套用"],
+          "replacementGuidance": ["粮票布票", "政策窗口", "乡镇企业", "个体经营"],
+          "failBehavior": "regenerate"
+        },
+        {
+          "id": "no-fantasy-in-era-realism",
+          "severity": "hard",
+          "appliesWhen": ["genre_family=era_realism"],
+          "rule": "年代现实故事不得引入破坏现实底盘的玄幻力量。",
+          "prohibitedTerms": ["修仙", "法术", "灵气", "飞升", "妖兽"],
+          "replacementGuidance": ["创业技能", "政策红利", "劳动经验", "时代机遇"],
+          "failBehavior": "repair"
+        }
+      ]
+    }
+  ],
+  "genreKernels": [
+    {
+      "id": "kernel-xuanhuan-xianxia",
+      "name": "仙侠玄幻内核",
+      "category": "xuanhuan",
+      "compatibleProfiles": ["xuanhuan-xianxia"],
+      "sourceRefs": ["rwref_0013", "rwref_0030"],
+      "thesis": "爽感来自按部就班的修真体系、资源争夺与代价突破共同构成的成长曲线。",
+      "antiThesis": "避免未经解释的外挂、瞬间升级和没有代价的突破。",
+      "pacingModel": "凡人机缘 -> 拜师入宗 -> 筑基突破 -> 夺宝立仇 -> 天劫考验",
+      "eventStructure": ["凡人机缘", "拜师入宗", "筑基突破", "夺宝立仇", "天劫考验"],
+      "motiveRules": ["长生与保护亲人共同驱动冒险", "宗门荣誉和师徒之情制造行动压力", "悟道需求推动游历"],
+      "conflictRules": ["资源争夺必须改变关系", "奇遇必须留下因果", "突破必须引发新限制"],
+      "climaxRules": ["高潮围绕境界突破或生死对决", "胜利后展示新能力和新责任"],
+      "timeControls": { "baseRate": 0.38, "burst": 0.8, "decay": 0.44, "foreshadowPressure": 0.78, "maxOpenLoops": 5 }
+    },
+    {
+      "id": "kernel-modern-other",
+      "name": "其他现代内核",
+      "category": "modern",
+      "compatibleProfiles": ["modern-other"],
+      "sourceRefs": ["rwref_0004", "rwref_0016"],
+      "thesis": "现代异常故事的张力来自现实制度、证据链和人物秘密互相挤压。",
+      "antiThesis": "不要用巧合、读心或万能超自然解释替代证据链。",
+      "pacingModel": "现实异常 -> 证据矛盾 -> 关系暴露 -> 风险取证 -> 真相代价",
+      "eventStructure": ["现实异常", "证据矛盾", "关系暴露", "风险取证", "真相代价"],
+      "motiveRules": ["每个关键人物都要保护一个秘密", "主角不能免费得到真相", "关系也是证据来源"],
+      "conflictRules": ["线索必须改变行动", "反转要能回看成立", "公开证据会伤害保护对象"],
+      "climaxRules": ["高潮同时揭示事实和误解", "证据公开必须制造新后果"],
+      "timeControls": { "baseRate": 0.42, "burst": 0.74, "decay": 0.5, "foreshadowPressure": 0.68, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-modern-supernatural",
+      "name": "现代都市超能内核",
+      "category": "modern_supernatural",
+      "compatibleProfiles": ["modern-supernatural"],
+      "sourceRefs": ["rwref_0009", "rwref_0011", "rwref_0012"],
+      "thesis": "超能爽点必须落在城市秩序、隐藏身份和日常关系的双重压力里。",
+      "antiThesis": "不要让超能脱离现代社会反应成为古典修仙换皮。",
+      "pacingModel": "日常异常 -> 能力觉醒 -> 身份伪装 -> 机构介入 -> 公开代价",
+      "eventStructure": ["日常异常", "能力觉醒", "身份伪装", "机构介入", "公开代价"],
+      "motiveRules": ["普通生活和超能任务同时拉扯", "保护城市不等于免费暴露", "亲密关系承担信息差"],
+      "conflictRules": ["每次使用能力提高暴露风险", "机构和世家各有秩序诉求", "媒体和普通人反应不可省略"],
+      "climaxRules": ["高潮同时解决超能危机和身份边界", "胜利后要留下社会后果"],
+      "timeControls": { "baseRate": 0.44, "burst": 0.72, "decay": 0.5, "foreshadowPressure": 0.6, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-game-litrpg",
+      "name": "游戏异界内核",
+      "category": "game",
+      "compatibleProfiles": ["game-litrpg"],
+      "sourceRefs": ["rwref_0034", "rwref_0041"],
+      "thesis": "成长由任务、职业分工、装备反馈和团队策略共同驱动。",
+      "antiThesis": "不要让主角脱离任务结构随机变强，也不要让团队职业失去意义。",
+      "pacingModel": "登录建角 -> 任务目标 -> 队伍协作 -> 奖惩反馈 -> 公会压力",
+      "eventStructure": ["登录建角", "任务目标", "队伍协作", "奖惩反馈", "公会压力"],
+      "motiveRules": ["成长目标必须可见", "失败惩罚必须明确", "团队关系推动下一场挑战"],
+      "conflictRules": ["个人操作与职业克制冲突", "任务奖励与公会利益冲突", "信息优势带来暴露风险"],
+      "climaxRules": ["高潮同时兑现任务目标和团队代价"],
+      "timeControls": { "baseRate": 0.52, "burst": 0.76, "decay": 0.44, "foreshadowPressure": 0.5, "maxOpenLoops": 3 }
+    },
+    {
+      "id": "kernel-system-litrpg",
+      "name": "系统流内核",
+      "category": "system",
+      "compatibleProfiles": ["system-litrpg"],
+      "sourceRefs": ["rwref_0005", "rwref_0017"],
+      "thesis": "系统负责制造任务边界和奖励诱惑，人物负责承担选择后果。",
+      "antiThesis": "不要让系统代替人物行动或无条件兜底。",
+      "pacingModel": "绑定系统 -> 任务诱因 -> 成本暴露 -> 选择执行 -> 奖惩结算",
+      "eventStructure": ["绑定系统", "任务诱因", "成本暴露", "选择执行", "奖惩结算"],
+      "motiveRules": ["任务诱因必须撬动人物欲望", "奖励不能替代行动", "惩罚推动下一次选择"],
+      "conflictRules": ["系统目标和人物价值观冲突", "提示信息有限", "收益带来新约束"],
+      "climaxRules": ["高潮让人物主动承担或拒绝任务代价"],
+      "timeControls": { "baseRate": 0.5, "burst": 0.72, "decay": 0.46, "foreshadowPressure": 0.52, "maxOpenLoops": 3 }
+    },
+    {
+      "id": "kernel-comedy-misfit",
+      "name": "喜剧反套路内核",
+      "category": "comedy",
+      "compatibleProfiles": ["comedy-misfit"],
+      "sourceRefs": ["rwref_0008", "rwref_0010", "rwref_0014", "rwref_0019"],
+      "thesis": "笑点来自误会、身份反差和行动错位，但每个笑点仍要推动关系或局势变化。",
+      "antiThesis": "不要只堆段子；笑点必须改变人物处境。",
+      "pacingModel": "误会出现 -> 反差行动 -> 掉马边缘 -> 群像误读 -> 关系推进",
+      "eventStructure": ["误会出现", "反差行动", "掉马边缘", "群像误读", "关系推进"],
+      "motiveRules": ["人物要认真做荒诞事", "误会来自真实信息差", "每个笑点改变一段关系"],
+      "conflictRules": ["危机要被反差行动转化", "吐槽不能替代行动", "群像误读必须升级选择压力"],
+      "climaxRules": ["高潮让身份或误会局部公开，并产生新的关系代价"],
+      "timeControls": { "baseRate": 0.48, "burst": 0.62, "decay": 0.58, "foreshadowPressure": 0.46, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-quick-transmigration",
+      "name": "快穿逆袭内核",
+      "category": "quick_transmigration",
+      "compatibleProfiles": ["quick-transmigration"],
+      "sourceRefs": [],
+      "thesis": "快穿爽点来自短世界快速建题、任务代价、身份扮演和结算离场。",
+      "antiThesis": "不要把快穿写成单一世界长篇拖延。",
+      "pacingModel": "接收任务 -> 身份落点 -> 目标反转 -> 代价执行 -> 结算离场",
+      "eventStructure": ["接收任务", "身份落点", "目标反转", "代价执行", "结算离场"],
+      "motiveRules": ["任务必须压迫人物价值观", "原身心愿提供情感钩子", "结算影响长期状态"],
+      "conflictRules": ["每个世界独立但不孤立", "攻略和逆袭都要付成本", "系统提示不能替代行动"],
+      "climaxRules": ["高潮完成任务且留下精神或积分变化"],
+      "timeControls": { "baseRate": 0.58, "burst": 0.78, "decay": 0.52, "foreshadowPressure": 0.44, "maxOpenLoops": 3 }
+    },
+    {
+      "id": "kernel-horror-infinite",
+      "name": "恐怖无限流内核",
+      "category": "horror_infinite",
+      "compatibleProfiles": ["horror-infinite"],
+      "sourceRefs": ["rwref_0021", "rwref_0025", "rwref_0027"],
+      "thesis": "恐怖来自可推理规则、错误试探和信任崩裂，而不只是怪物出现。",
+      "antiThesis": "不要用随机死亡代替规则压力。",
+      "pacingModel": "规则入场 -> 小错试探 -> 队友裂痕 -> 核心禁忌 -> 逃生代价",
+      "eventStructure": ["规则入场", "小错试探", "队友裂痕", "核心禁忌", "逃生代价"],
+      "motiveRules": ["活下去和救人互相冲突", "好奇心带来污染", "信任是稀缺资源"],
+      "conflictRules": ["线索获得伴随风险", "规则可被误读", "队友行动会改变副本状态"],
+      "climaxRules": ["高潮揭示规则真相并付出生存代价"],
+      "timeControls": { "baseRate": 0.46, "burst": 0.82, "decay": 0.4, "foreshadowPressure": 0.8, "maxOpenLoops": 5 }
+    },
+    {
+      "id": "kernel-apocalypse",
+      "name": "末世内核",
+      "category": "apocalypse",
+      "compatibleProfiles": ["apocalypse"],
+      "sourceRefs": ["rwref_0020", "rwref_0040"],
+      "thesis": "末世叙事的核心是资源稀缺下的秩序重建和人性选择。",
+      "antiThesis": "不要让无限物资或单人无敌抹掉生存压力。",
+      "pacingModel": "灾变爆发 -> 资源抢夺 -> 小队成形 -> 基地秩序 -> 人性清算",
+      "eventStructure": ["灾变爆发", "资源抢夺", "小队成形", "基地秩序", "人性清算"],
+      "motiveRules": ["生存需求先于宏大目标", "保护对象制造资源分配难题", "信任由共同风险产生"],
+      "conflictRules": ["每次救援消耗物资", "基地规则引发派系冲突", "异能不能替代组织"],
+      "climaxRules": ["高潮同时考验生存、秩序和亲密关系"],
+      "timeControls": { "baseRate": 0.5, "burst": 0.8, "decay": 0.46, "foreshadowPressure": 0.66, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-wuxia-historical",
+      "name": "武侠历史内核",
+      "category": "wuxia",
+      "compatibleProfiles": ["wuxia-historical"],
+      "sourceRefs": ["rwref_0001", "rwref_0002"],
+      "thesis": "武侠历史的张力来自侠义、师门、名声和家国秩序互相冲突。",
+      "antiThesis": "不要用现代工具或个人爽点破坏江湖与时代秩序。",
+      "pacingModel": "江湖入局 -> 门派牵制 -> 朝堂阴影 -> 侠义两难 -> 名声代价",
+      "eventStructure": ["江湖入局", "门派牵制", "朝堂阴影", "侠义两难", "名声代价"],
+      "motiveRules": ["侠义需要具体保护对象", "门派规矩限制行动", "家国立场压迫个人恩怨"],
+      "conflictRules": ["名声和真相互相冲突", "武力不能解决制度问题", "江湖承诺产生后续代价"],
+      "climaxRules": ["高潮让角色在侠义和秩序间选择"],
+      "timeControls": { "baseRate": 0.36, "burst": 0.68, "decay": 0.5, "foreshadowPressure": 0.62, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-alchemy-craft",
+      "name": "炼丹炼器内核",
+      "category": "alchemy",
+      "compatibleProfiles": ["alchemy-craft"],
+      "sourceRefs": ["rwref_0008", "rwref_0018", "rwref_0032", "rwref_0038"],
+      "thesis": "工艺爽点来自材料稀缺、步骤细节、失败风险和成品反哺剧情。",
+      "antiThesis": "不要只给神丹神器的结果而省略过程。",
+      "pacingModel": "需求出现 -> 灵材搜集 -> 工艺试错 -> 失败反噬 -> 成品代价",
+      "eventStructure": ["需求出现", "灵材搜集", "工艺试错", "失败反噬", "成品代价"],
+      "motiveRules": ["工艺服务人物目标", "材料来源牵动关系", "失败风险逼出选择"],
+      "conflictRules": ["灵材竞争制造敌人", "技术突破留下副作用", "成品改变势力平衡"],
+      "climaxRules": ["高潮兑现工艺过程并产生新债务"],
+      "timeControls": { "baseRate": 0.34, "burst": 0.62, "decay": 0.52, "foreshadowPressure": 0.7, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-sci-fi-space",
+      "name": "科幻文明内核",
+      "category": "sci_fi",
+      "compatibleProfiles": ["sci-fi-space"],
+      "sourceRefs": ["rwref_0007", "rwref_0015", "rwref_0039"],
+      "thesis": "科幻冲突来自技术假设、文明尺度和伦理成本的连锁反应。",
+      "antiThesis": "不要把科技写成无约束魔法。",
+      "pacingModel": "异常信号 -> 技术验证 -> 伦理争议 -> 文明风险 -> 选择后果",
+      "eventStructure": ["异常信号", "技术验证", "伦理争议", "文明风险", "选择后果"],
+      "motiveRules": ["探索欲和生存需求并行", "技术组织有各自利益", "个体选择映射文明问题"],
+      "conflictRules": ["每项技术都有边界", "文明接触改变资源和秩序", "AI或基因设定必须有约束"],
+      "climaxRules": ["高潮同时解决技术谜题和伦理选择"],
+      "timeControls": { "baseRate": 0.4, "burst": 0.72, "decay": 0.5, "foreshadowPressure": 0.72, "maxOpenLoops": 5 }
+    },
+    {
+      "id": "kernel-transmigration",
+      "name": "穿越重生内核",
+      "category": "transmigration",
+      "compatibleProfiles": ["transmigration"],
+      "sourceRefs": ["rwref_0022", "rwref_0023"],
+      "thesis": "穿越重生的驱动力是身份适应、信息差利用和蝴蝶效应带来的风险。",
+      "antiThesis": "不要让现代知识成为万能答案。",
+      "pacingModel": "醒来错位 -> 身份试探 -> 信息差兑现 -> 蝴蝶效应 -> 新命运选择",
+      "eventStructure": ["醒来错位", "身份试探", "信息差兑现", "蝴蝶效应", "新命运选择"],
+      "motiveRules": ["先保命再改命", "前世信息必须有盲区", "适应成本推动关系"],
+      "conflictRules": ["使用信息差会改变未来", "身份破绽带来风险", "现代价值观和当地制度冲突"],
+      "climaxRules": ["高潮让主角为改写命运承担不可逆代价"],
+      "timeControls": { "baseRate": 0.42, "burst": 0.7, "decay": 0.48, "foreshadowPressure": 0.64, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-male-farming-base",
+      "name": "男频基建流内核",
+      "category": "male_farming",
+      "compatibleProfiles": ["male-farming-base"],
+      "sourceRefs": ["rwref_0004", "rwref_0024"],
+      "thesis": "基建爽点来自资源组织、技术迭代、人口协作和外部压力的稳步兑现。",
+      "antiThesis": "不要一夜建城或让主角单人完成社会工程。",
+      "pacingModel": "荒地接手 -> 资源盘点 -> 技术试制 -> 人口组织 -> 外敌考验",
+      "eventStructure": ["荒地接手", "资源盘点", "技术试制", "人口组织", "外敌考验"],
+      "motiveRules": ["建设目标要具体可见", "普通人劳动不可省略", "技术改良要有失败样本"],
+      "conflictRules": ["资源不足逼迫取舍", "利益分配制造群体矛盾", "外部压力检验制度"],
+      "climaxRules": ["高潮兑现一个建设成果并暴露下一阶段短板"],
+      "timeControls": { "baseRate": 0.32, "burst": 0.58, "decay": 0.58, "foreshadowPressure": 0.52, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-farming-domestic",
+      "name": "种田致富内核",
+      "category": "farming",
+      "compatibleProfiles": ["farming-domestic"],
+      "sourceRefs": ["rwref_0031", "rwref_0033"],
+      "thesis": "生活流爽点来自细节劳动、家庭关系和小成果连续兑现。",
+      "antiThesis": "不要突然暴富或把亲缘关系写成背景板。",
+      "pacingModel": "家庭困境 -> 手艺试水 -> 邻里反馈 -> 小赚积累 -> 关系修复",
+      "eventStructure": ["家庭困境", "手艺试水", "邻里反馈", "小赚积累", "关系修复"],
+      "motiveRules": ["赚钱和照顾家人互相绑定", "小物件承载情绪", "邻里关系提供机会和阻碍"],
+      "conflictRules": ["经营选择影响家庭关系", "市场反馈必须具体", "温馨不等于无冲突"],
+      "climaxRules": ["高潮兑现生活改善和关系变化"],
+      "timeControls": { "baseRate": 0.3, "burst": 0.5, "decay": 0.62, "foreshadowPressure": 0.46, "maxOpenLoops": 3 }
+    },
+    {
+      "id": "kernel-family-clan-group",
+      "name": "群像家族内核",
+      "category": "family_clan",
+      "compatibleProfiles": ["family-clan-group"],
+      "sourceRefs": ["rwref_0028", "rwref_0029", "rwref_0035", "rwref_0042"],
+      "thesis": "家族群像的张力来自多角色目标、资源分配和代际责任的冲突。",
+      "antiThesis": "不要让所有角色都服务单一主角。",
+      "pacingModel": "家族危机 -> 分支立场 -> 利益碰撞 -> 代际选择 -> 家业重排",
+      "eventStructure": ["家族危机", "分支立场", "利益碰撞", "代际选择", "家业重排"],
+      "motiveRules": ["每个重要成员有独立目标", "家族利益和个人情感冲突", "代际秘密推动行动"],
+      "conflictRules": ["继承和婚姻改变资源流向", "旁支也有胜负手", "群像线索必须交叉"],
+      "climaxRules": ["高潮重排家族秩序并改变至少三段关系"],
+      "timeControls": { "baseRate": 0.36, "burst": 0.66, "decay": 0.52, "foreshadowPressure": 0.74, "maxOpenLoops": 6 }
+    },
+    {
+      "id": "kernel-sweet-pet-marriage",
+      "name": "甜宠先婚后爱内核",
+      "category": "romance",
+      "compatibleProfiles": ["sweet-pet-marriage"],
+      "sourceRefs": ["rwref_0003", "rwref_0006", "rwref_0036", "rwref_0043"],
+      "thesis": "甜感来自行动照顾、边界协商和信任慢慢被证明。",
+      "antiThesis": "不要用突兀表白替代亲密积累。",
+      "pacingModel": "契约同居 -> 边界磨合 -> 小事照顾 -> 误会修复 -> 双向承认",
+      "eventStructure": ["契约同居", "边界磨合", "小事照顾", "误会修复", "双向承认"],
+      "motiveRules": ["婚姻关系先制造外部压力", "亲密来自行动证据", "双方都要保留边界"],
+      "conflictRules": ["家庭和事业压力影响相处", "误会必须来自真实价值冲突", "宠爱不能取消对方主体性"],
+      "climaxRules": ["高潮让两人主动选择关系而非被契约推着走"],
+      "timeControls": { "baseRate": 0.28, "burst": 0.54, "decay": 0.64, "foreshadowPressure": 0.5, "maxOpenLoops": 3 }
+    },
+    {
+      "id": "kernel-danmei-romance",
+      "name": "耽美内核",
+      "category": "danmei",
+      "compatibleProfiles": ["danmei-romance"],
+      "sourceRefs": ["rwref_0026", "rwref_0044"],
+      "thesis": "双主角关系要在各自目标、克制保护和互相选择中推进。",
+      "antiThesis": "不要把一方写成另一方的功能性附属。",
+      "pacingModel": "立场相遇 -> 信息互探 -> 克制保护 -> 旧伤暴露 -> 双向选择",
+      "eventStructure": ["立场相遇", "信息互探", "克制保护", "旧伤暴露", "双向选择"],
+      "motiveRules": ["两人都有不可替代的目标", "情感通过行动表达", "旧伤限制亲密推进"],
+      "conflictRules": ["立场冲突和情感牵引并行", "保护可能造成误解", "公开关系需承担代价"],
+      "climaxRules": ["高潮让双方各自主动承担一次风险"],
+      "timeControls": { "baseRate": 0.32, "burst": 0.58, "decay": 0.6, "foreshadowPressure": 0.54, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-chase-wife-crematorium",
+      "name": "追妻火葬场内核",
+      "category": "crematorium",
+      "compatibleProfiles": ["chase-wife-crematorium"],
+      "sourceRefs": ["rwref_0037", "rwref_0045"],
+      "thesis": "情感修复必须以伤害清算、尊严重建和重新选择为前提。",
+      "antiThesis": "不要让一句道歉消解真实伤害。",
+      "pacingModel": "伤害揭露 -> 离场自救 -> 追悔补偿 -> 边界重建 -> 重新选择",
+      "eventStructure": ["伤害揭露", "离场自救", "追悔补偿", "边界重建", "重新选择"],
+      "motiveRules": ["被伤害方的主体性优先", "追悔方必须付出行动成本", "复合不是唯一答案"],
+      "conflictRules": ["补偿不能绕过伤害事实", "外部压力不能强迫和好", "旧误会必须被具体清算"],
+      "climaxRules": ["高潮把选择权交还被伤害方"],
+      "timeControls": { "baseRate": 0.3, "burst": 0.64, "decay": 0.58, "foreshadowPressure": 0.58, "maxOpenLoops": 4 }
+    },
+    {
+      "id": "kernel-female-rebirth-revenge",
+      "name": "女频重生复仇内核",
+      "category": "rebirth_revenge",
+      "compatibleProfiles": ["female-rebirth-revenge"],
+      "sourceRefs": [],
+      "thesis": "复仇爽点来自前世信息差、长期布局、礼法秩序和关系试探。",
+      "antiThesis": "不要让女主凭空开挂立刻报复。",
+      "pacingModel": "惨死回起点 -> 身份稳固 -> 信息差布局 -> 家族博弈 -> 仇敌清算",
+      "eventStructure": ["惨死回起点", "身份稳固", "信息差布局", "家族博弈", "仇敌清算"],
+      "motiveRules": ["复仇和自保并行", "爱情线必须经受试探", "盟友来自长期经营"],
+      "conflictRules": ["礼法限制行动路径", "每次反击都暴露一点意图", "家族关系是战场"],
+      "climaxRules": ["高潮清算仇敌并重排家庭权力"],
+      "timeControls": { "baseRate": 0.34, "burst": 0.7, "decay": 0.5, "foreshadowPressure": 0.72, "maxOpenLoops": 5 }
+    },
+    {
+      "id": "kernel-era-female",
+      "name": "年代女强内核",
+      "category": "era_realism",
+      "compatibleProfiles": ["era-female"],
+      "sourceRefs": [],
+      "thesis": "年代女强的爽点来自时代窗口、现实资源、家庭事业和女性主体性的同步增长。",
+      "antiThesis": "不要用玄幻或现代企业黑箱替代历史政策和劳动细节。",
+      "pacingModel": "时代落点 -> 家庭困局 -> 政策窗口 -> 创业试水 -> 事业扩张",
+      "eventStructure": ["时代落点", "家庭困局", "政策窗口", "创业试水", "事业扩张"],
+      "motiveRules": ["个人成长嵌入时代变化", "家庭责任和事业野心并行", "政策理解制造机会"],
+      "conflictRules": ["票证和资源限制选择", "创业影响亲缘关系", "时代观念制造阻力"],
+      "climaxRules": ["高潮兑现一次事业突破和一次家庭关系重排"],
+      "timeControls": { "baseRate": 0.32, "burst": 0.56, "decay": 0.6, "foreshadowPressure": 0.5, "maxOpenLoops": 4 }
+    }
+  ]
+}

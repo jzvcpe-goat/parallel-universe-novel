@@ -4,6 +4,7 @@ import copy
 import json
 import re
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -70,23 +71,6 @@ IMPORTED_PROMPT_CONTRACT = {
     "input_source_matrix": copy.deepcopy(IMPORTED_PROMPT_INPUT_SOURCE_MATRIX),
 }
 
-PROHIBITED_TERM_REPLACEMENTS = {
-    "系统面板": "可见提示",
-    "玩家": "外来者",
-    "副本奖励": "契约报酬",
-    "打怪掉落": "遗物回收",
-    "经验值": "历练痕迹",
-    "等级面板": "身份记录",
-    "职业数值": "技艺记录",
-    "县衙": "城邦治安厅",
-    "衙门": "城邦治安厅",
-    "仵作": "验尸修士",
-    "宗门": "修士会",
-    "王朝科举": "城邦选拔",
-    "清河县": "边境矿城",
-}
-
-
 def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -133,59 +117,31 @@ def _signal_matches(text: str, words: List[str]) -> List[str]:
     return [word for word in words if word.lower() in lowered]
 
 
-def _negated_signal_matches(text: str, words: List[str]) -> List[str]:
-    matches: List[str] = []
-    for word in words:
-        pattern = r"(?:不要|不许|禁止|禁用|不能出现|不要出现|别写|避免|不要默认|不默认)[^。；;,.，]{0,36}%s" % re.escape(word)
-        if re.search(pattern, text, flags=re.IGNORECASE):
-            matches.append(word)
-    return matches
-
-
-def _explicit_override_matches(text: str, words: List[str]) -> List[str]:
-    raw_matches = _signal_matches(text, words)
-    if not raw_matches:
-        return []
-    negated = set(_negated_signal_matches(text, words))
-    positive_cues = [
-        "明确想写",
-        "想写",
-        "保留",
-        "需要",
-        "必须有",
-        "设定为",
-        "主角是",
-        "来自古代",
-        "古代身份",
-        "古代仵作",
-        "县衙办案经验",
-    ]
-    if not _contains_any(text, positive_cues):
-        return []
-    return [word for word in raw_matches if word not in negated]
-
-
-def _active_prohibited_terms(cards: Dict[str, Any]) -> List[str]:
-    terms: List[str] = []
+def _active_prohibited_replacements(cards: Dict[str, Any]) -> Dict[str, str]:
+    replacements: Dict[str, str] = {}
     for constraint in cards.get("genre_constraints", []):
         if not isinstance(constraint, dict):
             continue
-        for term in constraint.get("prohibited_terms", []):
+        guidance = constraint.get("replacement_guidance", [])
+        guidance_list = guidance if isinstance(guidance, list) else []
+        for index, term in enumerate(constraint.get("prohibited_terms", [])):
             clean = _clean_text(term, limit=80)
-            if clean and clean not in terms:
-                terms.append(clean)
-    return terms
+            if not clean or clean in replacements:
+                continue
+            replacement = _clean_text(guidance_list[index] if index < len(guidance_list) else "", limit=80)
+            replacements[clean] = replacement or "世界内表达"
+    return replacements
 
 
 def _sanitize_prohibited_terms(value: Any, cards: Dict[str, Any]) -> Any:
-    terms = _active_prohibited_terms(cards)
-    if not terms:
+    replacements = _active_prohibited_replacements(cards)
+    if not replacements:
         return value
 
     def sanitize_text(text: str) -> str:
         sanitized = text
-        for term in terms:
-            sanitized = sanitized.replace(term, PROHIBITED_TERM_REPLACEMENTS.get(term, "世界内表达"))
+        for term, replacement in replacements.items():
+            sanitized = sanitized.replace(term, replacement)
         return sanitized
 
     if isinstance(value, str):
@@ -275,194 +231,158 @@ def _genre_constraint(
     }
 
 
+
+@lru_cache(maxsize=1)
+def _runtime_rules() -> Dict[str, Any]:
+    relative = Path("docs/product/rules/genre-runtime-rules.v1.json")
+    candidates: List[Path] = []
+    here = Path(__file__).resolve()
+    candidates.append(Path.cwd() / relative)
+    for parent in here.parents:
+        candidates.append(parent / relative)
+    for candidate in candidates:
+        if candidate.exists():
+            return json.loads(candidate.read_text(encoding="utf-8"))
+    raise RuntimeError("genre_runtime_rules_not_found")
+
+
+def _matches_by_group(text: str, profile: Dict[str, Any]) -> Dict[str, List[str]]:
+    return {
+        "signal_terms": _signal_matches(text, [str(item) for item in profile.get("signalTerms", [])]),
+        "entry_mode": _signal_matches(text, [str(item) for item in profile.get("entryModeSignals", [])]),
+        "tone": _signal_matches(text, [str(item) for item in profile.get("toneSignals", [])]),
+    }
+
+
+def _profile_has_hits(hits: Dict[str, List[str]]) -> bool:
+    return any(bool(value) for value in hits.values())
+
+
+def _rules_for_profiles(profile_ids: List[str]) -> List[Dict[str, Any]]:
+    rules = _runtime_rules()
+    profile_order = {profile_id: index for index, profile_id in enumerate(profile_ids)}
+    kernels = []
+    for kernel in rules.get("genreKernels", []):
+        compatible = [str(item) for item in kernel.get("compatibleProfiles", [])]
+        if any(profile_id in compatible for profile_id in profile_ids):
+            kernels.append(kernel)
+    kernels.sort(
+        key=lambda kernel: min(
+            profile_order.get(str(profile_id), 9999)
+            for profile_id in kernel.get("compatibleProfiles", [])
+        )
+    )
+    return kernels
+
+
+def _profile_activation_score(*, profile_summary: Dict[str, Any], selected_text: str) -> int:
+    selected_text = selected_text.lower()
+    exact_terms = [
+        str(profile_summary.get("id") or ""),
+        str(profile_summary.get("display_name") or ""),
+        *[str(term) for terms in (profile_summary.get("matched_terms") or {}).values() for term in terms],
+    ]
+    selected_boost = 1000 if any(term and term.lower() in selected_text for term in exact_terms) else 0
+    return selected_boost + int(profile_summary.get("priority") or 0)
+
+
 def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str, Any]:
-    signal_text = f"{selected_text} {user_text}"
-    western_terms = ["西方玄幻", "异大陆", "地下城", "魔物", "圣堂", "公会", "佣兵", "深渊", "教堂", "魔法"]
-    transmigration_terms = ["穿越", "醒来后", "异大陆", "前世", "故乡", "另一个世界"]
-    non_game_terms = ["不是游戏", "不要游戏", "不要系统", "没有系统", "系统面板", "游戏术语", "非游戏", "非游戏化"]
-    local_feel_terms = ["本土感", "本土网文", "中文网文", "国人", "东方处事", "人情", "认知差", "小人物破局"]
-    ancient_cn_terms = ["古代", "县衙", "仵作", "宗门", "王朝", "科举", "衙门", "大理寺", "锦衣卫", "清河县"]
-    selected_western_hits = _signal_matches(selected_text, western_terms)
-    user_western_hits = _signal_matches(user_text, western_terms)
-    transmigration_hits = _signal_matches(signal_text, transmigration_terms)
-    non_game_hits = _signal_matches(signal_text, non_game_terms)
-    local_feel_hits = _signal_matches(signal_text, local_feel_terms)
-    explicit_ancient_hits = _explicit_override_matches(signal_text, ancient_cn_terms)
-    negated_ancient_hits = _negated_signal_matches(signal_text, ancient_cn_terms)
-    selected_mentions_western = bool(selected_western_hits)
-    user_mentions_western = bool(user_western_hits)
-    transmigration = bool(transmigration_hits)
-    non_game = bool(non_game_hits)
-    local_feel = bool(local_feel_hits)
-    explicit_ancient_cn = bool(explicit_ancient_hits)
-    western_fantasy = selected_mentions_western or user_mentions_western
-    genre_family = "western_fantasy" if western_fantasy else ""
-    entry_mode = "transmigration" if transmigration else ""
-    tone_constraints = {
-        "non_game": non_game,
-        "local_webnovel_feel": local_feel or (western_fantasy and transmigration),
-    }
-    activation_evidence = {
-        "selected_context": selected_western_hits,
-        "user_text": user_western_hits,
-        "entry_mode": transmigration_hits,
-        "tone": non_game_hits + local_feel_hits,
-        "explicit_overrides": explicit_ancient_hits,
-    }
-    sources = []
-    if selected_mentions_western:
-        sources.append("selected_context")
-    if user_mentions_western:
-        sources.append("user_text")
-    if not sources:
-        sources.append("none")
+    rules = _runtime_rules()
     active: List[Dict[str, Any]] = []
-    if western_fantasy and transmigration:
-        base_condition = {
-            "required": {
-                "genre_family": "western_fantasy",
-                "entry_mode": "transmigration",
-            },
-            "observed": {
-                "selected_context_matches_genre": selected_mentions_western,
-                "user_text_matches_genre": user_mentions_western,
-                "transmigration": transmigration,
-                "non_game_requested": non_game,
-                "local_webnovel_feel": tone_constraints["local_webnovel_feel"],
-                "explicit_ancient_chinese_identity": explicit_ancient_cn,
-            },
+    active_profile_ids: List[str] = []
+    active_profile_summaries: List[Dict[str, Any]] = []
+    selected_text = _clean_text(selected_text, limit=2400)
+    user_text = _clean_text(user_text, limit=4000)
+    signal_text = f"{selected_text} {user_text}"
+
+    for profile in rules.get("constraintProfiles", []):
+        selected_hits = _matches_by_group(selected_text, profile)
+        user_hits = _matches_by_group(user_text, profile)
+        combined_hits = _matches_by_group(signal_text, profile)
+        if not _profile_has_hits(combined_hits):
+            continue
+        profile_id = _clean_text(profile.get("id"), limit=120)
+        if not profile_id:
+            continue
+        active_profile_ids.append(profile_id)
+        source_parts: List[str] = []
+        if _profile_has_hits(selected_hits):
+            source_parts.append("selected_context")
+        if _profile_has_hits(user_hits):
+            source_parts.append("user_text")
+        if not source_parts:
+            source_parts.append("inferred_context")
+        activation_evidence = {
+            "selected_context": selected_hits["signal_terms"] + selected_hits["entry_mode"] + selected_hits["tone"],
+            "user_text": user_hits["signal_terms"] + user_hits["entry_mode"] + user_hits["tone"],
+            "entry_mode": combined_hits["entry_mode"],
+            "tone": combined_hits["tone"],
+            "source_refs": [str(item) for item in profile.get("sourceRefs", [])],
         }
-        active.append(
-            _genre_constraint(
-                constraint_id="western_fantasy_world_substrate",
-                category="world_substrate",
-                applies_when=["genre=western_fantasy", "entry_mode=transmigration"],
-                condition=base_condition,
-                rule="世界内制度、职业、地名和物件必须服从西方玄幻现实，不默认借用中式古代制度名词。",
-                positive_guidance="优先使用边境矿城、圣堂、佣兵团、行会、市政官、书记员、译员、修士会、魔物灾厄等能支撑西方玄幻现实感的表达。",
-                prohibited_terms=["县衙", "衙门", "仵作", "宗门", "王朝科举", "清河县"],
-                replacement_guidance=["县令/知县 -> 市政官/领主代理/治安官", "仵作 -> 验尸修士/尸检书记/医师", "宗门 -> 修士会/骑士团/学院/圣堂派系"],
-                source="+".join(sources),
-                activation_evidence=activation_evidence,
-            )
+        active_profile_summaries.append(
+            {
+                "id": profile_id,
+                "display_name": _clean_text(profile.get("displayName"), limit=120),
+                "priority": int(profile.get("priority") or 0),
+                "source_refs": [str(item) for item in profile.get("sourceRefs", [])],
+                "matched_terms": combined_hits,
+            }
         )
-        active.append(
-            _genre_constraint(
-                constraint_id="transmigration_local_feel",
-                category="tone_translation",
-                applies_when=["entry_mode=transmigration", "tone=local_webnovel_feel"],
-                condition={
-                    "required": {
-                        "entry_mode": "transmigration",
-                        "tone_constraint": "local_webnovel_feel",
-                    },
-                    "observed": {
-                        "local_feel_requested": local_feel,
-                        "local_feel_inferred_from_chinese_transmigration": western_fantasy and transmigration,
-                    },
-                },
-                rule="本土感默认体现为中文网文节奏、主角处事方式、认知差、人性博弈和底层破局，不等于古代中国设定。",
-                positive_guidance="把本土感落实到主角权衡、人情账、风险规避、信息差判断和小人物向上破局，而不是改写世界制度为中式古代。",
-                source="+".join(sources),
-                activation_evidence=activation_evidence,
-                severity="soft",
-            )
-        )
-        if not explicit_ancient_cn:
+        for rule in profile.get("rules", []):
             active.append(
                 _genre_constraint(
-                    constraint_id="no_ancient_chinese_official_default",
-                    category="anachronism_guardrail",
-                    applies_when=["genre=western_fantasy", "user_has_not_explicitly_requested_ancient_china"],
+                    constraint_id=_clean_text(rule.get("id"), limit=160),
+                    category=profile_id,
+                    applies_when=[str(item) for item in rule.get("appliesWhen", [])],
                     condition={
-                        "required": {
-                            "genre_family": "western_fantasy",
-                            "entry_mode": "transmigration",
-                            "explicit_ancient_chinese_identity": False,
-                        },
+                        "required": {"profile_id": profile_id},
                         "observed": {
-                            "explicit_ancient_chinese_identity": explicit_ancient_cn,
-                            "explicit_override_terms": explicit_ancient_hits,
+                            "profile_id": profile_id,
+                            "display_name": _clean_text(profile.get("displayName"), limit=120),
+                            "matched_terms": combined_hits,
+                            "source_refs": [str(item) for item in profile.get("sourceRefs", [])],
                         },
                     },
-                    rule="禁止自动生成古代中国官署、县衙、仵作、宗门、王朝科举等强时代标签。",
-                    positive_guidance="若需要调查、尸检、组织和权力结构，改用西方玄幻世界内自洽的教会、行会、城邦、市政、佣兵、医师和书记体系。",
-                    prohibited_terms=["县衙", "衙门", "仵作", "宗门", "王朝", "科举", "大理寺", "锦衣卫", "清河县"],
-                    replacement_guidance=["古代官署职业 -> 城邦/圣堂/行会职业", "县域地名 -> 边境城、矿城、港城、领地", "中式办案身份 -> 治安官、验尸修士、书记员、译员"],
-                    source="+".join(sources),
+                    rule=_clean_text(rule.get("rule"), limit=800),
+                    positive_guidance="；".join(str(item) for item in rule.get("replacementGuidance", [])[:4]),
+                    prohibited_terms=[str(item) for item in rule.get("prohibitedTerms", [])],
+                    replacement_guidance=[str(item) for item in rule.get("replacementGuidance", [])],
+                    source="+".join(source_parts),
                     activation_evidence=activation_evidence,
-                    user_override="allowed_if_user_explicitly_requests_ancient_chinese_identity",
+                    severity=_clean_text(rule.get("severity") or "hard", limit=40) or "hard",
+                    user_override="explicit_user_request_only",
                 )
             )
-    if western_fantasy and non_game:
-        active.append(
-            _genre_constraint(
-                constraint_id="no_game_ui_or_loot_terms",
-                category="non_game_tone_guardrail",
-                applies_when=["genre=western_fantasy", "user_requests_non_game_tone"],
-                condition={
-                    "required": {
-                        "genre_family": "western_fantasy",
-                        "tone_constraint": "non_game",
-                    },
-                    "observed": {
-                        "non_game_requested": non_game,
-                        "non_game_terms": non_game_hits,
-                    },
-                },
-                rule="禁用系统面板、玩家、副本奖励、打怪掉落、数值职业面板等游戏化表达；地下城必须作为现实地理/灾厄/制度存在。",
-                positive_guidance="地下城应写成真实世界中的危险地貌、矿井、遗迹、灾厄源或制度化边境，而不是玩法界面。",
-                prohibited_terms=["系统面板", "玩家", "副本奖励", "打怪掉落", "经验值", "等级面板", "职业数值"],
-                replacement_guidance=["副本 -> 地下城/遗迹/矿井/深井/禁区", "奖励 -> 战利品/遗物/契约报酬/生存资源", "职业面板 -> 身份、技艺、契约、训练痕迹"],
-                source="+".join(sources),
-                activation_evidence=activation_evidence,
-            )
-        )
+    active_profile_summaries.sort(
+        key=lambda summary: _profile_activation_score(profile_summary=summary, selected_text=selected_text),
+        reverse=True,
+    )
+    active_profile_ids = [str(summary.get("id")) for summary in active_profile_summaries if summary.get("id")]
+    profile_order = {profile_id: index for index, profile_id in enumerate(active_profile_ids)}
+    active.sort(key=lambda item: profile_order.get(str(item.get("category")), 9999))
+    kernels = _rules_for_profiles(active_profile_ids)
     return {
         "facts": {
-            "selected_mentions_western_fantasy": selected_mentions_western,
-            "user_mentions_western_fantasy": user_mentions_western,
-            "western_fantasy": western_fantasy,
-            "transmigration": transmigration,
-            "non_game_requested": non_game,
-            "local_feel_requested": local_feel,
-            "explicit_ancient_chinese_identity": explicit_ancient_cn,
-            "genre_family": genre_family,
-            "entry_mode": entry_mode,
-            "tone_constraints": tone_constraints,
-            "user_overrides": {
-                "ancient_chinese_identity": explicit_ancient_cn,
-            },
-            "activation_inputs": {
-                "selected_context": {
-                    "present": bool(_clean_text(selected_text, limit=40)),
-                    "genre_family": "western_fantasy" if selected_mentions_western else "",
-                    "matched_terms": selected_western_hits,
-                },
-                "user_text": {
-                    "present": bool(_clean_text(user_text, limit=40)),
-                    "genre_family": "western_fantasy" if user_mentions_western else "",
-                    "matched_terms": user_western_hits,
-                },
-                "entry_mode": {
-                    "value": entry_mode,
-                    "matched_terms": transmigration_hits,
-                },
-                "tone": {
-                    "non_game_terms": non_game_hits,
-                    "local_feel_terms": local_feel_hits,
-                },
-                "explicit_overrides": {
-                    "ancient_chinese_identity_terms": explicit_ancient_hits,
-                    "negated_ancient_chinese_identity_terms": negated_ancient_hits,
-                },
-            },
+            "active_profile_ids": active_profile_ids,
+            "active_profiles": active_profile_summaries,
+            "active_kernel_ids": [_clean_text(kernel.get("id"), limit=120) for kernel in kernels],
+            "active_kernels": [
+                {
+                    "id": _clean_text(kernel.get("id"), limit=120),
+                    "name": _clean_text(kernel.get("name"), limit=120),
+                    "category": _clean_text(kernel.get("category"), limit=120),
+                    "source_refs": [str(item) for item in kernel.get("sourceRefs", [])],
+                    "event_structure": [str(item) for item in kernel.get("eventStructure", [])[:5]],
+                    "thesis": _clean_text(kernel.get("thesis"), limit=260),
+                }
+                for kernel in kernels
+            ],
             "activation_order": [
                 "selected_topic_template_direction",
                 "user_freeform_intent",
-                "explicit_user_overrides",
+                "runtime_rule_json",
             ],
-            "global_prompt_rule": "constraints_activate_from_selected_context_then_user_intent",
+            "global_prompt_rule": "constraints_and_kernels_resolve_from_shared_runtime_rules",
         },
         "active": active,
     }
@@ -919,6 +839,7 @@ class CreatorDialogueService:
             "genre_signal": "",
             "genre_constraints": [],
             "genre_constraint_facts": {},
+            "genre_kernels": [],
             "protagonist_hint": "",
             "character_web_hint": "",
             "opening_scene_hint": "",
@@ -950,20 +871,20 @@ class CreatorDialogueService:
                 (session.get("preferences") or {}).get("genre"),
                 story_direction.get("label"),
                 story_direction.get("tone"),
-                story_direction.get("hooks"),
                 story_direction.get("keywords"),
                 template.get("title"),
                 template.get("genre"),
-                template.get("opening_premise"),
-                template.get("first_choice_point"),
             ]
         )
         constraint_profile = _genre_constraint_profile(selected_text=selected_genre_text, user_text=joined)
         facts = constraint_profile["facts"]
-        is_western_fantasy = bool(facts["western_fantasy"])
-        is_transmigration = bool(facts["transmigration"])
-        no_game_terms = bool(facts["non_game_requested"])
+        active_profiles = facts.get("active_profiles") if isinstance(facts.get("active_profiles"), list) else []
+        active_kernels = facts.get("active_kernels") if isinstance(facts.get("active_kernels"), list) else []
+        primary_profile = active_profiles[0] if active_profiles and isinstance(active_profiles[0], dict) else {}
+        primary_kernel = active_kernels[0] if active_kernels and isinstance(active_kernels[0], dict) else {}
         cards["genre_constraint_facts"] = dict(facts)
+        cards["genre_constraints"] = list(constraint_profile["active"])
+        cards["genre_kernels"] = active_kernels
         if _contains_any(joined, ["热血", "燃", "冒险", "战斗", "地下城", "深渊", "佣兵"]):
             cards["tone"] = "高张力、行动感强"
         elif _contains_any(joined, ["怪", "诡", "梦", "失踪", "悬疑"]):
@@ -973,30 +894,23 @@ class CreatorDialogueService:
         else:
             cards["tone"] = (session.get("preferences") or {}).get("tone") or "先用强钩子和清晰画面试写"
 
-        if is_western_fantasy and is_transmigration:
-            cards["genre_signal"] = "西方玄幻穿越"
-            cards["world_rule_hint"] = "异大陆规则必须像现实制度一样运转；地下城是世界的一部分，不是游戏副本"
-            if no_game_terms:
-                cards["world_rule_hint"] += "；禁用系统面板、玩家、副本奖励等游戏术语"
-        elif is_western_fantasy:
-            cards["genre_signal"] = "西方玄幻"
-            cards["world_rule_hint"] = "圣堂、公会、魔物和地下城规则要制造真实生存代价"
-        elif _contains_any(joined, ["修仙", "玄幻", "魔法", "妖", "神"]):
-            cards["genre_signal"] = "玄幻 / 奇幻"
-            cards["world_rule_hint"] = "世界存在超常规则，但规则要服务下一场戏"
-        elif _contains_any(joined, ["城市", "案件", "侦探", "失踪", "录像", "都市"]):
-            cards["genre_signal"] = "都市悬疑"
-            cards["world_rule_hint"] = "证据、时间和人物动机要互相校验"
+        if primary_profile:
+            cards["genre_signal"] = _clean_text(primary_profile.get("display_name"), limit=120)
+            if primary_kernel:
+                event_structure = primary_kernel.get("event_structure") if isinstance(primary_kernel.get("event_structure"), list) else []
+                cards["world_rule_hint"] = _clean_text(primary_kernel.get("thesis"), limit=260) or "类型规则要服务下一场戏"
+                if event_structure:
+                    cards["outline_hint"] = " -> ".join(str(item) for item in event_structure[:5])
+            else:
+                active_rules = cards["genre_constraints"]
+                cards["world_rule_hint"] = _clean_text(active_rules[0].get("rule") if active_rules else "", limit=260) or "类型规则要服务下一场戏"
         elif _contains_any(joined, ["未来", "AI", "算法", "太空", "赛博"]):
             cards["genre_signal"] = "科幻"
             cards["world_rule_hint"] = "技术规则必须制造选择代价"
         else:
             cards["genre_signal"] = "待从正文里确认"
-        cards["genre_constraints"] = list(constraint_profile["active"])
 
-        if is_transmigration:
-            cards["protagonist_hint"] = "来自中文语境的小人物进入异大陆，靠认知差和处事方式破局"
-        elif _contains_any(joined, ["少女", "女孩", "她"]):
+        if _contains_any(joined, ["少女", "女孩", "她"]):
             cards["protagonist_hint"] = "一个被迫在异常现场做选择的女性主角"
         elif _contains_any(joined, ["少年", "男人", "他"]):
             cards["protagonist_hint"] = "一个被过去或真相推着走的男性主角"
@@ -1012,19 +926,14 @@ class CreatorDialogueService:
         else:
             cards["central_tension"] = "先用一个异常场景逼出主角行动"
 
-        if cards["genre_signal"] == "西方玄幻穿越":
-            cards["conflict_engine_hint"] = "穿越者认知差、地下城生存压力、圣堂/公会权力博弈和身份代价推动章节升级"
-        elif cards["genre_signal"] == "西方玄幻":
-            cards["conflict_engine_hint"] = "地下城资源、魔物威胁、圣堂秩序和公会利益推动冲突升级"
-        elif cards["genre_signal"] == "玄幻 / 奇幻":
-            cards["conflict_engine_hint"] = "资源争夺、境界突破和身份反差推动章节升级"
-        elif cards["genre_signal"] == "都市悬疑":
-            cards["conflict_engine_hint"] = "证据差、时间差和人物动机反转推动追索"
+        if primary_kernel:
+            event_structure = primary_kernel.get("event_structure") if isinstance(primary_kernel.get("event_structure"), list) else []
+            cards["conflict_engine_hint"] = "、".join(str(item) for item in event_structure[:5]) or "类型内核推动冲突升级"
         elif cards["genre_signal"] == "科幻":
             cards["conflict_engine_hint"] = "技术规则、伦理代价和生存压力推动选择"
         else:
             cards["conflict_engine_hint"] = "先用异常、关系和代价形成可持续冲突"
-        cards["outline_hint"] = "先生成首章和前三章方向，后续章纲跟随正文持续更新"
+        cards["outline_hint"] = cards.get("outline_hint") or "先生成首章和前三章方向，后续章纲跟随正文持续更新"
 
         cards["confirmed"] = [
             value
