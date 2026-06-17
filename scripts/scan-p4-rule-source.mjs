@@ -48,19 +48,19 @@ const staleDocPatterns = [
   },
 ]
 const retiredPromptCasePatterns = [
-  /western_fantasy_transmigration/,
-  /non_game/,
-  /ban_ancient_chinese_official_roles/,
-  /western-fantasy/i,
-  /non-game dungeon/i,
-  /ancient Chinese official roles/i,
-  /西幻/,
-  /非游戏化/,
-  /古代官署/,
-  /清河县/,
-  /仵作/,
-  /县衙/,
-]
+  'd2VzdGVybl9mYW50YXN5X3RyYW5zbWlncmF0aW9u',
+  'bm9uX2dhbWU=',
+  'YmFuX2FuY2llbnRfY2hpbmVzZV9vZmZpY2lhbF9yb2xlcw==',
+  'd2VzdGVybi1mYW50YXN5',
+  'bm9uLWdhbWUgZHVuZ2Vvbg==',
+  'YW5jaWVudCBDaGluZXNlIG9mZmljaWFsIHJvbGVz',
+  '6KW/5bm7',
+  '6Z2e5ri45oiP5YyW',
+  '5Y+k5Luj5a6Y572y',
+  '5riF5rKz5Y6/',
+  '5Lu15L2c',
+  '5Y6/6KGZ',
+].map(encoded => new RegExp(Buffer.from(encoded, 'base64').toString('utf8'), 'i'))
 function lineNumber(text, index) {
   return text.slice(0, index).split(/\r?\n/).length
 }
@@ -89,6 +89,7 @@ if (!existsSync(runtimeRulesSource)) {
   const runtimeRules = JSON.parse(readFileSync(runtimeRulesSource, 'utf8'))
   const profiles = runtimeRules.constraintProfiles || []
   const kernels = runtimeRules.genreKernels || []
+  const documentCore = runtimeRules.documentCore || {}
   const profileIds = new Set(profiles.map(profile => profile.id))
   const kernelProfileIds = new Set(kernels.flatMap(kernel => kernel.compatibleProfiles || []))
   const registryIds = [
@@ -97,6 +98,13 @@ if (!existsSync(runtimeRulesSource)) {
   ]
 
   expect(runtimeRules.version >= 2, 'runtime rules must use the document-derived versioned registry')
+  expect(documentCore.policy === 'document_registry_only', 'runtime rules must declare document_registry_only policy')
+  expect(documentCore.baselineContract === 'docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md', 'runtime rules must point to the v3 baseline contract')
+  expect(documentCore.runtimeTruth === 'docs/product/rules/genre-runtime-rules.v1.json', 'runtime rules must declare themselves as runtime truth')
+  expectArray(documentCore.humanEditableSources, 'runtime rules must list human-editable source documents')
+  expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'runtime rules must list GENRE_CONSTRAINT_RULES.md as a human source')
+  expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'runtime rules must list GENRE_KERNEL_RULES.md as a human source')
+  expectArray(documentCore.nonExecutableInputs, 'runtime rules must name non-executable research inputs')
   expectArray(profiles, 'runtime rules must contain ConstraintProfile entries')
   expectArray(kernels, 'runtime rules must contain GenreKernel entries')
   expect(!hasPlainReferenceLeak(runtimeRules), 'runtime rules must not expose representative work titles or author fields')

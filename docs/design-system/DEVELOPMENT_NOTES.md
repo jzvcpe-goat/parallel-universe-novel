@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P50/P4 文档核心重做
+
+### 现象
+
+用户明确要求 P4 从头做，弃用早期单一测试场景推导出的约束逻辑。问题不只在规则内容，而在工程习惯：为了防止旧问题回归，把旧词明文写进扫描脚本和说明文档，也会让团队误以为那些词仍是产品规则。
+
+### 修复原则
+
+1. P4 的唯一事实链是 v3 onboarding、约束规则文档、内核规则文档和 runtime JSON。
+2. 浏览器批注、后端建议、历史负例和 provider prompt 试验只能作为研究输入，不得直接成为运行时规则。
+3. 可执行约束只能来自 `ConstraintProfile.rules[]`；节奏和事件结构只能由 compatible `GenreKernel` 影响。
+4. 回归扫描可以防止旧问题重现，但不能把历史负例写成明文产品规则。
+5. 新增题材边界必须先改人类规则文档，再同步 runtime JSON、测试和 Quality Brake fixture。
+
+### 本轮落地
+
+- `genre-runtime-rules.v1.json` 增加 `documentCore.policy = document_registry_only`。
+- 新增 `scripts/check-p4-document-core.mjs`。
+- 新增 `docs/backend/P50_P4_DOCUMENT_CORE_RESET.md`。
+- `scripts/scan-p4-rule-source.mjs` 改为文档 registry 契约扫描。
+- 根 `npm run test` 接入 `check:p4-document-core`。
+
+### 必跑检查
+
+```bash
+npm run check:p4-document-core
+npm run scan:p4-rule-source
+```
+
 ## 2026-06-17 P49 Time Engine 合同
 
 ### 现象
