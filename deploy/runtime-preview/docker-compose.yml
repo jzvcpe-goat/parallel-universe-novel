@@ -1,0 +1,36 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/api/Dockerfile
+    environment:
+      DATABASE_URL: sqlite:////tmp/narrativeos_preview.db
+      NARRATIVEOS_ALLOWED_ORIGINS: http://127.0.0.1:5173,https://jzvcpe-goat.github.io
+      NARRATIVEOS_CREATOR_DIALOGUE_DIR: /tmp/creator_dialogue_sessions
+      NARRATIVEOS_CANON_LEDGER_DIR: /tmp/canon_commit_ledger
+    ports:
+      - "8787:8787"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/health', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  agents:
+    build:
+      context: ../..
+      dockerfile: deploy/agent-runtime/Dockerfile
+    environment:
+      MASTRA_HOST: 0.0.0.0
+      MASTRA_PORT: 4111
+      FASTAPI_TOOL_BRIDGE_BASE_URL: http://api:8787
+    ports:
+      - "4111:4111"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4111/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6

@@ -1,5 +1,37 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P14 远端 Runtime 部署包
+
+### 现象
+
+P13 已经把 GitHub Pages 的静态预览边界说清楚，但公开创作要真正可用，还需要两个远端服务：FastAPI 业务运行时和 Agent Runtime 编排服务。只发布前端会得到“可打开但不可生成”的产品断点。
+
+### 修复原则
+
+1. FastAPI 和 Agent Runtime 必须作为两个独立 deployable unit 管理。
+2. Agent Runtime 不直接连数据库，仍通过 FastAPI Tool Bridge 触达业务事实。
+3. 两个服务都必须有 `/health`，并且端口和 host 通过环境变量控制。
+4. FastAPI CORS 必须允许 GitHub Pages origin，后续 live preview 才能接入。
+5. 部署包要中立，不先锁死某一家云厂商；Dockerfile + compose 是最小可迁移基线。
+
+### 本轮落地
+
+- 新增 `deploy/api/Dockerfile`。
+- 新增 `deploy/agent-runtime/Dockerfile`。
+- 新增 `deploy/runtime-preview/docker-compose.yml`。
+- Agent Runtime 增加生产 `start` 脚本。
+- FastAPI 默认 CORS 加入 `https://jzvcpe-goat.github.io`。
+- 新增 `docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md`。
+- 新增 `scripts/check-runtime-deploy-readiness.mjs` 并串入 `npm run test`。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm run check:runtime-deploy-readiness
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P13 公开 Runtime 预览契约
 
 ### 现象

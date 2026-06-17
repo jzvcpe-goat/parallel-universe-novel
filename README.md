@@ -47,6 +47,7 @@ npm run dev
 npm run test
 npm --prefix app run build
 npm run qa:pages-browser
+npm run check:runtime-deploy-readiness
 npm run scan:internal-terms
 npm audit --audit-level=moderate
 ```
@@ -70,9 +71,16 @@ Creator Studio /create
 
 当前 GitHub Pages 是静态预览模式。公开创作页会显示“创作服务待连接”，不会在没有远端 Runtime 时生成本地假正文。远端 Runtime 接通标准见 `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`。
 
+远端 Runtime 部署包：
+
+- FastAPI: `deploy/api/Dockerfile`
+- Agent Runtime: `deploy/agent-runtime/Dockerfile`
+- 双服务本地预览: `deploy/runtime-preview/docker-compose.yml`
+
 ## 关键文档
 
 - `docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md`
 - `docs/baseline/REUSE_AUDIT.md`
 - `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`
+- `docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md`
 - `PARALLEL_UNIVERSE_PROTOTYPE_HANDOFF.md`

@@ -6,6 +6,7 @@
   "description": "Mastra orchestration boundary for NarrativeOS creator workflows.",
   "scripts": {
     "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
     "build": "tsc -p tsconfig.json",
     "test": "node --test \"dist/**/*.test.js\"",
     "pretest": "npm run build",
@@ -23,4 +24,3 @@
     "typescript": "~5.9.3"
   }
 }
-
