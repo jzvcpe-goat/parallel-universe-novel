@@ -1,5 +1,47 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P13 公开正文洁净度检查
+
+### 现象
+
+P12 已经移除了候选正文里的 `本轮节拍`、`BeatPlan` 和机器箭头等流程痕迹，但检查点仍散落在单测与 smoke 中。长期看，这会让“公开正文能不能给作者看”变成零散断言，而不是运行时统一契约。
+
+### 原因
+
+1. 公开正文检查和题材约束检查没有共用入口。
+2. 旧修复容易滑向“把某类词全局禁掉”，例如把游戏/系统题材本来需要的 `任务 / 技能树 / 排行榜` 误当成泄漏。
+3. 质量刹车只看 `ConstraintProfile.rules.prohibitedTerms`，没有兜住创作流程痕迹。
+
+### 修复原则
+
+1. 题材规则只来自 `genre-runtime-rules.v1.json` 的 `ConstraintProfile`，不得回到单一负例特判。
+2. 公开正文的通用禁项只限创作流程痕迹：节拍标签、内部计划词、机器分隔符等。
+3. 游戏、系统、都市、玄幻等题材词不能全局封杀；只有当前激活的 profile 明确列为 `prohibitedTerms` 时才拦截。
+4. 质量刹车与首轮候选预检必须共用同一套 `evaluatePublicProseHygiene`。
+5. 修订候选只修正文案，不写 canon，不暴露 system/provider/fallback 等内部词。
+
+### 本轮落地
+
+- `packages/agent-runtime/src/constraints.ts` 新增 `evaluatePublicProseHygiene` 与 `repairPublicProseScaffolds`。
+- `socraticCreateWorkflow` 与 `qualityBrakeWorkflow` 统一改用公开正文洁净度入口。
+- 单测覆盖：现代悬疑按文档规则拦截无铺垫推理；游戏异界不因题材术语被全局误杀；公开正文不允许流程痕迹。
+- `smoke:creator-chain` 继续验证真实 HTTP 链路里的候选正文不泄漏计划分隔符。
+
+### 后续开发规则
+
+1. 新增题材限制时，先改 `ConstraintProfile.rules`，再补对应用例；不要在 workflow 中写题材特例。
+2. 新增公开正文禁项时，必须确认它是所有题材都不该展示的流程痕迹，而不是某个题材的正常语汇。
+3. Creator/Reader UI 只显示候选正文、追问、故事笔记和质量建议；运行账本、profile、kernel、trace 仅供调试或 Studio 后台使用。
+
+### 必跑检查
+
+```bash
+cd /Users/james/Documents/PUF/workspaces/integration-harness
+npm --workspace @narrativeos/agent-runtime test
+npm run smoke:creator-chain
+PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
+```
+
 ## 2026-06-17 P4 约束与类型内核重做
 
 ### 现象

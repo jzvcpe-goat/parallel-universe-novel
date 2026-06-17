@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto'
 import { agentContracts } from './agents.js'
 import {
   constraintProfiles,
-  evaluateConstraintViolations,
+  evaluatePublicProseHygiene,
+  repairPublicProseScaffolds,
   resolveConstraints,
   resolveKernels,
 } from './constraints.js'
@@ -233,7 +234,7 @@ export async function socraticCreateWorkflow(
   const kernels = resolveKernels(profiles)
   const title = safeTitle(input, profiles)
   const body = candidateBody(input, profiles, kernels)
-  const violations = evaluateConstraintViolations(body, profiles)
+  const violations = evaluatePublicProseHygiene(body, profiles)
   const cards = settingCards(input, profiles, kernels)
 
   const localOutput: SocraticCreateOutput = {
@@ -420,8 +421,10 @@ export async function qualityBrakeWorkflow(
   const localOutput = localOutputFromInput(input, runId)
   const candidate = candidateFromLocalOutput(localOutput, input)
   const profiles = profilesForQuality(input, localOutput)
-  const violations = evaluateConstraintViolations(candidate.body, profiles)
-  const revisedBody = violations.length ? repairBody(candidate.body, profiles) : candidate.body
+  const violations = evaluatePublicProseHygiene(candidate.body, profiles)
+  const revisedBody = violations.length
+    ? repairPublicProseScaffolds(repairBody(candidate.body, profiles))
+    : candidate.body
   const revisedCandidate = {
     ...candidate,
     body: revisedBody,

@@ -35,6 +35,13 @@ const runtimeRules = loadRuntimeRules()
 export const constraintProfiles: ConstraintProfile[] = runtimeRules.constraintProfiles
 export const genreKernels: GenreKernel[] = runtimeRules.genreKernels
 
+export const publicProseScaffoldTerms = [
+  '本轮节拍',
+  'BeatPlan',
+  '故事种子',
+  ' -> ',
+]
+
 function selectedTextFromInput(input: SocraticCreateInput): string {
   const context = input.context || {}
   const storyDirection = typeof context.story_direction === 'object' && context.story_direction !== null
@@ -104,4 +111,23 @@ export function evaluateConstraintViolations(text: string, profiles: ConstraintP
       }]
     }),
   )
+}
+
+export function evaluatePublicProseHygiene(text: string, profiles: ConstraintProfile[]) {
+  const constraintViolations = evaluateConstraintViolations(text, profiles)
+  const scaffoldViolations = publicProseScaffoldTerms
+    .filter(term => text.includes(term))
+    .map(term => ({
+      ruleId: 'public-prose-no-scaffold',
+      severity: 'hard' as const,
+      message: `候选正文包含创作流程痕迹：${term}`,
+    }))
+  return [...constraintViolations, ...scaffoldViolations]
+}
+
+export function repairPublicProseScaffolds(text: string): string {
+  return publicProseScaffoldTerms.reduce((current, term) => {
+    if (term === ' -> ') return current.split(term).join('，')
+    return current.split(term).join('')
+  }, text)
 }

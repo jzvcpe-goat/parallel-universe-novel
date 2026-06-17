@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { evaluatePublicProseHygiene, resolveConstraints } from './constraints.js'
 import { qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 
 test('socratic workflow returns candidate draft and at most two questions', async () => {
@@ -66,6 +67,44 @@ test('candidate prose does not expose planning scaffolds', async () => {
     assert.ok(!body.includes('BeatPlan'), `${genre} leaked internal planning term`)
     assert.ok(!body.includes('故事种子'), `${genre} leaked seed scaffold`)
   }
+})
+
+test('public prose hygiene follows active genre rules without global genre bans', () => {
+  const modernProfiles = resolveConstraints({
+    seed: '现代悬疑旧案，主角收到一份矛盾证据。',
+    genre: '现代悬疑',
+  })
+  const modernViolations = evaluatePublicProseHygiene(
+    '主角通过读心术瞬间破案，还拿出未解释证据。',
+    modernProfiles,
+  )
+
+  assert.ok(
+    modernViolations.some(item => item.ruleId === 'logical-evidence-required'),
+    'modern mystery should reject unearned evidence shortcuts from the active profile',
+  )
+
+  const gameProfiles = resolveConstraints({
+    seed: '游戏异界，团队进入副本，职业配合决定成败。',
+    genre: '游戏异界',
+  })
+  const gameViolations = evaluatePublicProseHygiene(
+    '任务日志刷新，技能树亮起，排行榜上的名字向前跳了一位。',
+    gameProfiles,
+  )
+
+  assert.equal(
+    gameViolations.length,
+    0,
+    'game-facing terms must not be globally banned when the active profile expects them',
+  )
+
+  const scaffoldViolations = evaluatePublicProseHygiene('本轮节拍：开局 -> 反转。', [])
+
+  assert.ok(
+    scaffoldViolations.some(item => item.ruleId === 'public-prose-no-scaffold'),
+    'public candidate prose should never expose planning scaffolds',
+  )
 })
 
 test('state preview workflow never writes canon when tool bridge is unavailable', async () => {
