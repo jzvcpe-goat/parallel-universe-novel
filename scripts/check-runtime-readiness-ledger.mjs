@@ -68,10 +68,18 @@ assert(
   ledger.repoVariables && typeof ledger.repoVariables.checked === 'boolean',
   'repoVariables.checked must be present',
 )
+assert(
+  ['gh_variable_list', 'github_actions_vars_context', 'not_checked'].includes(ledger.repoVariables.source),
+  `invalid repoVariables.source: ${ledger.repoVariables.source}`,
+)
 if (process.env.CI === 'true') {
   assert(
     ledger.repoVariables.checked === true,
     'CI readiness ledger must audit GitHub repository variables using GH_TOKEN',
+  )
+  assert(
+    ['gh_variable_list', 'github_actions_vars_context'].includes(ledger.repoVariables.source),
+    'CI readiness ledger must record a GitHub-backed repository variables source',
   )
 }
 assert(ledger.runtimeConfig && typeof ledger.runtimeConfig === 'object', 'runtimeConfig must be an object')

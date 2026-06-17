@@ -8,16 +8,17 @@ P26 后下载最新 `runtime-readiness-ledger` artifact，发现 `repoVariables.
 
 ### 修复原则
 
-1. CI 中的 readiness ledger 必须能调用 `gh variable list`，并把 `repoVariables.checked=true` 写入 artifact。
-2. Workflow 需要给相关步骤注入 `GH_TOKEN: ${{ github.token }}`，并授予 `actions: read`。
+1. CI 中的 readiness ledger 必须能读取 GitHub repository variables，并把 `repoVariables.checked=true` 写入 artifact。
+2. Workflow 需要给相关步骤注入 `GH_TOKEN: ${{ github.token }}` 与 `${{ vars.* }}` 环境，并授予 `actions: read`。
 3. 本地运行不强制 GitHub variables 审计，以免开发者没有登录 `gh` 时无法跑测试。
 4. `check:runtime-readiness-ledger` 在 `CI=true` 时强制要求 `repoVariables.checked=true`。
 
 ### 本轮落地
 
-- `.github/workflows/pages.yml` 给 `Run runtime checks` 与 `Gate public runtime release mode` 注入 `GH_TOKEN`。
+- `.github/workflows/pages.yml` 给 `Run runtime checks` 与 `Gate public runtime release mode` 注入 `GH_TOKEN` 和同一组 public runtime vars。
 - `.github/workflows/pages.yml` 增加 `actions: read` 权限。
-- `scripts/check-runtime-readiness-ledger.mjs` 在 CI 中强制检查 `repoVariables.checked=true`。
+- `scripts/audit-live-runtime-readiness.mjs` 优先使用 `gh variable list`，失败时在 GitHub Actions 中使用 `${{ vars.* }}` context 作为来源。
+- `scripts/check-runtime-readiness-ledger.mjs` 在 CI 中强制检查 `repoVariables.checked=true` 和 GitHub-backed `repoVariables.source`。
 - `scripts/check-pages-live-release-gate.mjs` 与 `scripts/check-runtime-activation-package.mjs` 反向检查 GH_TOKEN 和权限。
 
 ### 必跑检查

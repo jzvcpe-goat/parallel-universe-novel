@@ -31,6 +31,12 @@ assert(
   'Pages workflow must grant GH_TOKEN actions read access so readiness ledgers can audit GitHub repository variables',
 )
 assert(
+  workflow.includes('Run runtime checks')
+    && workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
+    && workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}'),
+  'Run runtime checks must receive the same GitHub vars context used by the release gate',
+)
+assert(
   workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
     && workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}'),
   'Pages workflow must source remote API and Agent URLs from GitHub vars',

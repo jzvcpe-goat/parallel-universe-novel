@@ -125,6 +125,7 @@ for (const required of [
   'REQUIRE_LIVE_RUNTIME_READY=true',
   'artifacts/runtime/live-runtime-readiness',
   'check:runtime-readiness-ledger',
+  'repoVariables.source',
   'health.api',
   'health.agent',
   'blockedChecks',
@@ -138,6 +139,8 @@ assert(
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('actions: read')
     && workflow.includes('GH_TOKEN: ${{ github.token }}')
+    && workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
+    && workflow.includes('VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}')
     && workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
   'Pages workflow must gate live builds through readiness ledger, audit GitHub repo variables, upload the ledger artifact, and run live browser QA',
 )

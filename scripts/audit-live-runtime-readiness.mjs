@@ -32,9 +32,21 @@ function tryRepoVariables() {
     for (const item of JSON.parse(output || '[]')) {
       values[String(item.name)] = String(item.value || '')
     }
-    return { checked: true, values }
+    return { checked: true, source: 'gh_variable_list', values }
   } catch {
-    return { checked: false, values: {} }
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      return {
+        checked: true,
+        source: 'github_actions_vars_context',
+        values: {
+          VITE_PUBLIC_RUNTIME_MODE: process.env.VITE_PUBLIC_RUNTIME_MODE || '',
+          VITE_API_ORIGIN: process.env.VITE_API_ORIGIN || '',
+          VITE_API_BASE_URL: process.env.VITE_API_BASE_URL || '',
+          VITE_AGENT_RUNTIME_BASE_URL: process.env.VITE_AGENT_RUNTIME_BASE_URL || '',
+        },
+      }
+    }
+    return { checked: false, source: 'not_checked', values: {} }
   }
 }
 
@@ -164,6 +176,7 @@ const artifact = {
   publicUrl,
   repoVariables: {
     checked: repoVars.checked,
+    source: repoVars.source,
     present: {
       VITE_PUBLIC_RUNTIME_MODE: Boolean(repoVars.values.VITE_PUBLIC_RUNTIME_MODE),
       VITE_API_ORIGIN: Boolean(repoVars.values.VITE_API_ORIGIN),
