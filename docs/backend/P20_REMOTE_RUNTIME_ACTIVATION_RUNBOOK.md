@@ -28,6 +28,7 @@ FastAPI required environment:
 ```bash
 DATABASE_URL=<production-or-preview-database-url>
 NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io
+NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>
 NARRATIVEOS_CREATOR_DIALOGUE_DIR=<persistent-or-mounted-session-dir>
 NARRATIVEOS_CANON_LEDGER_DIR=<persistent-or-mounted-ledger-dir>
 ```
@@ -47,6 +48,7 @@ Agent Runtime required environment:
 MASTRA_HOST=0.0.0.0
 MASTRA_PORT=4111
 MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>
+MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>
 MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io
 ```
 
@@ -102,6 +104,8 @@ Agent Runtime must call FastAPI through:
 
 Every write-like Tool Bridge call must include `Idempotency-Key`. Public creator generation remains `candidate`; it must not write canon or branch content.
 
+Every Tool Bridge call must also include `Authorization: Bearer <shared-tool-bridge-secret>`. Configure the same value in `NARRATIVEOS_TOOL_BRIDGE_TOKEN` on FastAPI and `MASTRA_TOOL_BRIDGE_TOKEN` on Agent Runtime. Do not expose this secret to the browser or GitHub Pages build variables.
+
 ## GitHub Repository Variables
 
 Set only repository variables, not frontend code defaults:
@@ -122,8 +126,8 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 
 ## Activation Sequence
 
-1. Deploy FastAPI with `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-2. Deploy Agent Runtime with `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>` and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+1. Deploy FastAPI with `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io` and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+2. Deploy Agent Runtime with `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
 3. Verify both health endpoints.
 4. Run local strict config check:
 

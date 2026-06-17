@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
+from secrets import compare_digest
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 
 
@@ -18,6 +20,47 @@ class RuntimeToolRequest(BaseModel):
 
 
 router = APIRouter(prefix="/v1/tools/runtime", tags=["tool-bridge"])
+
+
+def _tool_bridge_token() -> str:
+    return (
+        os.getenv("NARRATIVEOS_TOOL_BRIDGE_TOKEN")
+        or os.getenv("MASTRA_TOOL_BRIDGE_TOKEN")
+        or "dev-local-token"
+    )
+
+
+def _require_tool_bridge_auth(authorization: Optional[str]) -> None:
+    header = str(authorization or "").strip()
+    if not header:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "tool_bridge_auth_required",
+                "reason": "Mastra Tool Bridge calls must include a service bearer token.",
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    scheme, _, token = header.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "tool_bridge_auth_required",
+                "reason": "Mastra Tool Bridge calls must use Authorization: Bearer <token>.",
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not compare_digest(token.strip(), _tool_bridge_token()):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "tool_bridge_auth_invalid",
+                "reason": "Mastra Tool Bridge service token was rejected.",
+            },
+        )
 
 
 def _require_idempotency(idempotency_key: Optional[str]) -> str:
@@ -162,9 +205,10 @@ def _state_delta_candidate(output: Dict[str, Any]) -> List[Dict[str, Any]]:
 @router.post("/socratic-turn")
 def socratic_turn(
     payload: RuntimeToolRequest,
-    request: Request,
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ) -> Dict[str, Any]:
+    _require_tool_bridge_auth(authorization)
     key = _require_idempotency(idempotency_key)
     return _public_output(payload, idempotency_key=key, endpoint="socratic_turn")
 
@@ -172,8 +216,10 @@ def socratic_turn(
 @router.post("/draft")
 def draft(
     payload: RuntimeToolRequest,
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ) -> Dict[str, Any]:
+    _require_tool_bridge_auth(authorization)
     key = _require_idempotency(idempotency_key)
     return _public_output(payload, idempotency_key=key, endpoint="draft")
 
@@ -181,8 +227,10 @@ def draft(
 @router.post("/quality-check")
 def quality_check(
     payload: RuntimeToolRequest,
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ) -> Dict[str, Any]:
+    _require_tool_bridge_auth(authorization)
     key = _require_idempotency(idempotency_key)
     output = _public_output(payload, idempotency_key=key, endpoint="quality_check")
     return {
@@ -195,8 +243,10 @@ def quality_check(
 @router.post("/state-preview")
 def state_preview(
     payload: RuntimeToolRequest,
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ) -> Dict[str, Any]:
+    _require_tool_bridge_auth(authorization)
     key = _require_idempotency(idempotency_key)
     output = _public_output(payload, idempotency_key=key, endpoint="state_preview")
     return {

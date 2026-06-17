@@ -155,9 +155,42 @@ def _payload():
     }
 
 
+def _headers(idempotency_key: str | None = None, token: str = "dev-local-token") -> dict:
+    headers = {"Authorization": f"Bearer {token}"}
+    if idempotency_key is not None:
+        headers["Idempotency-Key"] = idempotency_key
+    return headers
+
+
+def test_tool_bridge_requires_service_token(tmp_path: Path):
+    client = _client(tmp_path)
+    for path in [
+        "/v1/tools/runtime/socratic-turn",
+        "/v1/tools/runtime/draft",
+        "/v1/tools/runtime/quality-check",
+        "/v1/tools/runtime/state-preview",
+    ]:
+        response = client.post(path, json=_payload(), headers={"Idempotency-Key": "run_demo"})
+
+        assert response.status_code == 401
+        assert response.json()["detail"]["code"] == "tool_bridge_auth_required"
+
+
+def test_tool_bridge_rejects_wrong_service_token(tmp_path: Path):
+    client = _client(tmp_path)
+    response = client.post(
+        "/v1/tools/runtime/socratic-turn",
+        json=_payload(),
+        headers=_headers("run_demo", token="wrong-token"),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "tool_bridge_auth_invalid"
+
+
 def test_tool_bridge_requires_idempotency_key(tmp_path: Path):
     client = _client(tmp_path)
-    response = client.post("/v1/tools/runtime/socratic-turn", json=_payload())
+    response = client.post("/v1/tools/runtime/socratic-turn", json=_payload(), headers=_headers())
 
     assert response.status_code == 400
     assert response.json()["detail"]["code"] == "idempotency_key_required"
@@ -168,7 +201,7 @@ def test_tool_bridge_returns_candidate_without_canon_write(tmp_path: Path):
     response = client.post(
         "/v1/tools/runtime/socratic-turn",
         json=_payload(),
-        headers={"Idempotency-Key": "run_demo"},
+        headers=_headers("run_demo"),
     )
 
     assert response.status_code == 200
@@ -188,7 +221,7 @@ def test_tool_bridge_state_preview_is_preview_only(tmp_path: Path):
     response = client.post(
         "/v1/tools/runtime/state-preview",
         json=_payload(),
-        headers={"Idempotency-Key": "run_state_preview"},
+        headers=_headers("run_state_preview"),
     )
 
     assert response.status_code == 200

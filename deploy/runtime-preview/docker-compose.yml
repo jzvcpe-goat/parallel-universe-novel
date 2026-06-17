@@ -6,6 +6,7 @@ services:
     environment:
       DATABASE_URL: sqlite:////tmp/narrativeos_preview.db
       NARRATIVEOS_ALLOWED_ORIGINS: http://127.0.0.1:5173,https://jzvcpe-goat.github.io
+      NARRATIVEOS_TOOL_BRIDGE_TOKEN: dev-local-token
       NARRATIVEOS_CREATOR_DIALOGUE_DIR: /tmp/creator_dialogue_sessions
       NARRATIVEOS_CANON_LEDGER_DIR: /tmp/canon_commit_ledger
     ports:
@@ -24,6 +25,7 @@ services:
       MASTRA_HOST: 0.0.0.0
       MASTRA_PORT: 4111
       MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787
+      MASTRA_TOOL_BRIDGE_TOKEN: dev-local-token
       MASTRA_ALLOWED_ORIGINS: http://127.0.0.1:5173,https://jzvcpe-goat.github.io
     ports:
       - "4111:4111"

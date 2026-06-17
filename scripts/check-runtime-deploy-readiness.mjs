@@ -67,16 +67,21 @@ assert(
 )
 assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')
+    && compose.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN: dev-local-token')
+    && compose.includes('MASTRA_TOOL_BRIDGE_TOKEN: dev-local-token')
     && compose.includes('MASTRA_ALLOWED_ORIGINS:')
     && compose.includes('http://127.0.0.1:8787/health')
     && compose.includes('http://127.0.0.1:4111/health'),
-  'Runtime preview compose must wire agents to API, restrict CORS, and define health checks',
+  'Runtime preview compose must wire agents to API, configure Tool Bridge service-token auth, restrict CORS, and define health checks',
 )
 assert(
   contract.includes('FastAPI business runtime')
     && contract.includes('Agent Runtime')
+    && contract.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
+    && contract.includes('MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>')
+    && contract.includes('Authorization: Bearer <shared-tool-bridge-secret>')
     && contract.includes('Idempotency-Key'),
-  'P14 deployment package doc must describe service ownership and idempotent write boundary',
+  'P14 deployment package doc must describe service ownership, Tool Bridge service-token auth, and idempotent write boundary',
 )
 assert(
   packageJson.scripts['check:runtime-deploy-readiness'] === 'node scripts/check-runtime-deploy-readiness.mjs',
