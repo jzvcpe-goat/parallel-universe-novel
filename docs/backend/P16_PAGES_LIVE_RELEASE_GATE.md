@@ -41,7 +41,6 @@ VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host>
 Before the build step, `.github/workflows/pages.yml` runs:
 
 ```bash
-npm install --no-save playwright
 npx playwright install chromium
 npm run check:public-runtime-preview
 npm run qa:live-runtime-local

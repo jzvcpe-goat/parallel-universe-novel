@@ -54,12 +54,15 @@ assert(
 )
 assert(
   workflow.includes('Install browser QA dependencies')
-    && workflow.includes('npm install --no-save playwright')
     && workflow.includes('npx playwright install chromium')
     && workflow.includes('Run local live runtime browser QA')
     && workflow.includes('npm run qa:live-runtime-local')
     && workflow.indexOf('Run local live runtime browser QA') < workflow.indexOf('Gate public runtime release mode'),
   'Pages workflow must run local live-mode browser QA before the public runtime release gate',
+)
+assert(
+  packageJson.devDependencies?.playwright,
+  'package.json must keep Playwright as a controlled devDependency instead of installing it ad hoc in CI',
 )
 assert(
   workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')

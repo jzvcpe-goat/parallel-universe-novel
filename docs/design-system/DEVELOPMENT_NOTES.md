@@ -20,6 +20,7 @@ P39/P40 已经让远端 live smoke 和 readiness ledger 验证 `POST /v1/workflo
 - `scripts/check-live-runtime-smoke-contract.mjs` 增加本地 live-mode QA 反向检查。
 - `docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md` 补充 local live-mode simulation 命令和边界。
 - 本地包装脚本会自动复用可用的 backend Python venv、Playwright module 和本机 Chrome executable；没有这些依赖时仍显式失败。
+- Playwright 固定为根目录 devDependency；CI 只运行 `npx playwright install chromium`，避免在 workflow 中途 `npm install --no-save` 破坏 app workspace 的 optional native binding。
 
 ### 必跑检查
 
