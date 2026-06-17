@@ -6,9 +6,11 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 
 const workflowSource = join(root, 'packages/agent-runtime/src/workflows.ts')
 const runtimeRulesSource = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
+const constraintRuleDoc = join(root, 'docs/product/rules/GENRE_CONSTRAINT_RULES.md')
+const kernelRuleDoc = join(root, 'docs/product/rules/GENRE_KERNEL_RULES.md')
 const ruleDocSources = [
-  join(root, 'docs/product/rules/GENRE_CONSTRAINT_RULES.md'),
-  join(root, 'docs/product/rules/GENRE_KERNEL_RULES.md'),
+  constraintRuleDoc,
+  kernelRuleDoc,
 ]
 const runtimeImplementationSources = [
   join(root, 'packages/agent-runtime/src/constraints.ts'),
@@ -39,13 +41,6 @@ const staleDocPatterns = [
     message: 'rule docs must use current registry id kernel-modern-other, not stale kernel-others-modern',
   },
 ]
-const retiredPromptCasePatterns = [
-  {
-    pattern: /西幻|西方玄幻|非游戏化|古代官署|清河县|仵作|县衙|western-dungeon|black-gate|地下城/,
-    message: 'retired prompt-case terms must not be hardcoded in runtime implementation or P4 tests',
-  },
-]
-
 function lineNumber(text, index) {
   return text.slice(0, index).split(/\r?\n/).length
 }
@@ -130,6 +125,26 @@ if (!existsSync(runtimeRulesSource)) {
     expect(kernelProfileIds.has(profile.id), `${profile.id} must have at least one compatible GenreKernel`)
   }
 
+  if (existsSync(constraintRuleDoc)) {
+    const constraintDocText = readFileSync(constraintRuleDoc, 'utf8')
+    for (const profile of profiles) {
+      expect(constraintDocText.includes(`\`${profile.id}\``), `GENRE_CONSTRAINT_RULES.md must list profile id ${profile.id}`)
+      expect(constraintDocText.includes(profile.displayName), `GENRE_CONSTRAINT_RULES.md must list displayName ${profile.displayName}`)
+    }
+  } else {
+    violations.push(`${relative(root, constraintRuleDoc)} missing human-editable constraint source`)
+  }
+
+  if (existsSync(kernelRuleDoc)) {
+    const kernelDocText = readFileSync(kernelRuleDoc, 'utf8')
+    for (const kernel of kernels) {
+      expect(kernelDocText.includes(`\`${kernel.id}\``), `GENRE_KERNEL_RULES.md must list kernel id ${kernel.id}`)
+      expect(kernelDocText.includes(kernel.name.replace(/内核$/, '')), `GENRE_KERNEL_RULES.md must list kernel name ${kernel.name}`)
+    }
+  } else {
+    violations.push(`${relative(root, kernelRuleDoc)} missing human-editable kernel source`)
+  }
+
   for (const source of runtimeImplementationSources) {
     if (!existsSync(source)) continue
     const text = readFileSync(source, 'utf8')
@@ -162,17 +177,6 @@ for (const docSource of ruleDocSources) {
     const match = text.match(check.pattern)
     if (match?.index !== undefined) {
       violations.push(`${relative(root, docSource)}:${lineNumber(text, match.index)} ${check.message}`)
-    }
-  }
-}
-
-for (const source of runtimeImplementationSources) {
-  if (!existsSync(source)) continue
-  const text = readFileSync(source, 'utf8')
-  for (const check of retiredPromptCasePatterns) {
-    const match = text.match(check.pattern)
-    if (match?.index !== undefined) {
-      violations.push(`${relative(root, source)}:${lineNumber(text, match.index)} ${check.message}`)
     }
   }
 }

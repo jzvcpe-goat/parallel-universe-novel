@@ -67,6 +67,32 @@ The active kernel IDs are:
 - `kernel-female-rebirth-revenge`
 - `kernel-era-female`
 
+Registry sync table:
+
+| Kernel ID | Name | Compatible profile |
+| --- | --- | --- |
+| `kernel-xuanhuan-xianxia` | 仙侠玄幻内核 | `xuanhuan-xianxia` |
+| `kernel-modern-other` | 其他现代内核 | `modern-other` |
+| `kernel-modern-supernatural` | 现代都市超能内核 | `modern-supernatural` |
+| `kernel-game-litrpg` | 游戏异界内核 | `game-litrpg` |
+| `kernel-system-litrpg` | 系统流内核 | `system-litrpg` |
+| `kernel-comedy-misfit` | 喜剧反套路内核 | `comedy-misfit` |
+| `kernel-quick-transmigration` | 快穿逆袭内核 | `quick-transmigration` |
+| `kernel-horror-infinite` | 恐怖无限流内核 | `horror-infinite` |
+| `kernel-apocalypse` | 末世内核 | `apocalypse` |
+| `kernel-wuxia-historical` | 武侠历史内核 | `wuxia-historical` |
+| `kernel-alchemy-craft` | 炼丹炼器内核 | `alchemy-craft` |
+| `kernel-sci-fi-space` | 科幻文明内核 | `sci-fi-space` |
+| `kernel-transmigration` | 穿越重生内核 | `transmigration` |
+| `kernel-male-farming-base` | 男频基建流内核 | `male-farming-base` |
+| `kernel-farming-domestic` | 种田致富内核 | `farming-domestic` |
+| `kernel-family-clan-group` | 群像家族内核 | `family-clan-group` |
+| `kernel-sweet-pet-marriage` | 甜宠先婚后爱内核 | `sweet-pet-marriage` |
+| `kernel-danmei-romance` | 耽美内核 | `danmei-romance` |
+| `kernel-chase-wife-crematorium` | 追妻火葬场内核 | `chase-wife-crematorium` |
+| `kernel-female-rebirth-revenge` | 女频重生复仇内核 | `female-rebirth-revenge` |
+| `kernel-era-female` | 年代女强内核 | `era-female` |
+
 Prompt-specific special cases are not kernel rules. Future special constraints must be added as document-derived profiles or user-selected doctrine flags.
 
 ### `kernel-xuanhuan-xianxia`

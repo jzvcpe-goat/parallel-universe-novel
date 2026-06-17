@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from src.narrativeos.memory import apply_event
 from src.narrativeos.providers import (
     BudgetedLLMBackend,
@@ -95,6 +97,29 @@ def test_build_llm_backend_from_env_can_construct_local_routing(monkeypatch):
     assert backend.generate_json(system_prompt="a", user_prompt="b") == {"candidate_events": []}
 
 
+def test_default_llm_policy_is_protocol_first_without_vendor_defaults(monkeypatch):
+    monkeypatch.setenv("NARRATIVEOS_LLM_ROUTING_ENABLED", "true")
+    monkeypatch.delenv("NARRATIVEOS_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("NARRATIVEOS_LLM_PROVIDER_ORDER", raising=False)
+
+    policy = build_llm_policy_from_env()
+
+    assert policy["provider_order"] == ["openai_compatible", "local"]
+    assert "deepseek" not in policy["provider_order"]
+    assert "kimi" not in policy["provider_order"]
+    assert "moonshot" not in policy["provider_order"]
+
+
+def test_openai_compatible_provider_requires_explicit_model_and_base_url(monkeypatch):
+    monkeypatch.delenv("NARRATIVEOS_OPENAI_COMPATIBLE_MODEL", raising=False)
+    monkeypatch.delenv("NARRATIVEOS_OPENAI_COMPATIBLE_BASE_URL", raising=False)
+
+    with pytest.raises(ValueError, match="openai_compatible_model_required"):
+        OpenAICompatibleProvider(api_key="test-secret", base_url="https://provider.example/v1")
+    with pytest.raises(ValueError, match="openai_compatible_base_url_required"):
+        OpenAICompatibleProvider(api_key="test-secret", model="provider-model")
+
+
 def test_deepseek_provider_parses_chat_completion_json_without_exposing_secret(monkeypatch):
     captured = {}
 
@@ -176,8 +201,8 @@ def test_openai_compatible_provider_normalizes_base_url_and_exposes_capabilities
 def test_build_llm_backend_from_env_supports_creator_openai_compatible(monkeypatch):
     monkeypatch.setenv("NARRATIVEOS_CREATOR_PROVIDER", "openai_compatible")
     monkeypatch.setenv("NARRATIVEOS_CREATOR_API_KEY", "test-secret")
-    monkeypatch.setenv("NARRATIVEOS_CREATOR_BASE_URL", "https://api.deepseek.com/v1")
-    monkeypatch.setenv("NARRATIVEOS_CREATOR_MODEL", "deepseek-chat")
+    monkeypatch.setenv("NARRATIVEOS_CREATOR_BASE_URL", "https://provider.example/v1")
+    monkeypatch.setenv("NARRATIVEOS_CREATOR_MODEL", "provider-model")
 
     backend = build_llm_backend_from_env(scope="creator")
     policy = build_llm_policy_from_env("creator")
@@ -202,8 +227,8 @@ def test_openai_compatible_creator_key_does_not_configure_native_adapters(monkey
     monkeypatch.setenv("NARRATIVEOS_CREATOR_PROVIDER", "openai_compatible")
     monkeypatch.setenv("NARRATIVEOS_CREATOR_PROVIDER_ORDER", "openai_compatible,openai,anthropic,gemini,local")
     monkeypatch.setenv("NARRATIVEOS_CREATOR_API_KEY", "test-secret")
-    monkeypatch.setenv("NARRATIVEOS_CREATOR_BASE_URL", "https://api.deepseek.com/v1")
-    monkeypatch.setenv("NARRATIVEOS_CREATOR_MODEL", "deepseek-chat")
+    monkeypatch.setenv("NARRATIVEOS_CREATOR_BASE_URL", "https://provider.example/v1")
+    monkeypatch.setenv("NARRATIVEOS_CREATOR_MODEL", "provider-model")
 
     backend = build_llm_backend_from_env(scope="creator")
 

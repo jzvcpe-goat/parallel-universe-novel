@@ -24,13 +24,13 @@ OpenAI-compatible providers should be the default integration path:
 
 ```bash
 NARRATIVEOS_CREATOR_PROVIDER=openai_compatible
-NARRATIVEOS_CREATOR_PROVIDER_ORDER=openai_compatible,openai,anthropic,gemini,local
+NARRATIVEOS_CREATOR_PROVIDER_ORDER=openai_compatible,local
 NARRATIVEOS_CREATOR_API_KEY=...
-NARRATIVEOS_CREATOR_BASE_URL=https://api.deepseek.com/v1
-NARRATIVEOS_CREATOR_MODEL=deepseek-chat
+NARRATIVEOS_CREATOR_BASE_URL=https://<openai-compatible-host>/v1
+NARRATIVEOS_CREATOR_MODEL=<model-name>
 ```
 
-Examples:
+DeepSeek, Qwen, OpenRouter, Kimi/Moonshot and other gateways are examples, not product defaults. Configure them explicitly when that provider is selected:
 
 ```bash
 # DeepSeek

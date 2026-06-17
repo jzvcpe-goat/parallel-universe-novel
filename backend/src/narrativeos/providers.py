@@ -187,7 +187,7 @@ def build_llm_policy_from_env(scope: Optional[str] = None) -> Dict[str, Any]:
         for item in (
             provider_order_raw.split(",")
             if provider_order_raw
-            else ([provider_raw] if provider_raw else ["openai_compatible", "openai", "anthropic", "gemini", "deepseek", "kimi", "local"])
+            else ([provider_raw] if provider_raw else ["openai_compatible", "local"])
         )
         if item.strip()
     ] if enabled else []
@@ -1034,9 +1034,11 @@ class OpenAICompatibleProvider(LLMBackend):
         max_tokens: int = 2600,
     ) -> None:
         self.api_key = api_key or os.getenv("NARRATIVEOS_OPENAI_COMPATIBLE_API_KEY")
-        self.model = model or os.getenv("NARRATIVEOS_OPENAI_COMPATIBLE_MODEL") or "deepseek-chat"
+        self.model = model or os.getenv("NARRATIVEOS_OPENAI_COMPATIBLE_MODEL")
+        if not self.model:
+            raise ValueError("openai_compatible_model_required")
         self.base_url = _openai_compatible_chat_url(
-            base_url or os.getenv("NARRATIVEOS_OPENAI_COMPATIBLE_BASE_URL") or "https://api.deepseek.com/v1"
+            base_url or os.getenv("NARRATIVEOS_OPENAI_COMPATIBLE_BASE_URL")
         )
         self.provider_id = provider_id
         self.max_tokens = int(max_tokens)
