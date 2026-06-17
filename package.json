@@ -39,6 +39,7 @@
     "check:runtime-activation-package": "node scripts/check-runtime-activation-package.mjs",
     "check:live-runtime-smoke": "node scripts/check-live-runtime-smoke-contract.mjs",
     "check:pages-live-release-gate": "node scripts/check-pages-live-release-gate.mjs",
+    "check:github-actions-artifacts": "node scripts/check-github-actions-artifacts.mjs",
     "check:github-pages-spa-fallback": "node scripts/check-github-pages-spa-fallback.mjs",
     "check:template-intent": "node scripts/check-template-intent-routing.mjs",
     "check:runtime-rule-handshake": "node scripts/check-runtime-rule-handshake.mjs",

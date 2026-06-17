@@ -50,12 +50,14 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
+# After all uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
 ```
 
 This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
+- The same run contains `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -69,9 +71,10 @@ This proves:
 2. Static mode still deploys with no remote Runtime variables.
 3. CI always runs `qa:live-runtime-local` before evaluating remote live mode.
 4. CI uploads local live-mode screenshots as `local-live-runtime-visual-qa`.
-5. Live mode fails if any required remote URL is missing.
-6. Live mode fails if browser submission cannot create a candidate draft.
-7. Live mode never enables local fallback.
+5. CI verifies current-run artifacts through `check:github-actions-artifacts`.
+6. Live mode fails if any required remote URL is missing.
+7. Live mode fails if browser submission cannot create a candidate draft.
+8. Live mode never enables local fallback.
 
 ## Operational Rule
 

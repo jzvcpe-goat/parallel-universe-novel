@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-17 P43 CI artifact 证据门禁
+
+### 现象
+
+P42 已经上传本地 live QA 截图，但发布验收仍依赖人工打开 Actions 日志确认。这样会出现一个断点：CI 可能显示 build 成功，却没有机器证明同一轮 run 同时留下运行账本、浏览器视觉证据和 Pages 构建包。
+
+### 修复原则
+
+1. 上线证据必须从日志升级为可查询的 GitHub Actions artifact 元数据。
+2. 同一次 Pages workflow 必须同时拥有 `runtime-readiness-ledger`、`local-live-runtime-visual-qa` 和 `github-pages`。
+3. CI 当前 run 检查必须在三个 artifact 上传之后执行，并且缺失、过期、空文件都要失败。
+4. 检查只读 artifact 名称、大小、过期状态和 run/head sha，不下载内容，不打印候选正文、系统提示词、provider secret 或代表作品映射。
+5. 新增发布门禁必须进入 `RELEASE_SYNC_MANIFEST.json`，避免 release 仓库和源工作区分叉。
+
+### 本轮落地
+
+- 新增 `scripts/check-github-actions-artifacts.mjs`。
+- `package.json` 增加 `check:github-actions-artifacts`。
+- `.github/workflows/pages.yml` 在 Pages artifact 上传后运行当前 run 证据检查。
+- `scripts/check-pages-live-release-gate.mjs` 反向检查 workflow、package script 和 P43 文档。
+- `docs/backend/P43_CI_ARTIFACT_EVIDENCE_GATE.md` 记录目标、命令、边界和验收项。
+- `docs/baseline/RELEASE_SYNC_MANIFEST.json` 纳入 P43 文档和脚本。
+
+### 必跑检查
+
+```bash
+npm run check:github-actions-artifacts
+npm run check:pages-live-release-gate
+npm run check:release-sync-manifest
+```
+
 ## 2026-06-17 P4 文档优先约束重启
 
 ### 现象

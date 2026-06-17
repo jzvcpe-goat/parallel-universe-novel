@@ -14,6 +14,7 @@ function assert(condition, message) {
 
 const workflow = read('.github/workflows/pages.yml')
 const p16Doc = read('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md')
+const p43Doc = read('docs/backend/P43_CI_ARTIFACT_EVIDENCE_GATE.md')
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
 const packageJson = JSON.parse(read('package.json'))
 const node24ActionVersions = [
@@ -97,6 +98,14 @@ assert(
   'Pages workflow must upload the readiness ledger artifact after the runtime gate, including failed live gates',
 )
 assert(
+  workflow.includes('Check current run evidence artifacts')
+    && workflow.includes('CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:github-actions-artifacts')
+    && workflow.indexOf('Check current run evidence artifacts') > workflow.indexOf('Upload artifact'),
+  'Pages workflow must verify the current run evidence artifacts after all required artifacts are uploaded',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -109,6 +118,10 @@ assert(
   'package.json must expose check:pages-live-release-gate',
 )
 assert(
+  packageJson.scripts['check:github-actions-artifacts'] === 'node scripts/check-github-actions-artifacts.mjs',
+  'package.json must expose check:github-actions-artifacts',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -118,6 +131,13 @@ assert(
     && p16Doc.includes('qa:live-runtime-local')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate and required GitHub vars',
+)
+assert(
+  p43Doc.includes('runtime-readiness-ledger')
+    && p43Doc.includes('local-live-runtime-visual-qa')
+    && p43Doc.includes('github-pages')
+    && p43Doc.includes('check:github-actions-artifacts'),
+  'P43 doc must describe the required GitHub Actions artifact evidence gate',
 )
 assert(
   p15Doc.includes('P15 proves those deployed units actually satisfy the Creator Studio product flow.'),

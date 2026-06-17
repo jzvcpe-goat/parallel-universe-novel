@@ -117,6 +117,13 @@ jobs:
         with:
           path: app/dist
 
+      - name: Check current run evidence artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:github-actions-artifacts
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
