@@ -281,6 +281,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-runtime-blockers-artifact
 
+      - name: Check remote assignment fill plan artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-assignment-fill-plan-artifact
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

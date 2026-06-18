@@ -441,3 +441,16 @@ taxonomy:
   blocker ledger instead of creating a competing list.
 - The artifact keeps public live runtime blocked until real operator inputs are
   supplied.
+
+## P106 Remote Assignment Fill Plan Artifact Attestation Refresh
+
+P106 makes the P105 artifact content machine-checkable:
+
+- P45 commercial-release evidence now includes
+  `check:remote-assignment-fill-plan-artifact`.
+- Pages workflow runs P106 after P90 so the fill plan is content-checked before
+  deploy.
+- Root `npm run test` runs P106 immediately after P105.
+- The gate validates JSON and Markdown content, not only artifact metadata, and
+  preserves source workspace no-git blockers instead of inventing current-head
+  image proof.

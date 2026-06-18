@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P106 Remote Assignment Fill Plan Artifact Attestation
+
+P105 之后继续看证据链，发现 Pages run 已经上传
+`remote-assignment-fill-plan`，P43 也能证明 artifact 名称和大小存在，但这仍
+不能证明里面的 JSON/Markdown 内容可信。上线链路里，metadata green 如果
+没有 content gate，很容易让旧 head、错位镜像、泄漏字段或误清 blocker 的
+artifact 混进交接。
+
+新的工程标准：
+
+1. 每个关键上线 artifact 都需要两层门禁：P43 metadata gate 证明存在，专门
+   content gate 证明内容结构、head sha、隐私边界和 blocker 语义。
+2. `remote-assignment-fill-plan` 的内容必须验证六个填报区域、strict validation
+   sequence、current-head 镜像和不写 `remote-assignment.local.json` 的边界。
+3. Source workspace 不是 git checkout 时不能伪造 current-head 镜像证明；
+   P106 只允许它在 `source-workspace-no-git` 模式下保持
+   `runtime-images-published` 与 `handoff-artifact-content` blocked。
+4. Pages workflow 必须在 P90 blocker content gate 之后运行 P106，部署前证明
+   fill plan 本身仍然 privacy-safe 且没有解除 live runtime blocker。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-fill-plan
+npm run check:remote-assignment-fill-plan-artifact
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-18 P105 Remote Assignment Fill Plan Gate
 
 P104 之后继续看上线断点，发现 P87 能给出 current-image handoff，

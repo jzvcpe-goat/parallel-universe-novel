@@ -44,7 +44,8 @@ P43 只证明 artifact 元数据存在。`reference-privacy` 和
 `remote-assignment-schema`、`remote-assignment-execution-pack` 和
 `remote-assignment-fixture-gate` 的 JSON/Markdown 内容由 P93 再下载核验，
 `remote-assignment-handoff` 的 JSON 内容由 P89 再下载核验，
-`remote-runtime-blockers` 的 JSON 内容由 P90 再下载核验：
+`remote-runtime-blockers` 的 JSON 内容由 P90 再下载核验，
+`remote-assignment-fill-plan` 的 JSON/Markdown 内容由 P106 再下载核验：
 
 ```bash
 CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED=true \
@@ -62,6 +63,10 @@ npm run check:remote-assignment-handoff-artifact
 CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED=true \
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:remote-runtime-blockers-artifact
+
+CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED=true \
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+npm run check:remote-assignment-fill-plan-artifact
 ```
 
 ## What This Proves
@@ -84,7 +89,7 @@ npm run check:remote-runtime-blockers-artifact
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P91 owns the assignment schema generator.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P91 owns the assignment schema generator.
 
 ## Workflow Placement
 
@@ -118,3 +123,5 @@ That placement proves the same run that will deploy Pages also produced the requ
    artifacts, assignment evidence artifacts, `remote-assignment-handoff` and
    `remote-runtime-blockers` content are validated separately from artifact
    metadata.
+7. Pages workflow runs P106 after P90 so `remote-assignment-fill-plan` content
+   is validated separately from artifact metadata.

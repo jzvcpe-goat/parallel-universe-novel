@@ -40,6 +40,8 @@ const requiredFiles = [
   'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
   'docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md',
   'docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md',
+  'docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md',
+  'docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -66,6 +68,8 @@ const requiredFiles = [
   'scripts/check-remote-assignment-handoff-artifact.mjs',
   'scripts/check-remote-assignment-schema.mjs',
   'scripts/check-remote-assignment-execution-pack.mjs',
+  'scripts/check-remote-assignment-fill-plan.mjs',
+  'scripts/check-remote-assignment-fill-plan-artifact.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -96,6 +100,8 @@ const p92 = read('docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md')
 const p93 = read('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md')
 const p94 = read('docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md')
 const p96 = read('docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md')
+const p105 = read('docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md')
+const p106 = read('docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -177,6 +183,14 @@ assert(
   'package.json must expose check:remote-assignment-execution-pack',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-fill-plan'] === 'node scripts/check-remote-assignment-fill-plan.mjs',
+  'package.json must expose check:remote-assignment-fill-plan',
+)
+assert(
+  packageJson.scripts['check:remote-assignment-fill-plan-artifact'] === 'node scripts/check-remote-assignment-fill-plan-artifact.mjs',
+  'package.json must expose check:remote-assignment-fill-plan-artifact',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -247,6 +261,14 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-execution-pack'),
   'npm run test must include check:remote-assignment-execution-pack',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan'),
+  'npm run test must include check:remote-assignment-fill-plan',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan-artifact'),
+  'npm run test must include check:remote-assignment-fill-plan-artifact',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -491,6 +513,20 @@ assert(
     && p96.includes('commercial-release-chain')
     && p96.includes('check:runtime-completion-blocker-convergence'),
   'P96 runtime completion blocker convergence must bind P45 commercial release gaps to the P85 blocker ledger',
+)
+assert(
+  p105.includes('P105 Remote Assignment Fill Plan Gate')
+    && p105.includes('check:remote-assignment-fill-plan')
+    && p105.includes('remote-assignment-fill-plan')
+    && p105.includes('does not write'),
+  'P105 fill plan gate must define the operator-safe fill-plan contract',
+)
+assert(
+  p106.includes('P106 Remote Assignment Fill Plan Artifact Attestation')
+    && p106.includes('check:remote-assignment-fill-plan-artifact')
+    && p106.includes('source-workspace-no-git')
+    && p106.includes('remote-assignment-fill-plan'),
+  'P106 fill plan artifact attestation must define current-run content validation',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

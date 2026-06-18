@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P105 remote assignment fill plan, P106 remote assignment fill plan artifact attestation, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -822,6 +822,28 @@ Current decision is that P105 is an operator fill-plan gate. It reduces handoff
 ambiguity but intentionally keeps the same remote runtime blockers open until
 real service ids, HTTPS origins, provider secret-store confirmations and health
 checks exist.
+
+## P106 Remote Assignment Fill Plan Artifact Attestation
+
+`scripts/check-remote-assignment-fill-plan-artifact.mjs` downloads or reads the
+P105 `remote-assignment-fill-plan` artifact and validates its JSON plus
+Markdown content:
+
+Command: `npm run check:remote-assignment-fill-plan-artifact`.
+
+- artifact gate, repository and head sha,
+- current-head API and Agent Runtime image refs in release/CI mode,
+- source workspace no-git mode keeps runtime image and handoff content blockers
+  visible,
+- six required fill areas and strict validation sequence,
+- blocker preservation for `remote-assignment-file-present` and
+  `activation-control`,
+- no secrets, reference work names, `sourceRefs`, `profile.id`, `kernel.id`,
+  raw state or provider prompt plumbing.
+
+Current decision is that P106 closes the artifact-content gap left by P105. It
+does not make remote runtime ready; it proves the fill plan itself is safe and
+current.
 
 ## P90 Remote Runtime Blocker Artifact Attestation
 
