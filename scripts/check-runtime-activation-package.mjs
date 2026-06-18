@@ -33,6 +33,7 @@ const requiredFiles = [
   'docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md',
   'docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md',
   'docs/backend/P81_REMOTE_ASSIGNMENT_FIXTURE_GATE.md',
+  'docs/backend/P87_REMOTE_ASSIGNMENT_HANDOFF_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -53,6 +54,7 @@ const requiredFiles = [
   'scripts/check-live-cutover-attestation.mjs',
   'scripts/check-live-rollback-rehearsal.mjs',
   'scripts/check-remote-runtime-activation-control.mjs',
+  'scripts/check-remote-assignment-handoff.mjs',
   'scripts/check-remote-assignment-execution-pack.mjs',
 ]
 
@@ -75,6 +77,7 @@ const p76 = read('docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md')
 const p77 = read('docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md')
 const p78 = read('docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md')
 const p79 = read('docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md')
+const p87 = read('docs/backend/P87_REMOTE_ASSIGNMENT_HANDOFF_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -134,6 +137,10 @@ assert(
   'package.json must expose check:remote-runtime-activation-control',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-handoff'] === 'node scripts/check-remote-assignment-handoff.mjs',
+  'package.json must expose check:remote-assignment-handoff',
+)
+assert(
   packageJson.scripts['check:remote-assignment-execution-pack'] === 'node scripts/check-remote-assignment-execution-pack.mjs',
   'package.json must expose check:remote-assignment-execution-pack',
 )
@@ -180,6 +187,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-runtime-activation-control'),
   'npm run test must include check:remote-runtime-activation-control',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-handoff'),
+  'npm run test must include check:remote-assignment-handoff',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-execution-pack'),
@@ -361,6 +372,16 @@ assert(
   'P79 remote assignment execution pack must define operator commands, decisions and strict mode',
 )
 assert(
+  p87.includes('P87 Remote Assignment Handoff Gate')
+    && p87.includes('check:remote-assignment-handoff')
+    && p87.includes('assignment_handoff_waiting_for_images')
+    && p87.includes('assignment_handoff_ready_for_operator')
+    && p87.includes('remote-assignment.local.json')
+    && p87.includes('remote-assignment-handoff')
+    && p87.includes('REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_READY=true'),
+  'P87 remote assignment handoff must define current-image template generation, decisions and strict mode',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -412,6 +433,7 @@ for (const required of [
   'Health Contract',
   'Host Target Gate',
   'Operator Handoff',
+  'Remote Assignment Handoff',
   'Assignment Intake',
   'Live Cutover Attestation',
   'Live Rollback Rehearsal',
@@ -426,6 +448,7 @@ for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
   'npm run check:remote-origin-operator-pack',
+  'npm run check:remote-assignment-handoff',
   'npm run check:remote-runtime-assignment-intake',
   'npm run check:live-cutover-attestation',
   'npm run check:live-rollback-rehearsal',
@@ -486,12 +509,14 @@ assert(
     && workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('Upload live rollback rehearsal')
     && workflow.includes('Upload remote runtime activation control')
+    && workflow.includes('Upload remote assignment handoff')
     && workflow.includes('Upload remote assignment execution pack')
     && workflow.includes('Upload remote assignment fixture gate')
     && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('artifacts/runtime/live-rollback-rehearsal-*.json')
     && workflow.includes('artifacts/runtime/remote-activation-control-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-handoff-*.json')
     && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
     && workflow.includes('artifacts/runtime/remote-assignment-fixture-gate-*.json')
     && workflow.includes('artifacts/runtime/reference-privacy-*.json')

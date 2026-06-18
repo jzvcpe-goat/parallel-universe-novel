@@ -23,6 +23,8 @@ npm run check:runtime-completion-refresh
   `public-projection-privacy`.
 - P45 commercial release chain evidence includes `remote-runtime-blockers`
   whenever P85 is part of the release chain.
+- P45 commercial release chain evidence includes `remote-assignment-handoff`
+  whenever P87 is part of the release chain.
 - P45 required evidence artifacts list contains the same public privacy evidence
   uploaded by `.github/workflows/pages.yml`.
 - `check:runtime-engine-completion` validates the Pages upload step, the public
@@ -45,4 +47,6 @@ deprecated case logic.
   `publicProjectionPrivacy`.
 - `npm run check:pages-live-release-gate` still reports
   `remoteRuntimeBlockers`.
+- `npm run check:pages-live-release-gate` still reports
+  `assignmentHandoff`.
 - `npm run test` keeps both privacy artifacts in the root release chain.

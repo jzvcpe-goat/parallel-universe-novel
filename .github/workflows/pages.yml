@@ -134,6 +134,17 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Upload remote assignment handoff
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-handoff
+          path: |
+            artifacts/runtime/remote-assignment-handoff-*.json
+            artifacts/runtime/remote-assignment-handoff-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload remote assignment execution pack
         if: always()
         uses: actions/upload-artifact@v7

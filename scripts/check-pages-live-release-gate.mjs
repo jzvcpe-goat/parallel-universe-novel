@@ -137,6 +137,14 @@ assert(
   'Pages workflow must upload the remote assignment execution pack artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote assignment handoff')
+    && workflow.includes('remote-assignment-handoff')
+    && workflow.includes('artifacts/runtime/remote-assignment-handoff-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-handoff-*.md')
+    && workflow.indexOf('Upload remote assignment handoff') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote assignment handoff artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload remote assignment fixture gate')
     && workflow.includes('remote-assignment-fixture-gate')
     && workflow.includes('artifacts/runtime/remote-assignment-fixture-gate-*.json')
@@ -200,6 +208,7 @@ assert(
     && p16Doc.includes('check:live-cutover-attestation')
     && p16Doc.includes('check:live-rollback-rehearsal')
     && p16Doc.includes('check:remote-runtime-activation-control')
+    && p16Doc.includes('remote-assignment-handoff')
     && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
@@ -209,6 +218,7 @@ assert(
     && p43Doc.includes('live-cutover-attestation')
     && p43Doc.includes('live-rollback-rehearsal')
     && p43Doc.includes('remote-runtime-activation-control')
+    && p43Doc.includes('remote-assignment-handoff')
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
@@ -237,6 +247,7 @@ console.log(JSON.stringify({
   cutoverAttestation: 'check:live-cutover-attestation',
   rollbackRehearsal: 'check:live-rollback-rehearsal',
   activationControl: 'check:remote-runtime-activation-control',
+  assignmentHandoff: 'remote-assignment-handoff',
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   remoteRuntimeBlockers: 'remote-runtime-blockers',

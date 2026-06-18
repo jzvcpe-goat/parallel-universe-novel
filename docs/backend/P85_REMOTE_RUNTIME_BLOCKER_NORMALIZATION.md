@@ -12,6 +12,10 @@ P85 does not provision infrastructure, set GitHub variables, store secrets or
 enable live runtime. It only answers: which stage is blocked, who owns it, which
 gate proves it, what input is missing, and which strict command must pass next.
 
+P87 now sits between P72 and P75. It packages the current image refs into a
+no-secret `remote-assignment.local.json` handoff template, but P85 still treats
+assignment as blocked until real service evidence passes P75/P79.
+
 ## Command
 
 ```bash
