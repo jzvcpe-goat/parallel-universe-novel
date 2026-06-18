@@ -13,6 +13,10 @@ The actual assignment file is local-only and ignored by Git:
 deploy/runtime-production/remote-assignment.local.json
 ```
 
+P108 Remote Assignment Local Boundary Guard keeps this ignored local assignment
+boundary under test. The local file may exist on an operator machine, but it must
+not be committed, uploaded as a public artifact, or replaced by fixture data.
+
 The committed template is:
 
 ```text
@@ -27,7 +31,10 @@ deploy/runtime-production/remote-assignment.fixture.json
 
 The fixture uses reserved `.invalid` origins. It is only for validating the
 assignment shape and P79 command generation. It must produce
-`remote_assignment_pending_health`, not `remote_assignment_ready`.
+`remote_assignment_pending_health`, not `remote_assignment_ready`; the fixture
+cannot unblock production readiness.
+
+Machine anchor: fixture cannot unblock production readiness.
 
 ## Command
 
@@ -126,10 +133,13 @@ and P66 in strict mode.
 ## Acceptance
 
 - `.gitignore` ignores `deploy/runtime-production/remote-assignment.local.json`.
+- `.gitignore` ignores `deploy/runtime-production/remote-assignment.*.local.json`.
 - `remote-assignment.example.json` is committed and contains placeholders only.
 - `remote-assignment.schema.json` is committed and checked before P75/P79.
 - `package.json` exposes `check:remote-runtime-assignment-intake`.
+- `package.json` exposes `check:remote-assignment-local-boundary`.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
+- Root `npm run test` includes `check:remote-assignment-local-boundary`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.
 - Strict mode fails until assignment is `remote_assignment_ready`.
 - The fixture with reserved `.invalid` origins stays at

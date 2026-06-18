@@ -42,6 +42,11 @@ P105 does not write `deploy/runtime-production/remote-assignment.local.json`.
 It does not create remote services, set GitHub variables, store secrets, promote
 live runtime, or treat fixture evidence as production readiness.
 
+P108 Remote Assignment Local Boundary Guard owns the ignored local assignment
+boundary after P105. It proves the fill plan still targets a Git-ignored local
+file, that the committed example remains placeholder-only, and that fixture
+evidence cannot unblock production readiness.
+
 Forbidden in the fill-plan artifact:
 
 - database URLs;
@@ -81,8 +86,11 @@ REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers
 ## Acceptance
 
 - `package.json` exposes `check:remote-assignment-fill-plan`.
+- `package.json` exposes `check:remote-assignment-local-boundary`.
 - Root `npm run test` runs it after
   `check:runtime-completion-blocker-convergence`.
+- Root `npm run test` runs `check:remote-assignment-local-boundary` after the
+  fill-plan artifact check.
 - Pages workflow uploads `remote-assignment-fill-plan`.
 - The generated artifact is operator-safe and redacted.
 - The gate keeps current P85 blockers visible instead of declaring remote

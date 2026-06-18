@@ -43,6 +43,7 @@ const requiredFiles = [
   'docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md',
   'docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md',
   'docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md',
+  'docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -72,6 +73,7 @@ const requiredFiles = [
   'scripts/check-remote-assignment-fill-plan.mjs',
   'scripts/check-remote-assignment-fill-plan-artifact.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
+  'scripts/check-remote-assignment-local-boundary.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -105,6 +107,7 @@ const p96 = read('docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md')
 const p105 = read('docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md')
 const p106 = read('docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md')
 const p107 = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
+const p108 = read('docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -198,6 +201,10 @@ assert(
   'package.json must expose check:ci-artifact-content-coverage',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-local-boundary'] === 'node scripts/check-remote-assignment-local-boundary.mjs',
+  'package.json must expose check:remote-assignment-local-boundary',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -280,6 +287,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
   'npm run test must include check:ci-artifact-content-coverage',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-local-boundary'),
+  'npm run test must include check:remote-assignment-local-boundary',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -547,6 +558,14 @@ assert(
     && p107.includes('built_bundle_privacy_scan')
     && p107.includes('visual_human_evidence'),
   'P107 CI artifact content coverage must define the ownership matrix for Pages artifacts',
+)
+assert(
+  p108.includes('P108 Remote Assignment Local Boundary Guard')
+    && p108.includes('check:remote-assignment-local-boundary')
+    && p108.includes('remote-assignment.local.json')
+    && p108.includes('remote-assignment.*.local.json')
+    && p108.includes('fixture cannot unblock production readiness'),
+  'P108 local boundary guard must define ignored local assignment and fixture readiness boundaries',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

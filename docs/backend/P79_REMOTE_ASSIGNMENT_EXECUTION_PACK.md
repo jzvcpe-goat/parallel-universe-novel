@@ -46,7 +46,9 @@ npm run check:remote-assignment-execution-pack
 
 The fixture should produce `assignment_execution_pack_ready`, while P75 should
 still stop at `remote_assignment_pending_health` because the fixture uses
-reserved `.invalid` origins.
+reserved `.invalid` origins. P108 Remote Assignment Local Boundary Guard keeps
+this split explicit: fixture can generate commands but cannot satisfy P75 strict
+readiness.
 
 ## Decisions
 
@@ -106,5 +108,6 @@ P79 must not include:
 - Strict mode fails until an execution pack is ready.
 - `remote-assignment.fixture.json` proves command generation without pretending
   the reserved `.invalid` origins are live.
+- P108 proves the fixture can generate commands but cannot satisfy P75 strict readiness.
 - The generated JSON and Markdown artifacts contain no secrets.
 - P78 links to this pack as the next action when it is waiting for assignment.

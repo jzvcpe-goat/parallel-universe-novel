@@ -78,6 +78,7 @@ fi
 # After P89 handoff content gate: CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED=true npm run check:remote-runtime-blockers-artifact
 # After P90 blocker content gate: CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED=true npm run check:remote-assignment-fill-plan-artifact
 # Root release gate: npm run check:ci-artifact-content-coverage
+# Root local-boundary gate: npm run check:remote-assignment-local-boundary
 ```
 
 This proves:
@@ -93,6 +94,8 @@ This proves:
   privacy and operator-boundary checks.
 - P107 proves every Pages artifact is owned by a downloaded content gate,
   pre-upload generator gate, built bundle privacy scan or visual evidence path.
+- P108 proves the ignored `remote-assignment.local.json` boundary stays local,
+  template-only and impossible to satisfy with fixture data.
 - The `reference-privacy` and `public-projection-privacy` artifact contents pass
   P92 redaction and zero-violation checks.
 - The `remote-assignment-schema`, `remote-assignment-execution-pack` and
@@ -140,8 +143,10 @@ This proves:
     runtime blockers before deploy.
 23. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
     Pages artifact is only uploaded without an explicit verification owner.
-24. Live mode fails if browser submission cannot create a candidate draft.
-25. Live mode never enables local fallback.
+24. Root `npm run test` must run `check:remote-assignment-local-boundary` so
+    ignored local assignment state cannot be committed or replaced by fixture data.
+25. Live mode fails if browser submission cannot create a candidate draft.
+26. Live mode never enables local fallback.
 
 ## Operational Rule
 

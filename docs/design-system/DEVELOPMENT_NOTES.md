@@ -1,5 +1,31 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P108 Remote Assignment Local Boundary Guard
+
+P107 之后继续看上线断点，发现剩下的 8 个 blocker 都集中在远程 runtime
+operator 输入。这里最危险的不是还没填，而是有人把
+`remote-assignment.local.json` 当成可提交配置，或者把 `.invalid` fixture
+误读成生产 readiness。
+
+新的工程标准：
+
+1. operator local assignment 必须被 `.gitignore` 和 root gate 双重保护；
+   `remote-assignment.local.json` 与 `remote-assignment.*.local.json` 不能被
+   追踪入库。
+2. committed example 只能保留 placeholder 和 `providerSecretsConfigured:
+   false`，不能承载真实 origin、service id 或 secret-ready 断言。
+3. committed fixture 只用于 schema/P79 command generation；它必须继续让
+   P75 strict readiness 失败，不能清除生产 blocker。
+4. P108 不部署、不填表、不解除 remote runtime blocker；它只防止本地运维证据
+   和 fixture 证据混入公开发布链路。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-local-boundary
+npm run check:remote-runtime-assignment-intake
+```
+
 ## 2026-06-18 P107 CI Artifact Content Coverage Matrix
 
 P106 之后再看整条 Pages 证据链，发现一个更通用的风险：P43 能证明

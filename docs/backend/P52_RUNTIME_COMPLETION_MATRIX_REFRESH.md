@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, and P107 CI artifact content coverage matrix. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, and P108 remote assignment local boundary guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -467,3 +467,17 @@ P107 prevents artifact evidence drift after P43/P92/P93/P89/P90/P106:
 - Root `npm run test` runs P107 immediately after P106.
 - The remaining live-runtime blocker set is unchanged; P107 only proves every
   artifact has a verification owner.
+
+## P108 Remote Assignment Local Boundary Guard Refresh
+
+P108 protects the local operator assignment boundary after P105/P106/P107:
+
+- P45 commercial-release evidence now includes
+  `check:remote-assignment-local-boundary`.
+- Root `npm run test` runs P108 after P106 so the ignored local assignment
+  boundary is checked before artifact coverage and dependency audit.
+- The gate fails if `remote-assignment*.local.json` is tracked, keeps the
+  example placeholder-only, and proves the fixture cannot satisfy P75 strict
+  readiness.
+- The remaining live-runtime blocker set is unchanged; P108 only prevents local
+  operator evidence or fixture data from being mistaken for production readiness.
