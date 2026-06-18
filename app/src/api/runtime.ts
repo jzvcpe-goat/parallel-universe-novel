@@ -87,6 +87,17 @@ export interface QualityGateIssue {
   layer?: 'realtime_blocker' | 'warning' | 'shadow'
 }
 
+export interface AgentEvalPublishDecision {
+  contract: 'P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY' | string
+  decision_source: 'deterministic_quality_gate' | string
+  production_publish_allowed: boolean
+  release_decision: 'pass' | 'rewrite' | 'block' | 'hold' | string
+  blocking_reasons: string[]
+  eligible_production_gates: Array<Record<string, unknown>>
+  shadow_only_checks: Array<Record<string, unknown>>
+  learned_gate_policy: 'shadow_until_promotion_workflow_green' | string
+}
+
 export interface QualityGate {
   status: 'waiting' | 'passed' | 'blocked' | string
   candidate_status: 'candidate' | 'canon_ready' | string
@@ -107,6 +118,7 @@ export interface QualityGate {
     required_confirmation: boolean
     missing: string[]
   }
+  agent_eval_publish_decision?: AgentEvalPublishDecision
 }
 
 export interface QualityEvaluateRequest {

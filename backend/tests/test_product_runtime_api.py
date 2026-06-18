@@ -1332,6 +1332,12 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert gate["release_decision"] in {"pass", "rewrite", "block", "hold"}
     assert gate["canon_commit_readiness"]["required_confirmation"] is True
     assert gate["studio_debug"]["shadow_checks"][0]["production_gate"] is False
+    agent_eval_decision = gate["agent_eval_publish_decision"]
+    assert agent_eval_decision["contract"] == "P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY"
+    assert agent_eval_decision["decision_source"] == "deterministic_quality_gate"
+    assert all(item["production_gate"] is True for item in agent_eval_decision["eligible_production_gates"])
+    assert all(item["production_gate"] is False for item in agent_eval_decision["shadow_only_checks"])
+    assert agent_eval_decision["learned_gate_policy"] == "shadow_until_promotion_workflow_green"
 
     blocked = client.post(
         "/v1/canon/commit",
@@ -1391,6 +1397,8 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert payload["rollback_plan"]["quality_report_hash"] == report["studio_trace"]["quality_report_hash"]
     assert payload["quality_gate"]["summary"]
     assert payload["quality_gate"]["canon_commit_readiness"]["ready"] is True
+    assert payload["quality_gate"]["agent_eval_publish_decision"]["production_publish_allowed"] is True
+    assert payload["quality_gate"]["agent_eval_publish_decision"]["release_decision"] == "pass"
     assert Path(payload["ledger_path"]).exists()
     ledger = Path(payload["ledger_path"]).read_text(encoding="utf-8")
     assert "studio-run-candidate-demo" in ledger
@@ -1466,3 +1474,11 @@ def test_quality_gate_blocks_engineering_leak_but_keeps_learned_tracks_shadow_on
     assert gate["blockers"]
     assert "quality_gate_passed" in gate["canon_commit_readiness"]["missing"]
     assert all(item["production_gate"] is False for item in gate["studio_debug"]["shadow_checks"])
+    agent_eval_decision = gate["agent_eval_publish_decision"]
+    assert agent_eval_decision["production_publish_allowed"] is False
+    assert agent_eval_decision["release_decision"] == "block"
+    assert {item["id"] for item in agent_eval_decision["shadow_only_checks"]} == {
+        "learned_evaluator",
+        "learned_reranker",
+    }
+    assert all(item["production_gate"] is False for item in agent_eval_decision["shadow_only_checks"])

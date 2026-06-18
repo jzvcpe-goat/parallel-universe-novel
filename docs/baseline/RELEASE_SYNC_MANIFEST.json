@@ -206,7 +206,11 @@
     "scripts/scan-public-ui-boundary.mjs",
     "scripts/scan-reference-privacy.mjs",
     "scripts/smoke-creator-chain.mjs",
-    "scripts/smoke-deployed-api.sh"
+    "scripts/smoke-deployed-api.sh",
+    "backend/src/narrativeos/services/quality_gate.py",
+    "docs/backend/P17_FULL_NARRATIVE_QUALITY_GATE_COMPOSITION_20260613.md",
+    "docs/backend/P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY.md",
+    "scripts/check-agent-eval-publish-decision.mjs"
   ],
   "managedWithReleaseOverrides": [
     {

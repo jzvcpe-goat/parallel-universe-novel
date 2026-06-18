@@ -6,6 +6,26 @@ from typing import Any, Dict, List, Optional, Sequence
 BLOCKING_SEVERITIES = {"blocker", "critical", "high"}
 WARNING_SEVERITIES = {"medium", "low", "warning"}
 SAFETY_CODES = {"content_safety", "Q01", "Q02"}
+PRODUCTION_AGENT_EVAL_GATES = [
+    {
+        "id": "hard_validators",
+        "source": "deterministic_eval",
+        "production_gate": True,
+        "decision_role": "block_on_hard_failure",
+    },
+    {
+        "id": "narrative_quality_scores",
+        "source": "deterministic_eval",
+        "production_gate": True,
+        "decision_role": "rewrite_or_pass_threshold",
+    },
+    {
+        "id": "content_safety",
+        "source": "deterministic_eval",
+        "production_gate": True,
+        "decision_role": "block_on_safety_failure",
+    },
+]
 
 
 def _as_float(value: Any, fallback: Optional[float] = None) -> Optional[float]:
@@ -156,6 +176,11 @@ def compose_quality_gate_result(
                 "required_confirmation": True,
                 "missing": ["quality_report"],
             },
+            "agent_eval_publish_decision": _agent_eval_publish_decision(
+                release_decision="hold",
+                can_commit=False,
+                blocking_codes=["quality_report_missing"],
+            ),
         }
 
     payload = dict(report or {})
@@ -232,6 +257,11 @@ def compose_quality_gate_result(
             "required_confirmation": True,
             "missing": [] if can_commit else ["quality_gate_passed"],
         },
+        "agent_eval_publish_decision": _agent_eval_publish_decision(
+            release_decision=release_decision,
+            can_commit=can_commit,
+            blocking_codes=blocking_codes,
+        ),
     }
 
 
@@ -261,3 +291,21 @@ def _shadow_checks() -> List[Dict[str, Any]]:
             "reason": "promotion_not_green",
         },
     ]
+
+
+def _agent_eval_publish_decision(
+    *,
+    release_decision: str,
+    can_commit: bool,
+    blocking_codes: Sequence[str],
+) -> Dict[str, Any]:
+    return {
+        "contract": "P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY",
+        "decision_source": "deterministic_quality_gate",
+        "production_publish_allowed": bool(can_commit),
+        "release_decision": release_decision,
+        "blocking_reasons": list(blocking_codes),
+        "eligible_production_gates": [dict(item) for item in PRODUCTION_AGENT_EVAL_GATES],
+        "shadow_only_checks": _shadow_checks(),
+        "learned_gate_policy": "shadow_until_promotion_workflow_green",
+    }

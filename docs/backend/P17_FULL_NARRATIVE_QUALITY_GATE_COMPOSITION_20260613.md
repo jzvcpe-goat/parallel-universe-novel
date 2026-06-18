@@ -103,6 +103,48 @@ The backend now returns the legacy keys plus the new P17 keys:
     "ready": true,
     "required_confirmation": true,
     "missing": []
+  },
+  "agent_eval_publish_decision": {
+    "contract": "P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY",
+    "decision_source": "deterministic_quality_gate",
+    "production_publish_allowed": true,
+    "release_decision": "pass",
+    "blocking_reasons": [],
+    "eligible_production_gates": [
+      {
+        "id": "hard_validators",
+        "source": "deterministic_eval",
+        "production_gate": true,
+        "decision_role": "block_on_hard_failure"
+      },
+      {
+        "id": "narrative_quality_scores",
+        "source": "deterministic_eval",
+        "production_gate": true,
+        "decision_role": "rewrite_or_pass_threshold"
+      },
+      {
+        "id": "content_safety",
+        "source": "deterministic_eval",
+        "production_gate": true,
+        "decision_role": "block_on_safety_failure"
+      }
+    ],
+    "shadow_only_checks": [
+      {
+        "id": "learned_evaluator",
+        "status": "shadow_only",
+        "production_gate": false,
+        "reason": "promotion_not_green"
+      },
+      {
+        "id": "learned_reranker",
+        "status": "shadow_only",
+        "production_gate": false,
+        "reason": "promotion_not_green"
+      }
+    ],
+    "learned_gate_policy": "shadow_until_promotion_workflow_green"
   }
 }
 ```
@@ -145,6 +187,16 @@ Shadow-only checks:
 
 The shadow tracks must not block production release until their promotion workflows are green. P17 exposes them only in `studio_debug.shadow_checks` with `production_gate: false`.
 
+## P100 Publish Decision Boundary
+
+P100 adds the explicit `agent_eval_publish_decision` boundary so Agent Eval can participate in publish decisions without silently promoting experimental learned checks.
+
+- `decision_source` is `deterministic_quality_gate`.
+- Production-blocking decisions may use only deterministic hard validators, deterministic narrative quality scores and deterministic content safety.
+- Learned evaluator and learned reranker remain `shadow_only` with `production_gate: false`.
+- The learned track policy is `shadow_until_promotion_workflow_green`.
+- Public Reader and Creator surfaces must not render `agent_eval_publish_decision`, raw gate ids, learned policy strings or provider prompt plumbing.
+
 ## Frontend Display Boundary
 
 Reader:
@@ -172,6 +224,8 @@ Current P17 code added:
 - `backend/src/narrativeos/services/quality_gate.py`
   - `compose_quality_gate_result`
   - `add_commit_confirmation_requirement`
+  - `agent_eval_publish_decision`
+  - `P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY`
 - `ProductRuntimeService._quality_gate` now delegates to the composer.
 - `BackendTeamBridge._quality_gate` now delegates to the same composer.
 - `app/src/api/runtime.ts` now types the expanded quality gate fields.
@@ -213,6 +267,8 @@ P17-specific assertions:
 - engineering/meta leakage blocks canon commit.
 - missing confirmation appends `operator_confirmation`.
 - learned evaluator/reranker remain `shadow_only` and `production_gate: false`.
+- `agent_eval_publish_decision.decision_source` remains `deterministic_quality_gate`.
+- learned evaluator/reranker stay out of `eligible_production_gates`.
 - backend bridge fake and real mapping preserve the expanded contract.
 - Studio may display detailed gate output; public pages may not.
 

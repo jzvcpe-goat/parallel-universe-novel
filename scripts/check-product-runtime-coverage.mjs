@@ -57,6 +57,9 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'branch_writeback',
   'quality_brake',
   'canon_commit_readiness',
+  'agent_eval_publish_decision',
+  'P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY',
+  'deterministic_quality_gate',
   'time_event_candidate_ledger_only',
   'branch_publish_candidate_ledger_only',
   'database_transaction_rollback_fixture',
@@ -96,6 +99,8 @@ assertIncludes('app/src/api/runtime.ts', [
   'branch_writeback',
   'QualityEvaluateResponse',
   'CanonCommitResponse',
+  'AgentEvalPublishDecision',
+  'agent_eval_publish_decision',
 ])
 assertIncludes('docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md', [
   'Reader',

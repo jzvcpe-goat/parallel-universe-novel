@@ -33,7 +33,7 @@ npm run check:runtime-engine-completion
 | `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon promotion proof with `studio_trace`, `quality_report_hash`, `production_canon_commits`, `analytics_events`, `production_canon_promotion`, and a rollback fixture; Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate, P97 cost-aware provider routing, `backend/tests/test_provider_runtime_routing.py`, and `check:cost-aware-provider-routing`. | Public remote provider smoke is not yet proven because remote API/Agent HTTPS origins remain disabled. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, P60 structural branch authorization gate, and P63 release owner/ops/rollback owner gate. | Reader live-generation text quality gate against remote runtime is not yet proven. |
-| `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
+| `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests, dependency policy and P100 Agent Eval Publish Decision Boundary exist; `agent_eval_publish_decision` now makes deterministic Agent Eval publish decisions explicit while learned evaluator/reranker remain shadow-only. | Learned evaluator/reranker are not promoted into production blockers until a future promotion workflow is green. |
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
@@ -70,6 +70,19 @@ P52 refreshed this matrix after P49 and P51, and P98 updates the canon promotion
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
 The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture, P60 proves candidate operator authorization, P61 proves branch commit draft rollback across two existing tables, P62 proves private production branch table persistence, P63 proves Reader-visible public branch release persistence, and P64 proves production TimeEngine telemetry fitting, while remote live runtime is still a future gate.
+
+## P100 Agent Eval Publish Decision Boundary
+
+P100 narrows the `agent-eval` gap without claiming learned-model production readiness:
+
+- `backend/src/narrativeos/services/quality_gate.py` emits `agent_eval_publish_decision`.
+- The contract id is `P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY`.
+- `decision_source` is `deterministic_quality_gate`.
+- Deterministic hard validators, narrative quality scores and content safety are eligible production gates.
+- Learned evaluator and learned reranker stay `shadow_only` with `production_gate: false`.
+- `check:agent-eval-publish-decision` is required by root `npm run test`.
+
+The remaining Agent Eval gap is promotion of learned evaluator/reranker after model rollout, dependency stability, false positive review and rollback ownership are all proven.
 
 ## P57 FastAPI TimeEngine Service
 
