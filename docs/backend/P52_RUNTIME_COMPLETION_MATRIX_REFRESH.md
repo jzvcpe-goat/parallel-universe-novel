@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, and P103 learned eval promotion workflow gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, and P104 learned eval strict suite readiness. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -81,6 +81,14 @@ P103 Learned Eval Promotion Workflow Gate changed Agent Eval evidence:
 - `check:learned-eval-promotion-workflow` proves the root release chain sees this workflow without directly requiring optional learned assisted promotion suites,
 - quality gate output still keeps learned evaluator and reranker `shadow_only` with `production_gate = false`,
 - remaining gap is strict promotion execution with intentional ML dependencies, false-positive review, model rollout, rollback ownership and public boundary compatibility.
+
+P104 Learned Eval Strict Suite Readiness changed learned-eval evidence:
+
+- `check:learned-eval-strict-suite-readiness` is now part of root `npm run test`,
+- the gate probes `joblib`, `sklearn` and `scipy` before the optional strict suite is attempted,
+- missing ML dependencies produce `blocked_optional_ml_dependencies` instead of a public release failure,
+- the gate explicitly keeps `publicReleaseBlocking = false` and `productionGateActivated = false`,
+- remaining gap is actual strict suite execution in an intentional ML environment, not hidden dependency drift.
 
 P57 changed time-engine evidence:
 

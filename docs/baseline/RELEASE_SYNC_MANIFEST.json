@@ -222,7 +222,9 @@
     "docs/backend/P101_LEARNED_EVAL_OPTIONAL_DEPENDENCY_BOUNDARY.md",
     "scripts/check-learned-eval-optional-boundary.mjs",
     "docs/backend/P103_LEARNED_EVAL_PROMOTION_WORKFLOW_GATE.md",
-    "scripts/check-learned-eval-promotion-workflow.mjs"
+    "scripts/check-learned-eval-promotion-workflow.mjs",
+    "docs/backend/P104_LEARNED_EVAL_STRICT_SUITE_READINESS.md",
+    "scripts/check-learned-eval-strict-suite-readiness.mjs"
   ],
   "managedWithReleaseOverrides": [
     {

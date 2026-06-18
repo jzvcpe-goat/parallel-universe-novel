@@ -33,7 +33,7 @@ npm run check:runtime-engine-completion
 | `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon promotion proof with `studio_trace`, `quality_report_hash`, `production_canon_commits`, `analytics_events`, `production_canon_promotion`, and a rollback fixture; Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate, P97 cost-aware provider routing, `backend/tests/test_provider_runtime_routing.py`, and `check:cost-aware-provider-routing`. | Public remote provider smoke is not yet proven because remote API/Agent HTTPS origins remain disabled. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, P60 structural branch authorization gate, and P63 release owner/ops/rollback owner gate. | Reader live-generation text quality gate against remote runtime is not yet proven. |
-| `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests, dependency policy, P100 Agent Eval Publish Decision Boundary, P101 Learned Eval Optional Dependency Boundary and P103 Learned Eval Promotion Workflow Gate exist; `agent_eval_publish_decision` now makes deterministic Agent Eval publish decisions explicit while the learned promotion suite stays optional. | Learned evaluator/reranker are not promoted into production blockers until a future strict promotion run, model rollout and rollback ownership are green. |
+| `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests, dependency policy, P100 Agent Eval Publish Decision Boundary, P101 Learned Eval Optional Dependency Boundary, P103 Learned Eval Promotion Workflow Gate and P104 Learned Eval Strict Suite Readiness exist; `agent_eval_publish_decision` now makes deterministic Agent Eval publish decisions explicit while the learned promotion suite stays optional. | Learned evaluator/reranker are not promoted into production blockers until a future strict promotion run, model rollout and rollback ownership are green. |
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
@@ -107,6 +107,18 @@ P103 makes the learned promotion workflow auditable without activating learned t
 - The learned promotion workflow is now defined, while `quality_gate.py` still keeps learned evaluator and learned reranker `shadow_only` with `production_gate: false`.
 
 The remaining Agent Eval gap is execution of the strict learned promotion suite with intentional ML dependencies, accepted false-positive review, model rollout, rollback ownership and public boundary compatibility.
+
+## P104 Learned Eval Strict Suite Readiness
+
+P104 adds a preflight for the optional strict learned promotion suite:
+
+- Contract: `P104_LEARNED_EVAL_STRICT_SUITE_READINESS`.
+- `check:learned-eval-strict-suite-readiness` is required by root `npm run test`.
+- The gate reports `ready` when `joblib`, `sklearn` and `scipy` are importable by the selected Python runtime.
+- The gate reports `blocked_optional_ml_dependencies` when the ML environment is absent; this is not a public release blocker.
+- The gate keeps `publicReleaseBlocking = false` and `productionGateActivated = false`.
+
+The remaining Agent Eval gap is still actual strict suite execution in an intentionally provisioned ML environment, plus accepted false-positive review, model rollout, rollback ownership and public boundary compatibility.
 
 ## P57 FastAPI TimeEngine Service
 
