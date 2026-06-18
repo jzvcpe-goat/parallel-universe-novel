@@ -802,6 +802,27 @@ Current decision is that P85 blocker ledger is the source of truth for remote
 runtime launch blockers. P45 remains the completion matrix, not a competing
 blocker taxonomy.
 
+## P105 Remote Assignment Fill Plan Gate
+
+`scripts/check-remote-assignment-fill-plan.mjs` turns the current P87/P89
+handoff evidence and P85/P90 blocker evidence into one operator-safe fill plan:
+
+Command: `npm run check:remote-assignment-fill-plan`.
+
+- current API and Agent Runtime image refs,
+- target ignored local assignment path,
+- required non-secret fields for ownership, API, Agent, origin execution, Pages
+  runtime variables and activation control,
+- strict validation sequence from P75 through P78/P85,
+- boundary flags proving it does not write `remote-assignment.local.json`,
+  create services, set GitHub variables, promote live runtime or treat fixtures
+  as ready.
+
+Current decision is that P105 is an operator fill-plan gate. It reduces handoff
+ambiguity but intentionally keeps the same remote runtime blockers open until
+real service ids, HTTPS origins, provider secret-store confirmations and health
+checks exist.
+
 ## P90 Remote Runtime Blocker Artifact Attestation
 
 `scripts/check-remote-runtime-blockers-artifact.mjs` downloads or reads the P85

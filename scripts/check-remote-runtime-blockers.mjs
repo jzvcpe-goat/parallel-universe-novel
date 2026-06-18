@@ -35,7 +35,7 @@ function currentHead() {
   try {
     return run('git', ['rev-parse', 'HEAD']).trim()
   } catch {
-    return ''
+    return 'source-workspace-no-git'
   }
 }
 

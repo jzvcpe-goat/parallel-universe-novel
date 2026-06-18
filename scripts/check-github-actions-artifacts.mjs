@@ -23,6 +23,7 @@ if (checkCurrentRun) {
     'remote-assignment-execution-pack',
     'remote-assignment-fixture-gate',
     'remote-runtime-blockers',
+    'remote-assignment-fill-plan',
     'reference-privacy',
     'public-projection-privacy',
   )

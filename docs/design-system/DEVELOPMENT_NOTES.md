@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P105 Remote Assignment Fill Plan Gate
+
+P104 之后继续看上线断点，发现 P87 能给出 current-image handoff，
+P85/P90 能给出 blocker ledger，但部署操作者还需要把“到底填哪些字段、
+按什么顺序验收”从多份 artifact 里拼出来。这个拼装步骤如果靠人工记忆，
+很容易把 fixture、占位符或未健康的 origin 当成真实上线证据。
+
+新的工程标准：
+
+1. 远端 assignment 不能只给模板和 blocker；必须生成
+   `remote-assignment-fill-plan` JSON/Markdown，列出 owner、API service、
+   Agent service、origin execution、Pages variables、activation control 的
+   必填字段与 strict gate。
+2. Fill plan 只读 P87/P89/P85/P90 证据，不写
+   `remote-assignment.local.json`，不创建远端服务，不设置 GitHub variables，
+   不解除 live runtime blocker。
+3. Pages workflow 必须上传 `remote-assignment-fill-plan`，current-run artifact
+   metadata gate 必须检查它存在，P45/P52 completion docs 必须把它列为
+   commercial release chain 证据。
+4. 经验：上线断点的下一步不是“假装远端已部署”，而是把真实操作者输入变成
+   可复用、可审计、可安全分享的填报计划。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-fill-plan
+npm run check:pages-live-release-gate
+npm run check:github-actions-artifacts
+```
+
 ## 2026-06-18 P97 Cost-Aware Provider Routing Contract
 
 P96 后继续看 completion matrix，发现 `model-orchestration` 的真正缺口不是

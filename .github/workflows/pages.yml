@@ -192,6 +192,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote assignment fill plan
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-fill-plan
+          path: |
+            artifacts/runtime/remote-assignment-fill-plan-*.json
+            artifacts/runtime/remote-assignment-fill-plan-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash

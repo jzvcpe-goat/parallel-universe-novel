@@ -178,6 +178,14 @@ assert(
   'Pages workflow must upload the remote runtime blocker ledger artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote assignment fill plan')
+    && workflow.includes('remote-assignment-fill-plan')
+    && workflow.includes('artifacts/runtime/remote-assignment-fill-plan-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-fill-plan-*.md')
+    && workflow.indexOf('Upload remote assignment fill plan') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote assignment fill plan artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -272,6 +280,10 @@ assert(
   'package.json must expose check:remote-assignment-artifacts',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-fill-plan'] === 'node scripts/check-remote-assignment-fill-plan.mjs',
+  'package.json must expose check:remote-assignment-fill-plan',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -300,6 +312,10 @@ assert(
   'npm run test must include check:remote-assignment-artifacts',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan'),
+  'npm run test must include check:remote-assignment-fill-plan',
+)
+assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
@@ -312,6 +328,7 @@ assert(
     && p16Doc.includes('check:remote-assignment-artifacts')
     && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('check:remote-runtime-blockers-artifact')
+    && p16Doc.includes('remote-assignment-fill-plan')
     && p16Doc.includes('check:public-privacy-artifacts')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
@@ -340,6 +357,7 @@ assert(
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
+    && p43Doc.includes('remote-assignment-fill-plan')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
@@ -372,6 +390,7 @@ console.log(JSON.stringify({
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   remoteRuntimeBlockers: 'remote-runtime-blockers',
   remoteRuntimeBlockersContent: 'check:remote-runtime-blockers-artifact',
+  remoteAssignmentFillPlan: 'remote-assignment-fill-plan',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
   publicPrivacyArtifactContent: 'check:public-privacy-artifacts',

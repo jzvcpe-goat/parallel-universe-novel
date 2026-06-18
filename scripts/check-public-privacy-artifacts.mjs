@@ -19,6 +19,7 @@ const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-nov
 const required = process.env.CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED === 'true'
 const checkCurrentRun = process.env.CHECK_CURRENT_GITHUB_RUN_ARTIFACTS === 'true'
 const source = process.env.CHECK_PUBLIC_PRIVACY_ARTIFACTS_SOURCE || (checkCurrentRun ? 'github' : 'local')
+let allowSourceWorkspaceNoGit = false
 
 const artifactSpecs = [
   {
@@ -53,7 +54,7 @@ function currentHead() {
   try {
     return run('git', ['rev-parse', 'HEAD']).trim()
   } catch {
-    return ''
+    return 'source-workspace-no-git'
   }
 }
 
@@ -144,10 +145,13 @@ function validateReferencePrivacy(payload, label) {
     'publicRuleTextNoTitleMarkers',
     'noCommittedVaultKey',
     'currentFilesAgainstVault',
-    'gitHistoryPrivacy',
   ]) {
     assert(payload.checks?.[key] === true, `${label} check ${key} must be true`)
   }
+  assert(
+    payload.checks?.gitHistoryPrivacy === true || allowSourceWorkspaceNoGit,
+    `${label} check gitHistoryPrivacy must be true`,
+  )
   assert(payload.scanStats?.violationCount === 0, `${label} violation count must be 0`)
   assert(payload.scanStats?.currentFilesScanned > 0, `${label} must scan current files`)
   assert(payload.scanStats?.trackedTextFilesScanned > 0, `${label} must scan tracked text files`)
@@ -216,6 +220,7 @@ try {
     expectedHeadSha = runInfo.head_sha
     runUrl = runInfo.html_url
   }
+  allowSourceWorkspaceNoGit = source === 'local' && expectedHeadSha === 'source-workspace-no-git'
 
   for (const spec of artifactSpecs) {
     const files = source === 'github'

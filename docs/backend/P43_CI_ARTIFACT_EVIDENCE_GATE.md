@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下十三类可下载证据：
+把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下十四类可下载证据：
 
 - `runtime-readiness-ledger`
 - `live-cutover-attestation`
@@ -15,6 +15,7 @@ Date: 2026-06-17
 - `remote-assignment-execution-pack`
 - `remote-assignment-fixture-gate`
 - `remote-runtime-blockers`
+- `remote-assignment-fill-plan`
 - `reference-privacy`
 - `public-projection-privacy`
 - `local-live-runtime-visual-qa`
@@ -28,7 +29,7 @@ Date: 2026-06-17
 npm run check:github-actions-artifacts
 ```
 
-检查当前 CI run。CI 当前 run 必须包含十三类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`reference-privacy` 和 `public-projection-privacy`：
+检查当前 CI run。CI 当前 run 必须包含十四类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`remote-assignment-fill-plan`、`reference-privacy` 和 `public-projection-privacy`：
 
 ```bash
 CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
@@ -74,6 +75,7 @@ npm run check:remote-runtime-blockers-artifact
 - `remote-assignment-execution-pack` exists and is non-empty.
 - `remote-assignment-fixture-gate` exists and is non-empty.
 - `remote-runtime-blockers` exists and is non-empty.
+- `remote-assignment-fill-plan` exists and is non-empty.
 - `reference-privacy` exists and is non-empty.
 - `public-projection-privacy` exists and is non-empty.
 - `local-live-runtime-visual-qa` exists and is non-empty.
@@ -98,9 +100,10 @@ This gate only checks artifact metadata: artifact names, sizes, expiration state
 8. `Upload remote assignment execution pack`
 9. `Upload remote assignment fixture gate`
 10. `Upload remote runtime blocker ledger`
-11. `Upload reference privacy evidence`
-12. `Upload public projection privacy evidence`
-13. `Upload artifact`
+11. `Upload remote assignment fill plan`
+12. `Upload reference privacy evidence`
+13. `Upload public projection privacy evidence`
+14. `Upload artifact`
 
 That placement proves the same run that will deploy Pages also produced the required evidence package.
 
@@ -108,7 +111,7 @@ That placement proves the same run that will deploy Pages also produced the requ
 
 1. `package.json` exposes `check:github-actions-artifacts`.
 2. `scripts/check-github-actions-artifacts.mjs` checks the latest successful run by default.
-3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy` and `public-projection-privacy`.
+3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `reference-privacy` and `public-projection-privacy`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.
 6. Pages workflow runs P92, P93, P89 and P90 after P43 so public privacy

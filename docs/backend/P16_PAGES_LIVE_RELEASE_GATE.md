@@ -82,7 +82,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
@@ -118,16 +118,19 @@ This proves:
 14. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
 15. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
 16. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
-17. Every Pages run must run `check:remote-assignment-handoff-artifact` after
+17. Every Pages run must upload `remote-assignment-fill-plan` so the deployment
+    owner sees one current, operator-safe field checklist and strict validation
+    sequence before touching the ignored local assignment file.
+18. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-18. Every Pages run must run `check:public-privacy-artifacts` after P43 so
+19. Every Pages run must run `check:public-privacy-artifacts` after P43 so
     privacy artifact content is validated, not only its presence.
-19. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
+20. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
     assignment schema, execution pack and fixture artifacts are content-checked.
-20. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+21. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
     so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
-21. Live mode fails if browser submission cannot create a candidate draft.
-22. Live mode never enables local fallback.
+22. Live mode fails if browser submission cannot create a candidate draft.
+23. Live mode never enables local fallback.
 
 ## Operational Rule
 

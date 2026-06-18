@@ -428,3 +428,16 @@ the P85 blocker ledger instead of keeping an independent blocker taxonomy.
   artifact exists.
 - `check:runtime-completion-blocker-convergence` runs after P90 in root
   `npm run test`.
+
+## P105 Remote Assignment Fill Plan Refresh
+
+P105 extends the commercial release chain evidence without changing the blocker
+taxonomy:
+
+- P45 commercial-release evidence now includes `check:remote-assignment-fill-plan`.
+- Pages workflow uploads `remote-assignment-fill-plan` beside the P85 blocker
+  ledger.
+- Root `npm run test` runs P105 after P96 so the fill plan consumes the current
+  blocker ledger instead of creating a competing list.
+- The artifact keeps public live runtime blocked until real operator inputs are
+  supplied.
