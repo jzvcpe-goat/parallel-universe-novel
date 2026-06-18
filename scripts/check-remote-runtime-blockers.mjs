@@ -1,9 +1,11 @@
 #!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts', 'runtime')
+const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 const required = process.env.REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY === 'true'
 
 function read(rel) {
@@ -16,6 +18,25 @@ function readJson(rel) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function run(cmd, args, options = {}) {
+  return execFileSync(cmd, args, {
+    cwd: root,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    timeout: options.timeout || 30000,
+    env: process.env,
+  })
+}
+
+function currentHead() {
+  if (process.env.RUNTIME_IMAGE_HEAD_SHA) return process.env.RUNTIME_IMAGE_HEAD_SHA.trim()
+  try {
+    return run('git', ['rev-parse', 'HEAD']).trim()
+  } catch {
+    return ''
+  }
 }
 
 function latest(prefix, predicate = null, label = prefix) {
@@ -209,6 +230,7 @@ const evidence = {
   cutover: latest('live-cutover-attestation-'),
   rollback: latest('live-rollback-rehearsal-'),
   activationControl: latest('remote-activation-control-'),
+  handoffArtifact: latest('remote-handoff-artifact-attestation-'),
   assignmentFixture: latest('remote-assignment-fixture-gate-'),
   fixtureAssignmentIntake: latest('remote-runtime-assignment-intake-', isFixtureAssignment, 'remote-runtime-assignment-intake fixture'),
   fixtureAssignmentPack: latest('remote-assignment-execution-pack-', isFixtureAssignment, 'remote-assignment-execution-pack fixture'),
@@ -226,11 +248,16 @@ const assignmentPack = evidence.assignmentPack.payload
 const cutover = evidence.cutover.payload
 const rollback = evidence.rollback.payload
 const activationControl = evidence.activationControl.payload
+const handoffArtifact = evidence.handoffArtifact.payload
 const assignmentFixture = evidence.assignmentFixture.payload
 const fixtureAssignmentIntake = evidence.fixtureAssignmentIntake.payload
 const fixtureAssignmentPack = evidence.fixtureAssignmentPack.payload
 const referencePrivacy = evidence.referencePrivacy.payload
 const publicProjectionPrivacy = evidence.publicProjectionPrivacy.payload
+const handoffArtifactPassed = (
+  handoffArtifact.status === 'passed'
+  || handoffArtifact.handoff?.decision === 'assignment_handoff_ready_for_operator'
+)
 
 const stages = [
   stage({
@@ -379,6 +406,23 @@ const stages = [
     strictCommand: 'npm run check:remote-assignment-fixture',
   }),
   stage({
+    id: 'handoff-artifact-content',
+    label: 'Handoff artifact content',
+    owner: 'release engineering',
+    gate: 'P89 / check:remote-assignment-handoff-artifact',
+    ready: handoffArtifactPassed
+      && handoffArtifact.gate === 'P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION'
+      && handoffArtifact.expectedHeadSha === imageEvidence.headSha,
+    currentDecision: `${handoffArtifact.status || 'legacy_no_status'} / ${handoffArtifact.handoff?.decision || 'unknown'}`,
+    blocked: [
+      ...simpleBlockedIds(handoffArtifact.handoff?.blockedStages),
+      handoffArtifact.expectedHeadSha === imageEvidence.headSha ? '' : 'handoff-artifact-head-mismatch',
+    ],
+    requiredInputs: ['current-run remote assignment handoff artifact', 'P89 attestation for current image head'],
+    nextAction: 'Regenerate the remote assignment handoff after current images are published, then rerun P89 before publishing the blocker ledger.',
+    strictCommand: 'REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_READY=true npm run check:remote-assignment-handoff-artifact',
+  }),
+  stage({
     id: 'activation-control',
     label: 'Activation control board',
     owner: 'release owner',
@@ -400,12 +444,26 @@ const artifact = {
   version: 1,
   gate: 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION',
   generatedAt: new Date().toISOString(),
+  repository: repo,
+  headSha: currentHead(),
   required,
   status: blockedStages.length ? 'blocked' : 'ready',
   decision,
   blockerCount: blockedStages.length,
   stages,
   evidence: Object.entries(evidence).map(([name, item]) => ({ name, file: item.filename })),
+  sourceEvidence: {
+    imagePublishEvidence: {
+      status: imageEvidence.status,
+      headSha: imageEvidence.headSha || null,
+      runId: imageEvidence.runId || null,
+    },
+    handoffArtifact: {
+      status: handoffArtifact.status || (handoffArtifactPassed ? 'passed' : null),
+      expectedHeadSha: handoffArtifact.expectedHeadSha || null,
+      decision: handoffArtifact.handoff?.decision || null,
+    },
+  },
   strictPromotionCommand: 'REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers',
 }
 

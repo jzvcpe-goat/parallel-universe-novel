@@ -264,6 +264,7 @@ try {
   const result = {
     version: 1,
     gate: 'P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION',
+    status: validation.ready ? 'passed' : 'passed_with_handoff_artifact_blockers',
     generatedAt: new Date().toISOString(),
     repository: repo,
     mode,
@@ -290,7 +291,7 @@ try {
   }
   const artifactPath = writeAttestationArtifact(result)
   console.log(JSON.stringify({
-    status: validation.ready ? 'passed' : 'passed_with_handoff_artifact_blockers',
+    status: result.status,
     gate: result.gate,
     mode,
     runId,

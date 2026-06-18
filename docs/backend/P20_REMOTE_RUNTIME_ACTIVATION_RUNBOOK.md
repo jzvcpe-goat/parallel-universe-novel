@@ -357,6 +357,7 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 5. Run `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence`.
 6. Run `npm run check:remote-assignment-handoff` and use the generated current-image template when preparing `remote-assignment.local.json`.
 7. Run `npm run check:remote-assignment-handoff-artifact` to verify the handoff content before handing it to an operator.
+8. Run `npm run check:remote-runtime-blockers-artifact` to verify the blocker ledger is current, privacy-safe and consistent with the cleared P72/P80/P81/P89 gates.
 8. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
 9. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
 10. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.

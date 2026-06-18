@@ -233,6 +233,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-assignment-handoff-artifact
 
+      - name: Check remote runtime blocker artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-runtime-blockers-artifact
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

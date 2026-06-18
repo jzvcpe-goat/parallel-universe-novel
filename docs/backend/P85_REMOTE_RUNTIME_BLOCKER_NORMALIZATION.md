@@ -20,6 +20,10 @@ P89 sits after P43/P87. It validates the uploaded handoff artifact content but
 does not change blocker ownership: assignment still remains blocked until
 operator-provided service evidence passes P75/P79.
 
+P90 sits after P85/P89. It validates the uploaded blocker artifact content and
+prevents stale ledgers, missing P89 evidence or contradictory already-cleared
+stages from reaching the release owner.
+
 ## Command
 
 ```bash
@@ -72,6 +76,16 @@ generation, but it must never mark the real remote service assignment ready.
 - `remote_runtime_ready_for_strict_cutover`: all normalized stages are ready;
   strict mode may be used before public live runtime.
 
+## Artifact Attestation
+
+P85 writes `repository`, `headSha`, P72 image source evidence and P89 handoff
+source evidence into the JSON artifact. P90 verifies those fields in local or
+GitHub-current-run mode:
+
+```bash
+npm run check:remote-runtime-blockers-artifact
+```
+
 ## Public Boundary
 
 P85 artifacts may include:
@@ -107,6 +121,8 @@ P85 artifacts must not include:
   `remote-runtime-blockers` in the commercial release evidence chain.
 - `check:remote-assignment-handoff-artifact` remains a content attestation
   gate, not a blocker override.
+- `check:remote-runtime-blockers-artifact` validates the P85 artifact content
+  after P89 without requiring remote assignment to be complete.
 - Fixture assignment artifacts remain separated from real local assignment
   artifacts.
 - Non-strict mode reports blockers without failing normal static preview CI.

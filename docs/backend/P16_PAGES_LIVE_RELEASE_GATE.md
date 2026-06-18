@@ -62,6 +62,7 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
 fi
 # After all evidence uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
 # After P43 metadata gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
+# After P89 handoff content gate: CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED=true npm run check:remote-runtime-blockers-artifact
 ```
 
 This proves:
@@ -71,6 +72,8 @@ This proves:
 - The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
+- The `remote-runtime-blockers` artifact content passes P90 current-head,
+  privacy and cross-gate consistency checks.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -98,8 +101,10 @@ This proves:
 15. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
 16. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-17. Live mode fails if browser submission cannot create a candidate draft.
-18. Live mode never enables local fallback.
+17. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+    so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
+18. Live mode fails if browser submission cannot create a candidate draft.
+19. Live mode never enables local fallback.
 
 ## Operational Rule
 

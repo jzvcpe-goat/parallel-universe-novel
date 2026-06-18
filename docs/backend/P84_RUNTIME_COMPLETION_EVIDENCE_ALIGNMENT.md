@@ -27,6 +27,8 @@ npm run check:runtime-completion-refresh
   whenever P87 is part of the release chain.
 - P45 commercial release chain evidence includes P89 handoff artifact content
   attestation whenever P87 uploads `remote-assignment-handoff`.
+- P45 commercial release chain evidence includes P90 blocker artifact content
+  attestation whenever P85 uploads `remote-runtime-blockers`.
 - P45 required evidence artifacts list contains the same public privacy evidence
   uploaded by `.github/workflows/pages.yml`.
 - `check:runtime-engine-completion` validates the Pages upload step, the public
@@ -35,6 +37,8 @@ npm run check:runtime-completion-refresh
   script and human-readable P45 document synchronized.
 - `check:remote-assignment-handoff-artifact` validates handoff content after
   P43 validates artifact metadata.
+- `check:remote-runtime-blockers-artifact` validates blocker ledger content
+  after P85/P89 so the uploaded ledger cannot drift from the current head.
 
 ## Public Boundary
 
@@ -51,6 +55,8 @@ deprecated case logic.
   `publicProjectionPrivacy`.
 - `npm run check:pages-live-release-gate` still reports
   `remoteRuntimeBlockers`.
+- `npm run check:pages-live-release-gate` still reports
+  `remoteRuntimeBlockersContent`.
 - `npm run check:pages-live-release-gate` still reports
   `assignmentHandoff`.
 - `npm run check:pages-live-release-gate` still reports

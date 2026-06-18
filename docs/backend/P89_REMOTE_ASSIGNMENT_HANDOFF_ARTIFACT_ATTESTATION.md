@@ -65,6 +65,8 @@ variables, check remote health, or enable public live mode.
 
 - `package.json` exposes `check:remote-assignment-handoff-artifact`.
 - Root `npm run test` runs P89 after P87.
+- P89 attestation artifacts include top-level `status` so downstream P85/P90
+  content checks can distinguish ready from image-evidence blockers.
 - Pages workflow runs the current-run artifact content check after P43 metadata
   artifact evidence.
 - P16 and P43 describe the P43/P89 split.

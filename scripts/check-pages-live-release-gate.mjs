@@ -190,6 +190,14 @@ assert(
   'Pages workflow must verify remote assignment handoff artifact content after the current-run artifact metadata gate',
 )
 assert(
+  workflow.includes('Check remote runtime blocker artifact content')
+    && workflow.includes('CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:remote-runtime-blockers-artifact')
+    && workflow.indexOf('Check remote runtime blocker artifact content') > workflow.indexOf('Check remote assignment handoff artifact content'),
+  'Pages workflow must verify remote runtime blocker artifact content after the handoff artifact content gate',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -210,12 +218,20 @@ assert(
   'package.json must expose check:remote-assignment-handoff-artifact',
 )
 assert(
+  packageJson.scripts['check:remote-runtime-blockers-artifact'] === 'node scripts/check-remote-runtime-blockers-artifact.mjs',
+  'package.json must expose check:remote-runtime-blockers-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-handoff-artifact'),
   'npm run test must include check:remote-assignment-handoff-artifact',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-runtime-blockers-artifact'),
+  'npm run test must include check:remote-runtime-blockers-artifact',
 )
 assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
@@ -227,6 +243,7 @@ assert(
     && p16Doc.includes('remote-assignment-handoff')
     && p16Doc.includes('check:remote-assignment-handoff-artifact')
     && p16Doc.includes('remote-runtime-blockers')
+    && p16Doc.includes('check:remote-runtime-blockers-artifact')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
 )
@@ -237,6 +254,7 @@ assert(
     && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('remote-assignment-handoff')
     && p43Doc.includes('check:remote-assignment-handoff-artifact')
+    && p43Doc.includes('check:remote-runtime-blockers-artifact')
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
@@ -270,6 +288,7 @@ console.log(JSON.stringify({
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   remoteRuntimeBlockers: 'remote-runtime-blockers',
+  remoteRuntimeBlockersContent: 'check:remote-runtime-blockers-artifact',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
   liveModeGate: 'qa:live-runtime-browser',
