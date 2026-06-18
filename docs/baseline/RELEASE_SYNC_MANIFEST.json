@@ -91,6 +91,7 @@
     "docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md",
     "docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md",
     "docs/backend/P81_REMOTE_ASSIGNMENT_FIXTURE_GATE.md",
+    "docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
@@ -119,6 +120,7 @@
     "scripts/browser-creator-e2e.mjs",
     "scripts/browser-live-runtime-e2e.mjs",
     "scripts/browser-pages-preview-e2e.mjs",
+    "scripts/check-backward-consistency-sweep.mjs",
     "scripts/check-dependency-audit.mjs",
     "scripts/check-github-actions-artifacts.mjs",
     "scripts/check-github-pages-spa-fallback.mjs",
@@ -176,7 +178,8 @@
     "scripts/scan-p4-rule-source.mjs",
     "scripts/scan-public-ui-boundary.mjs",
     "scripts/scan-reference-privacy.mjs",
-    "scripts/smoke-creator-chain.mjs"
+    "scripts/smoke-creator-chain.mjs",
+    "scripts/smoke-deployed-api.sh"
   ],
   "managedWithReleaseOverrides": [
     {

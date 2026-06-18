@@ -242,7 +242,17 @@ assertIncludes('scripts/scan-p4-rule-source.mjs', [
   'section source refs',
 ])
 
-run('frontend preview build', 'npm', ['--prefix', 'app', 'run', 'build'])
+if (process.env.PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD === 'true') {
+  commandResults.push({
+    label: 'frontend preview build',
+    command: 'skipped by PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true',
+    status: 0,
+    stdoutTail: '',
+    stderrTail: '',
+  })
+} else {
+  run('frontend preview build', 'npm', ['--prefix', 'app', 'run', 'build'])
+}
 run('public UI boundary scan', 'npm', ['run', 'scan:public-ui-boundary'])
 run('runtime rule source scan', 'npm', ['run', 'scan:p4-rule-source'])
 run('reference vault access gate', 'npm', ['run', 'check:reference-vault-access'])

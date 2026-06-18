@@ -146,11 +146,16 @@ assert(
 assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
+    && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
     && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('reference-privacy')
     && workflow.includes('artifacts/runtime/reference-privacy-*.json')
-    && workflow.indexOf('Upload reference privacy evidence') > workflow.indexOf('Scan built Pages privacy'),
-  'Pages workflow must scan built Pages privacy and upload the reference privacy evidence artifact',
+    && workflow.includes('Upload public projection privacy evidence')
+    && workflow.includes('public-projection-privacy')
+    && workflow.includes('artifacts/runtime/public-projection-privacy-*.json')
+    && workflow.indexOf('Upload reference privacy evidence') > workflow.indexOf('Scan built Pages privacy')
+    && workflow.indexOf('Upload public projection privacy evidence') > workflow.indexOf('Scan built Pages privacy'),
+  'Pages workflow must scan built Pages privacy and upload reference plus public projection privacy evidence artifacts',
 )
 assert(
   workflow.includes('Check current run evidence artifacts')
@@ -198,6 +203,7 @@ assert(
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('reference-privacy')
+    && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
@@ -224,6 +230,7 @@ console.log(JSON.stringify({
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   referencePrivacy: 'reference-privacy',
+  publicProjectionPrivacy: 'public-projection-privacy',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
 }, null, 2))

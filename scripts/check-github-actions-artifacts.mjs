@@ -21,6 +21,7 @@ if (checkCurrentRun) {
     'remote-assignment-execution-pack',
     'remote-assignment-fixture-gate',
     'reference-privacy',
+    'public-projection-privacy',
   )
 }
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))

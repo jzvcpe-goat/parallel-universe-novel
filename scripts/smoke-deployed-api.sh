@@ -211,7 +211,7 @@ creator = request_json(
         "creator_id": smoke_account_id,
         "seed": "一个守灯人在无月夜收到一封来自未来的航海日志。",
         "context": {
-            "prompt_id": "imported_novel_starter_system_prompt",
+            "guide_id": "novel_starter_guide",
             "rule": "write_first_ask_later",
         },
     },
@@ -233,7 +233,7 @@ creator_turn = request_json(
         "message": "主角是在追一个不能放手的真相，他发现日志上的墨迹还没干。",
         "previous_session": creator,
         "context": {
-            "prompt_id": "imported_novel_starter_system_prompt",
+            "guide_id": "novel_starter_guide",
             "rule": "write_first_ask_later",
         },
     },
@@ -254,7 +254,7 @@ rehydrated = request_json(
         "message": "如果服务端刚好换了实例，也要继续写这一段。",
         "previous_session": {**creator, "session_id": rehydrated_creator_session_id},
         "context": {
-            "prompt_id": "imported_novel_starter_system_prompt",
+            "guide_id": "novel_starter_guide",
             "rule": "write_first_ask_later",
         },
     },

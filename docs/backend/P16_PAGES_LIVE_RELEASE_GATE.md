@@ -67,7 +67,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `reference-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -88,10 +88,11 @@ This proves:
 8. Live mode must always leave a `live-rollback-rehearsal` artifact proving rollback commands and static preview health.
 9. Live mode must always leave a `remote-runtime-activation-control` artifact proving final cutover blockers are known.
 10. Every Pages run must leave a `reference-privacy` artifact proving built output, public rules and Git history did not expose private representative work names.
-11. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
-12. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
-13. Live mode fails if browser submission cannot create a candidate draft.
-14. Live mode never enables local fallback.
+11. Every Pages run must leave a `public-projection-privacy` artifact proving built output and public projections did not expose profile/kernel ids, source refs, provider prompt plumbing, vault metadata or deprecated case logic.
+12. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
+13. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
+14. Live mode fails if browser submission cannot create a candidate draft.
+15. Live mode never enables local fallback.
 
 ## Operational Rule
 

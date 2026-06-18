@@ -167,7 +167,9 @@ jobs:
           cp app/dist/index.html app/dist/404.html
 
       - name: Scan built Pages privacy
-        run: npm run scan:reference-privacy
+        run: |
+          npm run scan:reference-privacy
+          PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy
 
       - name: Upload reference privacy evidence
         if: always()
@@ -175,6 +177,15 @@ jobs:
         with:
           name: reference-privacy
           path: artifacts/runtime/reference-privacy-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload public projection privacy evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: public-projection-privacy
+          path: artifacts/runtime/public-projection-privacy-*.json
           if-no-files-found: error
           retention-days: 14
 

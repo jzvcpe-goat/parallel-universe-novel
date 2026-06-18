@@ -1,5 +1,24 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 Backward Consistency Sweep
+
+Public Projection Privacy Audit 通过后不能马上收口，因为 P4、reference privacy、sourceRefs、deprecated case logic 和 public projection 是多层边界：规则文档、runtime registry、后端 internal session、FastAPI public response、Creator/Reader UI、fixtures、CI artifacts 都可能各说各话。
+
+新的工程标准：
+
+1. 任何 P4 或 reference privacy 相关改动完成后，必须跑一次 backward consistency sweep，确认 human-readable docs、runtime registry、public projection 和 scan scripts 没有互相矛盾。
+2. `sourceRefs` 允许存在于人类规则文档和 runtime registry，但必须是匿名 `rwref_*`；public API、UI、preview build、普通日志和可交付 artifacts 不得出现。
+3. 旧的 `prompt_id`、`prompt_contract`、`imported_novel_starter_system_prompt` 只能作为历史说明被讨论，不得出现在当前 smoke request、public response 或 product-facing code path 中。
+4. Pages workflow 在最终 build 后必须同时跑 `scan:reference-privacy` 和 `check:public-projection-privacy`，并上传 `reference-privacy` 与 `public-projection-privacy` 两份证据。
+5. Root `npm run test` 必须包含 P4 document-core、deprecated case logic、sourceRefs drift、public projection privacy、backward consistency、reference vault 和 reference privacy 全链路。
+
+验证命令：
+
+```bash
+npm run check:backward-consistency-sweep
+npm run test
+```
+
 ## 2026-06-18 Public Projection Privacy Audit
 
 本轮把 P4 冻结为架构边界协议，而不是继续使用“优化 P4”这种会无限扩张的任务名。后续涉及约束、内核、运行时、隐私或质量刹车的 PR，必须先声明自己改变的是 `Document-Core Boundary`、`Runtime Registry Boundary`、`Reference Work Privacy Boundary`、`Public Projection Boundary`、`Deprecated Case Logic Guard` 或 `Quality Brake Mapping` 中的哪一个边界。
