@@ -1,5 +1,28 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P97 Cost-Aware Provider Routing Contract
+
+P96 后继续看 completion matrix，发现 `model-orchestration` 的真正缺口不是
+再写一个新的模型路由，而是已有后端 `ProviderRoutingService`、
+`BudgetedLLMBackend`、runtime receipts 和 rollout 逻辑没有被 root release
+gate 正式承认。能力存在但不在主链里，本质上仍然会被后续团队当成“没做”。
+
+新的工程标准：
+
+1. 复用优先：已有后端能力先纳入 root test 和机器门禁，再考虑新实现。
+2. 成本感知模型路由必须同时证明四件事：主 provider 可用、预算阻断可安全回退、rollout rollback 可关闭 track、receipt 进入 Ops 而不是公共 UI。
+3. Public Creator/Reader 不能展示 provider、model、cost、fallback、routing receipt、debug payload；这些只能在后端/Ops/审计 artifact 中出现。
+4. `check:cost-aware-provider-routing` 必须和 `backend/tests/test_provider_runtime_routing.py` 一起进入 root test，否则 P45 completion matrix 不能把模型编排证据算作有效。
+5. 这仍不等于 public live provider smoke：远端 API/Agent origin、secret store、health 和 cutover 仍由 P85 blocker ledger 管。
+
+验证命令：
+
+```bash
+npm run check:provider-agnostic-config
+npm run check:cost-aware-provider-routing
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_provider_runtime_routing.py
+```
+
 ## 2026-06-18 P96 Runtime Completion Blocker Convergence
 
 P96 修的是 P45 completion matrix 和 P85/P90 blocker ledger 的口径漂移：

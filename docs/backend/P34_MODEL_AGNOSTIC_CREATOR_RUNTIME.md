@@ -66,6 +66,11 @@ NARRATIVEOS_CREATOR_MODEL=gemini-2.5-flash
 
 Provider-specific legacy variables may still work for compatibility, but new creator runtime deployments should prefer `NARRATIVEOS_CREATOR_*`.
 
+All provider credentials, model identifiers, routing diagnostics and budget/cost
+signals are server-side only. They may be inspected through authenticated
+Studio/Ops tools, but public `/create` and Reader responses must project them
+away before returning data to the browser.
+
 ## Product Boundary
 
 Public `/create` copy should describe the writing experience only:

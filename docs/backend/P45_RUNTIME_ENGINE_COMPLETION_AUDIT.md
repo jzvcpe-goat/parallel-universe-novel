@@ -31,7 +31,7 @@ npm run check:runtime-engine-completion
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests, P67 vault access gate, P80 reference privacy artifact gate. | Keep registry privacy, P4 scanner and reference privacy artifact green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids; P64 persists `production_time_engine_fit` after public release. | Remote live runtime trace is not yet proven. |
 | `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
-| `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
+| `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate, P97 cost-aware provider routing, `backend/tests/test_provider_runtime_routing.py`, and `check:cost-aware-provider-routing`. | Public remote provider smoke is not yet proven because remote API/Agent HTTPS origins remain disabled. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, P60 structural branch authorization gate, and P63 release owner/ops/rollback owner gate. | Reader live-generation text quality gate against remote runtime is not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
@@ -769,6 +769,25 @@ P81 proves the remote assignment contract before real provider origins exist:
 
 Current decision is that P81 is ready as a remote assignment contract fixture.
 It is not live runtime proof and does not replace a real provider assignment.
+
+## P97 Cost-Aware Provider Routing Contract
+
+P97 brings the existing backend provider routing stack into the root release
+gate:
+
+- `ProviderRoutingService` selects candidate and renderer tracks without
+  hardcoding a public provider dependency.
+- `BudgetedLLMBackend` proves budget-aware blocking and safe fallback.
+- Provider rollout rollback can disable a candidate backend without changing
+  public Creator or Reader code.
+- Runtime receipts keep provider, cache, budget, latency and fallback evidence
+  inside backend/Ops surfaces.
+- Public Creator projection removes `model_status` and `harness_trace`; public
+  UI scans keep provider/cost/debug terms out of Reader and Creator surfaces.
+
+Current decision is that P97 proves local cost-aware routing and public
+projection separation. It does not clear P85 remote runtime blockers or prove
+remote public provider smoke.
 
 ## Privacy Boundary
 

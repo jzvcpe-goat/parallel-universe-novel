@@ -292,6 +292,18 @@ P68 Runtime Preview Compose Gate changed deployment evidence:
 - remaining gap is remote HTTPS hosting and cloud secrets, not absence of a
   deployable two-service container proof.
 
+P97 Cost-Aware Provider Routing Contract changed model-orchestration evidence:
+
+- `ProviderRoutingService` is now explicitly included in the release gate,
+- `backend/tests/test_provider_runtime_routing.py` proves primary backend
+  routing, budget-block fallback, rollout rollback, and authoring simulation
+  routing receipts,
+- `check:cost-aware-provider-routing` checks provider-neutral config,
+  budget-aware provider routing, Ops-only routing metrics, and public
+  projection stripping,
+- remaining gap is remote public provider smoke after P75/P73/P66/P23, not
+  absence of local budget-aware provider routing.
+
 ## Verification
 
 Run:
@@ -299,6 +311,7 @@ Run:
 ```bash
 npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
+npm run check:cost-aware-provider-routing
 npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
 npm run check:remote-origin-operator-pack
@@ -335,6 +348,7 @@ npm run check:runtime-preview-compose
 - Live cutover attestation missing after P75/P73/P66/P23 materials exist.
 - Reference vault access hardening missing after anonymous ref scans exist.
 - Runtime preview compose smoke missing after Docker deployment files exist.
+- Cost-aware provider routing missing from root release gates.
 
 ## Boundary
 
@@ -344,6 +358,7 @@ The refreshed matrix keeps these modules partial:
 - World Engine,
 - Time Engine,
 - State Writeback,
+- Model Orchestration,
 - Quality Brake,
 - Reader Web,
 - Creator Studio,

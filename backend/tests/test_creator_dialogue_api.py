@@ -65,6 +65,11 @@ def test_creator_dialogue_session_without_seed_asks_one_open_question(tmp_path: 
     assert "scene" in payload["source"]["creative_dimensions"]
     assert "memo_frozen" in payload["source"]["input_sources"]
     assert payload["source"]["principles"][0] == "永远先给正文，后问问题"
+    assistant = payload["assistant"]
+    assert "model_status" not in assistant
+    assert "harness_trace" not in assistant
+    public_text = json.dumps(payload, ensure_ascii=False)
+    assert "provider" not in public_text
     serialized = json.dumps(payload, ensure_ascii=False)
     for forbidden in ["prompt_id", "prompt_contract", "model_status", "harness_trace", "provider"]:
         assert forbidden not in serialized

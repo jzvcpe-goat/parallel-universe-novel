@@ -56,6 +56,9 @@ for (const required of [
   'scripts/check-backward-consistency-sweep.mjs',
   'scripts/check-runtime-preview-compose.mjs',
   'scripts/check-studio-canon-trace.mjs',
+  'scripts/check-cost-aware-provider-routing.mjs',
+  'backend/tests/test_provider_runtime_routing.py',
+  'docs/backend/P97_COST_AWARE_PROVIDER_ROUTING_CONTRACT.md',
   'docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md',
   'docs/backend/P68_RUNTIME_PREVIEW_COMPOSE_GATE.md',
   'deploy/runtime-production/origin.env.example',
@@ -243,6 +246,7 @@ for (const required of [
   'P93 Remote Assignment Artifact Attestation',
   'P94 Local Artifact Mode Coherence',
   'P96 Runtime Completion Blocker Convergence',
+  'P97 cost-aware provider routing',
   'P67 Reference Vault Access Hardening Gate',
   'P68 Runtime Preview Compose Gate',
   'P53 Reader Branch Trace Gate',
@@ -262,6 +266,9 @@ for (const required of [
   'check:remote-runtime-blockers-artifact',
   'check:remote-assignment-schema',
   'check:remote-assignment-artifacts',
+  'check:cost-aware-provider-routing',
+  'backend/tests/test_provider_runtime_routing.py',
+  'Cost-Aware Provider Routing Contract',
 ]) {
   assert(doc.includes(required), `P45 audit doc must include refreshed phrase: ${required}`)
 }
@@ -276,6 +283,7 @@ for (const stale of [
   'Branch commit draft not proven after authorization.',
   'Canon/branch commit and rollback are not proven.',
   'Canon publishing is not yet gated by author confirmation plus quality brake.',
+  'Cost-aware multi-provider routing is not proven in public Creator flow.',
 ]) {
   assert(!doc.includes(stale), `P45 audit doc still contains stale gap: ${stale}`)
 }
@@ -321,6 +329,7 @@ const artifact = {
     'P93 Remote Assignment Artifact Attestation',
     'P94 Local Artifact Mode Coherence',
     'P96 Runtime Completion Blocker Convergence',
+    'P97 Cost-Aware Provider Routing Contract',
     'P67 Reference Vault Access Hardening Gate',
     'P68 Runtime Preview Compose Gate',
   ],
