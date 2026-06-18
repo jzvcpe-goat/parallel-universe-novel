@@ -174,6 +174,22 @@ P74 Remote Runtime Operator Handoff changed handoff evidence:
 - remaining gap is actual provider execution, not absence of a no-secret
   operator handoff.
 
+P75 Remote Runtime Assignment Intake changed assignment evidence:
+
+- `deploy/runtime-production/remote-assignment.example.json` gives the remote
+  deployment owner a no-secret template,
+- `deploy/runtime-production/remote-assignment.local.json` is ignored by Git and
+  is the default actual assignment file,
+- `check:remote-runtime-assignment-intake` verifies service ids, HTTPS origins,
+  image refs, provider-secret-store confirmation flags, Pages variable alignment
+  and health readiness,
+- the gate outputs `remote_assignment_missing`, `remote_assignment_incomplete`,
+  `remote_assignment_pending_health`, or `remote_assignment_ready`,
+- current expected state remains `remote_assignment_missing` until a deployment
+  owner fills actual service evidence,
+- remaining gap is actual remote service assignment, not absence of a durable
+  assignment intake path.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,
@@ -209,6 +225,7 @@ npm run check:runtime-completion-refresh
 npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
 npm run check:remote-origin-operator-pack
+npm run check:remote-runtime-assignment-intake
 npm run check:remote-origin-execution
 npm run check:reference-vault-access
 npm run scan:reference-privacy
@@ -233,6 +250,7 @@ npm run check:runtime-preview-compose
 - Remote origin provisioning gate missing after P65 blockers are known.
 - Remote origin execution gate missing after P70/P71/P72 materials exist.
 - Remote runtime operator handoff missing after P72/P73 materials exist.
+- Remote runtime assignment intake missing after P74 materials exist.
 - Reference vault access hardening missing after anonymous ref scans exist.
 - Runtime preview compose smoke missing after Docker deployment files exist.
 
@@ -249,4 +267,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.

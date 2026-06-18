@@ -26,9 +26,11 @@ const requiredFiles = [
   'docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md',
   'docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md',
   'docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md',
+  'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
+  'deploy/runtime-production/remote-assignment.example.json',
   'deploy/runtime-preview/docker-compose.yml',
   '.github/workflows/runtime-images.yml',
   'packages/agent-runtime/src/server.ts',
@@ -41,6 +43,7 @@ const requiredFiles = [
   'scripts/check-runtime-readiness-ledger.mjs',
   'scripts/check-remote-origin-execution.mjs',
   'scripts/check-remote-origin-operator-pack.mjs',
+  'scripts/check-remote-runtime-assignment-intake.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -57,9 +60,11 @@ const p71 = read('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md')
 const p72 = read('docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md')
 const p73 = read('docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md')
 const p74 = read('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md')
+const p75 = read('docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
+const remoteAssignmentExample = read('deploy/runtime-production/remote-assignment.example.json')
 const runtimeImagesWorkflow = read('.github/workflows/runtime-images.yml')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
 const agentServer = read('packages/agent-runtime/src/server.ts')
@@ -99,6 +104,10 @@ assert(
   'package.json must expose check:remote-origin-operator-pack',
 )
 assert(
+  packageJson.scripts['check:remote-runtime-assignment-intake'] === 'node scripts/check-remote-runtime-assignment-intake.mjs',
+  'package.json must expose check:remote-runtime-assignment-intake',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -125,6 +134,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-origin-operator-pack'),
   'npm run test must include check:remote-origin-operator-pack',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-runtime-assignment-intake'),
+  'npm run test must include check:remote-runtime-assignment-intake',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -233,6 +246,7 @@ assert(
     && p73.includes('deploy/runtime-production/origin-execution-plan.json')
     && p73.includes('P74 Remote Runtime Operator Handoff')
     && p73.includes('check:remote-origin-operator-pack')
+    && p73.includes('check:remote-runtime-assignment-intake')
     && p73.includes('REQUIRE_REMOTE_ORIGIN_EXECUTED=true')
     && p73.includes('remote_origin_execution_unassigned')
     && p73.includes('remote_origin_execution_ready'),
@@ -244,8 +258,20 @@ assert(
     && p74.includes('operator_pack_waiting_for_service_assignment')
     && p74.includes('operator_pack_ready_for_strict_origin_execution')
     && p74.includes('Provider secret names only')
+    && p74.includes('P75 Remote Runtime Assignment Intake')
+    && p74.includes('check:remote-runtime-assignment-intake')
     && p74.includes('REQUIRE_REMOTE_ORIGIN_EXECUTED=true'),
   'P74 operator handoff gate must define the no-secret operator pack, decisions and strict P73 handoff',
+)
+assert(
+  p75.includes('P75 Remote Runtime Assignment Intake')
+    && p75.includes('remote-assignment.example.json')
+    && p75.includes('remote-assignment.local.json')
+    && p75.includes('check:remote-runtime-assignment-intake')
+    && p75.includes('remote_assignment_missing')
+    && p75.includes('remote_assignment_ready')
+    && p75.includes('REQUIRE_REMOTE_ASSIGNMENT_READY=true'),
+  'P75 assignment intake gate must define the ignored local assignment file, decisions and strict mode',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
@@ -277,6 +303,14 @@ assert(
   'origin execution plan must preserve P73 service assignment, strict image evidence and origin provisioning gates',
 )
 assert(
+  remoteAssignmentExample.includes('P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE')
+    && remoteAssignmentExample.includes('providerSecretsConfigured')
+    && remoteAssignmentExample.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-api')
+    && remoteAssignmentExample.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime')
+    && remoteAssignmentExample.includes('Do not place DATABASE_URL'),
+  'remote assignment example must preserve the no-secret P75 intake contract',
+)
+assert(
   runtimeImagesWorkflow.includes('packages: write')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-api')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-agent-runtime')
@@ -291,6 +325,7 @@ for (const required of [
   'Health Contract',
   'Host Target Gate',
   'Operator Handoff',
+  'Assignment Intake',
   'Live Smoke',
   'Rollback',
   'Acceptance Evidence',
@@ -301,6 +336,7 @@ for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
   'npm run check:remote-origin-operator-pack',
+  'npm run check:remote-runtime-assignment-intake',
   'npm run qa:live-runtime-browser',
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',

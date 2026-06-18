@@ -51,6 +51,37 @@ The artifacts contain:
 - Strict verification commands for P72, P73, and live runtime readiness.
 - Rollback commands that disable public live mode and remove remote origins.
 
+## P75 Remote Runtime Assignment Intake
+
+After the deployment owner provisions concrete services, copy:
+
+```text
+deploy/runtime-production/remote-assignment.example.json
+```
+
+to the ignored local file:
+
+```text
+deploy/runtime-production/remote-assignment.local.json
+```
+
+Then run:
+
+```bash
+npm run check:remote-runtime-assignment-intake
+```
+
+Strict P75 mode:
+
+```bash
+REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake
+```
+
+P75 is the durable intake point for service ids, HTTPS origins, current image
+refs and provider-secret-store confirmation flags. P74 should stay provider
+neutral; P75 verifies the actual operator-supplied assignment before P73 strict
+origin execution.
+
 ## Boundary
 
 The operator handoff packet may include public origins, image names, service ids, port numbers, and secret

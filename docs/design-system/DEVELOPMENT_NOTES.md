@@ -3641,3 +3641,15 @@ P74 来自 P73 之后的真实协作断点：当前机器没有远端 provider C
 3. artifact 不允许包含 `DATABASE_URL` 值、Tool Bridge token 值、模型 key、system prompt、raw state 或 reference vault 内容。
 4. 默认状态 `operator_pack_waiting_for_service_assignment` 是诚实状态；严格模式 `REQUIRE_REMOTE_OPERATOR_PACK_READY=true` 要求部署者已提供 service ids、HTTPS origins 和 secret-store confirmation。
 5. P74 不替代 P73。P74 负责“交接包完整”，P73 负责“远端服务真的 ready”，P65/P23 负责“public live trace ready”。
+
+## 2026-06-18 P75 Remote Runtime Assignment Intake
+
+P75 修的是 P74 之后的协作断点：交接包已经告诉部署者要做什么，但如果没有一个受保护的 actual assignment 文件，部署结果仍然只能靠一次性环境变量或口头转述。
+
+本轮原则：
+
+1. 公开仓库只提交 `deploy/runtime-production/remote-assignment.example.json`，里面全部是占位符和 no-secret 说明。
+2. 实际服务分配写入 `deploy/runtime-production/remote-assignment.local.json`，并由 `.gitignore` 忽略。
+3. `check:remote-runtime-assignment-intake` 验证 service id、HTTPS origin、image ref、provider secret-store confirmation、Pages variable alignment 和 health。
+4. 默认状态 `remote_assignment_missing` 不阻塞静态 CI；严格模式 `REQUIRE_REMOTE_ASSIGNMENT_READY=true` 用于远端部署前验收。
+5. assignment 文件可以记录服务 ID 和公开 origin，但不能记录数据库 URL、Tool Bridge token、模型 key、provider API token、system prompt、raw state 或 reference vault 内容。

@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -456,6 +456,25 @@ P74 turns the remote execution contract into a no-secret operator handoff:
 Current decision is that P74 is ready as a handoff-evidence gate. It still does
 not choose a provider, store secrets, create remote services, or enable live
 public runtime.
+
+## P75 Remote Runtime Assignment Intake
+
+P75 adds the durable intake file for the deployment owner:
+
+- `deploy/runtime-production/remote-assignment.example.json` is committed as the
+  no-secret template.
+- `deploy/runtime-production/remote-assignment.local.json` is ignored by Git and
+  is the only default place for actual service assignment evidence.
+- `scripts/check-remote-runtime-assignment-intake.mjs` validates service ids,
+  remote HTTPS origins, image refs, provider-secret-store confirmation flags,
+  Pages origin variables and `/health` readiness.
+- The gate outputs `remote_assignment_missing`,
+  `remote_assignment_incomplete`, `remote_assignment_pending_health`, or
+  `remote_assignment_ready`.
+
+Current decision is that P75 is ready as an assignment-intake gate. It still does
+not choose a provider, create services, store secrets, or enable public live
+runtime.
 
 ## Privacy Boundary
 

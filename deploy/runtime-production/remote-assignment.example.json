@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "gate": "P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE",
+  "repository": "jzvcpe-goat/parallel-universe-novel",
+  "hostTargetProfile": "docker-compatible-two-service-paas",
+  "operator": {
+    "owner": "<deployment-owner-name-or-team>",
+    "provider": "<provider-name>",
+    "environment": "preview-or-production"
+  },
+  "services": {
+    "api": {
+      "serviceId": "<provider-api-service-id>",
+      "origin": "https://<api-host>",
+      "image": "ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>",
+      "providerSecretsConfigured": false,
+      "healthPath": "/health"
+    },
+    "agent": {
+      "serviceId": "<provider-agent-service-id>",
+      "origin": "https://<agent-host>",
+      "image": "ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>",
+      "providerSecretsConfigured": false,
+      "healthPath": "/health",
+      "dependsOn": [
+        "api"
+      ]
+    }
+  },
+  "pagesVariablesAfterHealth": {
+    "VITE_PUBLIC_RUNTIME_MODE": "live",
+    "VITE_API_ORIGIN": "https://<api-host>",
+    "VITE_API_BASE_URL": "https://<api-host>/v1",
+    "VITE_AGENT_RUNTIME_BASE_URL": "https://<agent-host>"
+  },
+  "notes": [
+    "Copy this file to remote-assignment.local.json and fill only non-secret deployment evidence.",
+    "Do not place DATABASE_URL, Tool Bridge token values, model keys, private keys or provider API tokens in this file."
+  ]
+}

@@ -29,6 +29,8 @@ backend/.env
 private/
 reference-work-vault.key
 **/reference-work-vault.key
+deploy/runtime-production/remote-assignment.local.json
+deploy/runtime-production/remote-assignment.*.local.json
 
 # Local harness/generated artifacts
 artifacts/
