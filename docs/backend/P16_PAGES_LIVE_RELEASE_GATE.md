@@ -80,6 +80,7 @@ fi
 # Root release gate: npm run check:ci-artifact-content-coverage
 # Root local-boundary gate: npm run check:remote-assignment-local-boundary
 # Root repo-variable boundary gate: npm run check:github-runtime-variable-boundary
+# Root placeholder sentinel gate: npm run check:runtime-placeholder-sentinel
 ```
 
 This proves:
@@ -102,6 +103,9 @@ This proves:
   database URLs, Tool Bridge token values, model keys, private keys or provider
   API tokens in repository variables.
   Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.
+- P110 Runtime Placeholder Sentinel Guard proves `FILL_*`, `REPLACE_ME`,
+  `YOUR_*`, `TODO_*` and `<...>` placeholders cannot pass as real remote
+  service ids, origins, assignment evidence or GitHub repository variables.
 - The `reference-privacy` and `public-projection-privacy` artifact contents pass
   P92 redaction and zero-violation checks.
 - The `remote-assignment-schema`, `remote-assignment-execution-pack` and
@@ -155,8 +159,10 @@ This proves:
     GitHub repository variables cannot contain database URLs, Tool Bridge token
     values, model keys, private keys, provider API tokens or unknown runtime
     variables.
-26. Live mode fails if browser submission cannot create a candidate draft.
-27. Live mode never enables local fallback.
+26. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
+    placeholders cannot be mistaken for remote runtime evidence.
+27. Live mode fails if browser submission cannot create a candidate draft.
+28. Live mode never enables local fallback.
 
 ## Operational Rule
 

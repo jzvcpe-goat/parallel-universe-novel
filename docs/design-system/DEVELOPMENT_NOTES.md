@@ -1,5 +1,28 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P110 Runtime Placeholder Sentinel Guard
+
+P87 会生成 operator 可复制的 assignment 模板，里面故意使用 `FILL_*`
+占位。如果 P75/P79/P109 只识别 `<...>`，`https://FILL_API_HOST` 就可能被
+误判为“远程 HTTPS origin”，导致上线证据看起来比真实状态更成熟。
+
+新的工程标准：
+
+1. 占位识别必须覆盖 `<...>`、`FILL_*`、`REPLACE_ME`、`YOUR_*`、`TODO_*`。
+2. P75/P79/P109 使用同一类占位边界：模板值不能作为 service id、origin、
+   assignment evidence 或 GitHub repository variable。
+3. `check:runtime-placeholder-sentinel` 必须进入 root `npm run test`，并用
+   临时 `FILL_*` fixture 证明 P75 返回 `remote_assignment_incomplete`、P79
+   返回 `assignment_execution_incomplete`。
+4. 这个 gate 不减少真实远程服务 blocker，只防止模板被误当成生产证据。
+
+验证命令：
+
+```bash
+npm run check:runtime-placeholder-sentinel
+npm run test
+```
+
 ## 2026-06-18 P109 GitHub Runtime Variable Boundary Guard
 
 P108 保护的是被忽略的本地 operator assignment 文件；P109 保护的是 GitHub

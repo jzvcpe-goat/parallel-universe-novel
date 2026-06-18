@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, and P109 GitHub runtime variable boundary guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, and P110 runtime placeholder sentinel guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -496,3 +496,18 @@ P109 protects the GitHub repository variable boundary after P107/P108:
   issue codes only, not variable values.
 - The remaining live-runtime blocker set is unchanged; P109 only prevents
   public runtime configuration from becoming a secret storage surface.
+
+## P110 Runtime Placeholder Sentinel Guard Refresh
+
+P110 protects the assignment handoff and repo-variable placeholder boundary:
+
+- P45 commercial-release evidence now includes
+  `check:runtime-placeholder-sentinel`.
+- Root `npm run test` runs P110 after P109 so template placeholders cannot pass
+  as remote service ids, remote HTTPS origins, assignment evidence or GitHub
+  repository variables.
+- The gate proves a temporary `FILL_*` assignment fixture returns
+  `remote_assignment_incomplete` in P75 and `assignment_execution_incomplete` in
+  P79.
+- The remaining live-runtime blocker set is unchanged; P110 only prevents
+  placeholder templates from being mistaken for production readiness.

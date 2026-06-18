@@ -41,6 +41,11 @@ must be remote `https://` origins, not localhost, example, placeholder or
 `.invalid` values. Remote service ids cannot be placeholders. Secret-store flags
 must be `true` or `false`.
 
+P110 Runtime Placeholder Sentinel Guard keeps placeholder detection shared across
+assignment and GitHub variable gates. Values such as `FILL_API_SERVICE_ID`,
+`https://FILL_API_HOST`, `REPLACE_ME`, `YOUR_API_ORIGIN`, `TODO_AGENT_ORIGIN`
+and `<api-host>` are placeholders, not remote runtime evidence.
+
 ## Forbidden Repository Variable Content
 
 Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.
@@ -62,5 +67,7 @@ services have their provider-side secrets configured.
 - `package.json` exposes `check:github-runtime-variable-boundary`.
 - Root `npm run test` includes `check:github-runtime-variable-boundary`.
 - P16, P20 and P76 document the repository-variable boundary.
+- P110 proves template placeholders cannot pass as repository-variable or
+  assignment evidence.
 - Pages workflow passes only public origins and non-secret attestation variables.
 - Generated artifacts do not contain secret-like values.

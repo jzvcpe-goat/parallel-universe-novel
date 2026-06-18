@@ -365,6 +365,16 @@ secret-store attestation flags. It rejects database URLs, Tool Bridge token
 values, model keys, private keys, provider API tokens and unknown runtime
 variable names.
 
+Run the P110 placeholder sentinel before handing a template to an operator:
+
+```bash
+npm run check:runtime-placeholder-sentinel
+```
+
+This proves `FILL_*`, `REPLACE_ME`, `YOUR_*`, `TODO_*` and `<...>` placeholders
+cannot pass as real service ids, origins, assignment evidence or GitHub
+repository variables.
+
 ## Activation Sequence
 
 1. Run `npm run check:remote-host-target` and pick the host profile.
@@ -388,6 +398,7 @@ variable names.
 19. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
 20. Verify both health endpoints with the commands from the P79 Markdown artifact.
 21. Run `npm run check:github-runtime-variable-boundary`.
+22. Run `npm run check:runtime-placeholder-sentinel`.
 17. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
 18. Run local strict config check:
 

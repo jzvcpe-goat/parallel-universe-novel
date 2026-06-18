@@ -41,7 +41,12 @@ function normalizeOrigin(value) {
 }
 
 function isPlaceholder(value) {
-  return /<.+>/.test(String(value || ''))
+  const text = String(value || '').trim()
+  return /<[^>]+>/.test(text)
+    || /\bFILL_[A-Z0-9_]+\b/i.test(text)
+    || /\bREPLACE_ME\b/i.test(text)
+    || /\bYOUR[_-][A-Z0-9_-]+\b/i.test(text)
+    || /\bTODO[_-][A-Z0-9_-]+\b/i.test(text)
 }
 
 function isProvided(value) {

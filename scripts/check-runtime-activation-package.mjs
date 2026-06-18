@@ -45,6 +45,7 @@ const requiredFiles = [
   'docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md',
   'docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md',
   'docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md',
+  'docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -76,6 +77,7 @@ const requiredFiles = [
   'scripts/check-ci-artifact-content-coverage.mjs',
   'scripts/check-remote-assignment-local-boundary.mjs',
   'scripts/check-github-runtime-variable-boundary.mjs',
+  'scripts/check-runtime-placeholder-sentinel.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -111,6 +113,7 @@ const p106 = read('docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTEST
 const p107 = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p108 = read('docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md')
 const p109 = read('docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md')
+const p110 = read('docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -212,6 +215,10 @@ assert(
   'package.json must expose check:github-runtime-variable-boundary',
 )
 assert(
+  packageJson.scripts['check:runtime-placeholder-sentinel'] === 'node scripts/check-runtime-placeholder-sentinel.mjs',
+  'package.json must expose check:runtime-placeholder-sentinel',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -302,6 +309,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:github-runtime-variable-boundary'),
   'npm run test must include check:github-runtime-variable-boundary',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:runtime-placeholder-sentinel'),
+  'npm run test must include check:runtime-placeholder-sentinel',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -586,6 +597,14 @@ assert(
   'P109 GitHub runtime variable boundary guard must define allowed public variables and secret rejection boundaries',
 )
 assert(
+  p110.includes('P110 Runtime Placeholder Sentinel Guard')
+    && p110.includes('check:runtime-placeholder-sentinel')
+    && p110.includes('FILL_*')
+    && p110.includes('remote_assignment_incomplete')
+    && p110.includes('assignment_execution_incomplete'),
+  'P110 runtime placeholder sentinel guard must define placeholder rejection boundaries',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -677,6 +696,7 @@ for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
   'npm run check:github-runtime-variable-boundary',
+  'npm run check:runtime-placeholder-sentinel',
   'npm run check:remote-origin-operator-pack',
 		  'npm run check:remote-assignment-handoff',
 		  'npm run check:public-privacy-artifacts',

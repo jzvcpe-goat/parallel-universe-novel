@@ -16,6 +16,9 @@ deploy/runtime-production/remote-assignment.local.json
 P108 Remote Assignment Local Boundary Guard keeps this ignored local assignment
 boundary under test. The local file may exist on an operator machine, but it must
 not be committed, uploaded as a public artifact, or replaced by fixture data.
+P110 Runtime Placeholder Sentinel Guard also proves `FILL_*`, `REPLACE_ME`,
+`YOUR_*`, `TODO_*` and `<...>` placeholders cannot be mistaken for real service
+ids or remote HTTPS origins.
 
 The committed template is:
 
@@ -138,10 +141,14 @@ and P66 in strict mode.
 - `remote-assignment.schema.json` is committed and checked before P75/P79.
 - `package.json` exposes `check:remote-runtime-assignment-intake`.
 - `package.json` exposes `check:remote-assignment-local-boundary`.
+- `package.json` exposes `check:runtime-placeholder-sentinel`.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
 - Root `npm run test` includes `check:remote-assignment-local-boundary`.
+- Root `npm run test` includes `check:runtime-placeholder-sentinel`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.
 - Strict mode fails until assignment is `remote_assignment_ready`.
+- `FILL_*` placeholders produce `remote_assignment_incomplete`, not
+  `remote_assignment_pending_health`.
 - The fixture with reserved `.invalid` origins stays at
   `remote_assignment_pending_health`.
 - Generated artifacts do not contain provider secrets, database URLs, model keys, system prompts, raw state or private reference mappings.

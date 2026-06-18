@@ -11,6 +11,9 @@ P79 does not deploy services, mutate GitHub Variables, store secrets, call a
 provider API, or mark public live runtime ready. It only generates a safe command
 bundle and checklist from the assignment evidence.
 
+P110 Runtime Placeholder Sentinel Guard proves the P87 `FILL_*` handoff
+template cannot be used unchanged as a real execution pack.
+
 ## Command
 
 Schema preflight:
@@ -109,5 +112,8 @@ P79 must not include:
 - `remote-assignment.fixture.json` proves command generation without pretending
   the reserved `.invalid` origins are live.
 - P108 proves the fixture can generate commands but cannot satisfy P75 strict readiness.
+- P110 proves `FILL_*`, `REPLACE_ME`, `YOUR_*`, `TODO_*` and `<...>`
+  placeholders produce `assignment_execution_incomplete`, not a ready execution
+  pack.
 - The generated JSON and Markdown artifacts contain no secrets.
 - P78 links to this pack as the next action when it is waiting for assignment.
