@@ -157,6 +157,26 @@ npm run check:live-rollback-rehearsal
 The rehearsal proves the rollback command bundle exists, static preview remains
 reachable, and a rollback owner/run id can be attached without exposing secrets.
 
+### Remote Activation Control Board
+
+Use the control board after P72, P75, P76 and P77 to see the exact live runtime
+cutover blocker in one artifact:
+
+```bash
+npm run check:remote-runtime-activation-control
+```
+
+Strict cutover control check:
+
+```bash
+REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control
+```
+
+The control board is intentionally read-only. It does not write GitHub
+variables, mutate provider services, or store secrets; it only aggregates image
+evidence, remote assignment, live cutover attestation, rollback rehearsal and
+static preview reachability.
+
 GitHub Actions may use non-secret repository variables for service-assignment
 attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
 `REMOTE_API_SECRETS_CONFIGURED=true`, and
@@ -341,7 +361,19 @@ REMOTE_AGENT_SECRETS_CONFIGURED=true \
 npm run check:live-cutover-attestation
 ```
 
-19. Run Live Smoke:
+19. Run rollback rehearsal control:
+
+```bash
+npm run check:live-rollback-rehearsal
+```
+
+20. Run the remote activation control board:
+
+```bash
+REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control
+```
+
+21. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -351,10 +383,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-20. Set GitHub repository variables.
-21. Push or manually dispatch `Deploy Creator Studio Preview`.
-22. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` and `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation` before `qa:live-runtime-browser`.
-23. Open public `/#/create` and verify it shows `创作服务可用`.
+22. Set GitHub repository variables.
+23. Push or manually dispatch `Deploy Creator Studio Preview`.
+24. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` and `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation` before `qa:live-runtime-browser`.
+25. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 

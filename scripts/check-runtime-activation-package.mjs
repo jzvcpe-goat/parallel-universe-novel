@@ -29,6 +29,7 @@ const requiredFiles = [
   'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
   'docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md',
   'docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md',
+  'docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -48,6 +49,7 @@ const requiredFiles = [
   'scripts/check-remote-runtime-assignment-intake.mjs',
   'scripts/check-live-cutover-attestation.mjs',
   'scripts/check-live-rollback-rehearsal.mjs',
+  'scripts/check-remote-runtime-activation-control.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -67,6 +69,7 @@ const p74 = read('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md')
 const p75 = read('docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md')
 const p76 = read('docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md')
 const p77 = read('docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md')
+const p78 = read('docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -122,6 +125,10 @@ assert(
   'package.json must expose check:live-rollback-rehearsal',
 )
 assert(
+  packageJson.scripts['check:remote-runtime-activation-control'] === 'node scripts/check-remote-runtime-activation-control.mjs',
+  'package.json must expose check:remote-runtime-activation-control',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -160,6 +167,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:live-rollback-rehearsal'),
   'npm run test must include check:live-rollback-rehearsal',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-runtime-activation-control'),
+  'npm run test must include check:remote-runtime-activation-control',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -318,6 +329,14 @@ assert(
   'P77 live rollback gate must define commands, decisions and strict mode',
 )
 assert(
+  p78.includes('P78 Remote Runtime Activation Control')
+    && p78.includes('check:remote-runtime-activation-control')
+    && p78.includes('remote_activation_waiting_for_assignment')
+    && p78.includes('remote_activation_ready_for_cutover')
+    && p78.includes('REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true'),
+  'P78 remote activation control must define aggregate decisions and strict mode',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -372,6 +391,7 @@ for (const required of [
   'Assignment Intake',
   'Live Cutover Attestation',
   'Live Rollback Rehearsal',
+  'Remote Activation Control Board',
   'Live Smoke',
   'Rollback',
   'Acceptance Evidence',
@@ -385,6 +405,7 @@ for (const command of [
   'npm run check:remote-runtime-assignment-intake',
   'npm run check:live-cutover-attestation',
   'npm run check:live-rollback-rehearsal',
+  'npm run check:remote-runtime-activation-control',
   'npm run qa:live-runtime-browser',
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',
@@ -434,12 +455,15 @@ assert(
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
     && workflow.includes('REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation')
     && workflow.includes('npm run check:live-rollback-rehearsal')
+    && workflow.includes('REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control')
     && workflow.includes('REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}')
     && workflow.includes('REMOTE_AGENT_SERVICE_ID: ${{ vars.REMOTE_AGENT_SERVICE_ID }}')
     && workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('Upload live rollback rehearsal')
+    && workflow.includes('Upload remote runtime activation control')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('artifacts/runtime/live-rollback-rehearsal-*.json')
+    && workflow.includes('artifacts/runtime/remote-activation-control-*.json')
     && workflow.includes('actions: read')
     && workflow.includes('GH_TOKEN: ${{ github.token }}')
     && workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')

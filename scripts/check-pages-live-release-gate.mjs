@@ -83,8 +83,9 @@ assert(
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
     && workflow.includes('REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation')
     && workflow.includes('npm run check:live-rollback-rehearsal')
+    && workflow.includes('REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control')
     && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
-  'Pages workflow must require live checks, readiness ledger, cutover attestation, rollback rehearsal, and browser smoke before any live public build',
+  'Pages workflow must require live checks, readiness ledger, cutover attestation, activation control, rollback rehearsal, and browser smoke before any live public build',
 )
 assert(
   workflow.includes('REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}')
@@ -121,6 +122,13 @@ assert(
   'Pages workflow must upload the live rollback rehearsal artifact after the runtime gate',
 )
 assert(
+  workflow.includes('Upload remote runtime activation control')
+    && workflow.includes('remote-runtime-activation-control')
+    && workflow.includes('artifacts/runtime/remote-activation-control-*.json')
+    && workflow.indexOf('Upload remote runtime activation control') > workflow.indexOf('Gate public runtime release mode'),
+  'Pages workflow must upload the remote runtime activation control artifact after the runtime gate',
+)
+assert(
   workflow.includes('Check current run evidence artifacts')
     && workflow.includes('CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
@@ -154,13 +162,15 @@ assert(
     && p16Doc.includes('qa:live-runtime-local')
     && p16Doc.includes('check:live-cutover-attestation')
     && p16Doc.includes('check:live-rollback-rehearsal')
+    && p16Doc.includes('check:remote-runtime-activation-control')
     && p16Doc.includes('GitHub repository variables'),
-  'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, and required GitHub vars',
+  'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
 )
 assert(
   p43Doc.includes('runtime-readiness-ledger')
     && p43Doc.includes('live-cutover-attestation')
     && p43Doc.includes('live-rollback-rehearsal')
+    && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
@@ -183,6 +193,7 @@ console.log(JSON.stringify({
   ledgerArtifact: 'runtime-readiness-ledger',
   cutoverAttestation: 'check:live-cutover-attestation',
   rollbackRehearsal: 'check:live-rollback-rehearsal',
+  activationControl: 'check:remote-runtime-activation-control',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
 }, null, 2))

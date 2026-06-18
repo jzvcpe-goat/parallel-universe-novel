@@ -89,10 +89,12 @@ jobs:
           npm run audit:live-runtime-readiness
           npm run check:live-cutover-attestation
           npm run check:live-rollback-rehearsal
+          npm run check:remote-runtime-activation-control
           if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
             REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
             REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
             REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
+            REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control
             REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
           fi
 
@@ -120,6 +122,15 @@ jobs:
         with:
           name: live-rollback-rehearsal
           path: artifacts/runtime/live-rollback-rehearsal-*.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload remote runtime activation control
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-runtime-activation-control
+          path: artifacts/runtime/remote-activation-control-*.json
           if-no-files-found: ignore
           retention-days: 14
 

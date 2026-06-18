@@ -21,6 +21,7 @@ function latestArtifact(prefix) {
   assert(existsSync(artifactDir), `runtime artifact directory is missing; run upstream ${prefix} gate first`)
   const files = readdirSync(artifactDir)
     .filter(name => name.startsWith(prefix) && name.endsWith('.json'))
+    .filter(name => !(prefix === 'remote-runtime-activation-' && name.startsWith('remote-runtime-activation-control-')))
     .sort()
   assert(files.length > 0, `missing ${prefix} artifact; run the upstream gate first`)
   const filename = files.at(-1)

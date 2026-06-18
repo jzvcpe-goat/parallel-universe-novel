@@ -13,6 +13,7 @@ const defaultArtifacts = [
 ]
 if (checkCurrentRun) defaultArtifacts.splice(1, 0, 'live-cutover-attestation')
 if (checkCurrentRun) defaultArtifacts.splice(2, 0, 'live-rollback-rehearsal')
+if (checkCurrentRun) defaultArtifacts.splice(3, 0, 'remote-runtime-activation-control')
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))
   .split(',')
   .map(item => item.trim())

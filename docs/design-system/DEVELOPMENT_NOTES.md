@@ -1,5 +1,23 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P78 Remote Runtime Activation Control
+
+P77 证明了回滚路径，但上线决策仍分散在 P72/P75/P76/P77 多个输出里。P78 把这些证据合成一个只读控制板，让部署负责人直接看到当前断点是镜像、远端 assignment、健康检查、live vars，还是回滚责任人。
+
+经验：
+
+1. 上线控制板不要直接写 GitHub Variables 或 provider 服务，否则会把“验收”变成“执行”，调试时风险太高。
+2. 控制板应该复用已有门禁 artifact，而不是重新实现部署判断；这样每个 Pxx gate 仍保持单一职责。
+3. 普通 CI 只报告 blockers，strict mode 才失败，适合在没有远端服务时保持主线可发布。
+4. Pages artifact gate 必须上传 `remote-runtime-activation-control`，否则远端 run 绿灯不能证明上线断点已被记录。
+
+验证命令：
+
+```bash
+npm run check:remote-runtime-activation-control
+REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control
+```
+
 ## 2026-06-18 P77 Live Rollback Rehearsal Gate
 
 P76 证明 live cutover 是否满足条件，但还没有证明出事时能稳定退回静态预览。P77 把 rollback 从 runbook 文本推进为 CI artifact：每次 Pages run 都要留下 `live-rollback-rehearsal` 证据。

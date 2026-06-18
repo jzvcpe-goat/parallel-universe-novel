@@ -217,6 +217,19 @@ P77 Live Rollback Rehearsal Gate changed rollback evidence:
 - remaining gap is live provider execution and operator-confirmed rollback, not
   absence of a rollback rehearsal contract.
 
+P78 Remote Runtime Activation Control changed cutover ownership evidence:
+
+- `check:remote-runtime-activation-control` aggregates P72 image evidence, P75
+  assignment intake, P76 live cutover attestation and P77 rollback rehearsal,
+- the gate emits a single operator-facing decision such as
+  `remote_activation_waiting_for_assignment` or
+  `remote_activation_ready_for_cutover`,
+- strict mode requires `REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true`,
+- current expected state is `remote_activation_waiting_for_assignment` until
+  the deployment owner supplies remote service evidence,
+- remaining gap is actual remote runtime assignment and health, not absence of
+  a cutover control board.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,
@@ -256,6 +269,7 @@ npm run check:remote-runtime-assignment-intake
 npm run check:remote-origin-execution
 npm run check:live-cutover-attestation
 npm run check:live-rollback-rehearsal
+npm run check:remote-runtime-activation-control
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:runtime-preview-compose
@@ -297,4 +311,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
