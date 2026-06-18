@@ -8,6 +8,7 @@ COPY packages/agent-runtime/package.json /app/packages/agent-runtime/package.jso
 RUN npm install --include=optional
 
 COPY packages/agent-runtime /app/packages/agent-runtime
+COPY docs/product/rules /app/docs/product/rules
 RUN npm --workspace @narrativeos/agent-runtime run build
 
 ENV MASTRA_HOST=0.0.0.0

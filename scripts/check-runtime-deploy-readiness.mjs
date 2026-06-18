@@ -57,16 +57,18 @@ assert(
   apiDockerfile.includes('uvicorn')
     && apiDockerfile.includes('--host", "0.0.0.0"')
     && apiDockerfile.includes('--port", "8787"')
-    && apiDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production'),
-  'API Dockerfile must run FastAPI on 0.0.0.0:8787 with protected production deploy env',
+    && apiDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production')
+    && apiDockerfile.includes('COPY docs/product/rules /app/docs/product/rules'),
+  'API Dockerfile must run FastAPI on 0.0.0.0:8787 with protected production deploy env and runtime rules',
 )
 assert(
   agentDockerfile.includes('MASTRA_HOST=0.0.0.0')
     && agentDockerfile.includes('MASTRA_PORT=4111')
     && agentDockerfile.includes('NODE_ENV=production')
     && agentDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production')
+    && agentDockerfile.includes('COPY docs/product/rules /app/docs/product/rules')
     && agentDockerfile.includes('run", "start"'),
-  'Agent Dockerfile must run the production start script on 0.0.0.0:4111 with protected production deploy env',
+  'Agent Dockerfile must run the production start script on 0.0.0.0:4111 with protected production deploy env and runtime rules',
 )
 assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')

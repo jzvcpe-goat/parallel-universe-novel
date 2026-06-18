@@ -183,6 +183,7 @@ function validateStaticContract() {
   ])
   assertContains('deploy/api/Dockerfile', [
     'NARRATIVEOS_DEPLOY_ENV=production',
+    'COPY docs/product/rules /app/docs/product/rules',
     'uvicorn',
     '0.0.0.0',
     '8787',
@@ -192,6 +193,7 @@ function validateStaticContract() {
     'MASTRA_PORT=4111',
     'NODE_ENV=production',
     'NARRATIVEOS_DEPLOY_ENV=production',
+    'COPY docs/product/rules /app/docs/product/rules',
   ])
   assertContains('docs/backend/P68_RUNTIME_PREVIEW_COMPOSE_GATE.md', [
     'P68 Runtime Preview Compose Gate',
@@ -241,49 +243,59 @@ async function runComposeSmoke() {
       throw error
     }
     started = true
-    const apiHealth = await waitForJson(`http://127.0.0.1:${apiPort}/health`)
-    const agentHealth = await waitForJson(`http://127.0.0.1:${agentPort}/health`)
-    assert(apiHealth.status === 'ok' || apiHealth.status === 'healthy', 'API container health must be ok')
-    assert(agentHealth.status === 'ok' || agentHealth.status === 'healthy', 'Agent container health must be ok')
-    assert(agentHealth.service === 'narrativeos-agent-runtime', 'Agent health must identify narrativeos-agent-runtime')
+    try {
+      const apiHealth = await waitForJson(`http://127.0.0.1:${apiPort}/health`)
+      const agentHealth = await waitForJson(`http://127.0.0.1:${agentPort}/health`)
+      assert(apiHealth.status === 'ok' || apiHealth.status === 'healthy', 'API container health must be ok')
+      assert(agentHealth.status === 'ok' || agentHealth.status === 'healthy', 'Agent container health must be ok')
+      assert(agentHealth.service === 'narrativeos-agent-runtime', 'Agent health must identify narrativeos-agent-runtime')
 
-    const created = await postJson(
-      `http://127.0.0.1:${agentPort}/v1/workflows/socratic-create`,
-      {
-        seed: '一座雾港灯塔在无月夜重新亮起，守灯人必须判断该公开真相，还是先救下唯一幸存者。',
-        genre: '玄幻悬疑',
-        creatorId: 'compose_smoke_author',
-        context: {
-          story_direction: {
-            label: '玄幻悬疑',
-            keywords: '玄幻悬疑 灯塔 古契 选择代价',
+      const created = await postJson(
+        `http://127.0.0.1:${agentPort}/v1/workflows/socratic-create`,
+        {
+          seed: '一座雾港灯塔在无月夜重新亮起，守灯人必须判断该公开真相，还是先救下唯一幸存者。',
+          genre: '玄幻悬疑',
+          creatorId: 'compose_smoke_author',
+          context: {
+            story_direction: {
+              label: '玄幻悬疑',
+              keywords: '玄幻悬疑 灯塔 古契 选择代价',
+            },
           },
         },
-      },
-      { 'X-NarrativeOS-Debug-Key': 'compose-debug-key' },
-    )
-    assert(created.candidateDraft?.status === 'candidate', 'compose workflow must return candidate draft')
-    assert(String(created.candidateDraft?.body || '').length >= 200, 'compose workflow candidate must be readable')
-    assert(Array.isArray(created.questions) && created.questions.length <= 2, 'compose workflow must ask at most two questions')
-    assert(
-      (created.runTrace || []).some(item => item.step === 'tool_bridge.socratic_turn' && item.status === 'ok'),
-      'compose workflow must call FastAPI Tool Bridge',
-    )
+        { 'X-NarrativeOS-Debug-Key': 'compose-debug-key' },
+      )
+      assert(created.candidateDraft?.status === 'candidate', 'compose workflow must return candidate draft')
+      assert(String(created.candidateDraft?.body || '').length >= 200, 'compose workflow candidate must be readable')
+      assert(Array.isArray(created.questions) && created.questions.length <= 2, 'compose workflow must ask at most two questions')
+      assert(
+        (created.runTrace || []).some(item => item.step === 'tool_bridge.socratic_turn' && item.status === 'ok'),
+        'compose workflow must call FastAPI Tool Bridge',
+      )
 
-    return {
-      status: 'passed',
-      apiPort,
-      agentPort,
-      health: {
-        api: { status: apiHealth.status },
-        agent: { status: agentHealth.status, service: agentHealth.service },
-      },
-      workflow: {
-        status: created.candidateDraft.status,
-        draftLength: String(created.candidateDraft.body || '').length,
-        questionCount: created.questions.length,
-        toolBridgeAccepted: true,
-      },
+      return {
+        status: 'passed',
+        apiPort,
+        agentPort,
+        health: {
+          api: { status: apiHealth.status },
+          agent: { status: agentHealth.status, service: agentHealth.service },
+        },
+        workflow: {
+          status: created.candidateDraft.status,
+          draftLength: String(created.candidateDraft.body || '').length,
+          questionCount: created.questions.length,
+          toolBridgeAccepted: true,
+        },
+      }
+    } catch (error) {
+      try {
+        const logs = docker([...composeBaseArgs, 'logs', '--no-color', '--tail', '160'], env, 120000)
+        process.stderr.write(`\n--- runtime preview compose logs ---\n${logs}\n--- end runtime preview compose logs ---\n`)
+      } catch (logError) {
+        process.stderr.write(`runtime preview compose log collection failed: ${errorText(logError)}\n`)
+      }
+      throw error
     }
   } finally {
     if (started) {

@@ -59,10 +59,11 @@ npm run check:runtime-preview-compose
 The gate verifies:
 
 1. `deploy/api/Dockerfile` builds a FastAPI runtime with
-   `NARRATIVEOS_DEPLOY_ENV=production` and binds `0.0.0.0:8787`.
+   `NARRATIVEOS_DEPLOY_ENV=production`, copies `docs/product/rules`, and binds
+   `0.0.0.0:8787`.
 2. `deploy/agent-runtime/Dockerfile` builds the Agent Runtime with
-   `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, and binds
-   `0.0.0.0:4111`.
+   `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, copies
+   `docs/product/rules`, and binds `0.0.0.0:4111`.
 3. `deploy/runtime-preview/docker-compose.yml` wires Agent Runtime to FastAPI
    through `MASTRA_TOOL_BRIDGE_BASE_URL=http://api:8787`.
 4. Both services expose healthy `/health` endpoints after container startup.

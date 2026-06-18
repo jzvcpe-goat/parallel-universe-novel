@@ -17,6 +17,7 @@ COPY backend/configs /app/backend/configs
 COPY backend/prompts /app/backend/prompts
 COPY backend/specs /app/backend/specs
 COPY backend/db /app/backend/db
+COPY docs/product/rules /app/docs/product/rules
 
 EXPOSE 8787
 
