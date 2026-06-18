@@ -23,7 +23,8 @@ P51 changed state-writeback and quality-brake evidence:
 - commit records declare `write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
 - P59 now proves a single-probe database transaction rollback fixture for Reader branch publish candidates,
-- remaining gap is production public branch publish, production branch table persistence, and release-owner approval.
+- P62 proves private production branch table persistence and P63 proves Reader-visible public release,
+- remaining gap is remote live runtime trace, production telemetry fitting, and paid/legal release packet.
 
 P55 changed world-engine/state-writeback evidence:
 
@@ -62,7 +63,7 @@ P59 Database Transaction Rollback Fixture changed rollback evidence:
 - the fixture requires latest `branch_publish_candidate_ledger_only`,
 - repository `prove_analytics_event_transaction_rollback` verifies insert-visible-before-rollback and `persisted_after_rollback = false`,
 - successful calls return `write_scope = rollback_fixture_only`,
-- remaining gap is production public branch publish and production branch table persistence, not absence of rollback proof.
+- remaining gap is Reader-visible release after rollback proof, not absence of rollback proof.
 
 P60 Branch Publish Authorization Gate changed authorization evidence:
 
@@ -72,7 +73,7 @@ P60 Branch Publish Authorization Gate changed authorization evidence:
 - the request must include `operator_id` and `confirmed = true`,
 - successful calls write only `branch_publish_authorization_ledger_only`,
 - `/loom` exposes `branch_publish_authorization_summary`,
-- remaining gap is production public branch publish and production branch table persistence, not absence of operator authorization proof.
+- remaining gap is Reader-visible release after operator authorization, not absence of operator authorization proof.
 
 P61 Branch Commit Draft Gate changed commit-draft evidence:
 
@@ -82,7 +83,7 @@ P61 Branch Commit Draft Gate changed commit-draft evidence:
 - the repository proves rollback across `route_choices` and `analytics_events`,
 - successful calls write only `branch_commit_draft_ledger_only`,
 - `/loom` exposes `branch_commit_draft_summary`,
-- remaining gap is production public branch publish, production branch tables, and remote live runtime trace, not absence of a branch commit draft.
+- remaining gap is private production persistence and Reader-visible release, not absence of a branch commit draft.
 
 P62 Production Branch Commit Gate changed production branch persistence evidence:
 
@@ -94,6 +95,16 @@ P62 Production Branch Commit Gate changed production branch persistence evidence
 - successful calls write `production_branch_table_private` into `production_branch_commits` plus an `analytics_events` audit record,
 - `/loom` exposes `production_branch_commit_summary`,
 - remaining gap is production public branch publish and remote live runtime trace, not absence of production branch table persistence.
+
+P63 Production Public Publish Gate changed Reader visibility evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/branches/public-publish`,
+- the gate requires `Idempotency-Key`,
+- the gate requires latest P62 `production_branch_table_private`,
+- the request must include `release_owner_id`, `ops_reviewer_id`, `rollback_owner_id`, `confirmed = true`, and `public_publish_enabled = true`,
+- successful calls write `reader_visible_branch_release` into `public_branch_releases` plus an `analytics_events` audit record,
+- `/loom` exposes `public_branch_release_summary`,
+- remaining gap is remote live runtime trace and production telemetry fitting, not absence of Reader-visible branch release.
 
 ## Verification
 
@@ -116,6 +127,7 @@ npm run check:runtime-completion-refresh
 - Branch publish release-owner gate not proven after commit draft.
 - Branch commit draft not proven after authorization.
 - Production branch table persistence not proven after commit draft.
+- Reader-visible public branch release not proven after private production commit.
 
 ## Boundary
 
@@ -130,4 +142,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, Reader Web visibility switch, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, paid commercial launch, or fitted TimeEngine telemetry.

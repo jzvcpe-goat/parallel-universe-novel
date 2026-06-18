@@ -26,6 +26,88 @@ def _first_world_id(client: TestClient) -> str:
     return worlds[0]["world_id"]
 
 
+def _prepare_production_branch_commit(client: TestClient, *, reader_id: str = "reader_public_branch") -> dict:
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": reader_id})
+    assert started.status_code == 200
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_reader_visible_release",
+            "freeform_intent": "把证人保护起来，同时让可靠记录员准备公开分支。",
+            "worldline_id": session_id,
+            "branch_id": "reader-visible-public-branch",
+            "source_run_id": "reader-run-public-branch-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-public-branch-proof",
+            "beat_plan": ["证人转移", "记录员核验", "灯塔回火", "公开分支可见"],
+        },
+    )
+    assert planned.status_code == 200
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-public-release-key"},
+        json={
+            "branch_id": "reader-visible-public-branch",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-public-release-proof",
+        },
+    )
+    assert published.status_code == 200
+    branch_publish_candidate_id = published.json()["branch_publish_candidate_id"]
+
+    authorized = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-public-release-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert authorized.status_code == 200
+    authorization_id = authorized.json()["authorization_id"]
+
+    drafted = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-public-release-key"},
+        json={"authorization_id": authorization_id},
+    )
+    assert drafted.status_code == 200
+    commit_draft_id = drafted.json()["commit_draft_id"]
+
+    committed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-public-release-key"},
+        json={
+            "commit_draft_id": commit_draft_id,
+            "release_owner_id": "release-owner",
+            "confirmed": True,
+        },
+    )
+    assert committed.status_code == 200
+    assert committed.json()["write_scope"] == "production_branch_table_private"
+
+    return {
+        "session_id": session_id,
+        "branch_publish_candidate_id": branch_publish_candidate_id,
+        "authorization_id": authorization_id,
+        "commit_draft_id": commit_draft_id,
+        "branch_commit_id": committed.json()["branch_commit_id"],
+    }
+
+
 def test_reader_snapshot_and_worldline_use_session_state(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     world_id = _first_world_id(client)
@@ -826,6 +908,206 @@ def test_production_branch_commit_requires_draft_and_release_owner(tmp_path: Pat
     assert commit_summary["branch_commit_id"] == payload["branch_commit_id"]
     assert commit_summary["commit_draft_id"] == commit_draft_id
     assert commit_summary["production_public_publish"] is False
+
+
+def test_public_branch_publish_requires_private_commit_and_release_controls(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_public_missing"})
+    session_without_commit = started.json()["session_id"]
+
+    missing_commit = client.post(
+        f"/v1/timeline/worldlines/{session_without_commit}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-missing-commit-key"},
+        json={
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert missing_commit.status_code == 200
+    assert missing_commit.json()["status"] == "blocked"
+    assert missing_commit.json()["reason"] == "production_branch_commit_required"
+
+    prepared = _prepare_production_branch_commit(client)
+    session_id = prepared["session_id"]
+    branch_commit_id = prepared["branch_commit_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    owner_mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "other-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert owner_mismatch.status_code == 200
+    assert owner_mismatch.json()["status"] == "blocked"
+    assert owner_mismatch.json()["reason"] == "release_owner_mismatch"
+
+    missing_ops = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert missing_ops.status_code == 200
+    assert missing_ops.json()["status"] == "blocked"
+    assert missing_ops.json()["reason"] == "ops_reviewer_id_required"
+
+    missing_rollback_owner = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert missing_rollback_owner.status_code == 200
+    assert missing_rollback_owner.json()["status"] == "blocked"
+    assert missing_rollback_owner.json()["reason"] == "rollback_owner_id_required"
+
+    unconfirmed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": False,
+            "public_publish_enabled": True,
+        },
+    )
+    assert unconfirmed.status_code == 200
+    assert unconfirmed.json()["status"] == "blocked"
+    assert unconfirmed.json()["reason"] == "public_publish_confirmation_required"
+
+    disabled = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": False,
+        },
+    )
+    assert disabled.status_code == 200
+    assert disabled.json()["status"] == "blocked"
+    assert disabled.json()["reason"] == "public_publish_enabled_required"
+
+    mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": "production_branch_commit_wrong",
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert mismatch.status_code == 200
+    assert mismatch.json()["status"] == "blocked"
+    assert mismatch.json()["reason"] == "branch_commit_mismatch"
+
+    released = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+            "remote_runtime_trace_ref": "deferred-until-remote-runtime",
+            "legal_audit_ref": "ops-local-release-note",
+        },
+    )
+    assert released.status_code == 200
+    payload = released.json()
+    assert payload["status"] == "published_public"
+    assert payload["capability_mode"] == "production_public_publish_gate"
+    assert payload["write_scope"] == "reader_visible_branch_release"
+    assert payload["branch_commit_id"] == branch_commit_id
+    assert payload["release_owner_id"] == "release-owner"
+    assert payload["ops_reviewer_id"] == "ops-reviewer"
+    assert payload["rollback_owner_id"] == "rollback-owner"
+    assert payload["visibility_status"] == "reader_visible"
+    assert payload["reader_visibility_enabled"] is True
+    assert payload["public_publish_enabled"] is True
+    assert payload["production_public_publish"] is True
+    assert payload["tables_written"] == ["public_branch_releases", "analytics_events"]
+    assert payload["audit_event_id"] is not None
+    assert payload["rollback_plan"]["method"] == "mark_public_branch_release_withdrawn"
+    assert "remote_live_runtime_trace" in payload["next_required"]
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-release-key"},
+        json={
+            "branch_commit_id": branch_commit_id,
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert replayed.status_code == 200
+    assert replayed.json()["idempotent_replay"] is True
+    assert replayed.json()["public_release_id"] == payload["public_release_id"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/branches/public-publish")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["public_release_id"] == payload["public_release_id"]
+    assert snapshot.json()["write_scope"] == "reader_visible_branch_release"
+    assert snapshot.json()["reader_visibility_enabled"] is True
+    assert snapshot.json()["production_public_publish"] is True
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    release_summary = worldline.json()["public_branch_release_summary"]
+    assert release_summary["status"] == "reader_visible"
+    assert release_summary["write_scope"] == "reader_visible_branch_release"
+    assert release_summary["public_release_id"] == payload["public_release_id"]
+    assert release_summary["branch_commit_id"] == branch_commit_id
+    assert release_summary["reader_visibility_enabled"] is True
+    assert release_summary["production_public_publish"] is True
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

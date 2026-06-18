@@ -52,6 +52,18 @@ class ProductionBranchCommitRequest(BaseModel):
     project_id: Optional[str] = None
 
 
+class PublicBranchPublishRequest(BaseModel):
+    branch_commit_id: Optional[str] = None
+    release_owner_id: Optional[str] = None
+    ops_reviewer_id: Optional[str] = None
+    rollback_owner_id: Optional[str] = None
+    confirmed: bool = False
+    public_publish_enabled: bool = False
+    remote_runtime_trace_ref: Optional[str] = None
+    legal_audit_ref: Optional[str] = None
+    project_id: Optional[str] = None
+
+
 class SceneAdvanceRequest(BaseModel):
     session_id: str
     choice_id: Optional[str] = None
@@ -299,6 +311,33 @@ def production_branch_commit(
 def production_branch_commit_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
     try:
         return request.app.state.product_runtime_service.production_branch_commit_snapshot(worldline_id=worldline_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/branches/public-publish")
+def public_branch_publish(
+    worldline_id: str,
+    payload: PublicBranchPublishRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.publish_public_branch(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/branches/public-publish")
+def public_branch_publish_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.public_branch_release_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

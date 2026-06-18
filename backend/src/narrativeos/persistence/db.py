@@ -380,6 +380,38 @@ class ProductionBranchCommitRow(PlatformBase):
     updated_at = Column(String, nullable=False, default=utcnow_iso)
 
 
+class PublicBranchReleaseRow(PlatformBase):
+    __tablename__ = "public_branch_releases"
+    __table_args__ = (
+        Index("idx_public_branch_releases_worldline_created_at", "worldline_id", "created_at"),
+        Index("idx_public_branch_releases_session_created_at", "session_id", "created_at"),
+        Index("idx_public_branch_releases_visibility_created_at", "visibility_status", "created_at"),
+        Index("idx_public_branch_releases_branch_commit_id", "branch_commit_id"),
+    )
+
+    public_release_id = Column(String, primary_key=True)
+    worldline_id = Column(String, nullable=False, index=True)
+    session_id = Column(String, nullable=False, index=True)
+    world_id = Column(String, nullable=True, index=True)
+    world_version_id = Column(String, nullable=True, index=True)
+    branch_id = Column(String, nullable=False, index=True)
+    branch_commit_id = Column(String, nullable=False, index=True)
+    commit_draft_id = Column(String, nullable=False, index=True)
+    authorization_id = Column(String, nullable=False, index=True)
+    branch_publish_candidate_id = Column(String, nullable=False, index=True)
+    release_owner_id = Column(String, nullable=False, index=True)
+    ops_reviewer_id = Column(String, nullable=False, index=True)
+    rollback_owner_id = Column(String, nullable=False, index=True)
+    visibility_status = Column(String, nullable=False, default="reader_visible")
+    write_scope = Column(String, nullable=False, default="reader_visible_branch_release")
+    public_publish_enabled = Column(String, nullable=False, default="true")
+    idempotency_key_hash = Column(String, nullable=False, index=True)
+    rollback_plan_json = Column(JSON, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_at = Column(String, nullable=False, default=utcnow_iso)
+    updated_at = Column(String, nullable=False, default=utcnow_iso)
+
+
 class AnalyticsEventRow(PlatformBase):
     __tablename__ = "analytics_events"
     __table_args__ = (

@@ -1311,6 +1311,221 @@ class ProductRuntimeService:
             "created_at": latest.get("created_at"),
         }
 
+    def publish_public_branch(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        production_commit = self.repository.latest_production_branch_commit(worldline_id=worldline_id)
+        if production_commit is None:
+            return {
+                "status": "blocked",
+                "reason": "production_branch_commit_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        requested_branch_commit_id = str(payload.get("branch_commit_id") or "").strip()
+        branch_commit_id = str(production_commit.get("branch_commit_id") or "")
+        if requested_branch_commit_id and requested_branch_commit_id != branch_commit_id:
+            return {
+                "status": "blocked",
+                "reason": "branch_commit_mismatch",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+            }
+        release_owner_id = str(payload.get("release_owner_id") or "").strip()
+        expected_release_owner_id = str(production_commit.get("release_owner_id") or "").strip()
+        if not release_owner_id:
+            return {
+                "status": "blocked",
+                "reason": "release_owner_id_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+            }
+        if expected_release_owner_id and release_owner_id != expected_release_owner_id:
+            return {
+                "status": "blocked",
+                "reason": "release_owner_mismatch",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+                "release_owner_id": release_owner_id,
+                "expected_release_owner_id": expected_release_owner_id,
+            }
+        ops_reviewer_id = str(payload.get("ops_reviewer_id") or "").strip()
+        if not ops_reviewer_id:
+            return {
+                "status": "blocked",
+                "reason": "ops_reviewer_id_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+            }
+        rollback_owner_id = str(payload.get("rollback_owner_id") or "").strip()
+        if not rollback_owner_id:
+            return {
+                "status": "blocked",
+                "reason": "rollback_owner_id_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+            }
+        if payload.get("confirmed") is not True:
+            return {
+                "status": "blocked",
+                "reason": "public_publish_confirmation_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+                "release_owner_id": release_owner_id,
+            }
+        if payload.get("public_publish_enabled") is not True:
+            return {
+                "status": "blocked",
+                "reason": "public_publish_enabled_required",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+                "production_public_publish": False,
+            }
+
+        key_hash = _idempotency_hash(key)
+        public_release_id = "public_branch_release_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "branch_commit_id": branch_commit_id,
+                "release_owner_id": release_owner_id,
+                "ops_reviewer_id": ops_reviewer_id,
+            }
+        )
+        rollback_plan = {
+            "status": "available_after_public_publish",
+            "method": "mark_public_branch_release_withdrawn",
+            "owner_id": rollback_owner_id,
+            "public_release_id": public_release_id,
+            "branch_commit_id": branch_commit_id,
+        }
+        persisted = self.repository.persist_public_branch_release(
+            {
+                "public_release_id": public_release_id,
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "branch_id": str(production_commit.get("branch_id") or worldline_id),
+                "branch_commit_id": branch_commit_id,
+                "commit_draft_id": production_commit.get("commit_draft_id"),
+                "authorization_id": production_commit.get("authorization_id"),
+                "branch_publish_candidate_id": production_commit.get("branch_publish_candidate_id"),
+                "release_owner_id": release_owner_id,
+                "ops_reviewer_id": ops_reviewer_id,
+                "rollback_owner_id": rollback_owner_id,
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "idempotency_key_hash": key_hash,
+                "public_publish_enabled": True,
+                "rollback_plan": rollback_plan,
+                "payload_json": {
+                    "capability_mode": "production_public_publish_gate",
+                    "production_branch_commit": {
+                        "branch_commit_id": branch_commit_id,
+                        "write_scope": production_commit.get("write_scope"),
+                        "commit_draft_id": production_commit.get("commit_draft_id"),
+                        "authorization_id": production_commit.get("authorization_id"),
+                    },
+                    "remote_runtime_trace_ref": str(payload.get("remote_runtime_trace_ref") or ""),
+                    "legal_audit_ref": str(payload.get("legal_audit_ref") or ""),
+                },
+            }
+        )
+        return {
+            "status": "published_public",
+            "capability_mode": "production_public_publish_gate",
+            "write_scope": "reader_visible_branch_release",
+            "public_release_id": persisted["public_release_id"],
+            "branch_commit_id": persisted["branch_commit_id"],
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_id": persisted["branch_id"],
+            "commit_draft_id": persisted["commit_draft_id"],
+            "authorization_id": persisted["authorization_id"],
+            "branch_publish_candidate_id": persisted["branch_publish_candidate_id"],
+            "release_owner_id": persisted["release_owner_id"],
+            "ops_reviewer_id": persisted["ops_reviewer_id"],
+            "rollback_owner_id": persisted["rollback_owner_id"],
+            "visibility_status": persisted["visibility_status"],
+            "reader_visibility_enabled": True,
+            "public_publish_enabled": True,
+            "production_public_publish": True,
+            "rollback_plan": persisted.get("rollback_plan") or rollback_plan,
+            "tables_written": list(persisted.get("tables_written") or []),
+            "audit_event_id": persisted.get("audit_event_id"),
+            "next_required": ["remote_live_runtime_trace", "production_time_engine_telemetry_fit"],
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": bool(persisted.get("idempotent_replay")),
+            "created_at": persisted.get("created_at"),
+        }
+
+    def public_branch_release_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self.repository.latest_public_branch_release(worldline_id=worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "production_public_publish_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No Reader-visible public branch release has been published for this worldline yet.",
+            }
+        return {
+            "status": "published_public",
+            "capability_mode": "production_public_publish_gate",
+            "write_scope": str(latest.get("write_scope") or "reader_visible_branch_release"),
+            "public_release_id": latest.get("public_release_id"),
+            "branch_commit_id": latest.get("branch_commit_id"),
+            "worldline_id": latest.get("worldline_id"),
+            "session_id": latest.get("session_id"),
+            "world_id": latest.get("world_id"),
+            "branch_id": latest.get("branch_id"),
+            "commit_draft_id": latest.get("commit_draft_id"),
+            "authorization_id": latest.get("authorization_id"),
+            "branch_publish_candidate_id": latest.get("branch_publish_candidate_id"),
+            "release_owner_id": latest.get("release_owner_id"),
+            "ops_reviewer_id": latest.get("ops_reviewer_id"),
+            "rollback_owner_id": latest.get("rollback_owner_id"),
+            "visibility_status": latest.get("visibility_status"),
+            "reader_visibility_enabled": bool(latest.get("reader_visibility_enabled") or False),
+            "public_publish_enabled": bool(latest.get("public_publish_enabled") or False),
+            "production_public_publish": True,
+            "rollback_plan": dict(latest.get("rollback_plan") or {}),
+            "created_at": latest.get("created_at"),
+        }
+
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
         steps = self.repository.list_steps(session_id)
@@ -1499,6 +1714,7 @@ class ProductRuntimeService:
         branch_authorization_record = self._latest_branch_authorization_record(worldline_id)
         branch_commit_draft_record = self._latest_branch_commit_draft_record(worldline_id)
         production_branch_commit_record = self.repository.latest_production_branch_commit(worldline_id=worldline_id)
+        public_branch_release_record = self.repository.latest_public_branch_release(worldline_id=worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -1596,6 +1812,21 @@ class ProductRuntimeService:
                     dict(production_branch_commit_record or {}).get("public_publish_enabled") or False
                 ),
                 "production_public_publish": False,
+            },
+            "public_branch_release_summary": {
+                "status": str(dict(public_branch_release_record or {}).get("visibility_status") or "waiting"),
+                "write_scope": str(dict(public_branch_release_record or {}).get("write_scope") or "none"),
+                "public_release_id": dict(public_branch_release_record or {}).get("public_release_id"),
+                "branch_commit_id": dict(public_branch_release_record or {}).get("branch_commit_id"),
+                "release_owner_id": dict(public_branch_release_record or {}).get("release_owner_id"),
+                "ops_reviewer_id": dict(public_branch_release_record or {}).get("ops_reviewer_id"),
+                "rollback_owner_id": dict(public_branch_release_record or {}).get("rollback_owner_id"),
+                "reader_visibility_enabled": bool(
+                    dict(public_branch_release_record or {}).get("reader_visibility_enabled") or False
+                ),
+                "production_public_publish": bool(
+                    dict(public_branch_release_record or {}).get("public_publish_enabled") or False
+                ),
             },
         }
 

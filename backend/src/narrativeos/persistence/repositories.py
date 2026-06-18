@@ -34,6 +34,7 @@ from .db import (
     BillingLifecycleEventRow,
     BillingRetryAttemptRow,
     ProductionBranchCommitRow,
+    PublicBranchReleaseRow,
     AuthorApprovalRecordRow,
     AuthorCommentMessageRow,
     AuthorDraftWatcherRow,
@@ -2737,6 +2738,166 @@ class SQLAlchemyPlatformRepository:
             "write_scope": row.write_scope,
             "public_publish_enabled": str(row.public_publish_enabled).lower() == "true",
             "idempotency_key_hash": row.idempotency_key_hash,
+            "payload": dict(row.payload_json or {}),
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+
+    def persist_public_branch_release(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        public_release_id = str(payload.get("public_release_id") or "").strip()
+        worldline_id = str(payload.get("worldline_id") or "").strip()
+        session_id = str(payload.get("session_id") or worldline_id).strip()
+        branch_id = str(payload.get("branch_id") or "").strip()
+        branch_commit_id = str(payload.get("branch_commit_id") or "").strip()
+        commit_draft_id = str(payload.get("commit_draft_id") or "").strip()
+        authorization_id = str(payload.get("authorization_id") or "").strip()
+        branch_publish_candidate_id = str(payload.get("branch_publish_candidate_id") or "").strip()
+        release_owner_id = str(payload.get("release_owner_id") or "").strip()
+        ops_reviewer_id = str(payload.get("ops_reviewer_id") or "").strip()
+        rollback_owner_id = str(payload.get("rollback_owner_id") or "").strip()
+        idempotency_key_hash = str(payload.get("idempotency_key_hash") or "").strip()
+        public_publish_enabled = bool(payload.get("public_publish_enabled") or False)
+        if not public_release_id:
+            raise ValueError("public_release_id_required")
+        if not worldline_id:
+            raise ValueError("worldline_id_required")
+        if not session_id:
+            raise ValueError("session_id_required")
+        if not branch_id:
+            raise ValueError("branch_id_required")
+        if not branch_commit_id:
+            raise ValueError("branch_commit_id_required")
+        if not commit_draft_id:
+            raise ValueError("commit_draft_id_required")
+        if not authorization_id:
+            raise ValueError("authorization_id_required")
+        if not branch_publish_candidate_id:
+            raise ValueError("branch_publish_candidate_id_required")
+        if not release_owner_id:
+            raise ValueError("release_owner_id_required")
+        if not ops_reviewer_id:
+            raise ValueError("ops_reviewer_id_required")
+        if not rollback_owner_id:
+            raise ValueError("rollback_owner_id_required")
+        if not idempotency_key_hash:
+            raise ValueError("idempotency_key_hash_required")
+        if not public_publish_enabled:
+            raise ValueError("public_publish_enabled_required")
+        now = payload.get("created_at") or utcnow_iso()
+        with self.SessionLocal() as session:
+            existing = session.get(PublicBranchReleaseRow, public_release_id)
+            if existing is not None:
+                event = (
+                    session.execute(
+                        select(AnalyticsEventRow)
+                        .where(
+                            AnalyticsEventRow.event_name == "public_branch_release_published",
+                            AnalyticsEventRow.session_id == session_id,
+                        )
+                        .order_by(desc(AnalyticsEventRow.occurred_at), desc(AnalyticsEventRow.event_id))
+                    )
+                    .scalars()
+                    .first()
+                )
+                return {
+                    **self._public_branch_release_row_to_dict(existing),
+                    "audit_event_id": event.event_id if event is not None else None,
+                    "idempotent_replay": True,
+                    "tables_written": ["public_branch_releases", "analytics_events"],
+                }
+            session_row = session.get(SessionRow, session_id)
+            if session_row is None:
+                raise KeyError("unknown_session:%s" % session_id)
+            production_commit = session.get(ProductionBranchCommitRow, branch_commit_id)
+            if production_commit is None:
+                raise KeyError("unknown_production_branch_commit:%s" % branch_commit_id)
+            row = PublicBranchReleaseRow(
+                public_release_id=public_release_id,
+                worldline_id=worldline_id,
+                session_id=session_id,
+                world_id=payload.get("world_id"),
+                world_version_id=payload.get("world_version_id"),
+                branch_id=branch_id,
+                branch_commit_id=branch_commit_id,
+                commit_draft_id=commit_draft_id,
+                authorization_id=authorization_id,
+                branch_publish_candidate_id=branch_publish_candidate_id,
+                release_owner_id=release_owner_id,
+                ops_reviewer_id=ops_reviewer_id,
+                rollback_owner_id=rollback_owner_id,
+                visibility_status="reader_visible",
+                write_scope="reader_visible_branch_release",
+                public_publish_enabled="true",
+                idempotency_key_hash=idempotency_key_hash,
+                rollback_plan_json=dict(payload.get("rollback_plan") or {}),
+                payload_json=dict(payload.get("payload_json") or {}),
+                created_at=now,
+                updated_at=now,
+            )
+            event = AnalyticsEventRow(
+                event_name="public_branch_release_published",
+                reader_id=payload.get("reader_id"),
+                session_id=session_id,
+                world_version_id=payload.get("world_version_id"),
+                payload_json={
+                    "public_release_id": public_release_id,
+                    "worldline_id": worldline_id,
+                    "branch_id": branch_id,
+                    "branch_commit_id": branch_commit_id,
+                    "release_owner_id": release_owner_id,
+                    "ops_reviewer_id": ops_reviewer_id,
+                    "rollback_owner_id": rollback_owner_id,
+                    "visibility_status": "reader_visible",
+                    "idempotency_key_hash": idempotency_key_hash,
+                },
+                occurred_at=now,
+            )
+            session.add(row)
+            session.add(event)
+            session.commit()
+            return {
+                **self._public_branch_release_row_to_dict(row),
+                "audit_event_id": event.event_id,
+                "idempotent_replay": False,
+                "tables_written": ["public_branch_releases", "analytics_events"],
+            }
+
+    def latest_public_branch_release(self, *, worldline_id: str) -> Optional[Dict[str, Any]]:
+        with self.SessionLocal() as session:
+            row = (
+                session.execute(
+                    select(PublicBranchReleaseRow)
+                    .where(PublicBranchReleaseRow.worldline_id == worldline_id)
+                    .order_by(desc(PublicBranchReleaseRow.created_at), desc(PublicBranchReleaseRow.public_release_id))
+                )
+                .scalars()
+                .first()
+            )
+            if row is None:
+                return None
+            return self._public_branch_release_row_to_dict(row)
+
+    def _public_branch_release_row_to_dict(self, row: PublicBranchReleaseRow) -> Dict[str, Any]:
+        return {
+            "public_release_id": row.public_release_id,
+            "worldline_id": row.worldline_id,
+            "session_id": row.session_id,
+            "world_id": row.world_id,
+            "world_version_id": row.world_version_id,
+            "branch_id": row.branch_id,
+            "branch_commit_id": row.branch_commit_id,
+            "commit_draft_id": row.commit_draft_id,
+            "authorization_id": row.authorization_id,
+            "branch_publish_candidate_id": row.branch_publish_candidate_id,
+            "release_owner_id": row.release_owner_id,
+            "ops_reviewer_id": row.ops_reviewer_id,
+            "rollback_owner_id": row.rollback_owner_id,
+            "visibility_status": row.visibility_status,
+            "write_scope": row.write_scope,
+            "public_publish_enabled": str(row.public_publish_enabled).lower() == "true",
+            "reader_visibility_enabled": row.visibility_status == "reader_visible",
+            "idempotency_key_hash": row.idempotency_key_hash,
+            "rollback_plan": dict(row.rollback_plan_json or {}),
             "payload": dict(row.payload_json or {}),
             "created_at": row.created_at,
             "updated_at": row.updated_at,

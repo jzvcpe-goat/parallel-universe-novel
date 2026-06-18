@@ -51,6 +51,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_branch_publish_authorization_requires_operator_quality_and_rollback',
   'test_branch_commit_draft_requires_authorization_and_proves_multitable_rollback',
   'test_production_branch_commit_requires_draft_and_release_owner',
+  'test_public_branch_publish_requires_private_commit_and_release_controls',
   'harness_trace',
   'branch_writeback',
   'quality_brake',
@@ -61,6 +62,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'branch_publish_authorization_ledger_only',
   'branch_commit_draft_ledger_only',
   'production_branch_table_private',
+  'reader_visible_branch_release',
 ])
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/scene/advance")',
@@ -75,6 +77,8 @@ assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/commit-draft")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/commit")',
   '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/commit")',
+  '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/public-publish")',
+  '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/public-publish")',
   '@router.post("/v1/quality/evaluate")',
   '@router.post("/v1/canon/commit")',
   'quality_report',
@@ -104,6 +108,7 @@ assertIncludes('docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md', [
   'branch publish authorization',
   'branch commit draft',
   'production branch commit',
+  'public branch publish',
   'quality evaluate',
   'canon commit',
 ])
@@ -123,6 +128,7 @@ const artifact = {
       '/timeline/worldlines/{id}/branches/publish-authorization',
       '/timeline/worldlines/{id}/branches/commit-draft',
       '/timeline/worldlines/{id}/branches/commit',
+      '/timeline/worldlines/{id}/branches/public-publish',
       '/quality/evaluate',
       '/canon/commit',
     ],

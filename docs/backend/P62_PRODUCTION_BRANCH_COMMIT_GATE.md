@@ -94,12 +94,18 @@ P62 is a private production branch persistence gate:
 13. `/loom` exposes `production_branch_commit_summary`.
 14. `check:production-branch-commit` is part of root `npm run test`.
 
-## Next Gate
+## Next Gate Status
 
-P63 should be **Production Public Publish Gate**:
+P63 now implements **Production Public Publish Gate**:
 
-- remote live runtime trace reference,
 - public publish kill switch,
 - Reader Web visibility switch,
 - release owner + ops/legal audit export,
 - rollback owner and public unpublish plan.
+
+The next unresolved gate should move to remote live runtime trace:
+
+- remote FastAPI HTTPS origin,
+- remote Agent Runtime HTTPS origin,
+- public Pages live variables,
+- live Creator/Reader workflow evidence.

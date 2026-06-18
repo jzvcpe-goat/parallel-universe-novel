@@ -20,7 +20,7 @@ backend/tests/test_product_runtime_api.py
 
 ## Covered Product Runtime Surface
 
-Machine anchors: scene advance, time engine, branch publish candidate, rollback fixture, branch publish authorization, branch commit draft, production branch commit, quality evaluate, canon commit.
+Machine anchors: scene advance, time engine, branch publish candidate, rollback fixture, branch publish authorization, branch commit draft, production branch commit, public branch publish, quality evaluate, canon commit.
 
 | Product path | Backend endpoint | Test responsibility |
 | --- | --- | --- |
@@ -33,6 +33,7 @@ Machine anchors: scene advance, time engine, branch publish candidate, rollback 
 | Reader branch publish authorization | `/timeline/worldlines/{id}/branches/publish-authorization` | 要求已有 branch publish candidate、operator 确认、结构质量门禁和 rollback fixture，写入 `branch_publish_authorization_ledger_only`，不做生产 public publish。 |
 | Reader branch commit draft | `/timeline/worldlines/{id}/branches/commit-draft` | 要求已有授权候选，证明 `route_choices` + `analytics_events` 双表 rollback fixture，写入 `branch_commit_draft_ledger_only`。 |
 | Reader production branch commit | `/timeline/worldlines/{id}/branches/commit` | 要求已有 commit draft 和 release-owner 确认，写入 `production_branch_table_private`，保持 `public_publish_enabled = false`。 |
+| Reader public branch publish | `/timeline/worldlines/{id}/branches/public-publish` | 要求已有 private production commit、release-owner、ops reviewer、rollback owner、确认和发布开关，写入 `reader_visible_branch_release`。 |
 | Studio quality evaluate | `/quality/evaluate` | 生成 quality gate、blocking reasons、canon commit readiness。 |
 | Studio canon commit | `/canon/commit` | 没有人工确认或质量未过时必须 blocked；通过后才允许 committed。 |
 
