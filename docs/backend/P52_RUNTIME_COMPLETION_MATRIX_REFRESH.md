@@ -242,6 +242,19 @@ P79 Remote Assignment Execution Pack changed operator execution evidence:
 - remaining gap is actual provider execution and health, not absence of an
   operator command bundle.
 
+P80 Reference Privacy Artifact Gate changed privacy release evidence:
+
+- `scan:reference-privacy` now writes a redacted JSON artifact under
+  `artifacts/runtime/reference-privacy-*.json`,
+- the artifact includes scan counts and public ref count, but never includes
+  titles, authors, decrypted mappings, key values or violation detail strings,
+- Pages workflow runs the scan after `app/dist` is built and uploads
+  `reference-privacy`,
+- `check:github-actions-artifacts` requires `reference-privacy` in current-run
+  mode,
+- remaining gap is team legal/access governance, not absence of an engineering
+  privacy release artifact.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,

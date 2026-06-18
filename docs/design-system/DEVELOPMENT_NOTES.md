@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P80 Reference Privacy Artifact Gate
+
+代表作品名加密以后，不能只停留在“本地扫描通过”。上线链路必须留下可下载证据，否则团队无法证明当前 Pages build 和 Git history 没有泄漏代表作品名。
+
+新的工程标准：
+
+1. `scan:reference-privacy` 必须生成 `artifacts/runtime/reference-privacy-*.json`。
+2. privacy artifact 只能包含扫描范围、计数、是否启用本地解密扫描、是否扫描 Git history、违规数量；不得包含标题、作者、解密映射、key value、system prompt 或 violation detail。
+3. Pages workflow 必须在 `app/dist` build 后再次运行 privacy scan，因为只扫源码不能证明公开静态产物安全。
+4. CI current-run artifact gate 必须要求 `reference-privacy`，同时要求 `remote-assignment-execution-pack`，防止上线证据只留在日志里。
+5. 隐私/法务相关 gate 的失败详情可以打到控制台，但 artifact 默认只留红acted metadata，避免“证明材料”本身成为二次泄漏源。
+
+验证命令：
+
+```bash
+npm run scan:reference-privacy
+npm run check:pages-live-release-gate
+npm run check:runtime-engine-completion
+```
+
 ## 2026-06-18 P4 文档核心重做补丁
 
 用户再次要求 P4 从头做，并明确废弃此前单个题材验收里形成的约束逻辑。本轮纠正了一个容易复发的问题：回归门禁不能保存旧案例词表，否则门禁自己就会变成新的残留。

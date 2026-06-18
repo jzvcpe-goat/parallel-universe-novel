@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
 import { createDecipheriv } from 'node:crypto'
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
+const artifactDir = join(root, 'artifacts/runtime')
 const vaultPath = join(root, 'docs/product/rules/reference-work-vault.enc.json')
 const publicRefsPath = join(root, 'docs/product/rules/reference-work-public-refs.json')
 const runtimeRulesPath = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
@@ -117,9 +118,54 @@ function lineNumber(text, index) {
 const violations = []
 const files = allScanFiles()
 const trackedFiles = allTrackedFiles().filter(isTextCandidate)
+let decryptedVaultRefsCount = 0
+let decryptedVaultScan = false
+let gitHistoryPrivacyChecked = false
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function writePrivacyArtifact(status, publicIds) {
+  mkdirSync(artifactDir, { recursive: true })
+  const artifact = {
+    status,
+    scope: 'reference privacy scan',
+    generatedAt: new Date().toISOString(),
+    artifactContract: 'P80_REFERENCE_PRIVACY_ARTIFACT_GATE',
+    publicBoundary: {
+      representativeWorks: 'encrypted_vault_only',
+      publicReferenceField: 'sourceRefs',
+      publicRefCount: publicIds.size,
+    },
+    checks: {
+      vaultShape: true,
+      publicRefsAnonymousOnly: true,
+      runtimeSourceRefsAnonymousOnly: true,
+      publicRuleTextNoTitleMarkers: true,
+      noCommittedVaultKey: true,
+      currentFilesAgainstVault: true,
+      gitHistoryPrivacy: gitHistoryPrivacyChecked,
+      decryptedVaultScan,
+    },
+    scanStats: {
+      scanRoots,
+      currentFilesScanned: files.length,
+      trackedTextFilesScanned: trackedFiles.length,
+      decryptedVaultRefsCount,
+      violationCount: violations.length,
+    },
+    redaction: {
+      violationDetailsIncluded: false,
+      titlesIncluded: false,
+      authorsIncluded: false,
+      decryptedMappingsIncluded: false,
+      keyValuesIncluded: false,
+    },
+  }
+  const artifactPath = join(artifactDir, `reference-privacy-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+  writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)
+  return artifactPath
 }
 
 function validateVaultShape() {
@@ -325,6 +371,7 @@ function validateGitHistoryPrivacy(refs) {
   } catch {
     return
   }
+  gitHistoryPrivacyChecked = true
 
   const objectsBySha = new Map()
   for (const row of objectRows) {
@@ -434,6 +481,8 @@ for (const file of files) {
 
 try {
   const refs = decryptVault()
+  decryptedVaultRefsCount = refs.length
+  decryptedVaultScan = refs.length > 0
   if (refs.length) validateDecryptedRefs(refs, publicIds)
   validateCurrentTextFilesAgainstVault(refs)
   validateGitHistoryPrivacy(refs)
@@ -441,11 +490,21 @@ try {
   violations.push(`reference-work-vault decrypt failed: ${error instanceof Error ? error.message : String(error)}`)
 }
 
+const artifactPath = writePrivacyArtifact(violations.length ? 'failed' : 'passed', publicIds)
+
 if (violations.length) {
-  console.error(`reference privacy scan failed (${violations.length})`)
+  console.error(`reference privacy scan failed (${violations.length}); artifact: ${relative(root, artifactPath)}`)
   for (const violation of violations.slice(0, 80)) console.error(`- ${violation}`)
   if (violations.length > 80) console.error(`... ${violations.length - 80} more`)
   process.exit(1)
 }
 
-console.log('reference privacy scan passed')
+console.log(JSON.stringify({
+  status: 'passed',
+  artifact: relative(root, artifactPath),
+  publicRefCount: publicIds.size,
+  currentFilesScanned: files.length,
+  trackedTextFilesScanned: trackedFiles.length,
+  decryptedVaultScan,
+  gitHistoryPrivacyChecked,
+}, null, 2))

@@ -129,6 +129,23 @@ assert(
   'Pages workflow must upload the remote runtime activation control artifact after the runtime gate',
 )
 assert(
+  workflow.includes('Upload remote assignment execution pack')
+    && workflow.includes('remote-assignment-execution-pack')
+    && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.md')
+    && workflow.indexOf('Upload remote assignment execution pack') > workflow.indexOf('Gate public runtime release mode'),
+  'Pages workflow must upload the remote assignment execution pack artifact after root runtime checks',
+)
+assert(
+  workflow.includes('Scan built Pages privacy')
+    && workflow.includes('npm run scan:reference-privacy')
+    && workflow.includes('Upload reference privacy evidence')
+    && workflow.includes('reference-privacy')
+    && workflow.includes('artifacts/runtime/reference-privacy-*.json')
+    && workflow.indexOf('Upload reference privacy evidence') > workflow.indexOf('Scan built Pages privacy'),
+  'Pages workflow must scan built Pages privacy and upload the reference privacy evidence artifact',
+)
+assert(
   workflow.includes('Check current run evidence artifacts')
     && workflow.includes('CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
@@ -171,10 +188,12 @@ assert(
     && p43Doc.includes('live-cutover-attestation')
     && p43Doc.includes('live-rollback-rehearsal')
     && p43Doc.includes('remote-runtime-activation-control')
+    && p43Doc.includes('remote-assignment-execution-pack')
+    && p43Doc.includes('reference-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
-  'P43 doc must describe the required GitHub Actions artifact evidence gate',
+  'P43 doc must describe the required GitHub Actions artifact evidence gate, including assignment and privacy evidence',
 )
 assert(
   p15Doc.includes('P15 proves those deployed units actually satisfy the Creator Studio product flow.'),
@@ -194,6 +213,8 @@ console.log(JSON.stringify({
   cutoverAttestation: 'check:live-cutover-attestation',
   rollbackRehearsal: 'check:live-rollback-rehearsal',
   activationControl: 'check:remote-runtime-activation-control',
+  assignmentExecutionPack: 'remote-assignment-execution-pack',
+  referencePrivacy: 'reference-privacy',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
 }, null, 2))

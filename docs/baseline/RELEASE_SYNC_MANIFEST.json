@@ -86,6 +86,7 @@
     "docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md",
     "docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md",
     "docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md",
+    "docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",

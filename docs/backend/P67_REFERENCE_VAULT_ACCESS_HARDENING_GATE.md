@@ -92,10 +92,16 @@ P67 complements `scan:reference-privacy`:
 
 - `scan:reference-privacy` searches public files, current build output, runtime
   artifacts, and Git history for leaks.
+- `scan:reference-privacy` emits
+  `artifacts/runtime/reference-privacy-*.json` with counts, scan scope and
+  pass/fail metadata only. It never writes titles, authors, decrypted mappings,
+  key values or violation detail strings into the artifact.
 - `check:reference-vault-access` proves the vault/key/access contract that makes
   those scans meaningful.
 
 Both commands are required in root `npm run test`.
+GitHub Pages uploads the generated privacy artifact as `reference-privacy`, and
+the current-run artifact gate requires it before public deploy.
 
 ## Acceptance
 
@@ -111,3 +117,5 @@ Both commands are required in root `npm run test`.
    accessible.
 9. The gate artifact does not include titles, authors, decrypted mappings, or
    key values.
+10. `scan:reference-privacy` writes a redacted evidence artifact and Pages CI
+    uploads it as `reference-privacy`.

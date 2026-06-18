@@ -11,9 +11,17 @@ const defaultArtifacts = [
   'local-live-runtime-visual-qa',
   'github-pages',
 ]
-if (checkCurrentRun) defaultArtifacts.splice(1, 0, 'live-cutover-attestation')
-if (checkCurrentRun) defaultArtifacts.splice(2, 0, 'live-rollback-rehearsal')
-if (checkCurrentRun) defaultArtifacts.splice(3, 0, 'remote-runtime-activation-control')
+if (checkCurrentRun) {
+  defaultArtifacts.splice(
+    1,
+    0,
+    'live-cutover-attestation',
+    'live-rollback-rehearsal',
+    'remote-runtime-activation-control',
+    'remote-assignment-execution-pack',
+    'reference-privacy',
+  )
+}
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))
   .split(',')
   .map(item => item.trim())

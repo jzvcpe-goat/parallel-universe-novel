@@ -28,7 +28,7 @@ npm run check:runtime-engine-completion
 | --- | --- | --- | --- | --- |
 | `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; P62 writes a private production branch table row and audit event; P63 writes a Reader-visible `public_branch_releases` row and audit event; P64 writes a `time_engine_telemetry_fits` row; Studio confirmation now carries `studio_trace` into the canon ledger. | Remote live runtime trace is not yet proven. |
 | `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, `branch_publish_candidate_ledger_only`, authorization, `branch_commit_draft_ledger_only`, `production_branch_table_private`, `reader_visible_branch_release`, and `production_time_engine_fit` proof exist. | Remote runtime facade is not yet proven. |
-| `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
+| `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests, P67 vault access gate, P80 reference privacy artifact gate. | Keep registry privacy, P4 scanner and reference privacy artifact green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids; P64 persists `production_time_engine_fit` after public release. | Remote live runtime trace is not yet proven. |
 | `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `reference-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -48,6 +48,7 @@ The release chain must continue to produce:
 - `live-rollback-rehearsal`
 - `remote-runtime-activation-control`
 - `remote-assignment-execution-pack`
+- `reference-privacy`
 - `local-live-runtime-visual-qa`
 - `github-pages`
 
@@ -547,6 +548,23 @@ P79 turns an ignored P75 assignment file into an operator command bundle:
 
 Current decision is that P79 is ready as an operator execution-pack gate. It
 does not execute the generated commands and does not store secrets.
+
+## P80 Reference Privacy Artifact Gate
+
+P80 turns representative-work privacy scanning into release evidence:
+
+- `scan:reference-privacy` writes
+  `artifacts/runtime/reference-privacy-*.json` with redacted pass/fail metadata.
+- Pages workflow runs the scan after `app/dist` is built and uploads the
+  `reference-privacy` artifact.
+- `check:github-actions-artifacts` requires `reference-privacy` in current-run
+  mode.
+- The artifact includes scan counts and public ref counts only; it does not
+  include titles, author names, decrypted mappings, key values, system prompts
+  or violation detail strings.
+
+Current decision is that P80 is ready as a release-evidence privacy gate. It is
+not legal advice and does not replace team-only access governance.
 
 ## Privacy Boundary
 

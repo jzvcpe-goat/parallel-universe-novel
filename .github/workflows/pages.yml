@@ -134,6 +134,17 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Upload remote assignment execution pack
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-execution-pack
+          path: |
+            artifacts/runtime/remote-assignment-execution-pack-*.json
+            artifacts/runtime/remote-assignment-execution-pack-*.md
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
@@ -148,6 +159,15 @@ jobs:
 
       - name: Scan built Pages privacy
         run: npm run scan:reference-privacy
+
+      - name: Upload reference privacy evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reference-privacy
+          path: artifacts/runtime/reference-privacy-*.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Configure Pages
         uses: actions/configure-pages@v6

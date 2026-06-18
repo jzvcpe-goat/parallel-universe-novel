@@ -31,6 +31,7 @@ const requiredFiles = [
   'docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md',
   'docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md',
   'docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md',
+  'docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -484,9 +485,13 @@ assert(
     && workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('Upload live rollback rehearsal')
     && workflow.includes('Upload remote runtime activation control')
+    && workflow.includes('Upload remote assignment execution pack')
+    && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('artifacts/runtime/live-rollback-rehearsal-*.json')
     && workflow.includes('artifacts/runtime/remote-activation-control-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
+    && workflow.includes('artifacts/runtime/reference-privacy-*.json')
     && workflow.includes('actions: read')
     && workflow.includes('GH_TOKEN: ${{ github.token }}')
     && workflow.includes('VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}')
