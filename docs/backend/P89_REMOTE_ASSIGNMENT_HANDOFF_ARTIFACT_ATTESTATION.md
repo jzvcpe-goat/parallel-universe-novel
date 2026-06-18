@@ -13,6 +13,11 @@ Local mode checks the latest local P87 artifact:
 npm run check:remote-assignment-handoff-artifact
 ```
 
+If the latest local P87 artifact belongs to an older git head, non-required
+local mode records `stale_local_handoff_artifact` and skips. Root `npm run test`
+runs P87 immediately before P89, so the root chain still validates a fresh
+current-head handoff.
+
 Current GitHub run mode downloads the `remote-assignment-handoff` artifact and
 validates exactly one JSON and one Markdown file:
 

@@ -83,6 +83,7 @@ function downloadGithubHandoff(runId) {
     })
     const jsonFiles = collectFiles(dir)
       .filter(file => /remote-assignment-handoff-.*\.json$/.test(file))
+      .filter(file => !/remote-assignment-handoff-attestation-.*\.json$/.test(file))
       .sort()
     assert(jsonFiles.length === 1, `expected exactly one handoff JSON in GitHub artifact, got ${jsonFiles.length}`)
     const markdownFiles = collectFiles(dir)
@@ -194,7 +195,7 @@ function validateHandoff(payload, expectedHeadSha, mode) {
 
 function writeAttestationArtifact(result) {
   mkdirSync(artifactDir, { recursive: true })
-  const path = join(artifactDir, `remote-assignment-handoff-attestation-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+  const path = join(artifactDir, `remote-handoff-artifact-attestation-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
   writeFileSync(path, `${JSON.stringify(result, null, 2)}\n`)
   return path
 }
@@ -245,6 +246,20 @@ try {
 
   assert(expectedHeadSha, 'expected head sha unavailable')
   const payload = readJson(handoffPath)
+  if (source !== 'github' && payload?.headSha !== expectedHeadSha && !required && !readyRequired) {
+    const artifactPath = writeAttestationArtifact({
+      status: 'skipped',
+      gate: 'P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION',
+      reason: 'stale_local_handoff_artifact',
+      required,
+      readyRequired,
+      expectedHeadSha,
+      handoffHeadSha: payload?.headSha || null,
+      handoffPath: relative(root, handoffPath),
+    })
+    console.log(JSON.stringify({ status: 'skipped', artifactPath: relative(root, artifactPath) }, null, 2))
+    process.exit(0)
+  }
   const validation = validateHandoff(payload, expectedHeadSha, mode)
   const result = {
     version: 1,
