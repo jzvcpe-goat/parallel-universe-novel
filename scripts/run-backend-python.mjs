@@ -7,22 +7,26 @@ const root = resolve(new URL('..', import.meta.url).pathname);
 const candidates = [
   process.env.PYTHON_BIN,
   resolve(root, 'backend/.venv/bin/python'),
+  'python3.11',
   'python3',
   'python',
 ].filter(Boolean);
 
 function canRun(command) {
   if (command.startsWith('/')) {
-    return existsSync(command);
+    if (!existsSync(command)) return false;
   }
-  const result = spawnSync(command, ['--version'], { stdio: 'ignore' });
+  const result = spawnSync(command, [
+    '-c',
+    'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)',
+  ], { stdio: 'ignore' });
   return result.status === 0;
 }
 
 const python = candidates.find(canRun);
 
 if (!python) {
-  console.error('No Python runtime found. Run `npm run setup:api`, create backend/.venv, install python3, or set PYTHON_BIN.');
+  console.error('No Python 3.11+ runtime found. Run `npm run setup:api`, create backend/.venv with Python 3.11+, install python3.11, or set PYTHON_BIN.');
   process.exit(1);
 }
 

@@ -20,19 +20,24 @@ function run(command, args, options = {}) {
 }
 
 function canRun(command) {
-  const result = spawnSync(command, ['--version'], { stdio: 'ignore' })
+  const result = spawnSync(command, [
+    '-c',
+    'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)',
+  ], { stdio: 'ignore' })
   return result.status === 0
 }
 
-const python = process.env.PYTHON_BIN || ['python3', 'python'].find(canRun)
+const python = [process.env.PYTHON_BIN, 'python3.11', 'python3', 'python']
+  .filter(Boolean)
+  .find(canRun)
 
 if (!python) {
   console.error('No Python runtime found. Install Python 3.11+ or set PYTHON_BIN.')
   process.exit(1)
 }
 
-if (!existsSync(venvPython)) {
-  run(python, ['-m', 'venv', resolve(backendDir, '.venv')])
+if (!existsSync(venvPython) || !canRun(venvPython)) {
+  run(python, ['-m', 'venv', '--clear', resolve(backendDir, '.venv')])
 }
 
 run(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip'])

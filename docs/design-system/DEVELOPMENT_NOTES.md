@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 Backward Sweep Python 3.11 Test Boundary
+
+Public Projection Privacy Audit 和 Backward Consistency Sweep 都通过后，又
+裸跑了一次 root `npm run test`。第一次失败不是产品规则漂移，而是
+`setup:api` 用系统 Python 3.9 创建了 release 本地 venv；后端测试和部分代码
+已经使用 Python 3.10+ 类型语法，导致 `str | None` 在 collection 阶段报错。
+
+新的工程标准：
+
+1. `setup:api` 只允许选择 Python 3.11+；已有 `backend/.venv` 如果低于 3.11，
+   必须用 3.11 `--clear` 重建。
+2. `run-backend-python` 也只接受 Python 3.11+，防止 root test 在不同机器上
+   悄悄落回系统 Python 3.9。
+3. 隐私与 P4 gate 的结论不能和环境断点混在一起：规则扫描绿、root test 因
+   Python 版本失败时，应先修测试运行边界，再重新裸跑 root test。
+4. 开发记录里必须写明这类系统级修正，否则以后会误以为需要继续改 P4 规则
+   或 public projection。
+
+验证命令：
+
+```bash
+npm run setup:api
+npm run test
+```
+
 ## 2026-06-18 P108 Remote Assignment Local Boundary Guard
 
 P107 之后继续看上线断点，发现剩下的 8 个 blocker 都集中在远程 runtime
