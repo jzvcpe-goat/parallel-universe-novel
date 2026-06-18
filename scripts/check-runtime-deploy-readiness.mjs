@@ -33,7 +33,7 @@ const contract = read('docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md')
 const packageJson = JSON.parse(read('package.json'))
 
 assert(
-  agentPackage.scripts.start === 'node dist/server.js',
+  agentPackage.scripts.start === 'node dist/src/server.js',
   'Agent Runtime must expose a production start script',
 )
 assert(
