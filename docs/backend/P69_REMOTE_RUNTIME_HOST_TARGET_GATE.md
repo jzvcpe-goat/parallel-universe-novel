@@ -65,10 +65,11 @@ Are the chosen remote HTTPS origins and Pages variables actually ready?
 So the order is:
 
 1. Run `check:remote-host-target`.
-2. Provision the selected host target.
-3. Run `check:remote-origin-provisioning`.
-4. Run `audit:live-runtime-readiness`.
-5. Run `qa:live-runtime-browser`.
+2. Run `check:remote-deploy-manifest`.
+3. Provision the selected host target.
+4. Run `check:remote-origin-provisioning`.
+5. Run `audit:live-runtime-readiness`.
+6. Run `qa:live-runtime-browser`.
 
 ## Secret Boundary
 

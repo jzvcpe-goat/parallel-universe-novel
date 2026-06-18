@@ -43,10 +43,13 @@ Before origin provisioning, run P69:
 
 ```bash
 npm run check:remote-host-target
+npm run check:remote-deploy-manifest
 ```
 
 Use `deploy/runtime-production/host-profiles.json` to select the host profile.
-P66 then verifies the remote HTTPS origins produced by that host.
+Use `deploy/runtime-production/service-manifest.json` to provision the concrete
+API and Agent services. P66 then verifies the remote HTTPS origins produced by
+that host.
 
 FastAPI:
 

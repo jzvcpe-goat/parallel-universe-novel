@@ -14,8 +14,10 @@
 Production origin checklist:
 
 - `deploy/runtime-production/host-profiles.json`
+- `deploy/runtime-production/service-manifest.json`
 - `deploy/runtime-production/origin.env.example`
 - `npm run check:remote-host-target`
+- `npm run check:remote-deploy-manifest`
 - `npm run check:remote-origin-provisioning`
 
 ### FastAPI API
@@ -163,8 +165,15 @@ npm run check:remote-host-target
 ```
 
 Then pick/provision the actual remote host and secrets strategy from
-`deploy/runtime-production/host-profiles.json`. Once host URLs exist, update
-GitHub Actions Pages build from:
+`deploy/runtime-production/host-profiles.json`, and use
+`deploy/runtime-production/service-manifest.json` as the concrete two-service
+deployment contract. Validate it with:
+
+```bash
+npm run check:remote-deploy-manifest
+```
+
+Once host URLs exist, update GitHub Actions Pages build from:
 
 ```yaml
 VITE_PUBLIC_RUNTIME_MODE: disabled

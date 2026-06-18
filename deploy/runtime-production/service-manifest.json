@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "gate": "P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE",
+  "hostTargetProfile": "docker-compatible-two-service-paas",
+  "repository": "jzvcpe-goat/parallel-universe-novel",
+  "deploymentBoundary": {
+    "runtimeOwnership": "fastapi_business_sovereign_agent_runtime_orchestrates",
+    "databaseOwner": "api",
+    "agentDatabaseAccess": "forbidden",
+    "serviceSecrets": "provider_secret_store_only",
+    "publicRuntimeVariables": "github_pages_repository_variables_only",
+    "canonWrites": "fastapi_tool_bridge_only"
+  },
+  "services": [
+    {
+      "id": "api",
+      "serviceName": "parallel-universe-api",
+      "role": "fastapi_business_runtime",
+      "buildContext": ".",
+      "dockerfile": "deploy/api/Dockerfile",
+      "containerPort": 8787,
+      "healthPath": "/health",
+      "publicOriginVariable": "VITE_API_ORIGIN",
+      "publicBaseUrlVariable": "VITE_API_BASE_URL",
+      "requiredRuntimeEnv": [
+        "NARRATIVEOS_DEPLOY_ENV=production",
+        "NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io"
+      ],
+      "requiredSecretEnv": [
+        "DATABASE_URL",
+        "NARRATIVEOS_TOOL_BRIDGE_TOKEN"
+      ],
+      "optionalPersistentEnv": [
+        "NARRATIVEOS_CREATOR_DIALOGUE_DIR",
+        "NARRATIVEOS_CANON_LEDGER_DIR"
+      ],
+      "publicPagesEnv": []
+    },
+    {
+      "id": "agent",
+      "serviceName": "parallel-universe-agent-runtime",
+      "role": "mastra_workflow_runtime",
+      "buildContext": ".",
+      "dockerfile": "deploy/agent-runtime/Dockerfile",
+      "containerPort": 4111,
+      "healthPath": "/health",
+      "publicOriginVariable": "VITE_AGENT_RUNTIME_BASE_URL",
+      "dependsOn": [
+        "api"
+      ],
+      "requiredRuntimeEnv": [
+        "NARRATIVEOS_DEPLOY_ENV=production",
+        "NODE_ENV=production",
+        "MASTRA_HOST=0.0.0.0",
+        "MASTRA_PORT=4111",
+        "MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>",
+        "MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io"
+      ],
+      "requiredSecretEnv": [
+        "MASTRA_TOOL_BRIDGE_TOKEN"
+      ],
+      "optionalPersistentEnv": [],
+      "publicPagesEnv": []
+    }
+  ],
+  "githubPagesVariables": [
+    {
+      "name": "VITE_PUBLIC_RUNTIME_MODE",
+      "value": "live",
+      "setAfter": "api_and_agent_health_ready"
+    },
+    {
+      "name": "VITE_API_ORIGIN",
+      "value": "https://<api-host>",
+      "setAfter": "api_health_ready"
+    },
+    {
+      "name": "VITE_API_BASE_URL",
+      "value": "https://<api-host>/v1",
+      "setAfter": "api_health_ready",
+      "optional": true
+    },
+    {
+      "name": "VITE_AGENT_RUNTIME_BASE_URL",
+      "value": "https://<agent-host>",
+      "setAfter": "agent_health_ready"
+    },
+    {
+      "name": "VITE_ALLOW_LOCAL_CREATOR_FALLBACK",
+      "value": "false",
+      "setBy": "github_actions_workflow"
+    }
+  ],
+  "forbiddenPublicVariables": [
+    "DATABASE_URL",
+    "NARRATIVEOS_TOOL_BRIDGE_TOKEN",
+    "MASTRA_TOOL_BRIDGE_TOKEN",
+    "NARRATIVEOS_CREATOR_API_KEY",
+    "NARRATIVEOS_CREATOR_BASE_URL",
+    "NARRATIVEOS_CREATOR_MODEL",
+    "REFERENCE_WORK_VAULT_KEY"
+  ],
+  "preflightCommands": [
+    "npm run check:remote-host-target",
+    "npm run check:runtime-deploy-readiness",
+    "npm run check:runtime-preview-compose"
+  ],
+  "postProvisionCommands": [
+    "npm run check:remote-origin-provisioning",
+    "npm run audit:live-runtime-readiness",
+    "npm run qa:live-runtime-browser"
+  ],
+  "rollbackCommands": [
+    "gh variable set VITE_PUBLIC_RUNTIME_MODE --repo jzvcpe-goat/parallel-universe-novel --body disabled",
+    "gh workflow run \"Deploy Creator Studio Preview\" --repo jzvcpe-goat/parallel-universe-novel"
+  ]
+}

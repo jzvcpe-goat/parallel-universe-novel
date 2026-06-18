@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -353,6 +353,27 @@ Current decision is that P69 is ready as a host-target gate, while P66 remains
 Remaining gaps stay explicit: P69 does not deploy infrastructure and does not
 replace P66 health checks, P65 remote trace proof, paid model credentials or
 commercial launch ownership.
+
+## P70 Remote Runtime Deploy Manifest Gate
+
+P70 materializes the P69 host target into a concrete two-service deploy manifest:
+
+- `deploy/runtime-production/service-manifest.json` defines API and Agent
+  service names, Dockerfiles, ports, health paths and public origin variables.
+- API requires `DATABASE_URL` and `NARRATIVEOS_TOOL_BRIDGE_TOKEN` as provider
+  secrets.
+- Agent requires `MASTRA_TOOL_BRIDGE_TOKEN` as a provider secret and depends on
+  the API Tool Bridge URL.
+- GitHub Pages variables are limited to public `VITE_*` runtime config.
+- `check:remote-deploy-manifest` validates the service manifest before P66
+  checks remote origins.
+
+Current decision is that P70 is ready as a provider-neutral deployment
+manifest gate, while P66 remains `remote_origin_unprovisioned` until real
+remote API and Agent origins exist.
+
+Remaining gaps stay explicit: P70 does not create cloud resources, does not set
+secrets, and does not replace P66 health checks or P65 remote trace proof.
 
 ## Privacy Boundary
 
