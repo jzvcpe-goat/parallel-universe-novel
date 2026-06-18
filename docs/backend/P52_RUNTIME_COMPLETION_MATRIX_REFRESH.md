@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, and P99 release workflow ordering. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, and P101 learned eval optional dependency boundary. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -58,6 +58,21 @@ P99 Release Workflow Ordering Gate changed commercial-release evidence:
 - Pages checks out the runtime image workflow head SHA for ordered deployments,
 - direct Pages `push` deployment is rejected by `check:release-workflow-ordering`,
 - `check:release-workflow-ordering` is part of root `npm run test`.
+
+P100 Agent Eval Publish Decision Boundary changed Agent Eval evidence:
+
+- FastAPI quality gate responses now include `agent_eval_publish_decision`,
+- the contract id is `P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY`,
+- deterministic quality gates are the only production publish blockers in this boundary,
+- learned evaluator and learned reranker remain `shadow_only` with `shadow_until_promotion_workflow_green`,
+- `check:agent-eval-publish-decision` is part of root `npm run test`.
+
+P101 Learned Eval Optional Dependency Boundary changed learned-eval evidence:
+
+- learned promotion tests use optional learned eval dependency guards instead of blocking the public release chain when local ML packages are absent,
+- `check:learned-eval-optional-boundary` proves the root test does not directly require the learned promotion suite,
+- missing `joblib` or `scikit-learn` skips the promotion-only test rather than weakening deterministic publish decisions,
+- remaining gap is learned evaluator/reranker promotion workflow, model rollout, false positive review and rollback ownership, not optional dependency installation.
 
 P57 changed time-engine evidence:
 

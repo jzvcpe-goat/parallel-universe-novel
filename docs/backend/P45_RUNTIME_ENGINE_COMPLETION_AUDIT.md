@@ -79,7 +79,7 @@ P100 narrows the `agent-eval` gap without claiming learned-model production read
 - The contract id is `P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY`.
 - `decision_source` is `deterministic_quality_gate`.
 - Deterministic hard validators, narrative quality scores and content safety are eligible production gates.
-- Learned evaluator and learned reranker stay `shadow_only` with `production_gate: false`.
+- Learned evaluator and learned reranker stay `shadow_only` with `production_gate: false` and `shadow_until_promotion_workflow_green`.
 - `check:agent-eval-publish-decision` is required by root `npm run test`.
 
 The remaining Agent Eval gap is promotion of learned evaluator/reranker after model rollout, dependency stability, false positive review and rollback ownership are all proven.
@@ -89,6 +89,8 @@ The remaining Agent Eval gap is promotion of learned evaluator/reranker after mo
 P101 keeps learned promotion tests useful without turning optional ML packages into public release blockers:
 
 - `backend/tests/test_learned_assisted_gate.py` skips its promotion-only training case when `joblib` or `scikit-learn` is missing.
+- The contract id is `P101_LEARNED_EVAL_OPTIONAL_DEPENDENCY_BOUNDARY`.
+- Missing `joblib` or `scikit-learn` is treated as an optional learned eval dependency gap, not a deterministic release blocker.
 - `check:learned-eval-optional-boundary` is required by root `npm run test`.
 - Root `npm run test` does not directly execute `backend/tests/test_learned_assisted_gate.py`.
 - The learned promotion suite remains available as an explicit Ops command when the ML environment is intentionally installed.
