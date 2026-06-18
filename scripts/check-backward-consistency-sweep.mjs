@@ -75,6 +75,7 @@ const requiredRootCommands = [
   'npm run scan:reference-privacy',
   'npm run check:public-projection-privacy',
   'npm run check:public-privacy-artifacts',
+  'npm run check:remote-assignment-artifacts',
   'npm run check:backward-consistency-sweep',
 ]
 for (const command of requiredRootCommands) {
@@ -92,6 +93,10 @@ assert(
 assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
+)
+assert(
+  packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
+  'package.json must expose check:remote-assignment-artifacts',
 )
 
 assertIncludes('docs/product/rules/GENRE_CONSTRAINT_RULES.md', [
@@ -157,6 +162,13 @@ assertIncludes('scripts/check-public-privacy-artifacts.mjs', [
   'violationCount',
   'redaction',
 ])
+assertIncludes('scripts/check-remote-assignment-artifacts.mjs', [
+  'P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION',
+  'remote-assignment-schema',
+  'remote-assignment-execution-pack',
+  'remote-assignment-fixture-gate',
+  'CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED',
+])
 
 assertIncludes('backend/src/narrativeos/services/creator_dialogue.py', [
   'def _public_session',
@@ -199,6 +211,9 @@ assertIncludes('.github/workflows/pages.yml', [
   'Check public privacy artifact content',
   'CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED: true',
   'npm run check:public-privacy-artifacts',
+  'Check remote assignment artifact content',
+  'CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED: true',
+  'npm run check:remote-assignment-artifacts',
   'name: public-projection-privacy',
   'path: artifacts/runtime/public-projection-privacy-*.json',
   'name: reference-privacy',
@@ -216,6 +231,7 @@ assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [
   'Backward Consistency Sweep',
   'privacy 类 release artifact',
   'redaction flags',
+  'P93 Remote Assignment Artifact Attestation',
 ])
 assertIncludes('docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md', [
   '| Area | Checked | Issue Found | Fix Applied | Gate |',
@@ -223,7 +239,16 @@ assertIncludes('docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md', [
   'GENRE_KERNEL_RULES.md',
   'Public Projection Privacy Audit',
   'check:public-privacy-artifacts',
+  'check:remote-assignment-artifacts',
   'P92',
+  'P93',
+])
+assertIncludes('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md', [
+  'P93 Remote Assignment Artifact Attestation',
+  'check:remote-assignment-artifacts',
+  'remote-assignment-schema',
+  'remote-assignment-execution-pack',
+  'remote-assignment-fixture-gate',
 ])
 
 for (const requiredFile of [

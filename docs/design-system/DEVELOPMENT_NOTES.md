@@ -3977,3 +3977,27 @@ P92 修的是 P43/P80/Public Projection Privacy Audit 之间的证据空洞：P4
    gate -> P89/P90 远端交接和 blocker artifact content gates。
 5. 经验：privacy 类 release artifact 也必须做 content gate；只校验 artifact
    名字和大小会给公开侧隐私边界留下假绿。
+
+## 2026-06-18 P93 Remote Assignment Artifact Attestation
+
+P93 修的是 P43/P91/P79/P81 之间的证据空洞：GitHub Actions 能上传
+`remote-assignment-schema`、`remote-assignment-execution-pack` 和
+`remote-assignment-fixture-gate`，但 artifact metadata 不能证明里面的 JSON
+和 Markdown 内容可信。
+
+本轮原则：
+
+1. `check:remote-assignment-artifacts` 本地读取最新 assignment artifacts，CI
+   则下载 current run 的三类 assignment artifacts。
+2. `remote-assignment-schema` 必须保持 P91 gate、指向被 `.gitignore` 保护的
+   `remote-assignment.local.json`，并且不包含真实 assignment 内容。
+3. `remote-assignment-execution-pack` 必须保持 P79 gate：local 缺 assignment
+   时如实 blocked；fixture 严格模式可以 ready，但只能使用 `.invalid` reserved
+   origins。
+4. `remote-assignment-fixture-gate` 必须保持 P81 gate：fixture 无密钥、P79
+   ready、P75 health 仍 pending，不能宣称 live runtime。
+5. Pages workflow 顺序固定为 P43 metadata gate -> P92 privacy artifact content
+   gate -> P93 assignment artifact content gate -> P89/P90 handoff/blocker
+   content gates。
+6. 经验：远端 assignment 证据比普通日志更容易被误读成“已经上线”。P93 只验内容
+   一致性，不创建远端服务、不写 local assignment、不解除 live runtime blocker。

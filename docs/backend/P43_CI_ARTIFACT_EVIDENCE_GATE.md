@@ -40,6 +40,8 @@ npm run check:github-actions-artifacts
 
 P43 只证明 artifact 元数据存在。`reference-privacy` 和
 `public-projection-privacy` 的 JSON 内容由 P92 再下载核验，
+`remote-assignment-schema`、`remote-assignment-execution-pack` 和
+`remote-assignment-fixture-gate` 的 JSON/Markdown 内容由 P93 再下载核验，
 `remote-assignment-handoff` 的 JSON 内容由 P89 再下载核验，
 `remote-runtime-blockers` 的 JSON 内容由 P90 再下载核验：
 
@@ -47,6 +49,10 @@ P43 只证明 artifact 元数据存在。`reference-privacy` 和
 CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED=true \
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:public-privacy-artifacts
+
+CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED=true \
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+npm run check:remote-assignment-artifacts
 
 CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true \
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
@@ -76,7 +82,7 @@ npm run check:remote-runtime-blockers-artifact
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P91 owns the assignment schema artifact.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P91 owns the assignment schema generator.
 
 ## Workflow Placement
 
@@ -105,7 +111,7 @@ That placement proves the same run that will deploy Pages also produced the requ
 3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy` and `public-projection-privacy`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.
-6. Pages workflow runs P92, P89 and P90 after P43 so public privacy artifacts,
-   `remote-assignment-handoff` and
+6. Pages workflow runs P92, P93, P89 and P90 after P43 so public privacy
+   artifacts, assignment evidence artifacts, `remote-assignment-handoff` and
    `remote-runtime-blockers` content are validated separately from artifact
    metadata.

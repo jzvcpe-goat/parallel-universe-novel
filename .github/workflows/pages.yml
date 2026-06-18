@@ -242,6 +242,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:public-privacy-artifacts
 
+      - name: Check remote assignment artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-assignment-artifacts
+
       - name: Check remote assignment handoff artifact content
         env:
           GH_TOKEN: ${{ github.token }}

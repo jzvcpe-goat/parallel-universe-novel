@@ -34,6 +34,9 @@ npm run check:runtime-completion-refresh
 - P45 commercial release chain evidence includes P92 public privacy artifact
   content attestation whenever Pages uploads `reference-privacy` and
   `public-projection-privacy`.
+- P45 commercial release chain evidence includes P93 remote assignment artifact
+  content attestation whenever Pages uploads `remote-assignment-schema`,
+  `remote-assignment-execution-pack` and `remote-assignment-fixture-gate`.
 - P45 required evidence artifacts list contains the same public privacy evidence
   uploaded by `.github/workflows/pages.yml`.
 - `check:runtime-engine-completion` validates the Pages upload step, the public
@@ -46,6 +49,8 @@ npm run check:runtime-completion-refresh
   after P85/P89 so the uploaded ledger cannot drift from the current head.
 - `check:public-privacy-artifacts` validates public privacy artifact content
   after P43 validates artifact metadata.
+- `check:remote-assignment-artifacts` validates assignment schema, execution
+  pack and fixture artifact content after P43 validates artifact metadata.
 
 ## Public Boundary
 
@@ -72,4 +77,6 @@ deprecated case logic.
   `assignmentSchema`.
 - `npm run test` includes `check:public-privacy-artifacts` after
   `scan:reference-privacy`.
+- `npm run test` includes `check:remote-assignment-artifacts` after
+  `check:remote-assignment-fixture`.
 - `npm run test` keeps both privacy artifacts in the root release chain.

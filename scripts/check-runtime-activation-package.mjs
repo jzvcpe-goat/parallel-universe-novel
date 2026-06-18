@@ -37,6 +37,7 @@ const requiredFiles = [
   'docs/backend/P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION.md',
   'docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md',
   'docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -63,6 +64,7 @@ const requiredFiles = [
   'scripts/check-remote-assignment-schema.mjs',
   'scripts/check-remote-assignment-execution-pack.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
+  'scripts/check-remote-assignment-artifacts.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -88,6 +90,7 @@ const p87 = read('docs/backend/P87_REMOTE_ASSIGNMENT_HANDOFF_GATE.md')
 const p89 = read('docs/backend/P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION.md')
 const p91 = read('docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md')
 const p92 = read('docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md')
+const p93 = read('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -168,6 +171,10 @@ assert(
   'package.json must expose check:public-privacy-artifacts',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
+  'package.json must expose check:remote-assignment-artifacts',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -230,6 +237,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
   'npm run test must include check:public-privacy-artifacts',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-artifacts'),
+  'npm run test must include check:remote-assignment-artifacts',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -443,6 +454,16 @@ assert(
   'P92 public privacy artifact attestation must define the metadata/content split and strict privacy artifact mode',
 )
 assert(
+  p93.includes('P93 Remote Assignment Artifact Attestation')
+    && p93.includes('check:remote-assignment-artifacts')
+    && p93.includes('CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED=true')
+    && p93.includes('remote-assignment-schema')
+    && p93.includes('remote-assignment-execution-pack')
+    && p93.includes('remote-assignment-fixture-gate')
+    && p93.includes('P43'),
+  'P93 remote assignment artifact attestation must define the metadata/content split for schema, execution-pack and fixture artifacts',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -518,6 +539,7 @@ for (const command of [
   'npm run check:remote-origin-operator-pack',
 		  'npm run check:remote-assignment-handoff',
 		  'npm run check:public-privacy-artifacts',
+		  'npm run check:remote-assignment-artifacts',
 		  'npm run check:remote-assignment-handoff-artifact',
 	  'npm run check:remote-assignment-schema',
 	  'npm run check:remote-runtime-assignment-intake',
@@ -583,6 +605,7 @@ assert(
     && workflow.includes('Upload remote assignment handoff')
     && workflow.includes('Upload remote assignment schema gate')
     && workflow.includes('Check public privacy artifact content')
+    && workflow.includes('Check remote assignment artifact content')
     && workflow.includes('Check remote assignment handoff artifact content')
     && workflow.includes('Upload remote assignment execution pack')
     && workflow.includes('Upload remote assignment fixture gate')
@@ -594,6 +617,8 @@ assert(
     && workflow.includes('artifacts/runtime/remote-assignment-schema-*.json')
     && workflow.includes('CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED: true')
     && workflow.includes('npm run check:public-privacy-artifacts')
+    && workflow.includes('CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED: true')
+    && workflow.includes('npm run check:remote-assignment-artifacts')
     && workflow.includes('CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED: true')
     && workflow.includes('npm run check:remote-assignment-handoff-artifact')
     && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
