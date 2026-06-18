@@ -38,6 +38,7 @@ const requiredFiles = [
   'docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md',
   'docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md',
   'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -91,6 +92,7 @@ const p89 = read('docs/backend/P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATIO
 const p91 = read('docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md')
 const p92 = read('docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md')
 const p93 = read('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md')
+const p94 = read('docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -462,6 +464,14 @@ assert(
     && p93.includes('remote-assignment-fixture-gate')
     && p93.includes('P43'),
   'P93 remote assignment artifact attestation must define the metadata/content split for schema, execution-pack and fixture artifacts',
+)
+assert(
+  p94.includes('P94 Local Artifact Mode Coherence')
+    && p94.includes('check:remote-runtime-blockers')
+    && p94.includes('runtime-image-evidence-current-head')
+    && p94.includes('check:remote-runtime-blockers-artifact')
+    && p94.includes('P90'),
+  'P94 local artifact mode coherence must bind P85 local ledger generation to current-head P72/P89 evidence',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

@@ -3979,6 +3979,22 @@ P94 修的是 P85 本地 blocker ledger 的证据混配断点：`latest artifact
 5. 经验：本地模式可以用于诊断，但 release 证明必须有“同一 head 证据集”
    这个约束；否则长期 loop 里迟早会被旧 artifact 污染。
 
+## 2026-06-18 P95 Activation Package Coherence Closure
+
+P95 修的是 P94 完成后的交付清单遗漏：P94 已经约束 P85/P90 的本地与
+current-run artifact head 一致性，但 `check:runtime-activation-package` 还没把
+P94 当作上线包的一部分。
+
+本轮原则：
+
+1. Activation package 必须包含 `docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md`。
+2. `check:runtime-activation-package` 必须验证 P94 里的
+   `runtime-image-evidence-current-head`、`check:remote-runtime-blockers`、
+   `check:remote-runtime-blockers-artifact` 和 P90 关系。
+3. P20 runbook 的 blocker ledger 验证步骤必须明确 P94 coherence rule。
+4. 经验：每次新增 artifact/content gate 后，都要检查 activation package 是否同步；
+   否则本地 gate 绿了，交付清单仍可能缺一块。
+
 ## 2026-06-18 P92 Public Privacy Artifact Attestation
 
 P92 修的是 P43/P80/Public Projection Privacy Audit 之间的证据空洞：P43

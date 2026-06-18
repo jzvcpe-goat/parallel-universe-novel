@@ -361,7 +361,7 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 7. Run `npm run check:public-privacy-artifacts` to verify the public privacy artifact contents before handing release evidence to an operator.
 8. Run `npm run check:remote-assignment-artifacts` to verify assignment schema, execution pack and fixture artifact contents before handoff.
 9. Run `npm run check:remote-assignment-handoff-artifact` to verify the handoff content before handing it to an operator.
-10. Run `npm run check:remote-runtime-blockers-artifact` to verify the blocker ledger is current, privacy-safe and consistent with the cleared P72/P80/P81/P89/P92/P93 gates.
+10. Run `npm run check:remote-runtime-blockers-artifact` to verify the blocker ledger is current, privacy-safe and consistent with the cleared P72/P80/P81/P89/P92/P93 gates and the P94 local/current-run artifact coherence rule.
 11. Run `npm run check:remote-assignment-schema` after copying the template so the local assignment shape is valid before P75/P79 health and command gates.
 12. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
 13. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
