@@ -12,7 +12,7 @@ from uuid import uuid4
 from ..providers import LLMBackend, backend_debug_info
 
 
-IMPORTED_PROMPT_SOURCE = "imported_novel_starter_system_prompt"
+IMPORTED_PROMPT_SOURCE = "novel_starter_guide"
 IMPORTED_PROMPT_VERSION = "story_architecture_v2"
 IMPORTED_PROMPT_TITLE = "小说启动引导"
 IMPORTED_PROMPT_FIRST_QUESTION = "你脑海里最先浮现的是哪个画面？"
@@ -61,8 +61,8 @@ IMPORTED_PROMPT_PRINCIPLES = [
     "类型节奏由平台创作经验辅助，原创意图由作者确认",
 ]
 IMPORTED_PROMPT_CONTRACT = {
-    "prompt_id": IMPORTED_PROMPT_SOURCE,
-    "prompt_version": IMPORTED_PROMPT_VERSION,
+    "guide_id": IMPORTED_PROMPT_SOURCE,
+    "guide_version": IMPORTED_PROMPT_VERSION,
     "launch_method": "seed_break_grow",
     "rule": "write_first_ask_later",
     "max_questions_per_turn": 2,
@@ -157,8 +157,8 @@ def _prompt_request_context(value: Any) -> Dict[str, Any]:
     if not isinstance(value, dict):
         return {}
     allowed = {
-        "prompt_id",
-        "prompt_version",
+        "guide_id",
+        "guide_version",
         "launch_method",
         "rule",
         "max_questions_per_turn",
@@ -532,7 +532,7 @@ def _public_setting_cards(cards: Any) -> Dict[str, Any]:
 
 
 class CreatorDialogueService:
-    """Conversation-first novel starter based on an imported system prompt pack.
+    """Conversation-first novel starter based on the product guide contract.
 
     The service is deliberately product-facing: it returns story text, 1-2 live
     questions, extracted setting cards, and a truthful model status. It never
@@ -570,11 +570,9 @@ class CreatorDialogueService:
                 "agent": IMPORTED_PROMPT_SOURCE,
                 "version": IMPORTED_PROMPT_VERSION,
                 "title": IMPORTED_PROMPT_TITLE,
-                "prompt_id": IMPORTED_PROMPT_SOURCE,
-                "prompt_version": IMPORTED_PROMPT_VERSION,
                 "principles": list(IMPORTED_PROMPT_PRINCIPLES),
                 "request_context": request_context,
-                "prompt_contract": dict(IMPORTED_PROMPT_CONTRACT),
+                "guide_contract": dict(IMPORTED_PROMPT_CONTRACT),
             },
             "preferences": {
                 "language": _clean_text(payload.get("language") or "zh-CN", limit=24),
@@ -761,11 +759,9 @@ class CreatorDialogueService:
                 "agent": IMPORTED_PROMPT_SOURCE,
                 "version": IMPORTED_PROMPT_VERSION,
                 "title": IMPORTED_PROMPT_TITLE,
-                "prompt_id": IMPORTED_PROMPT_SOURCE,
-                "prompt_version": IMPORTED_PROMPT_VERSION,
                 "principles": list(IMPORTED_PROMPT_PRINCIPLES),
                 "request_context": {},
-                "prompt_contract": dict(IMPORTED_PROMPT_CONTRACT),
+                "guide_contract": dict(IMPORTED_PROMPT_CONTRACT),
             },
             "preferences": {
                 "language": "zh-CN",
@@ -782,7 +778,7 @@ class CreatorDialogueService:
 
     def _public_session(self, session: Dict[str, Any]) -> Dict[str, Any]:
         assistant_turns = [turn for turn in session.get("turns", []) if turn.get("role") == "assistant"]
-        latest = dict(assistant_turns[-1]) if assistant_turns else {}
+        latest = self._public_turn(assistant_turns[-1]) if assistant_turns else {}
         latest.pop("role", None)
         return {
             "session_id": session["session_id"],
@@ -792,9 +788,26 @@ class CreatorDialogueService:
             "turn_index": len(session.get("turns", [])),
             "assistant": latest,
             "setting_cards": _public_setting_cards(session.get("setting_cards") or {}),
-            "turns": session.get("turns", []),
-            "source": session.get("source", {}),
+            "turns": [self._public_turn(turn) for turn in session.get("turns", []) if isinstance(turn, dict)],
+            "source": self._public_source(session.get("source") or {}),
             "updated_at": session.get("updated_at"),
+        }
+
+    def _public_turn(self, turn: Dict[str, Any]) -> Dict[str, Any]:
+        projected = dict(turn)
+        if projected.get("role") == "assistant" or "story_text" in projected:
+            projected.pop("model_status", None)
+            projected.pop("harness_trace", None)
+        return projected
+
+    def _public_source(self, source: Dict[str, Any]) -> Dict[str, Any]:
+        principles = source.get("principles") if isinstance(source.get("principles"), list) else IMPORTED_PROMPT_PRINCIPLES
+        return {
+            "title": _clean_text(source.get("title") or IMPORTED_PROMPT_TITLE, limit=120),
+            "principles": [str(item) for item in principles][:8],
+            "max_questions_per_turn": IMPORTED_PROMPT_CONTRACT["max_questions_per_turn"],
+            "creative_dimensions": list(IMPORTED_PROMPT_CREATIVE_DIMENSIONS),
+            "input_sources": copy.deepcopy(IMPORTED_PROMPT_INPUT_SOURCE_MATRIX),
         }
 
     def _seed_question_turn(self) -> Dict[str, Any]:
@@ -889,7 +902,7 @@ class CreatorDialogueService:
     def _system_prompt(self) -> str:
         principles = "；".join(IMPORTED_PROMPT_PRINCIPLES)
         return (
-            "你是一个基于导入 novel-starter system prompt 的小说共创助手。"
+            "你是一个基于小说启动引导的小说共创助手。"
             f"核心原则：{principles}。"
             "每次生成必须同时维护小说建筑：故事钩子、主角缺口、人物关系、场景锚点、世界规则、冲突引擎、章节钩子、叙事视角、章纲骨架。"
             "作者只需要确认不可替代的原创意图；类型节奏、角色功能位、场景库参数和章末钩子密度来自平台预置的创作经验。"
@@ -908,7 +921,7 @@ class CreatorDialogueService:
         return json.dumps(
             {
                 "phase": session.get("phase"),
-                "prompt_contract": session.get("source", {}).get("prompt_contract") or IMPORTED_PROMPT_CONTRACT,
+                "guide_contract": session.get("source", {}).get("guide_contract") or IMPORTED_PROMPT_CONTRACT,
                 "setting_cards": session.get("setting_cards", {}),
                 "turns": visible_turns,
                 "task": (

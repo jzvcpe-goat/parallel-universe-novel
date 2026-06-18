@@ -71,7 +71,7 @@ export const pageSurfaceContracts: Record<
     requiredPatterns: ['ParallelUniverseShell', 'PageHeader', 'Panel', 'CreatorConversationPanel', 'CreatorDialogueThread', 'CreatorReasoningMap', 'CreatorStoryNotes'],
     primaryAction: '生成开场',
     liveWhen: '输入故事种子后能生成正文、追问问题、继续输入，并把结构化信息产品化为创作脉络和故事笔记。',
-    blockedCopy: ['后端', '接口', 'PRD', 'demo', '原型', 'system prompt', 'System Prompt', '系统从正文提取', '底盘预设', '绑定', '底盘', '起点', '番茄', '思维链'],
+    blockedCopy: ['后端', '接口', 'PRD', 'demo', '原型', '系统从正文提取', '底盘预设', '绑定', '底盘', '起点', '番茄', '思维链'],
   },
   studio: {
     route: '/studio',

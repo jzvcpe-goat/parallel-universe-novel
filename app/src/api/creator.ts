@@ -41,7 +41,7 @@ export interface CreatorDialogueAssistant {
   setting_cards_delta: string[]
   next_actions: string[]
   quality_notes: string[]
-  model_status: {
+  model_status?: {
     mode: 'local_cowriter' | 'llm_assisted'
     provider?: string | null
     model?: string | null
@@ -185,11 +185,10 @@ export interface CreatorDialogueSession {
     agent?: string
     version?: string
     title?: string
-    prompt_id?: string
-    prompt_version?: string
     principles?: string[]
-    request_context?: Record<string, unknown>
-    prompt_contract?: Record<string, unknown>
+    max_questions_per_turn?: number
+    creative_dimensions?: readonly string[]
+    input_sources?: Record<string, readonly string[]>
   }
   updated_at?: string
 }
@@ -600,16 +599,10 @@ export function localDialogueSession(seed = '', sessionId = 'local_creator_dialo
       agent: novelStarterPrompt.source,
       version: novelStarterPrompt.version,
       title: novelStarterPrompt.title,
-      prompt_id: novelStarterPrompt.requestContext.prompt_id,
-      prompt_version: novelStarterPrompt.requestContext.prompt_version,
       principles: [...novelStarterPrompt.principles],
-      request_context: { ...novelStarterPrompt.requestContext },
-      prompt_contract: {
-        ...novelStarterPrompt.requestContext,
-        first_question: novelStarterPrompt.firstQuestion,
-        creative_dimensions: novelStarterPrompt.requestContext.creative_dimensions,
-        input_source_matrix: novelStarterPrompt.inputSourceMatrix,
-      },
+      max_questions_per_turn: novelStarterPrompt.requestContext.max_questions_per_turn,
+      creative_dimensions: novelStarterPrompt.requestContext.creative_dimensions,
+      input_sources: novelStarterPrompt.inputSourceMatrix,
     },
     updated_at: nowIso(),
   }

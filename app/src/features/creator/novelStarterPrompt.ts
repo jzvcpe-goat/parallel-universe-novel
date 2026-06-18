@@ -38,7 +38,7 @@ export const novelInputSourceMatrix = {
 } as const
 
 export const novelStarterPrompt = {
-  source: 'imported_novel_starter_system_prompt',
+  source: 'novel_starter_guide',
   version: 'story_architecture_v2',
   title: '小说启动引导',
   promise: '用三分钟创作属于你的故事',
@@ -77,8 +77,8 @@ export const novelStarterPrompt = {
     '类型节奏由 Memo 模板预置，原创意图由作者确认',
   ],
   requestContext: {
-    prompt_id: 'imported_novel_starter_system_prompt',
-    prompt_version: 'story_architecture_v2',
+    guide_id: 'novel_starter_guide',
+    guide_version: 'story_architecture_v2',
     launch_method: 'seed_break_grow',
     rule: 'write_first_ask_later',
     max_questions_per_turn: 2,

@@ -1,5 +1,23 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 Public Projection Privacy Audit
+
+本轮把 P4 冻结为架构边界协议，而不是继续使用“优化 P4”这种会无限扩张的任务名。后续涉及约束、内核、运行时、隐私或质量刹车的 PR，必须先声明自己改变的是 `Document-Core Boundary`、`Runtime Registry Boundary`、`Reference Work Privacy Boundary`、`Public Projection Boundary`、`Deprecated Case Logic Guard` 或 `Quality Brake Mapping` 中的哪一个边界。
+
+新的公开投影标准：
+
+1. Creator Studio、Reader Web、FastAPI public response、preview build、测试报告、fixtures 和 runtime artifacts 不得泄漏代表作品明文、`sourceRefs`、`rwref_*` 到明文映射、`profile.id`、`kernel.id`、provider prompt plumbing、vault metadata 或废弃 case logic。
+2. 内部 session state 可以保存 active profile/kernel、runtime rules 和 provider status 用于审计，但所有对外响应必须经过 public projection。
+3. 产品 UI 只能呈现故事向摘要、候选正文、最多两个追问、公开质量反馈和可理解的设定卡；不要把 provider、system prompt、fallback、raw state、vault 或 runtime registry 词汇带到页面上。
+4. CI 不应默认持有 encrypted representative-work vault 的解密 key；门禁只验证 vault 形状、匿名 refs、公开 build 和 artifacts 没有泄漏。
+
+验证命令：
+
+```bash
+npm run check:public-projection-privacy
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py
+```
+
 ## 2026-06-18 P82 Reference Ref Consistency Gate
 
 代表作品隐私已经由 encrypted vault、匿名 `rwref_*` 和历史扫描保护，但还有一个更隐蔽的工程风险：公开文档里的匿名引用本身可能漂移。即使没有泄漏真实作品名，如果 `GENRE_CONSTRAINT_RULES.md` 表格、同文件 profile 章节、`GENRE_KERNEL_RULES.md` 表格、kernel 章节和 `genre-runtime-rules.v1.json` 使用不同的 `rwref_*`，后端、产品和法务都会误读“这个内核到底由哪组私有样本支撑”。

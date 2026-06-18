@@ -59,16 +59,18 @@ def test_creator_dialogue_session_without_seed_asks_one_open_question(tmp_path: 
     assert payload["assistant"]["story_text"] == ""
     assert len(payload["assistant"]["questions"]) == 1
     assert "画面" in payload["assistant"]["questions"][0]
-    assert payload["source"]["agent"] == "imported_novel_starter_system_prompt"
-    assert payload["source"]["prompt_contract"]["max_questions_per_turn"] == 2
-    assert "characters" in payload["source"]["prompt_contract"]["creative_dimensions"]
-    assert "scene" in payload["source"]["prompt_contract"]["creative_dimensions"]
-    assert "memo_frozen" in payload["source"]["prompt_contract"]["input_source_matrix"]
+    assert payload["source"]["title"] == "小说启动引导"
+    assert payload["source"]["max_questions_per_turn"] == 2
+    assert "characters" in payload["source"]["creative_dimensions"]
+    assert "scene" in payload["source"]["creative_dimensions"]
+    assert "memo_frozen" in payload["source"]["input_sources"]
     assert payload["source"]["principles"][0] == "永远先给正文，后问问题"
-    assert payload["assistant"]["model_status"]["mode"] == "local_cowriter"
+    serialized = json.dumps(payload, ensure_ascii=False)
+    for forbidden in ["prompt_id", "prompt_contract", "model_status", "harness_trace", "provider"]:
+        assert forbidden not in serialized
 
 
-def test_creator_dialogue_echoes_frontend_prompt_contract(tmp_path: Path, monkeypatch):
+def test_creator_dialogue_projects_frontend_guide_without_prompt_plumbing(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
 
     response = client.post(
@@ -77,8 +79,8 @@ def test_creator_dialogue_echoes_frontend_prompt_contract(tmp_path: Path, monkey
             "creator_id": "author_1",
             "seed": "一座会在午夜改写名字的城市",
             "context": {
-                "prompt_id": "imported_novel_starter_system_prompt",
-                "prompt_version": "story_architecture_v2",
+                "guide_id": "novel_starter_guide",
+                "guide_version": "story_architecture_v2",
                 "launch_method": "seed_break_grow",
                 "rule": "write_first_ask_later",
                 "max_questions_per_turn": 9,
@@ -89,14 +91,13 @@ def test_creator_dialogue_echoes_frontend_prompt_contract(tmp_path: Path, monkey
     assert response.status_code == 200
     payload = response.json()
     assert payload["source"]["title"] == "小说启动引导"
-    assert payload["source"]["prompt_id"] == "imported_novel_starter_system_prompt"
-    assert payload["source"]["prompt_version"] == "story_architecture_v2"
-    assert payload["source"]["request_context"]["prompt_id"] == "imported_novel_starter_system_prompt"
-    assert payload["source"]["request_context"]["max_questions_per_turn"] == 2
-    assert payload["source"]["prompt_contract"]["first_question"] == "你脑海里最先浮现的是哪个画面？"
-    assert payload["source"]["prompt_contract"]["input_source_matrix"]["manual"]
-    assert payload["source"]["prompt_contract"]["input_source_matrix"]["memo_frozen"]
-    assert len(payload["assistant"]["questions"]) <= payload["source"]["prompt_contract"]["max_questions_per_turn"]
+    assert payload["source"]["max_questions_per_turn"] == 2
+    assert payload["source"]["input_sources"]["manual"]
+    assert payload["source"]["input_sources"]["memo_frozen"]
+    assert len(payload["assistant"]["questions"]) <= payload["source"]["max_questions_per_turn"]
+    serialized = json.dumps(payload, ensure_ascii=False)
+    for forbidden in ["guide_id", "prompt_id", "prompt_contract", "request_context", "model_status", "harness_trace"]:
+        assert forbidden not in serialized
 
 
 def test_creator_dialogue_seed_generates_story_cards_and_persists(tmp_path: Path, monkeypatch):
@@ -114,7 +115,7 @@ def test_creator_dialogue_seed_generates_story_cards_and_persists(tmp_path: Path
     assert "燃烧的图书馆" in payload["assistant"]["story_text"]
     for forbidden in ["后台", "后端", "接口", "系统提示词", "Memo", "模板", "设定卡"]:
         assert forbidden not in payload["assistant"]["story_text"]
-        assert forbidden not in " ".join(step["detail"] for step in payload["assistant"]["harness_trace"])
+    assert "harness_trace" not in payload["assistant"]
     assert 1 <= len(payload["assistant"]["questions"]) <= 2
     assert payload["setting_cards"]["seed"] == "一个少女站在雨中望着燃烧的图书馆"
     assert payload["setting_cards"]["confirmed"]
@@ -308,8 +309,7 @@ def test_creator_dialogue_uses_llm_payload_when_available(tmp_path: Path, monkey
     payload = response.json()
     assert payload["assistant"]["story_text"].startswith("雨停在半空")
     assert payload["assistant"]["questions"] == ["这个火是魔法失控，还是有人故意点燃的？"]
-    assert payload["assistant"]["model_status"]["mode"] == "llm_assisted"
-    assert payload["assistant"]["model_status"]["provider"] == "inline_json"
+    assert "model_status" not in payload["assistant"]
 
 
 def test_creator_dialogue_sanitizes_prohibited_terms_from_model_output(tmp_path: Path, monkeypatch):
@@ -409,14 +409,12 @@ def test_creator_dialogue_uses_creator_scoped_openai_compatible_provider(tmp_pat
     assert response.status_code == 200
     payload = response.json()
     assert payload["assistant"]["story_text"].startswith("边境矿城")
-    assert payload["assistant"]["model_status"]["mode"] == "llm_assisted"
-    assert payload["assistant"]["model_status"]["provider"] == "openai_compatible"
-    assert payload["assistant"]["model_status"]["model"] == "creator-model"
-    assert payload["assistant"]["model_status"]["capability_profile"]["json_mode"] is True
-    assert payload["assistant"]["model_status"]["fallback_used"] is False
+    assert "model_status" not in payload["assistant"]
     assert captured["url"] == "https://provider.example/v1/chat/completions"
     assert captured["authorization"] == "Bearer test-secret"
     assert "test-secret" not in json.dumps(payload)
+    for forbidden in ["provider", "creator-model", "openai_compatible", "fallback_used", "capability_profile"]:
+        assert forbidden not in json.dumps(payload)
 
 
 def test_ops_provider_routing_includes_creator_runtime_status(tmp_path: Path, monkeypatch):
