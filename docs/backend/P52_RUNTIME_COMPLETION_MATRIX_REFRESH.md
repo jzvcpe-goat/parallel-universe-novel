@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, and P104 learned eval strict suite readiness. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, and P107 CI artifact content coverage matrix. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -454,3 +454,16 @@ P106 makes the P105 artifact content machine-checkable:
 - The gate validates JSON and Markdown content, not only artifact metadata, and
   preserves source workspace no-git blockers instead of inventing current-head
   image proof.
+
+## P107 CI Artifact Content Coverage Matrix Refresh
+
+P107 prevents artifact evidence drift after P43/P92/P93/P89/P90/P106:
+
+- P45 commercial-release evidence now includes
+  `check:ci-artifact-content-coverage`.
+- The coverage matrix classifies all fourteen Pages artifacts into
+  `download_content_gate`, `pre_upload_generator_gate`,
+  `built_bundle_privacy_scan`, or `visual_human_evidence`.
+- Root `npm run test` runs P107 immediately after P106.
+- The remaining live-runtime blocker set is unchanged; P107 only proves every
+  artifact has a verification owner.

@@ -69,6 +69,14 @@ CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:remote-assignment-fill-plan-artifact
 ```
 
+P107 verifies the complete coverage matrix so every Pages artifact has an
+explicit owner: downloaded content attestation, pre-upload generator gate, built
+bundle privacy scan, or visual evidence:
+
+```bash
+npm run check:ci-artifact-content-coverage
+```
+
 ## What This Proves
 
 - `runtime-readiness-ledger` exists and is non-empty.
@@ -86,10 +94,12 @@ npm run check:remote-assignment-fill-plan-artifact
 - `local-live-runtime-visual-qa` exists and is non-empty.
 - `github-pages` exists and is non-empty.
 - None of the required artifacts are expired.
+- P107 classifies every artifact into an explicit content-coverage path, so no
+  artifact is only uploaded and forgotten.
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P91 owns the assignment schema generator.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy` and `public-projection-privacy`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P91 owns the assignment schema generator. P107 does not download additional artifact payloads; it verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
 
 ## Workflow Placement
 
@@ -125,3 +135,5 @@ That placement proves the same run that will deploy Pages also produced the requ
    metadata.
 7. Pages workflow runs P106 after P90 so `remote-assignment-fill-plan` content
    is validated separately from artifact metadata.
+8. Root `npm run test` runs P107 so the full artifact set always has an
+   explicit content-coverage classification.

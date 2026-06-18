@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P107 CI Artifact Content Coverage Matrix
+
+P106 之后再看整条 Pages 证据链，发现一个更通用的风险：P43 能证明
+artifact 名称、大小和过期状态，但不同 artifact 的“内容是否可信”来自不同
+地方。有的需要下载验收，有的是 root gate 生成后上传，有的是 build 后隐私
+扫描，有的是浏览器截图供人工验收。如果这些路径没有一张机器矩阵，后续新增
+artifact 很容易只上传、不验收。
+
+新的工程标准：
+
+1. 每个 Pages release artifact 都必须有明确 coverage class：
+   `download_content_gate`、`pre_upload_generator_gate`、
+   `built_bundle_privacy_scan` 或 `visual_human_evidence`。
+2. P43 仍然只做 metadata gate；P107 负责验证所有 artifact 都有内容/生成/扫描/
+   视觉证据归属。
+3. 下载验收类 artifact 必须同时具备 package script、root test wiring、Pages
+   workflow step 和人类文档说明。
+4. P107 不解除远端 runtime blocker，也不部署服务；它只防止 release evidence
+   变成“看起来上传了，但没人真正负责验收”的空档。
+
+验证命令：
+
+```bash
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-18 P106 Remote Assignment Fill Plan Artifact Attestation
 
 P105 之后继续看证据链，发现 Pages run 已经上传

@@ -42,6 +42,7 @@ const requiredFiles = [
   'docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md',
   'docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md',
   'docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -70,6 +71,7 @@ const requiredFiles = [
   'scripts/check-remote-assignment-execution-pack.mjs',
   'scripts/check-remote-assignment-fill-plan.mjs',
   'scripts/check-remote-assignment-fill-plan-artifact.mjs',
+  'scripts/check-ci-artifact-content-coverage.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -102,6 +104,7 @@ const p94 = read('docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md')
 const p96 = read('docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md')
 const p105 = read('docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md')
 const p106 = read('docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md')
+const p107 = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -191,6 +194,10 @@ assert(
   'package.json must expose check:remote-assignment-fill-plan-artifact',
 )
 assert(
+  packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
+  'package.json must expose check:ci-artifact-content-coverage',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -269,6 +276,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan-artifact'),
   'npm run test must include check:remote-assignment-fill-plan-artifact',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
+  'npm run test must include check:ci-artifact-content-coverage',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -527,6 +538,15 @@ assert(
     && p106.includes('source-workspace-no-git')
     && p106.includes('remote-assignment-fill-plan'),
   'P106 fill plan artifact attestation must define current-run content validation',
+)
+assert(
+  p107.includes('P107 CI Artifact Content Coverage Matrix')
+    && p107.includes('check:ci-artifact-content-coverage')
+    && p107.includes('download_content_gate')
+    && p107.includes('pre_upload_generator_gate')
+    && p107.includes('built_bundle_privacy_scan')
+    && p107.includes('visual_human_evidence'),
+  'P107 CI artifact content coverage must define the ownership matrix for Pages artifacts',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

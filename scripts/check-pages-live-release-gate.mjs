@@ -16,6 +16,7 @@ const workflow = read('.github/workflows/pages.yml')
 const p16Doc = read('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md')
 const p43Doc = read('docs/backend/P43_CI_ARTIFACT_EVIDENCE_GATE.md')
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
+const p107Doc = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p99Doc = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const packageJson = JSON.parse(read('package.json'))
 const node24ActionVersions = [
@@ -296,6 +297,10 @@ assert(
   'package.json must expose check:remote-assignment-fill-plan-artifact',
 )
 assert(
+  packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
+  'package.json must expose check:ci-artifact-content-coverage',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -332,6 +337,10 @@ assert(
   'npm run test must include check:remote-assignment-fill-plan-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
+  'npm run test must include check:ci-artifact-content-coverage',
+)
+assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
@@ -346,6 +355,7 @@ assert(
     && p16Doc.includes('check:remote-runtime-blockers-artifact')
     && p16Doc.includes('remote-assignment-fill-plan')
     && p16Doc.includes('check:remote-assignment-fill-plan-artifact')
+    && p16Doc.includes('check:ci-artifact-content-coverage')
     && p16Doc.includes('check:public-privacy-artifacts')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
@@ -369,6 +379,7 @@ assert(
     && p43Doc.includes('check:remote-assignment-artifacts')
     && p43Doc.includes('check:remote-runtime-blockers-artifact')
     && p43Doc.includes('check:remote-assignment-fill-plan-artifact')
+    && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
     && p43Doc.includes('P92')
     && p43Doc.includes('P93')
@@ -382,6 +393,20 @@ assert(
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
   'P43 doc must describe the required GitHub Actions artifact evidence gate, including assignment and privacy evidence',
+)
+assert(
+  p107Doc.includes('P107 CI Artifact Content Coverage Matrix')
+    && p107Doc.includes('runtime-readiness-ledger')
+    && p107Doc.includes('remote-assignment-fill-plan')
+    && p107Doc.includes('reference-privacy')
+    && p107Doc.includes('public-projection-privacy')
+    && p107Doc.includes('local-live-runtime-visual-qa')
+    && p107Doc.includes('github-pages')
+    && p107Doc.includes('download_content_gate')
+    && p107Doc.includes('pre_upload_generator_gate')
+    && p107Doc.includes('built_bundle_privacy_scan')
+    && p107Doc.includes('visual_human_evidence'),
+  'P107 doc must describe the CI artifact content coverage matrix and every coverage class',
 )
 assert(
   p15Doc.includes('P15 proves those deployed units actually satisfy the Creator Studio product flow.'),
@@ -410,6 +435,7 @@ console.log(JSON.stringify({
   remoteRuntimeBlockersContent: 'check:remote-runtime-blockers-artifact',
   remoteAssignmentFillPlan: 'remote-assignment-fill-plan',
   remoteAssignmentFillPlanContent: 'check:remote-assignment-fill-plan-artifact',
+  artifactContentCoverage: 'check:ci-artifact-content-coverage',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
   publicPrivacyArtifactContent: 'check:public-privacy-artifacts',
