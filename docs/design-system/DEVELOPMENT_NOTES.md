@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P73 远端 Origin 执行门禁
+
+P72 证明镜像已经发布，但它仍然不能说明远端服务已经创建、密钥已经放入 provider secret store、健康检查已经通过，或者 Pages live variables 可以安全写入。P73 把这个中间断点变成执行门禁。
+
+新的工程标准：
+
+1. 镜像证据、服务 manifest、host profile 和 origin provisioning 必须被一个执行计划串起来。
+2. 执行计划只记录服务 id、origin、镜像名、health path、secret 是否配置的布尔证据，不记录任何 secret value。
+3. Pages live variables 只能在 API 和 Agent `/health` 都通过后写入。
+4. 默认 CI 允许输出 `passed_with_execution_blockers`，但 strict mode 必须在远端服务未执行完成时失败。
+5. 任何 live runtime 上线前必须按 P73 -> P66 -> P23/P65 的顺序证明：执行、origin、readiness/trace。
+
+必跑检查：
+
+```bash
+npm run check:remote-origin-execution
+npm run check:remote-origin-provisioning
+npm run check:runtime-activation-package
+```
+
 ## 2026-06-18 P4 运行时合同重做
 
 用户明确要求 P4 从头做，并废弃此前围绕单一题材测试形成的约束逻辑。本轮不新增旧 case 词表，也不把某个负例转成全局禁令，而是把约束入口收敛到 `documentCore.runtimeContract`。

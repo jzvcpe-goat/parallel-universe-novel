@@ -64,6 +64,26 @@ The host should pull these image names or their `runtime-latest` tags:
 - `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>`
 - `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>`
 
+### Origin Execution Gate
+
+After image evidence is green and before writing GitHub Pages live variables,
+run:
+
+```bash
+npm run check:remote-origin-execution
+```
+
+Use `deploy/runtime-production/origin-execution-plan.json` as the deployment
+execution checklist. It binds P70 service names, P71/P72 image evidence,
+provider-secret-store evidence, service ids, remote origins and health checks
+into one operator-facing gate.
+
+Strict execution check:
+
+```bash
+REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution
+```
+
 Use `deploy/runtime-production/origin.env.example` as the operator checklist.
 Validate it with:
 
@@ -185,10 +205,13 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 2. Run `npm run check:remote-deploy-manifest` and use `deploy/runtime-production/service-manifest.json` as the service contract.
 3. Run `npm run check:runtime-image-workflow`.
 4. Publish images with `gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel`.
-5. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
-6. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-7. Verify both health endpoints.
-8. Run local strict config check:
+5. Run `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence`.
+6. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+7. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+8. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+9. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
+10. Verify both health endpoints.
+11. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
@@ -199,7 +222,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-live-config
 ```
 
-9. Run public runtime preview check:
+12. Run public runtime preview check:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -209,7 +232,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-10. Generate the readiness ledger:
+13. Generate the readiness ledger:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true \
@@ -220,7 +243,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run audit:live-runtime-readiness
 ```
 
-11. Run Live Smoke:
+14. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -230,10 +253,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-12. Set GitHub repository variables.
-13. Push or manually dispatch `Deploy Creator Studio Preview`.
-14. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
-15. Open public `/#/create` and verify it shows `创作服务可用`.
+15. Set GitHub repository variables.
+16. Push or manually dispatch `Deploy Creator Studio Preview`.
+17. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
+18. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 

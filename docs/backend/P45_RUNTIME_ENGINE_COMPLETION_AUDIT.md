@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -417,6 +417,27 @@ It still does not pull, run, provision or expose those images publicly.
 
 Remaining gaps stay explicit: P72 does not replace P66 remote origin readiness
 or P65 remote live trace proof.
+
+## P73 Remote Runtime Origin Execution Gate
+
+P73 binds the P70 service manifest and P71/P72 image evidence into an
+operator-executable remote-origin plan:
+
+- `deploy/runtime-production/origin-execution-plan.json` names the API and
+  Agent services, image names, container ports, health paths and operator
+  evidence inputs.
+- `check:remote-origin-execution` verifies that the execution plan matches the
+  service manifest and records whether remote service ids, provider-secret-store
+  evidence, HTTPS origins and health checks are ready.
+- Default mode records `remote_origin_execution_unassigned` or
+  `remote_origin_execution_pending_health` without blocking static Pages CI.
+- Strict mode uses `REQUIRE_REMOTE_ORIGIN_EXECUTED=true` and fails until both
+  remote services are assigned, health-checked and safe for live variable
+  activation.
+
+Current decision is that P73 is ready as an execution-evidence gate. It still
+does not choose a cloud provider, store secrets, enable Pages live mode, replace
+P66 origin provisioning or replace P65 remote trace proof.
 
 ## Privacy Boundary
 

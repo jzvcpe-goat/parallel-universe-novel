@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "gate": "P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE",
+  "dependsOn": [
+    "P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE",
+    "P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE",
+    "P71_RUNTIME_IMAGE_PUBLISH_GATE",
+    "P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE"
+  ],
+  "repository": "jzvcpe-goat/parallel-universe-novel",
+  "hostTargetProfile": "docker-compatible-two-service-paas",
+  "imageEvidenceCommand": "REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence",
+  "services": [
+    {
+      "id": "api",
+      "serviceName": "parallel-universe-api",
+      "role": "fastapi_business_runtime",
+      "imageName": "ghcr.io/jzvcpe-goat/parallel-universe-novel-api",
+      "imageTagPolicy": "commit_sha_or_runtime_latest_after_p72",
+      "containerPort": 8787,
+      "healthPath": "/health",
+      "publicOriginVariable": "VITE_API_ORIGIN",
+      "operatorInputs": [
+        "REMOTE_API_SERVICE_ID",
+        "REMOTE_API_ORIGIN",
+        "REMOTE_API_SECRETS_CONFIGURED"
+      ],
+      "providerSecretNames": [
+        "DATABASE_URL",
+        "NARRATIVEOS_TOOL_BRIDGE_TOKEN"
+      ],
+      "runtimeEnv": [
+        "NARRATIVEOS_DEPLOY_ENV=production",
+        "NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io"
+      ]
+    },
+    {
+      "id": "agent",
+      "serviceName": "parallel-universe-agent-runtime",
+      "role": "mastra_workflow_runtime",
+      "imageName": "ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime",
+      "imageTagPolicy": "commit_sha_or_runtime_latest_after_p72",
+      "containerPort": 4111,
+      "healthPath": "/health",
+      "publicOriginVariable": "VITE_AGENT_RUNTIME_BASE_URL",
+      "operatorInputs": [
+        "REMOTE_AGENT_SERVICE_ID",
+        "REMOTE_AGENT_ORIGIN",
+        "REMOTE_AGENT_SECRETS_CONFIGURED"
+      ],
+      "providerSecretNames": [
+        "MASTRA_TOOL_BRIDGE_TOKEN"
+      ],
+      "runtimeEnv": [
+        "NARRATIVEOS_DEPLOY_ENV=production",
+        "NODE_ENV=production",
+        "MASTRA_HOST=0.0.0.0",
+        "MASTRA_PORT=4111",
+        "MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>",
+        "MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io"
+      ],
+      "dependsOn": [
+        "api"
+      ]
+    }
+  ],
+  "executionSteps": [
+    {
+      "id": "verify-current-images",
+      "command": "REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence"
+    },
+    {
+      "id": "provision-api-service",
+      "ownerInput": "REMOTE_API_SERVICE_ID"
+    },
+    {
+      "id": "provision-agent-service",
+      "ownerInput": "REMOTE_AGENT_SERVICE_ID"
+    },
+    {
+      "id": "configure-provider-secret-store",
+      "ownerInputs": [
+        "REMOTE_API_SECRETS_CONFIGURED",
+        "REMOTE_AGENT_SECRETS_CONFIGURED"
+      ]
+    },
+    {
+      "id": "verify-service-health",
+      "commands": [
+        "curl -fsS $REMOTE_API_ORIGIN/health",
+        "curl -fsS $REMOTE_AGENT_ORIGIN/health"
+      ]
+    },
+    {
+      "id": "run-origin-provisioning-strict",
+      "command": "REQUIRE_REMOTE_ORIGIN_PROVISIONED=true npm run check:remote-origin-provisioning"
+    },
+    {
+      "id": "write-pages-runtime-vars-after-health",
+      "commands": [
+        "gh variable set VITE_PUBLIC_RUNTIME_MODE --repo jzvcpe-goat/parallel-universe-novel --body live",
+        "gh variable set VITE_API_ORIGIN --repo jzvcpe-goat/parallel-universe-novel --body $REMOTE_API_ORIGIN",
+        "gh variable set VITE_AGENT_RUNTIME_BASE_URL --repo jzvcpe-goat/parallel-universe-novel --body $REMOTE_AGENT_ORIGIN"
+      ]
+    },
+    {
+      "id": "verify-readiness-ledger",
+      "command": "REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness"
+    },
+    {
+      "id": "verify-live-browser-qa",
+      "command": "npm run qa:live-runtime-browser"
+    }
+  ],
+  "forbiddenPublicVariables": [
+    "DATABASE_URL",
+    "NARRATIVEOS_TOOL_BRIDGE_TOKEN",
+    "MASTRA_TOOL_BRIDGE_TOKEN",
+    "NARRATIVEOS_CREATOR_API_KEY",
+    "REFERENCE_WORK_VAULT_KEY"
+  ],
+  "rollbackCommands": [
+    "gh variable set VITE_PUBLIC_RUNTIME_MODE --repo jzvcpe-goat/parallel-universe-novel --body disabled",
+    "gh variable delete VITE_API_ORIGIN --repo jzvcpe-goat/parallel-universe-novel --confirm",
+    "gh variable delete VITE_AGENT_RUNTIME_BASE_URL --repo jzvcpe-goat/parallel-universe-novel --confirm",
+    "gh workflow run \"Deploy Creator Studio Preview\" --repo jzvcpe-goat/parallel-universe-novel"
+  ],
+  "defaultDecision": "remote_origin_execution_unassigned",
+  "strictEnv": "REQUIRE_REMOTE_ORIGIN_EXECUTED"
+}

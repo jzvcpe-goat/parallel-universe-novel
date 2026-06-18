@@ -144,6 +144,21 @@ P66 Remote Runtime Origin Provisioning Gate changed provisioning evidence:
 - remaining gap is actual remote service hosting, not absence of a provisioning
   checklist or machine-readable origin gate.
 
+P73 Remote Runtime Origin Execution Gate changed execution evidence:
+
+- `deploy/runtime-production/origin-execution-plan.json` binds P70 service
+  manifest, P71/P72 image evidence, provider-secret-store evidence, service ids
+  and health checks,
+- `check:remote-origin-execution` verifies service assignment, remote HTTPS
+  origins, provider-secret evidence and health readiness,
+- the gate outputs `remote_origin_execution_unassigned`,
+  `remote_origin_execution_pending_health`, or
+  `remote_origin_execution_ready`,
+- current expected state remains `remote_origin_execution_unassigned` until the
+  deployment owner provides actual remote service ids, origins and health,
+- remaining gap is actual remote service execution, not absence of an execution
+  checklist or machine-readable origin execution gate.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,
@@ -178,6 +193,7 @@ npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
 npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
+npm run check:remote-origin-execution
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:runtime-preview-compose
@@ -199,6 +215,7 @@ npm run check:runtime-preview-compose
 - The formerly stale claim that Production TimeEngine telemetry fitting is missing after public branch release.
 - Remote live runtime trace gate missing after P23/P46/P47 evidence exists.
 - Remote origin provisioning gate missing after P65 blockers are known.
+- Remote origin execution gate missing after P70/P71/P72 materials exist.
 - Reference vault access hardening missing after anonymous ref scans exist.
 - Runtime preview compose smoke missing after Docker deployment files exist.
 
@@ -215,4 +232,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.

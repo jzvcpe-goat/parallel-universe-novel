@@ -9,6 +9,11 @@ provisioning gate. It does not deploy a cloud provider by itself. It verifies
 whether the two required remote services are reachable and whether GitHub Pages
 has the public runtime variables needed to use them.
 
+P73 Remote Runtime Origin Execution Gate sits immediately before P66. P73 checks
+that concrete provider services, service ids, provider-secret-store evidence,
+remote origins and health probes are assigned from the P70/P71/P72 deployment
+materials. P66 then verifies those origins and Pages variables.
+
 Command:
 
 ```bash
@@ -51,6 +56,12 @@ Use `deploy/runtime-production/host-profiles.json` to select the host profile.
 Use `deploy/runtime-production/service-manifest.json` to provision the concrete
 API and Agent services. P66 then verifies the remote HTTPS origins produced by
 that host.
+
+Execution checklist:
+
+```bash
+npm run check:remote-origin-execution
+```
 
 P71 publishes the runtime images referenced by the service manifest. The current
 image names are:
@@ -157,3 +168,5 @@ material.
 9. The artifact passes the privacy boundary.
 10. P71 runtime image publishing has a separate green gate before remote host
     provisioning.
+11. P73 records the concrete remote-origin execution evidence before this gate
+    is used for public live runtime.
