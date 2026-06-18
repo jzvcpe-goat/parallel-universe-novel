@@ -210,7 +210,10 @@
     "backend/src/narrativeos/services/quality_gate.py",
     "docs/backend/P17_FULL_NARRATIVE_QUALITY_GATE_COMPOSITION_20260613.md",
     "docs/backend/P100_AGENT_EVAL_PUBLISH_DECISION_BOUNDARY.md",
-    "scripts/check-agent-eval-publish-decision.mjs"
+    "scripts/check-agent-eval-publish-decision.mjs",
+    "backend/tests/test_learned_assisted_gate.py",
+    "docs/backend/P101_LEARNED_EVAL_OPTIONAL_DEPENDENCY_BOUNDARY.md",
+    "scripts/check-learned-eval-optional-boundary.mjs"
   ],
   "managedWithReleaseOverrides": [
     {

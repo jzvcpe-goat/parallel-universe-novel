@@ -22,6 +22,11 @@ from src.narrativeos.worldpacks.registry import FileSystemWorldRegistry
 from tests.test_learned_reranker_baseline import _seed_reranker_world
 
 
+def _require_optional_ml_deps():
+    pytest.importorskip("joblib", reason="optional learned eval dependency joblib is not installed")
+    pytest.importorskip("sklearn", reason="optional learned eval dependency scikit-learn is not installed")
+
+
 class _AlwaysBlockInference:
     def availability(self):
         return {"available": True}
@@ -107,6 +112,8 @@ def test_assisted_gate_shadow_only_receipt_never_blocks_publish(tmp_path: Path):
 
 
 def test_assisted_gate_can_block_publish_only_after_rollout_and_enablement(tmp_path: Path):
+    _require_optional_ml_deps()
+
     repository = SQLAlchemyRepository(database_url="sqlite:///%s" % (tmp_path / "assisted_gate_active.db"))
     world_version_id = _seed_reranker_world(repository, world_id="urban_mystery_lotus_lane")
     version = repository.get_world_version(world_version_id)
