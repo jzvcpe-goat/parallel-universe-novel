@@ -182,6 +182,14 @@ assert(
   'Pages workflow must verify the current run evidence artifacts after all required artifacts are uploaded',
 )
 assert(
+  workflow.includes('Check remote assignment handoff artifact content')
+    && workflow.includes('CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:remote-assignment-handoff-artifact')
+    && workflow.indexOf('Check remote assignment handoff artifact content') > workflow.indexOf('Check current run evidence artifacts'),
+  'Pages workflow must verify remote assignment handoff artifact content after the current-run artifact metadata gate',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -198,8 +206,16 @@ assert(
   'package.json must expose check:github-actions-artifacts',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-handoff-artifact'] === 'node scripts/check-remote-assignment-handoff-artifact.mjs',
+  'package.json must expose check:remote-assignment-handoff-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-handoff-artifact'),
+  'npm run test must include check:remote-assignment-handoff-artifact',
 )
 assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
@@ -209,6 +225,7 @@ assert(
     && p16Doc.includes('check:live-rollback-rehearsal')
     && p16Doc.includes('check:remote-runtime-activation-control')
     && p16Doc.includes('remote-assignment-handoff')
+    && p16Doc.includes('check:remote-assignment-handoff-artifact')
     && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
@@ -219,6 +236,7 @@ assert(
     && p43Doc.includes('live-rollback-rehearsal')
     && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('remote-assignment-handoff')
+    && p43Doc.includes('check:remote-assignment-handoff-artifact')
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
@@ -248,6 +266,7 @@ console.log(JSON.stringify({
   rollbackRehearsal: 'check:live-rollback-rehearsal',
   activationControl: 'check:remote-runtime-activation-control',
   assignmentHandoff: 'remote-assignment-handoff',
+  assignmentHandoffContent: 'check:remote-assignment-handoff-artifact',
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   remoteRuntimeBlockers: 'remote-runtime-blockers',

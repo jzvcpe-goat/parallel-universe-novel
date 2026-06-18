@@ -61,6 +61,7 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 # After all evidence uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
+# After P43 metadata gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
 ```
 
 This proves:
@@ -68,6 +69,8 @@ This proves:
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
 - The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The `remote-assignment-handoff` artifact content passes P89 structural,
+  privacy and current-head image checks.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -93,8 +96,10 @@ This proves:
 13. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
 14. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
 15. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
-16. Live mode fails if browser submission cannot create a candidate draft.
-17. Live mode never enables local fallback.
+16. Every Pages run must run `check:remote-assignment-handoff-artifact` after
+    P43 so handoff artifact content is validated, not only its presence.
+17. Live mode fails if browser submission cannot create a candidate draft.
+18. Live mode never enables local fallback.
 
 ## Operational Rule
 

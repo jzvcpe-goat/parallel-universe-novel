@@ -61,12 +61,16 @@ prompt plumbing, reference vault contents, representative work names,
 P87 intentionally leaves P75/P79/P73/P66/P23/P76/P78 blocked until real remote
 services exist and pass their own strict checks.
 
+P89 downloads the CI `remote-assignment-handoff` artifact and validates its
+content. P87 is the producer; P89 is the artifact content attestation gate.
+
 ## Acceptance
 
 - `package.json` exposes `check:remote-assignment-handoff`.
 - Root `npm run test` runs P87 after P72 image evidence.
 - Pages workflow uploads `remote-assignment-handoff` artifact.
 - Current-run artifact gate requires `remote-assignment-handoff`.
+- P89 validates the uploaded artifact content and public boundary flags.
 - P87 appears in P45/P84/P85 completion and blocker documents.
 - The handoff artifact includes current commit image refs and blocks stale image
   evidence with `runtime-image-evidence-current-head`.

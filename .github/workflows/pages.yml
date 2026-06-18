@@ -226,6 +226,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:github-actions-artifacts
 
+      - name: Check remote assignment handoff artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-assignment-handoff-artifact
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

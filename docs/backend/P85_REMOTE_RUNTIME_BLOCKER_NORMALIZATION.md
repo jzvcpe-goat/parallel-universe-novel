@@ -16,6 +16,10 @@ P87 now sits between P72 and P75. It packages the current image refs into a
 no-secret `remote-assignment.local.json` handoff template, but P85 still treats
 assignment as blocked until real service evidence passes P75/P79.
 
+P89 sits after P43/P87. It validates the uploaded handoff artifact content but
+does not change blocker ownership: assignment still remains blocked until
+operator-provided service evidence passes P75/P79.
+
 ## Command
 
 ```bash
@@ -59,6 +63,7 @@ generation, but it must never mark the real remote service assignment ready.
 | Privacy release evidence | privacy/release reviewer | P80/P83 |
 | Assignment fixture contract | release engineering | P81 |
 | Activation control board | release owner | P78 |
+| Handoff artifact content | release engineering | P89 |
 
 ## Decisions
 
@@ -100,6 +105,8 @@ P85 artifacts must not include:
 - Current-run artifact gate requires `remote-runtime-blockers`.
 - `check:runtime-engine-completion` includes P85 and
   `remote-runtime-blockers` in the commercial release evidence chain.
+- `check:remote-assignment-handoff-artifact` remains a content attestation
+  gate, not a blocker override.
 - Fixture assignment artifacts remain separated from real local assignment
   artifacts.
 - Non-strict mode reports blockers without failing normal static preview CI.

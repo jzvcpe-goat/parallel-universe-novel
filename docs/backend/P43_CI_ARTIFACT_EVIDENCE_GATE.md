@@ -37,6 +37,15 @@ npm run check:github-actions-artifacts
 
 本地默认如果无法访问 GitHub API 会 `skipped`；CI 使用 `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`，无法检查或缺 artifact 都会失败。
 
+P43 只证明 artifact 元数据存在。`remote-assignment-handoff` 的 JSON 内容由
+P89 再下载核验：
+
+```bash
+CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true \
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+npm run check:remote-assignment-handoff-artifact
+```
+
 ## What This Proves
 
 - `runtime-readiness-ledger` exists and is non-empty.
@@ -55,7 +64,7 @@ npm run check:github-actions-artifacts
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P89 is the content attestation gate for `remote-assignment-handoff`.
 
 ## Workflow Placement
 
@@ -83,3 +92,5 @@ That placement proves the same run that will deploy Pages also produced the requ
 3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy` and `public-projection-privacy`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.
+6. Pages workflow runs P89 after P43 so `remote-assignment-handoff` content is
+   validated separately from artifact metadata.

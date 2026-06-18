@@ -194,6 +194,12 @@ Strict check:
 REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_READY=true npm run check:remote-assignment-handoff
 ```
 
+Artifact content attestation:
+
+```bash
+npm run check:remote-assignment-handoff-artifact
+```
+
 The generated handoff artifact includes the current API/Agent image refs, the
 target `deploy/runtime-production/remote-assignment.local.json` path, a
 no-secret assignment template and the strict validation order. It must not write
@@ -350,17 +356,18 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 4. Publish images with `gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel`.
 5. Run `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence`.
 6. Run `npm run check:remote-assignment-handoff` and use the generated current-image template when preparing `remote-assignment.local.json`.
-7. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
-8. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
-9. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-10. Fill `deploy/runtime-production/remote-assignment.local.json`.
-11. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
-12. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
-13. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-14. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
-15. Verify both health endpoints with the commands from the P79 Markdown artifact.
-16. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-17. Run local strict config check:
+7. Run `npm run check:remote-assignment-handoff-artifact` to verify the handoff content before handing it to an operator.
+8. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
+9. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+10. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+11. Fill `deploy/runtime-production/remote-assignment.local.json`.
+12. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
+13. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
+14. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+15. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
+16. Verify both health endpoints with the commands from the P79 Markdown artifact.
+17. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+18. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
