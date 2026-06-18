@@ -39,26 +39,30 @@ function currentHead() {
   }
 }
 
-function latest(prefix, predicate = null, label = prefix) {
+function latest(prefix, predicate = null, label = prefix, options = {}) {
   assert(existsSync(artifactDir), 'runtime artifact directory is missing; run npm run test or the remote runtime gates first')
   const files = readdirSync(artifactDir)
     .filter(name => name.startsWith(prefix) && name.endsWith('.json'))
     .sort()
   assert(files.length > 0, `missing latest ${label} artifact; run the corresponding gate first`)
   let selected = null
+  let fallback = null
   for (const filename of files.toReversed()) {
     const payload = JSON.parse(readFileSync(join(artifactDir, filename), 'utf8'))
+    if (!fallback) fallback = { filename, payload, predicateMatched: false }
     if (!predicate || predicate(payload)) {
-      selected = { filename, payload }
+      selected = { filename, payload, predicateMatched: true }
       break
     }
   }
+  if (!selected && options.allowFallback) selected = fallback
   assert(selected, `missing latest ${label} artifact matching expected predicate`)
-  const { filename, payload } = selected
+  const { filename, payload, predicateMatched } = selected
   return {
     filename,
     path: join(artifactDir, filename),
     payload,
+    predicateMatched,
   }
 }
 
@@ -218,19 +222,36 @@ const localAssignmentPath = 'deploy/runtime-production/remote-assignment.local.j
 const fixtureAssignmentPath = 'deploy/runtime-production/remote-assignment.fixture.json'
 const isLocalAssignment = payload => payload?.assignmentPath === localAssignmentPath
 const isFixtureAssignment = payload => payload?.assignmentPath === fixtureAssignmentPath
+const headSha = currentHead()
+const matchesCurrentHead = payload => payload?.headSha === headSha
+const imageEvidenceArtifact = latest(
+  'runtime-image-publish-evidence-',
+  matchesCurrentHead,
+  'runtime-image-publish-evidence current head',
+  { allowFallback: true },
+)
+const imageEvidenceHead = imageEvidenceArtifact.payload?.headSha || null
+const handoffArtifactHeadTarget = imageEvidenceHead || headSha
+const matchesImageEvidenceHead = payload => payload?.expectedHeadSha === handoffArtifactHeadTarget
+const handoffArtifactEvidence = latest(
+  'remote-handoff-artifact-attestation-',
+  matchesImageEvidenceHead,
+  `remote-handoff-artifact-attestation for ${handoffArtifactHeadTarget}`,
+  { allowFallback: true },
+)
 
 const evidence = {
   readiness: latest('live-runtime-readiness-'),
   remoteTrace: latest('remote-live-runtime-trace-'),
   originProvisioning: latest('remote-origin-provisioning-'),
   originExecution: latest('remote-origin-execution-'),
-  imageEvidence: latest('runtime-image-publish-evidence-'),
+  imageEvidence: imageEvidenceArtifact,
   assignmentIntake: latest('remote-runtime-assignment-intake-', isLocalAssignment, 'remote-runtime-assignment-intake local assignment'),
   assignmentPack: latest('remote-assignment-execution-pack-', isLocalAssignment, 'remote-assignment-execution-pack local assignment'),
   cutover: latest('live-cutover-attestation-'),
   rollback: latest('live-rollback-rehearsal-'),
   activationControl: latest('remote-activation-control-'),
-  handoffArtifact: latest('remote-handoff-artifact-attestation-'),
+  handoffArtifact: handoffArtifactEvidence,
   assignmentFixture: latest('remote-assignment-fixture-gate-'),
   fixtureAssignmentIntake: latest('remote-runtime-assignment-intake-', isFixtureAssignment, 'remote-runtime-assignment-intake fixture'),
   fixtureAssignmentPack: latest('remote-assignment-execution-pack-', isFixtureAssignment, 'remote-assignment-execution-pack fixture'),
@@ -258,6 +279,10 @@ const handoffArtifactPassed = (
   handoffArtifact.status === 'passed'
   || handoffArtifact.handoff?.decision === 'assignment_handoff_ready_for_operator'
 )
+const imageEvidenceMatchesCurrentHead = imageEvidence.headSha === headSha
+const handoffArtifactMatchesImageEvidence = Boolean(
+  imageEvidence.headSha && handoffArtifact.expectedHeadSha === imageEvidence.headSha,
+)
 
 const stages = [
   stage({
@@ -265,9 +290,12 @@ const stages = [
     label: 'Runtime images published',
     owner: 'release engineering',
     gate: 'P72 / check:runtime-image-publish-evidence',
-    ready: imageEvidence.status === 'passed',
-    currentDecision: imageEvidence.status,
-    blocked: [imageEvidence.reason || 'runtime-image-evidence-missing'],
+    ready: imageEvidence.status === 'passed' && imageEvidenceMatchesCurrentHead,
+    currentDecision: `${imageEvidence.status || 'unknown'} / ${imageEvidence.headSha || 'no-head'}`,
+    blocked: [
+      imageEvidence.status === 'passed' ? '' : imageEvidence.reason || 'runtime-image-evidence-missing',
+      imageEvidenceMatchesCurrentHead ? '' : 'runtime-image-evidence-current-head',
+    ],
     requiredInputs: ['successful Publish Runtime Images run for current commit'],
     nextAction: 'Run the Publish Runtime Images workflow for the current HEAD, then run P72 in strict mode.',
     strictCommand: 'REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence',
@@ -412,11 +440,11 @@ const stages = [
     gate: 'P89 / check:remote-assignment-handoff-artifact',
     ready: handoffArtifactPassed
       && handoffArtifact.gate === 'P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION'
-      && handoffArtifact.expectedHeadSha === imageEvidence.headSha,
+      && handoffArtifactMatchesImageEvidence,
     currentDecision: `${handoffArtifact.status || 'legacy_no_status'} / ${handoffArtifact.handoff?.decision || 'unknown'}`,
     blocked: [
       ...simpleBlockedIds(handoffArtifact.handoff?.blockedStages),
-      handoffArtifact.expectedHeadSha === imageEvidence.headSha ? '' : 'handoff-artifact-head-mismatch',
+      handoffArtifactMatchesImageEvidence ? '' : 'handoff-artifact-image-head-mismatch',
     ],
     requiredInputs: ['current-run remote assignment handoff artifact', 'P89 attestation for current image head'],
     nextAction: 'Regenerate the remote assignment handoff after current images are published, then rerun P89 before publishing the blocker ledger.',
@@ -445,7 +473,7 @@ const artifact = {
   gate: 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION',
   generatedAt: new Date().toISOString(),
   repository: repo,
-  headSha: currentHead(),
+  headSha,
   required,
   status: blockedStages.length ? 'blocked' : 'ready',
   decision,
@@ -457,11 +485,19 @@ const artifact = {
       status: imageEvidence.status,
       headSha: imageEvidence.headSha || null,
       runId: imageEvidence.runId || null,
+      file: evidence.imageEvidence.filename,
+      currentHead: headSha,
+      headMatchesCurrent: imageEvidenceMatchesCurrentHead,
+      selectedByCurrentHead: evidence.imageEvidence.predicateMatched,
     },
     handoffArtifact: {
       status: handoffArtifact.status || (handoffArtifactPassed ? 'passed' : null),
       expectedHeadSha: handoffArtifact.expectedHeadSha || null,
       decision: handoffArtifact.handoff?.decision || null,
+      file: evidence.handoffArtifact.filename,
+      targetHeadSha: handoffArtifactHeadTarget,
+      headMatchesImageEvidence: handoffArtifactMatchesImageEvidence,
+      selectedByImageEvidenceHead: evidence.handoffArtifact.predicateMatched,
     },
   },
   strictPromotionCommand: 'REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers',

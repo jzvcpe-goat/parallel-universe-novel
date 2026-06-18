@@ -24,6 +24,11 @@ P90 sits after P85/P89. It validates the uploaded blocker artifact content and
 prevents stale ledgers, missing P89 evidence or contradictory already-cleared
 stages from reaching the release owner.
 
+P94 hardens local artifact mode coherence. P85 prefers current-head P72 image
+evidence, treats stale image evidence as a blocked `runtime-images-published`
+stage, and pairs P89 handoff evidence with the selected P72 image evidence head
+before writing the blocker ledger.
+
 ## Command
 
 ```bash
@@ -79,8 +84,10 @@ generation, but it must never mark the real remote service assignment ready.
 ## Artifact Attestation
 
 P85 writes `repository`, `headSha`, P72 image source evidence and P89 handoff
-source evidence into the JSON artifact. P90 verifies those fields in local or
-GitHub-current-run mode:
+source evidence into the JSON artifact. P94 adds the selected artifact
+filenames and head-match booleans so a local ledger cannot silently mix stale
+image evidence with current handoff evidence. P90 verifies those fields in local
+or GitHub-current-run mode:
 
 ```bash
 npm run check:remote-runtime-blockers-artifact
@@ -123,6 +130,10 @@ P85 artifacts must not include:
   gate, not a blocker override.
 - `check:remote-runtime-blockers-artifact` validates the P85 artifact content
   after P89 without requiring remote assignment to be complete.
+- P85 blocks stale P72 image evidence with
+  `runtime-image-evidence-current-head` instead of treating it as ready.
+- P85 pairs P89 handoff content with the selected P72 image evidence head before
+  evaluating `handoff-artifact-content`.
 - Fixture assignment artifacts remain separated from real local assignment
   artifacts.
 - Non-strict mode reports blockers without failing normal static preview CI.

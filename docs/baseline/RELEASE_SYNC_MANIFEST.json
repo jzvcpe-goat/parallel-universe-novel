@@ -101,6 +101,7 @@
     "docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md",
     "docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md",
     "docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md",
+    "docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
