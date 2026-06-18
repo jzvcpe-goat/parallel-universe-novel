@@ -157,6 +157,18 @@ P67 Reference Vault Access Hardening Gate changed privacy evidence:
 - remaining gap is team governance/legal review, not absence of an engineering
   privacy gate for representative work names.
 
+P68 Runtime Preview Compose Gate changed deployment evidence:
+
+- `check:runtime-preview-compose` now builds and starts the FastAPI and Agent
+  Runtime containers from the checked-in Dockerfiles,
+- the local preview compose uses configurable host ports to avoid developer port
+  collisions while keeping container ports stable,
+- the smoke verifies API health, Agent health and one Socratic creator workflow
+  through FastAPI Tool Bridge,
+- current expected passing state is `runtime_preview_compose_passed`,
+- remaining gap is remote HTTPS hosting and cloud secrets, not absence of a
+  deployable two-service container proof.
+
 ## Verification
 
 Run:
@@ -168,6 +180,7 @@ npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
 npm run check:reference-vault-access
 npm run scan:reference-privacy
+npm run check:runtime-preview-compose
 ```
 
 `check:runtime-completion-refresh` prevents these stale claims from returning:
@@ -187,6 +200,7 @@ npm run scan:reference-privacy
 - Remote live runtime trace gate missing after P23/P46/P47 evidence exists.
 - Remote origin provisioning gate missing after P65 blockers are known.
 - Reference vault access hardening missing after anonymous ref scans exist.
+- Runtime preview compose smoke missing after Docker deployment files exist.
 
 ## Boundary
 
@@ -201,4 +215,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.

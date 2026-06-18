@@ -315,6 +315,24 @@ representative work names.
 Remaining gaps stay explicit: P67 is a privacy/access gate, not legal counsel or
 a replacement for team access governance.
 
+## P68 Runtime Preview Compose Gate
+
+P68 closes the deployable package smoke gap:
+
+- `check:runtime-preview-compose` builds and starts the checked-in FastAPI and
+  Agent Runtime containers with Docker Compose.
+- The gate verifies both `/health` endpoints.
+- It runs one Socratic creator workflow and requires the run trace to include a
+  successful FastAPI Tool Bridge turn.
+- The generated artifact records health, draft length, question count and Tool
+  Bridge acceptance, but not candidate prose or secrets.
+
+Current decision after a successful local/CI run is
+`runtime_preview_compose_passed`.
+
+Remaining gaps stay explicit: P68 proves local deployable containers, not remote
+HTTPS hosting, production database, paid model credentials, or commercial launch.
+
 ## Privacy Boundary
 
 This audit must not expose representative work names. It only accepts the public rule registry shape:

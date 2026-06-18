@@ -76,6 +76,23 @@ Expected endpoints:
 - `http://127.0.0.1:8787/health`
 - `http://127.0.0.1:4111/health`
 
+If those host ports are occupied, the preview compose supports:
+
+```bash
+RUNTIME_PREVIEW_API_PORT=18787 \
+RUNTIME_PREVIEW_AGENT_PORT=14111 \
+docker compose -f deploy/runtime-preview/docker-compose.yml up --build
+```
+
+Machine gate:
+
+```bash
+npm run check:runtime-preview-compose
+```
+
+That gate builds both containers, verifies API/Agent health and requires one
+candidate-only creator workflow to pass through FastAPI Tool Bridge.
+
 ## Frontend Live Build
 
 After both remote services are healthy:
@@ -119,6 +136,7 @@ cp app/dist/index.html app/dist/404.html
 
 ```bash
 npm run check:runtime-deploy-readiness
+npm run check:runtime-preview-compose
 npm run check:remote-origin-provisioning
 npm run check:public-runtime-preview
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
