@@ -28,6 +28,9 @@
     "backend/src/narrativeos/api/app_factory.py",
     "backend/src/narrativeos/api/product_runtime.py",
     "backend/src/narrativeos/api/tool_bridge.py",
+    "backend/src/narrativeos/eval/learned_promotion_workflow.py",
+    "backend/src/narrativeos/eval/learned_reranker_promotion_workflow.py",
+    "backend/src/narrativeos/eval/learned_rollout.py",
     "backend/src/narrativeos/persistence/db.py",
     "backend/src/narrativeos/persistence/repositories.py",
     "backend/src/narrativeos/providers.py",
@@ -38,6 +41,10 @@
     "backend/tests/test_product_runtime_api.py",
     "backend/tests/test_provider_routing.py",
     "backend/tests/test_provider_runtime_routing.py",
+    "backend/tests/test_learned_promotion_workflow.py",
+    "backend/tests/test_learned_reranker_promotion_workflow.py",
+    "backend/tests/test_learned_rollout.py",
+    "backend/tests/test_learned_training_automation.py",
     "backend/tests/test_tool_bridge_api.py",
     "deploy/agent-runtime/Dockerfile",
     "deploy/api/Dockerfile",
@@ -213,7 +220,9 @@
     "scripts/check-agent-eval-publish-decision.mjs",
     "backend/tests/test_learned_assisted_gate.py",
     "docs/backend/P101_LEARNED_EVAL_OPTIONAL_DEPENDENCY_BOUNDARY.md",
-    "scripts/check-learned-eval-optional-boundary.mjs"
+    "scripts/check-learned-eval-optional-boundary.mjs",
+    "docs/backend/P103_LEARNED_EVAL_PROMOTION_WORKFLOW_GATE.md",
+    "scripts/check-learned-eval-promotion-workflow.mjs"
   ],
   "managedWithReleaseOverrides": [
     {

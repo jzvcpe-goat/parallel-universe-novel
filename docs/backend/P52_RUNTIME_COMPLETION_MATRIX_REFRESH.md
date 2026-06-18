@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, and P101 learned eval optional dependency boundary. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, and P103 learned eval promotion workflow gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -73,6 +73,14 @@ P101 Learned Eval Optional Dependency Boundary changed learned-eval evidence:
 - `check:learned-eval-optional-boundary` proves the root test does not directly require the learned promotion suite,
 - missing `joblib` or `scikit-learn` skips the promotion-only test rather than weakening deterministic publish decisions,
 - remaining gap is learned evaluator/reranker promotion workflow, model rollout, false positive review and rollback ownership, not optional dependency installation.
+
+P103 Learned Eval Promotion Workflow Gate changed Agent Eval evidence:
+
+- evaluator and reranker promotion workflows are both represented as `manual_approval` review-record workflows,
+- Ops routes exist for evaluator promotion, reranker promotion, learned rollout activation and learned rollback,
+- `check:learned-eval-promotion-workflow` proves the root release chain sees this workflow without directly requiring optional learned assisted promotion suites,
+- quality gate output still keeps learned evaluator and reranker `shadow_only` with `production_gate = false`,
+- remaining gap is strict promotion execution with intentional ML dependencies, false-positive review, model rollout, rollback ownership and public boundary compatibility.
 
 P57 changed time-engine evidence:
 
