@@ -4,6 +4,7 @@
   "releaseRootMarker": "/releases/parallel-universe-novel-github",
   "syncAsIs": [
     ".github/workflows/pages.yml",
+    ".gitignore",
     "app/.env.example",
     "app/src/api/creator.ts",
     "app/src/api/runtime.ts",
@@ -67,6 +68,7 @@
     "docs/backend/P64_TIME_ENGINE_TELEMETRY_FIT_GATE.md",
     "docs/backend/P65_REMOTE_LIVE_RUNTIME_TRACE_GATE.md",
     "docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md",
+    "docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
@@ -110,6 +112,7 @@
     "scripts/check-production-branch-commit.mjs",
     "scripts/check-reader-branch-trace.mjs",
     "scripts/check-reader-branch-publish.mjs",
+    "scripts/check-reference-vault-access.mjs",
     "scripts/check-branch-publish-rollback-fixture.mjs",
     "scripts/check-branch-publish-authorization.mjs",
     "scripts/check-branch-commit-draft.mjs",

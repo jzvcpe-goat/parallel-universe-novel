@@ -26,6 +26,9 @@ backend/**/__pycache__/
 !.env.example
 !**/.env.example
 backend/.env
+private/
+reference-work-vault.key
+**/reference-work-vault.key
 
 # Local harness/generated artifacts
 artifacts/

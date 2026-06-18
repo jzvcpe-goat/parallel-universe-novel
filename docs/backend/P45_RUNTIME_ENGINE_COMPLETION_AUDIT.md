@@ -297,6 +297,24 @@ and Agent HTTPS origins are configured.
 Remaining gaps stay explicit: P66 is a provisioning gate, not a cloud provider
 deployment, paid commercial launch, or legal/privacy release packet.
 
+## P67 Reference Vault Access Hardening Gate
+
+P67 hardens the representative-work legal/privacy boundary:
+
+- `check:reference-vault-access` verifies AES-256-GCM vault metadata,
+  anonymous public refs, runtime `sourceRefs`, local key location and local key
+  file permissions.
+- `.gitignore` blocks `private/` and `reference-work-vault.key`.
+- `scan:reference-privacy` still performs the broader leak scan across public
+  files, build output, runtime artifacts and Git history.
+
+Current decision is `team_only_decryption` plus `zero_plaintext_public_refs`:
+public users and non-team members see only anonymous `rwref_*` ids, not
+representative work names.
+
+Remaining gaps stay explicit: P67 is a privacy/access gate, not legal counsel or
+a replacement for team access governance.
+
 ## Privacy Boundary
 
 This audit must not expose representative work names. It only accepts the public rule registry shape:

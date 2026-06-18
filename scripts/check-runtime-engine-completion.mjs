@@ -188,6 +188,9 @@ const components = [
     evidence: [
       'docs/product/rules/genre-runtime-rules.v1.json',
       'docs/product/rules/GENRE_KERNEL_RULES.md',
+      'docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md',
+      'scripts/check-reference-vault-access.mjs',
+      'scripts/scan-reference-privacy.mjs',
       'packages/agent-runtime/src/constraints.ts',
       'packages/agent-runtime/src/workflows.test.ts',
       'scripts/scan-p4-rule-source.mjs',
@@ -195,11 +198,15 @@ const components = [
     ],
     requiredText: [
       ['docs/product/rules/genre-runtime-rules.v1.json', 'genreKernels'],
+      ['docs/product/rules/genre-runtime-rules.v1.json', 'encrypted_vault_only'],
+      ['docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md', 'team_only_decryption'],
+      ['scripts/check-reference-vault-access.mjs', 'zero_plaintext_public_refs'],
+      ['scripts/scan-reference-privacy.mjs', 'validateGitHistoryPrivacy'],
       ['packages/agent-runtime/src/workflows.test.ts', 'every document profile can be explicitly selected'],
       ['scripts/scan-p4-rule-source.mjs', 'GenreKernel'],
     ],
     openGaps: [],
-    nextGate: 'Keep scan:p4-rule-source and check:runtime-rule-handshake required in root test.',
+    nextGate: 'Keep scan:p4-rule-source, check:runtime-rule-handshake, check:reference-vault-access and scan:reference-privacy required in root test.',
   },
   {
     id: 'time-engine',

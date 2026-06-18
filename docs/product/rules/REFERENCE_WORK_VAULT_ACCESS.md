@@ -50,8 +50,9 @@ The key value must be a base64-encoded 32-byte AES key. It must not appear in `.
 2. If a team member needs the real mapping, decrypt the vault locally with the private key.
 3. Keep decrypted data in memory or a local ignored scratch file only.
 4. Regenerate `reference-work-vault.enc.json` if the mapping changes.
-5. Run `npm run scan:reference-privacy`.
-6. Run `npm run test` before pushing.
+5. Run `npm run check:reference-vault-access`.
+6. Run `npm run scan:reference-privacy`.
+7. Run `npm run test` before pushing.
 
 ## Rotation Workflow
 
@@ -77,6 +78,7 @@ Rotation steps:
 Required gate:
 
 ```bash
+npm run check:reference-vault-access
 npm run scan:reference-privacy
 ```
 

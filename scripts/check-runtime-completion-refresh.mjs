@@ -31,7 +31,9 @@ for (const required of [
   'scripts/check-time-engine-telemetry-fit.mjs',
   'scripts/check-remote-live-runtime-trace.mjs',
   'scripts/check-remote-origin-provisioning.mjs',
+  'scripts/check-reference-vault-access.mjs',
   'scripts/check-studio-canon-trace.mjs',
+  'docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md',
   'deploy/runtime-production/origin.env.example',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
   'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
@@ -61,6 +63,8 @@ for (const required of [
   'remote_live_trace_ready',
   'remote_origin_unprovisioned',
   'ready_for_public_live_runtime',
+  'team_only_decryption',
+  'zero_plaintext_public_refs',
   'fastapi_durable_time_engine',
   'idempotent_replay',
   'rollback_plan',
@@ -88,6 +92,7 @@ for (const required of [
   'P64 TimeEngine Telemetry Fit Gate',
   'P65 Remote Live Runtime Trace Gate',
   'P66 Remote Runtime Origin Provisioning Gate',
+  'P67 Reference Vault Access Hardening Gate',
   'P53 Reader Branch Trace Gate',
   'P56 Studio Canon Trace Gate',
   'branch_writeback_summary',
@@ -134,9 +139,11 @@ const artifact = {
     'P64 TimeEngine Telemetry Fit Gate',
     'P65 Remote Live Runtime Trace Gate',
     'P66 Remote Runtime Origin Provisioning Gate',
+    'P67 Reference Vault Access Hardening Gate',
   ],
   remainingGaps: [
     'P66 remote origin provisioning blockers',
+    'team legal/access governance',
   ],
 }
 const artifactPath = join(outputDir, `runtime-completion-refresh-${Date.now()}.json`)
