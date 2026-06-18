@@ -376,10 +376,11 @@ assert(
     && p87.includes('check:remote-assignment-handoff')
     && p87.includes('assignment_handoff_waiting_for_images')
     && p87.includes('assignment_handoff_ready_for_operator')
+    && p87.includes('runtime-image-evidence-current-head')
     && p87.includes('remote-assignment.local.json')
     && p87.includes('remote-assignment-handoff')
     && p87.includes('REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_READY=true'),
-  'P87 remote assignment handoff must define current-image template generation, decisions and strict mode',
+  'P87 remote assignment handoff must define current-head image template generation, decisions and strict mode',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

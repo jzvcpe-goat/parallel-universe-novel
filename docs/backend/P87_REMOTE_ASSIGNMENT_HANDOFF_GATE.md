@@ -16,7 +16,7 @@ ignored assignment file, or mark a fixture as ready.
 npm run check:remote-assignment-handoff
 ```
 
-Strict mode requires current image evidence to be ready:
+Strict mode requires image evidence to be ready for the current git HEAD:
 
 ```bash
 REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_READY=true npm run check:remote-assignment-handoff
@@ -24,7 +24,8 @@ REQUIRE_REMOTE_ASSIGNMENT_HANDOFF_READY=true npm run check:remote-assignment-han
 
 ## Inputs
 
-- latest `runtime-image-publish-evidence-*.json`,
+- latest `runtime-image-publish-evidence-*.json` whose `headSha` matches the
+  current git HEAD,
 - `deploy/runtime-production/service-manifest.json`,
 - `deploy/runtime-production/remote-assignment.example.json`,
 - P75/P79/P85 docs and gate scripts.
@@ -44,9 +45,10 @@ write local assignment evidence or promote fixture evidence.
 ## Decisions
 
 - `assignment_handoff_waiting_for_images`: P72 has not proven current image
-  publication yet.
+  publication yet, or the latest P72 evidence belongs to an older commit.
 - `assignment_handoff_ready_for_operator`: P72 image evidence is ready and the
-  handoff can be sent to the deployment operator.
+  evidence `headSha` matches the current git HEAD, so the handoff can be sent
+  to the deployment operator.
 
 ## Boundary
 
@@ -66,6 +68,7 @@ services exist and pass their own strict checks.
 - Pages workflow uploads `remote-assignment-handoff` artifact.
 - Current-run artifact gate requires `remote-assignment-handoff`.
 - P87 appears in P45/P84/P85 completion and blocker documents.
-- The handoff artifact includes current commit image refs.
+- The handoff artifact includes current commit image refs and blocks stale image
+  evidence with `runtime-image-evidence-current-head`.
 - The handoff artifact does not write or commit
   `deploy/runtime-production/remote-assignment.local.json`.

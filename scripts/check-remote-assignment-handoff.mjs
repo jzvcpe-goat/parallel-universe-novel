@@ -185,10 +185,12 @@ const agentService = serviceById(manifest, 'agent')
 const headSha = currentHead()
 const imageEvidence = latest('runtime-image-publish-evidence-')
 const imageEvidenceReady = imageEvidence?.payload?.status === 'passed'
-const apiImage = imageEvidenceReady
+const imageEvidenceHeadSha = imageEvidence?.payload?.headSha || null
+const imageEvidenceMatchesHead = imageEvidenceReady && imageEvidenceHeadSha === headSha
+const apiImage = imageEvidenceMatchesHead
   ? imageEvidence.payload.images.find(item => item.includes('/parallel-universe-novel-api:'))
   : `${apiService.imageName}:${headSha}`
-const agentImage = imageEvidenceReady
+const agentImage = imageEvidenceMatchesHead
   ? imageEvidence.payload.images.find(item => item.includes('/parallel-universe-novel-agent-runtime:'))
   : `${agentService.imageName}:${headSha}`
 
@@ -199,6 +201,7 @@ assert(agentImage.includes('parallel-universe-novel-agent-runtime:'), 'P87 Agent
 
 const blockers = []
 if (!imageEvidenceReady) blockers.push('runtime-image-evidence-ready')
+if (imageEvidenceReady && !imageEvidenceMatchesHead) blockers.push('runtime-image-evidence-current-head')
 const decision = blockers.length
   ? 'assignment_handoff_waiting_for_images'
   : 'assignment_handoff_ready_for_operator'
