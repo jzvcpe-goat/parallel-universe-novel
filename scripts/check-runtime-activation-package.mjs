@@ -39,6 +39,7 @@ const requiredFiles = [
   'docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md',
   'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
   'docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md',
+  'docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -93,6 +94,7 @@ const p91 = read('docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md')
 const p92 = read('docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md')
 const p93 = read('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md')
 const p94 = read('docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md')
+const p96 = read('docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -472,6 +474,13 @@ assert(
     && p94.includes('check:remote-runtime-blockers-artifact')
     && p94.includes('P90'),
   'P94 local artifact mode coherence must bind P85 local ledger generation to current-head P72/P89 evidence',
+)
+assert(
+  p96.includes('P96 Runtime Completion Blocker Convergence')
+    && p96.includes('P85 blocker ledger is the source of truth')
+    && p96.includes('commercial-release-chain')
+    && p96.includes('check:runtime-completion-blocker-convergence'),
+  'P96 runtime completion blocker convergence must bind P45 commercial release gaps to the P85 blocker ledger',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

@@ -350,3 +350,13 @@ The refreshed matrix keeps these modules partial:
 - Commercial Release Chain.
 
 That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78/P79 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+## P96 Runtime Completion Blocker Convergence Refresh
+
+P96 extends this refresh contract by making the commercial release row consume
+the P85 blocker ledger instead of keeping an independent blocker taxonomy.
+
+- P45 runtime completion artifacts include `remoteRuntimeBlockerLedger`.
+- `commercial-release-chain.openGaps` mirrors P85 blocked stage ids when a P85
+  artifact exists.
+- `check:runtime-completion-blocker-convergence` runs after P90 in root
+  `npm run test`.

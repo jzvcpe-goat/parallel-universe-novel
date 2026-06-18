@@ -30,9 +30,35 @@ function latestReadinessLedger() {
   }
 }
 
+function latestJsonArtifact(prefix) {
+  if (!existsSync(artifactDir)) return null
+  const files = readdirSync(artifactDir)
+    .filter(name => name.startsWith(prefix) && name.endsWith('.json'))
+    .sort()
+  if (!files.length) return null
+  const file = join(artifactDir, files.at(-1))
+  return {
+    path: file,
+    payload: JSON.parse(readFileSync(file, 'utf8')),
+  }
+}
+
+function p85BlockedStages(ledger) {
+  return (ledger?.payload?.stages || [])
+    .filter(stage => stage?.status === 'blocked')
+    .map(stage => ({
+      id: String(stage.id || 'unknown'),
+      owner: String(stage.owner || 'unknown'),
+      gate: String(stage.gate || 'unknown'),
+      nextAction: String(stage.nextAction || 'No next action recorded.'),
+    }))
+}
+
 const runtimeRules = readJson('docs/product/rules/genre-runtime-rules.v1.json')
 const packageJson = readJson('package.json')
 const readinessLedger = latestReadinessLedger()
+const remoteRuntimeBlockerLedger = latestJsonArtifact('remote-runtime-blockers-')
+const remoteRuntimeBlockedStages = p85BlockedStages(remoteRuntimeBlockerLedger)
 
 const componentStatuses = new Set(['ready', 'partial', 'blocked'])
 const requiredComponentIds = [
@@ -561,6 +587,7 @@ const components = [
       'docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md',
       'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
       'docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md',
+      'docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md',
       '.github/workflows/runtime-images.yml',
       'deploy/runtime-production/host-profiles.json',
       'deploy/runtime-production/service-manifest.json',
@@ -650,6 +677,7 @@ const components = [
       ['package.json', 'check:remote-assignment-artifacts'],
       ['package.json', 'check:remote-runtime-blockers'],
       ['package.json', 'check:remote-runtime-blockers-artifact'],
+      ['package.json', 'check:runtime-completion-blocker-convergence'],
       ['package.json', 'check:remote-origin-execution'],
       ['package.json', 'check:public-privacy-artifacts'],
       ['deploy/runtime-production/remote-assignment.fixture.json', 'parallel-universe-runtime.invalid'],
@@ -708,6 +736,8 @@ const components = [
       ['docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md', 'check:remote-assignment-artifacts'],
       ['docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md', 'P94 Local Artifact Mode Coherence'],
       ['docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md', 'runtime-image-evidence-current-head'],
+      ['docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md', 'P96 Runtime Completion Blocker Convergence'],
+      ['docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md', 'P85 blocker ledger is the source of truth'],
       ['.github/workflows/pages.yml', 'Check remote assignment handoff artifact content'],
       ['.github/workflows/pages.yml', 'Check remote runtime blocker artifact content'],
       ['.github/workflows/pages.yml', 'Check public privacy artifact content'],
@@ -722,12 +752,14 @@ const components = [
       ['deploy/runtime-production/origin.env.example', 'VITE_PUBLIC_RUNTIME_MODE=live'],
       ['backend/tests/test_payment_provider_hardening.py', 'provider-callback'],
     ],
-    openGaps: readinessLedger?.payload?.blockedChecks?.length
-      ? readinessLedger.payload.blockedChecks.map(id => `Public live readiness blocked: ${id}`)
-      : [
-          'Real payment provider, legal/privacy, and production rollback ownership must still be confirmed before paid public launch.',
-        ],
-    nextGate: 'Clear P23 readiness ledger blockers and production payment/legal/security owners before paid launch.',
+    openGaps: remoteRuntimeBlockedStages.length
+      ? remoteRuntimeBlockedStages.map(stage => `P85 remote runtime blocker (${stage.id}; ${stage.owner}; ${stage.gate}): ${stage.nextAction}`)
+      : readinessLedger?.payload?.blockedChecks?.length
+        ? readinessLedger.payload.blockedChecks.map(id => `Public live readiness blocked: ${id}`)
+        : [
+            'Real payment provider, legal/privacy, and production rollback ownership must still be confirmed before paid public launch.',
+          ],
+    nextGate: 'Clear the P85 remote-runtime blocker ledger, then confirm production payment/legal/security owners before paid launch.',
   },
 ]
 
@@ -833,6 +865,15 @@ const payload = {
         status: readinessLedger.payload.status,
         blockedChecks: readinessLedger.payload.blockedChecks || [],
         publicUrl: readinessLedger.payload.publicUrl,
+      }
+    : null,
+  remoteRuntimeBlockerLedger: remoteRuntimeBlockerLedger
+    ? {
+        path: remoteRuntimeBlockerLedger.path,
+        status: remoteRuntimeBlockerLedger.payload.status,
+        decision: remoteRuntimeBlockerLedger.payload.decision,
+        blockerCount: remoteRuntimeBlockerLedger.payload.blockerCount,
+        blockedStages: remoteRuntimeBlockedStages.map(stage => stage.id),
       }
     : null,
   privacy: {

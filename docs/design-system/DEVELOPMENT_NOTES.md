@@ -1,5 +1,22 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P96 Runtime Completion Blocker Convergence
+
+P96 修的是 P45 completion matrix 和 P85/P90 blocker ledger 的口径漂移：
+前者原本只暴露 P23 live-readiness 的 6 个 blocker，后者才是 release
+owner 真正要处理的 8 个 operator blocker。两者都能为真，但交接时会变成
+两张阻塞表。
+
+新的工程标准：
+
+1. P85 blocker ledger 是 remote runtime launch blocker 的 source of truth。
+2. P45 仍是完成度矩阵，但 `commercial-release-chain.openGaps` 要优先映射
+   P85 blocked stage ids。
+3. `check:runtime-completion-blocker-convergence` 必须在 P90 之后运行，
+   重新生成 P45 artifact 并检查每个 P85 blocker 都出现在 commercial row。
+4. Completion matrix 不能自建第二套 blocker taxonomy；否则 gate 全绿也会
+   留下交接口径风险。
+
 ## 2026-06-18 P85 Remote Runtime Blocker Normalization
 
 P84 对齐了 release evidence，但 P45 仍显示 commercial release chain blocked。真正的下一个断点不是继续补 UI 或规则，而是把 P23/P65/P66/P72/P75/P76/P78/P79 这些分散输出统一成部署负责人能执行的一张断点表。
