@@ -132,11 +132,13 @@ const requiredFiles = [
   'deploy/api/Dockerfile',
   'deploy/agent-runtime/Dockerfile',
   'deploy/runtime-preview/docker-compose.yml',
+  'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/origin.env.example',
   'docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md',
   'docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md',
   'docs/backend/P65_REMOTE_LIVE_RUNTIME_TRACE_GATE.md',
   'docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md',
+  'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
 ]
 
 for (const file of requiredFiles) {
@@ -162,12 +164,18 @@ assertContains('deploy/runtime-production/origin.env.example', [
   'VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host>',
   'VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false',
 ])
+assertContains('deploy/runtime-production/host-profiles.json', [
+  'docker-compatible-two-service-paas',
+  'fastapi_business_sovereign_agent_runtime_orchestrates',
+  'provider_secret_store_only',
+])
 assertContains('docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md', [
   'P66 Remote Runtime Origin Provisioning Gate',
   'remote_origin_unprovisioned',
   'remote_origin_health_ready',
   'pages_variables_ready',
   'ready_for_public_live_runtime',
+  'check:remote-host-target',
 ])
 assertContains('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md', [
   'GitHub Repository Variables',

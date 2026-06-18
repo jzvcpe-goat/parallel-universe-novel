@@ -39,6 +39,15 @@ blockers.
 
 ## Required Origins
 
+Before origin provisioning, run P69:
+
+```bash
+npm run check:remote-host-target
+```
+
+Use `deploy/runtime-production/host-profiles.json` to select the host profile.
+P66 then verifies the remote HTTPS origins produced by that host.
+
 FastAPI:
 
 ```text

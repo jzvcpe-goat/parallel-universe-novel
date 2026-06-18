@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "defaultTarget": "docker-compatible-two-service-paas",
+  "decision": "prefer_two_service_container_runtime_before_live_pages",
+  "policy": {
+    "runtimeOwnership": "fastapi_business_sovereign_agent_runtime_orchestrates",
+    "secretsBoundary": "provider_secret_store_only",
+    "browserBoundary": "public_pages_receives_only_vite_runtime_origins",
+    "databaseBoundary": "fastapi_only",
+    "agentDatabaseAccess": "forbidden",
+    "canonWrites": "fastapi_tool_bridge_only"
+  },
+  "publicPagesVariables": [
+    {
+      "name": "VITE_PUBLIC_RUNTIME_MODE",
+      "valuePolicy": "live_after_remote_health_ready"
+    },
+    {
+      "name": "VITE_API_ORIGIN",
+      "valuePolicy": "remote_https_api_origin"
+    },
+    {
+      "name": "VITE_AGENT_RUNTIME_BASE_URL",
+      "valuePolicy": "remote_https_agent_origin"
+    },
+    {
+      "name": "VITE_API_BASE_URL",
+      "valuePolicy": "optional_remote_https_api_v1_base"
+    },
+    {
+      "name": "VITE_ALLOW_LOCAL_CREATOR_FALLBACK",
+      "valuePolicy": "false_in_public_pages"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "docker-compatible-two-service-paas",
+      "label": "Docker-compatible two-service PaaS",
+      "decision": "preferred_first_live_preview_target",
+      "fit": [
+        "builds repository Dockerfiles directly",
+        "assigns HTTPS origins per service",
+        "stores service secrets outside GitHub Pages",
+        "supports managed database or persistent mounted storage"
+      ],
+      "services": {
+        "api": {
+          "owner": "fastapi_business_runtime",
+          "dockerfile": "deploy/api/Dockerfile",
+          "containerPort": 8787,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "DATABASE_URL",
+            "NARRATIVEOS_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "NARRATIVEOS_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [
+            "NARRATIVEOS_CREATOR_DIALOGUE_DIR",
+            "NARRATIVEOS_CANON_LEDGER_DIR"
+          ],
+          "publicEnv": []
+        },
+        "agent": {
+          "owner": "mastra_workflow_runtime",
+          "dockerfile": "deploy/agent-runtime/Dockerfile",
+          "containerPort": 4111,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "NODE_ENV",
+            "MASTRA_HOST",
+            "MASTRA_PORT",
+            "MASTRA_TOOL_BRIDGE_BASE_URL",
+            "MASTRA_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "MASTRA_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [],
+          "publicEnv": []
+        }
+      },
+      "activationOrder": [
+        "provision_api_origin",
+        "provision_agent_origin",
+        "set_matching_tool_bridge_secret",
+        "verify_health",
+        "run_remote_origin_gate",
+        "set_pages_variables",
+        "run_live_runtime_browser_qa"
+      ]
+    },
+    {
+      "id": "self-hosted-docker-compose",
+      "label": "Self-hosted Docker Compose",
+      "decision": "operator_controlled_preview_or_private_staging",
+      "fit": [
+        "runs checked-in compose shape on a single host",
+        "requires operator-managed HTTPS reverse proxy",
+        "requires operator-managed backup and restart policy"
+      ],
+      "services": {
+        "api": {
+          "owner": "fastapi_business_runtime",
+          "dockerfile": "deploy/api/Dockerfile",
+          "containerPort": 8787,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "DATABASE_URL",
+            "NARRATIVEOS_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "NARRATIVEOS_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [
+            "NARRATIVEOS_CREATOR_DIALOGUE_DIR",
+            "NARRATIVEOS_CANON_LEDGER_DIR"
+          ],
+          "publicEnv": []
+        },
+        "agent": {
+          "owner": "mastra_workflow_runtime",
+          "dockerfile": "deploy/agent-runtime/Dockerfile",
+          "containerPort": 4111,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "NODE_ENV",
+            "MASTRA_HOST",
+            "MASTRA_PORT",
+            "MASTRA_TOOL_BRIDGE_BASE_URL",
+            "MASTRA_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "MASTRA_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [],
+          "publicEnv": []
+        }
+      },
+      "activationOrder": [
+        "start_private_compose",
+        "attach_https_reverse_proxy",
+        "verify_health",
+        "run_remote_origin_gate",
+        "set_pages_variables",
+        "run_live_runtime_browser_qa"
+      ]
+    },
+    {
+      "id": "orchestrated-container-cluster",
+      "label": "Orchestrated container cluster",
+      "decision": "later_scale_target",
+      "fit": [
+        "separates API and Agent deployments",
+        "uses provider secret manager",
+        "requires production observability and rollback ownership before live users"
+      ],
+      "services": {
+        "api": {
+          "owner": "fastapi_business_runtime",
+          "dockerfile": "deploy/api/Dockerfile",
+          "containerPort": 8787,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "DATABASE_URL",
+            "NARRATIVEOS_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "NARRATIVEOS_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [
+            "NARRATIVEOS_CREATOR_DIALOGUE_DIR",
+            "NARRATIVEOS_CANON_LEDGER_DIR"
+          ],
+          "publicEnv": []
+        },
+        "agent": {
+          "owner": "mastra_workflow_runtime",
+          "dockerfile": "deploy/agent-runtime/Dockerfile",
+          "containerPort": 4111,
+          "healthPath": "/health",
+          "requiredEnv": [
+            "NARRATIVEOS_DEPLOY_ENV",
+            "NODE_ENV",
+            "MASTRA_HOST",
+            "MASTRA_PORT",
+            "MASTRA_TOOL_BRIDGE_BASE_URL",
+            "MASTRA_ALLOWED_ORIGINS"
+          ],
+          "secretEnv": [
+            "MASTRA_TOOL_BRIDGE_TOKEN"
+          ],
+          "optionalPersistentEnv": [],
+          "publicEnv": []
+        }
+      },
+      "activationOrder": [
+        "create_api_deployment",
+        "create_agent_deployment",
+        "attach_secret_manager",
+        "verify_health",
+        "run_remote_origin_gate",
+        "set_pages_variables",
+        "run_live_runtime_browser_qa"
+      ]
+    }
+  ],
+  "blockedUntil": [
+    "remote_https_api_origin",
+    "remote_https_agent_origin",
+    "matching_tool_bridge_secret_in_provider_store",
+    "production_database_or_preview_database_decision",
+    "pages_live_variables_after_health_ready"
+  ]
+}

@@ -20,6 +20,8 @@ const requiredFiles = [
   'docs/backend/P19_PUBLIC_LIVE_RUNTIME_CONFIG_AUDIT.md',
   'docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md',
   'docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md',
+  'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
+  'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-preview/docker-compose.yml',
   'packages/agent-runtime/src/server.ts',
   'packages/agent-runtime/src/toolBridge.ts',
@@ -39,6 +41,8 @@ const packageJson = JSON.parse(read('package.json'))
 const p14 = read('docs/backend/P14_REMOTE_RUNTIME_DEPLOYMENT_PACKAGE.md')
 const p20 = read('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md')
 const p23 = read('docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md')
+const p69 = read('docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md')
+const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
 const agentServer = read('packages/agent-runtime/src/server.ts')
 const toolBridge = read('packages/agent-runtime/src/toolBridge.ts')
@@ -53,8 +57,16 @@ assert(
   'package.json must expose check:runtime-activation-package',
 )
 assert(
+  packageJson.scripts['check:remote-host-target'] === 'node scripts/check-remote-host-target.mjs',
+  'package.json must expose check:remote-host-target',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-host-target'),
+  'npm run test must include check:remote-host-target',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -127,11 +139,32 @@ assert(
     && p14.includes('fail closed when FastAPI Tool Bridge is unreachable'),
   'P14 deployment package must document Agent bridge, Tool Bridge token, and CORS env vars',
 )
+assert(
+  p14.includes('P69 Remote Runtime Host Target Gate')
+    && p14.includes('deploy/runtime-production/host-profiles.json')
+    && p14.includes('check:remote-host-target'),
+  'P14 deployment package must point operators to the P69 host target gate',
+)
+assert(
+  p69.includes('docker-compatible-two-service-paas')
+    && p69.includes('provider_secret_store_only')
+    && p69.includes('P66 Remote Runtime Origin Provisioning Gate'),
+  'P69 host target gate must define the preferred target, secret boundary, and P66 handoff',
+)
+assert(
+  hostProfiles.includes('docker-compatible-two-service-paas')
+    && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
+    && hostProfiles.includes('provider_secret_store_only')
+    && hostProfiles.includes('MASTRA_TOOL_BRIDGE_TOKEN')
+    && hostProfiles.includes('NARRATIVEOS_TOOL_BRIDGE_TOKEN'),
+  'host profiles must preserve runtime ownership and Tool Bridge secret boundaries',
+)
 for (const required of [
   'Activation Sequence',
   'GitHub Repository Variables',
   'CORS Contract',
   'Health Contract',
+  'Host Target Gate',
   'Live Smoke',
   'Rollback',
   'Acceptance Evidence',

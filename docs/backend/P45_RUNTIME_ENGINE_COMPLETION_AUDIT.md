@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -332,6 +332,27 @@ Current decision after a successful local/CI run is
 
 Remaining gaps stay explicit: P68 proves local deployable containers, not remote
 HTTPS hosting, production database, paid model credentials, or commercial launch.
+
+## P69 Remote Runtime Host Target Gate
+
+P69 turns the remote runtime host choice into an auditable target package before
+P66 checks actual remote origins:
+
+- `deploy/runtime-production/host-profiles.json` defines the allowed host
+  profiles and the preferred `docker-compatible-two-service-paas` target.
+- API and Agent remain separate services with separate HTTPS origins.
+- `provider_secret_store_only` keeps Tool Bridge tokens, database URLs and
+  future model keys out of GitHub Pages variables.
+- Agent Runtime direct database access remains forbidden.
+- `check:remote-host-target` validates the deployment target before P66 origin
+  provisioning and live runtime QA.
+
+Current decision is that P69 is ready as a host-target gate, while P66 remains
+`remote_origin_unprovisioned` until real remote API and Agent origins exist.
+
+Remaining gaps stay explicit: P69 does not deploy infrastructure and does not
+replace P66 health checks, P65 remote trace proof, paid model credentials or
+commercial launch ownership.
 
 ## Privacy Boundary
 

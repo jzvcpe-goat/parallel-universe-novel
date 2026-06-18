@@ -13,7 +13,9 @@
 
 Production origin checklist:
 
+- `deploy/runtime-production/host-profiles.json`
 - `deploy/runtime-production/origin.env.example`
+- `npm run check:remote-host-target`
 - `npm run check:remote-origin-provisioning`
 
 ### FastAPI API
@@ -154,7 +156,15 @@ npm run qa:live-runtime-browser
 
 ## Next Breakpoint
 
-Pick the actual remote host and secrets strategy. Once host URLs exist, update GitHub Actions Pages build from:
+P69 Remote Runtime Host Target Gate now owns the host-shape decision. Run:
+
+```bash
+npm run check:remote-host-target
+```
+
+Then pick/provision the actual remote host and secrets strategy from
+`deploy/runtime-production/host-profiles.json`. Once host URLs exist, update
+GitHub Actions Pages build from:
 
 ```yaml
 VITE_PUBLIC_RUNTIME_MODE: disabled

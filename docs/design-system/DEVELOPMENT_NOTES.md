@@ -3526,3 +3526,15 @@ P68 补上“进程 smoke 能跑”和“部署包真能跑”之间的断点。
 4. compose smoke 必须让 Agent Runtime 通过 FastAPI Tool Bridge 完成一次候选创作，不能只证明服务端口打开。
 5. artifact 只记录健康状态、候选长度、追问数量和 Tool Bridge 是否接受，不记录候选正文、密钥、数据库 URL 或私有参考映射。
 6. 本机 Docker daemon 未启动或 container registry 不可达时，普通模式记录 `runtime_preview_compose_not_executed`；严格模式 `REQUIRE_RUNTIME_PREVIEW_COMPOSE=true` 必须失败。
+
+## 2026-06-18 P69 Remote Runtime Host Target Gate
+
+P69 修的是另一个容易被忽略的上线断点：不是“代码能容器化”，而是“团队到底按什么宿主形态部署这两个服务”。如果这个选择不进入工程合同，后续很容易把 FastAPI、Agent Runtime、GitHub Pages 变量和 secret 边界混在一起。
+
+本轮原则：
+
+1. `deploy/runtime-production/host-profiles.json` 是宿主目标的机器可读来源，默认选择 `docker-compatible-two-service-paas`。
+2. FastAPI 继续是业务事实主权方，Agent Runtime 只编排 workflow，不能直接访问数据库。
+3. Tool Bridge token、数据库 URL、模型 key 只能进入 hosting provider secret store；GitHub Pages 只能拿公开 `VITE_*` origin 变量。
+4. P69 只证明部署目标清晰，不证明远程服务已上线；P66 继续负责 origin 与 health，P65 继续负责 public live trace。
+5. `check:remote-host-target`、`check:runtime-activation-package`、`check:remote-origin-provisioning` 共同防止上线步骤绕开主权边界。
