@@ -23,6 +23,13 @@ Current state from P19:
 
 ## Runtime Environment
 
+Use `deploy/runtime-production/origin.env.example` as the operator checklist.
+Validate it with:
+
+```bash
+npm run check:remote-origin-provisioning
+```
+
 FastAPI required environment:
 
 ```bash

@@ -86,6 +86,15 @@ hold_remote_live_trace_unproven
 This is a successful gate result because it prevents the release from
 overclaiming a live runtime that is not yet reachable from the public Pages app.
 
+## Next Gate
+
+P66 Remote Runtime Origin Provisioning Gate owns the operator-facing follow-up:
+
+- remote FastAPI HTTPS origin,
+- remote Agent Runtime HTTPS origin,
+- GitHub Pages public runtime variables,
+- health checks and public fallback boundary.
+
 ## Acceptance
 
 1. `package.json` exposes `check:remote-live-runtime-trace`.

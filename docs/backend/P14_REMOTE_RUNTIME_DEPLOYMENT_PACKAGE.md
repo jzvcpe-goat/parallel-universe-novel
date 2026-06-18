@@ -11,6 +11,11 @@
 
 ## Deployable Units
 
+Production origin checklist:
+
+- `deploy/runtime-production/origin.env.example`
+- `npm run check:remote-origin-provisioning`
+
 ### FastAPI API
 
 File: `deploy/api/Dockerfile`
@@ -114,6 +119,7 @@ cp app/dist/index.html app/dist/404.html
 
 ```bash
 npm run check:runtime-deploy-readiness
+npm run check:remote-origin-provisioning
 npm run check:public-runtime-preview
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
 ```

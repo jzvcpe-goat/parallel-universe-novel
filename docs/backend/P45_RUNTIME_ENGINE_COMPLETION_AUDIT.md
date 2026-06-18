@@ -279,6 +279,24 @@ FastAPI, remote Agent Runtime, and GitHub Pages runtime variables are proven.
 Remaining gaps stay explicit: P65 is a release evidence gate, not an
 infrastructure deploy, paid commercial launch, or legal/privacy release packet.
 
+## P66 Remote Runtime Origin Provisioning Gate
+
+P66 turns the remote origin blockers into a machine-checkable provisioning gate:
+
+- `deploy/runtime-production/origin.env.example` separates service secrets from
+  public Pages variables.
+- `check:remote-origin-provisioning` checks remote API origin, remote Agent
+  origin, health endpoints, Pages runtime mode and fallback boundary.
+- It outputs `remote_origin_unprovisioned`,
+  `remote_origin_health_ready`, `pages_variables_ready`, or
+  `ready_for_public_live_runtime`.
+
+Current conservative decision is `remote_origin_unprovisioned` until remote API
+and Agent HTTPS origins are configured.
+
+Remaining gaps stay explicit: P66 is a provisioning gate, not a cloud provider
+deployment, paid commercial launch, or legal/privacy release packet.
+
 ## Privacy Boundary
 
 This audit must not expose representative work names. It only accepts the public rule registry shape:

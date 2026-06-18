@@ -130,6 +130,20 @@ P65 Remote Live Runtime Trace Gate changed remote evidence semantics:
 - remaining gap is remote infrastructure/runtime configuration, not absence of a
   machine-readable remote live runtime trace decision.
 
+P66 Remote Runtime Origin Provisioning Gate changed provisioning evidence:
+
+- `deploy/runtime-production/origin.env.example` separates service secrets from
+  public Pages variables,
+- `check:remote-origin-provisioning` verifies remote API origin, remote Agent
+  origin, health readiness, Pages runtime mode and fallback boundary,
+- the gate outputs `remote_origin_unprovisioned`,
+  `remote_origin_health_ready`, `pages_variables_ready`, or
+  `ready_for_public_live_runtime`,
+- current expected state remains `remote_origin_unprovisioned` until remote API
+  and Agent HTTPS origins are provisioned,
+- remaining gap is actual remote service hosting, not absence of a provisioning
+  checklist or machine-readable origin gate.
+
 ## Verification
 
 Run:
@@ -138,6 +152,7 @@ Run:
 npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
 npm run check:remote-live-runtime-trace
+npm run check:remote-origin-provisioning
 ```
 
 `check:runtime-completion-refresh` prevents these stale claims from returning:
@@ -155,6 +170,7 @@ npm run check:remote-live-runtime-trace
 - Reader-visible public branch release not proven after private production commit.
 - The formerly stale claim that Production TimeEngine telemetry fitting is missing after public branch release.
 - Remote live runtime trace gate missing after P23/P46/P47 evidence exists.
+- Remote origin provisioning gate missing after P65 blockers are known.
 
 ## Boundary
 
@@ -169,4 +185,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
