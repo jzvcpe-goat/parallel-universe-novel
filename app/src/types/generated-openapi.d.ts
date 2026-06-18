@@ -705,6 +705,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Time Engine Telemetry Fit Snapshot */
+        get: operations["time_engine_telemetry_fit_snapshot_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_get"];
+        put?: never;
+        /** Time Engine Telemetry Fit */
+        post: operations["time_engine_telemetry_fit_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/timeline/worldlines/{worldline_id}/branches/commit": {
         parameters: {
             query?: never;
@@ -5048,6 +5066,22 @@ export interface components {
             /** Beats */
             beats?: string[];
         };
+        /** TimeEngineTelemetryFitRequest */
+        TimeEngineTelemetryFitRequest: {
+            /** Public Release Id */
+            public_release_id?: string | null;
+            /** Time Engine Run Id */
+            time_engine_run_id?: string | null;
+            /** Fit Operator Id */
+            fit_operator_id?: string | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** StartCheckoutRequest */
         StartCheckoutRequest: {
             /** Account Id */
@@ -6649,6 +6683,78 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    time_engine_telemetry_fit_snapshot_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    time_engine_telemetry_fit_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEngineTelemetryFitRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

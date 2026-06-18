@@ -1339,6 +1339,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit:
+    post:
+      tags:
+      - product-runtime
+      summary: Time Engine Telemetry Fit
+      operationId: time_engine_telemetry_fit_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_post
+      parameters:
+      - name: worldline_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Worldline Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEngineTelemetryFitRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Time Engine Telemetry Fit V1 Timeline Worldlines
+                  Worldline Id Time Engine Telemetry Fit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - product-runtime
+      summary: Time Engine Telemetry Fit Snapshot
+      operationId: time_engine_telemetry_fit_snapshot_v1_timeline_worldlines__worldline_id__time_engine_telemetry_fit_get
+      parameters:
+      - name: worldline_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Worldline Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Time Engine Telemetry Fit Snapshot V1 Timeline
+                  Worldlines Worldline Id Time Engine Telemetry Fit Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /v1/timeline/worldlines/{worldline_id}/branches/commit:
     post:
       tags:
@@ -9878,6 +9949,34 @@ components:
           title: Beats
       type: object
       title: TimeEngineCandidateRequest
+    TimeEngineTelemetryFitRequest:
+      properties:
+        public_release_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Public Release Id
+        time_engine_run_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Time Engine Run Id
+        fit_operator_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Fit Operator Id
+        confirmed:
+          type: boolean
+          title: Confirmed
+          default: false
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
+      type: object
+      title: TimeEngineTelemetryFitRequest
     StartCheckoutRequest:
       properties:
         account_id:

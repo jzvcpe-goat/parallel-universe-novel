@@ -26,11 +26,11 @@ npm run check:runtime-engine-completion
 
 | Component ID | Module | Status | Evidence Summary | Open Gap |
 | --- | --- | --- | --- | --- |
-| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; P62 writes a private production branch table row and audit event; P63 writes a Reader-visible `public_branch_releases` row and audit event; Studio confirmation now carries `studio_trace` into the canon ledger. | Remote live runtime trace and production TimeEngine telemetry fitting are not yet proven. |
-| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, `branch_publish_candidate_ledger_only`, authorization, `branch_commit_draft_ledger_only`, `production_branch_table_private`, and `reader_visible_branch_release` proof exist. | Remote runtime facade and production telemetry fitting are not yet proven. |
+| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; P62 writes a private production branch table row and audit event; P63 writes a Reader-visible `public_branch_releases` row and audit event; P64 writes a `time_engine_telemetry_fits` row; Studio confirmation now carries `studio_trace` into the canon ledger. | Remote live runtime trace is not yet proven. |
+| `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, `branch_publish_candidate_ledger_only`, authorization, `branch_commit_draft_ledger_only`, `production_branch_table_private`, `reader_visible_branch_release`, and `production_time_engine_fit` proof exist. | Remote runtime facade is not yet proven. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests. | Keep registry privacy and P4 scanner green. |
-| `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids. | Production public branch publish does not yet apply fitted event-density or aftershock state; production telemetry fitting remains a future gate. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, and P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`. | Remote live runtime trace and production TimeEngine telemetry fitting are not yet proven. |
+| `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids; P64 persists `production_time_engine_fit` after public release. | Remote live runtime trace is not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate. | Public remote model/provider smoke and cost-aware routing are not yet proven. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, P60 structural branch authorization gate, and P63 release owner/ops/rollback owner gate. | Reader live-generation text quality gate against remote runtime is not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
@@ -58,7 +58,7 @@ P52 refreshed this matrix after P49 and P51:
 - P51 is guarded by `check:state-writeback-safety`.
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
-The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture, P60 proves candidate operator authorization, P61 proves branch commit draft rollback across two existing tables, P62 proves private production branch table persistence, and P63 proves Reader-visible public branch release persistence, while production TimeEngine telemetry fitting and remote live runtime are still future gates.
+The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture, P60 proves candidate operator authorization, P61 proves branch commit draft rollback across two existing tables, P62 proves private production branch table persistence, P63 proves Reader-visible public branch release persistence, and P64 proves production TimeEngine telemetry fitting, while remote live runtime is still a future gate.
 
 ## P57 FastAPI TimeEngine Service
 
@@ -237,8 +237,30 @@ runtime or paid commercial launch:
 - `/v1/timeline/worldlines/{id}/loom` exposes `public_branch_release_summary`.
 - `check:public-branch-publish` prevents this proof from regressing.
 
-Remaining gaps stay explicit: P63 is not remote live runtime, not production
-TimeEngine telemetry fitting, and not a paid commercial release/legal packet.
+Remaining gaps stay explicit: P63 is not remote live runtime and not a paid
+commercial release/legal packet. P64 now carries the follow-up proof for
+production TimeEngine telemetry fitting.
+
+## P64 TimeEngine Telemetry Fit Gate
+
+P64 proves production TimeEngine telemetry fitting without claiming remote live
+runtime:
+
+- `/v1/timeline/worldlines/{id}/time-engine/telemetry-fit` requires
+  `Idempotency-Key`.
+- The gate requires latest P63 `reader_visible_branch_release`.
+- The gate requires latest `time_event_candidate_ledger_only`.
+- The request must include `fit_operator_id` and `confirmed = true`.
+- The repository writes `time_engine_telemetry_fits` and `analytics_events` in
+  one transaction.
+- Successful calls return `write_scope = production_time_engine_fit`.
+- `/v1/timeline/worldlines/{id}/time-engine/telemetry-fit` reads back the latest
+  fit.
+- `/v1/timeline/worldlines/{id}/loom` exposes `time_engine_fit_summary`.
+- `check:time-engine-telemetry-fit` prevents this proof from regressing.
+
+Remaining gaps stay explicit: P64 is not remote live runtime and not a paid
+commercial release/legal packet.
 
 ## Privacy Boundary
 

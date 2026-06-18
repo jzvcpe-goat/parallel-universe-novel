@@ -1526,6 +1526,196 @@ class ProductRuntimeService:
             "created_at": latest.get("created_at"),
         }
 
+    def fit_time_engine_telemetry(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        public_release = self.repository.latest_public_branch_release(worldline_id=worldline_id)
+        if public_release is None:
+            return {
+                "status": "blocked",
+                "reason": "public_branch_release_required",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        time_engine_record = self._latest_time_engine_record(worldline_id)
+        if time_engine_record is None:
+            return {
+                "status": "blocked",
+                "reason": "time_engine_candidate_required",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "public_release_id": public_release.get("public_release_id"),
+            }
+        requested_public_release_id = str(payload.get("public_release_id") or "").strip()
+        public_release_id = str(public_release.get("public_release_id") or "")
+        if requested_public_release_id and requested_public_release_id != public_release_id:
+            return {
+                "status": "blocked",
+                "reason": "public_release_mismatch",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "public_release_id": public_release_id,
+            }
+        requested_time_engine_run_id = str(payload.get("time_engine_run_id") or "").strip()
+        time_engine_run_id = str(time_engine_record.get("time_engine_run_id") or "")
+        if requested_time_engine_run_id and requested_time_engine_run_id != time_engine_run_id:
+            return {
+                "status": "blocked",
+                "reason": "time_engine_run_mismatch",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "time_engine_run_id": time_engine_run_id,
+            }
+        fit_operator_id = str(payload.get("fit_operator_id") or "").strip()
+        if not fit_operator_id:
+            return {
+                "status": "blocked",
+                "reason": "fit_operator_id_required",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "public_release_id": public_release_id,
+            }
+        if payload.get("confirmed") is not True:
+            return {
+                "status": "blocked",
+                "reason": "time_engine_fit_confirmation_required",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "public_release_id": public_release_id,
+                "fit_operator_id": fit_operator_id,
+            }
+
+        candidate_events = list(time_engine_record.get("candidate_events") or [])
+        sample_size = len(candidate_events)
+        burst_count = sum(1 for event in candidate_events if str(event.get("pressureTag")) == "burst")
+        aftershock_count = sum(1 for event in candidate_events if float(event.get("hawkesBoost") or 0) > 0)
+        max_intensity = max([float(event.get("intensity") or 0) for event in candidate_events] or [0.0])
+        beat_count = max(1, len(list(time_engine_record.get("beat_plan") or [])))
+        burst_ratio = round(burst_count / max(1, sample_size), 3)
+        aftershock_ratio = round(aftershock_count / max(1, sample_size), 3)
+        fit_summary = {
+            "mode": "production_time_engine_fit",
+            "source_time_engine_run_id": time_engine_run_id,
+            "source_public_release_id": public_release_id,
+            "sample_size": sample_size,
+            "observed_event_count": sample_size,
+            "burst_count": burst_count,
+            "aftershock_count": aftershock_count,
+            "burst_ratio": burst_ratio,
+            "aftershock_ratio": aftershock_ratio,
+            "max_intensity": round(max_intensity, 3),
+            "fitted_mu": round(max(0.05, sample_size / (beat_count * 4)), 3),
+            "fitted_alpha": round(max(0.1, aftershock_ratio + 0.15), 3),
+            "fitted_beta": round(max(0.2, 1.0 - burst_ratio), 3),
+            "confidence": round(min(0.95, 0.45 + sample_size * 0.06), 3),
+        }
+        key_hash = _idempotency_hash(key)
+        telemetry_fit_id = "time_engine_fit_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "time_engine_run_id": time_engine_run_id,
+                "public_release_id": public_release_id,
+                "fit_operator_id": fit_operator_id,
+            }
+        )
+        persisted = self.repository.persist_time_engine_telemetry_fit(
+            {
+                "telemetry_fit_id": telemetry_fit_id,
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "time_engine_run_id": time_engine_run_id,
+                "public_release_id": public_release_id,
+                "branch_commit_id": public_release.get("branch_commit_id"),
+                "fit_operator_id": fit_operator_id,
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "idempotency_key_hash": key_hash,
+                "sample_size": sample_size,
+                "fit_summary": fit_summary,
+                "payload_json": {
+                    "capability_mode": "production_time_engine_fit_gate",
+                    "source_density_summary": dict(time_engine_record.get("density_summary") or {}),
+                    "public_release": {
+                        "public_release_id": public_release_id,
+                        "write_scope": public_release.get("write_scope"),
+                    },
+                },
+            }
+        )
+        return {
+            "status": "fitted_candidate",
+            "capability_mode": "production_time_engine_fit_gate",
+            "write_scope": "production_time_engine_fit",
+            "telemetry_fit_id": persisted["telemetry_fit_id"],
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "time_engine_run_id": persisted["time_engine_run_id"],
+            "public_release_id": persisted["public_release_id"],
+            "branch_commit_id": persisted["branch_commit_id"],
+            "fit_operator_id": persisted["fit_operator_id"],
+            "sample_size": persisted["sample_size"],
+            "fit_summary": dict(persisted.get("fit_summary") or fit_summary),
+            "tables_written": list(persisted.get("tables_written") or []),
+            "audit_event_id": persisted.get("audit_event_id"),
+            "next_required": ["remote_live_runtime_trace"],
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": bool(persisted.get("idempotent_replay")),
+            "created_at": persisted.get("created_at"),
+        }
+
+    def time_engine_telemetry_fit_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self.repository.latest_time_engine_telemetry_fit(worldline_id=worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "production_time_engine_fit_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No production TimeEngine telemetry fit has been persisted for this worldline yet.",
+            }
+        return {
+            "status": str(latest.get("status") or "fitted_candidate"),
+            "capability_mode": "production_time_engine_fit_gate",
+            "write_scope": str(latest.get("write_scope") or "production_time_engine_fit"),
+            "telemetry_fit_id": latest.get("telemetry_fit_id"),
+            "worldline_id": latest.get("worldline_id"),
+            "session_id": latest.get("session_id"),
+            "world_id": latest.get("world_id"),
+            "time_engine_run_id": latest.get("time_engine_run_id"),
+            "public_release_id": latest.get("public_release_id"),
+            "branch_commit_id": latest.get("branch_commit_id"),
+            "fit_operator_id": latest.get("fit_operator_id"),
+            "sample_size": latest.get("sample_size"),
+            "fit_summary": dict(latest.get("fit_summary") or {}),
+            "created_at": latest.get("created_at"),
+        }
+
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
         steps = self.repository.list_steps(session_id)
@@ -1715,6 +1905,7 @@ class ProductRuntimeService:
         branch_commit_draft_record = self._latest_branch_commit_draft_record(worldline_id)
         production_branch_commit_record = self.repository.latest_production_branch_commit(worldline_id=worldline_id)
         public_branch_release_record = self.repository.latest_public_branch_release(worldline_id=worldline_id)
+        time_engine_fit_record = self.repository.latest_time_engine_telemetry_fit(worldline_id=worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -1827,6 +2018,15 @@ class ProductRuntimeService:
                 "production_public_publish": bool(
                     dict(public_branch_release_record or {}).get("public_publish_enabled") or False
                 ),
+            },
+            "time_engine_fit_summary": {
+                "status": str(dict(time_engine_fit_record or {}).get("status") or "waiting"),
+                "write_scope": str(dict(time_engine_fit_record or {}).get("write_scope") or "none"),
+                "telemetry_fit_id": dict(time_engine_fit_record or {}).get("telemetry_fit_id"),
+                "time_engine_run_id": dict(time_engine_fit_record or {}).get("time_engine_run_id"),
+                "public_release_id": dict(time_engine_fit_record or {}).get("public_release_id"),
+                "sample_size": dict(time_engine_fit_record or {}).get("sample_size") or 0,
+                "fit_summary": dict(dict(time_engine_fit_record or {}).get("fit_summary") or {}),
             },
         }
 

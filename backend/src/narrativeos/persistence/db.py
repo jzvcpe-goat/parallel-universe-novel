@@ -412,6 +412,33 @@ class PublicBranchReleaseRow(PlatformBase):
     updated_at = Column(String, nullable=False, default=utcnow_iso)
 
 
+class TimeEngineTelemetryFitRow(PlatformBase):
+    __tablename__ = "time_engine_telemetry_fits"
+    __table_args__ = (
+        Index("idx_time_engine_telemetry_fits_worldline_created_at", "worldline_id", "created_at"),
+        Index("idx_time_engine_telemetry_fits_time_engine_run_id", "time_engine_run_id"),
+        Index("idx_time_engine_telemetry_fits_public_release_id", "public_release_id"),
+    )
+
+    telemetry_fit_id = Column(String, primary_key=True)
+    worldline_id = Column(String, nullable=False, index=True)
+    session_id = Column(String, nullable=False, index=True)
+    world_id = Column(String, nullable=True, index=True)
+    world_version_id = Column(String, nullable=True, index=True)
+    time_engine_run_id = Column(String, nullable=False, index=True)
+    public_release_id = Column(String, nullable=False, index=True)
+    branch_commit_id = Column(String, nullable=False, index=True)
+    fit_operator_id = Column(String, nullable=False, index=True)
+    status = Column(String, nullable=False, default="fitted_candidate")
+    write_scope = Column(String, nullable=False, default="production_time_engine_fit")
+    sample_size = Column(Integer, nullable=False, default=0)
+    fit_summary_json = Column(JSON, nullable=True)
+    idempotency_key_hash = Column(String, nullable=False, index=True)
+    payload_json = Column(JSON, nullable=True)
+    created_at = Column(String, nullable=False, default=utcnow_iso)
+    updated_at = Column(String, nullable=False, default=utcnow_iso)
+
+
 class AnalyticsEventRow(PlatformBase):
     __tablename__ = "analytics_events"
     __table_args__ = (

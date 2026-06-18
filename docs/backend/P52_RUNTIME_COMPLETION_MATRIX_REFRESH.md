@@ -24,7 +24,8 @@ P51 changed state-writeback and quality-brake evidence:
 - commit records include `rollback_plan`,
 - P59 now proves a single-probe database transaction rollback fixture for Reader branch publish candidates,
 - P62 proves private production branch table persistence and P63 proves Reader-visible public release,
-- remaining gap is remote live runtime trace, production telemetry fitting, and paid/legal release packet.
+- P64 proves production TimeEngine telemetry fitting after Reader-visible public release,
+- remaining gap is remote live runtime trace and paid/legal release packet.
 
 P55 changed world-engine/state-writeback evidence:
 
@@ -46,7 +47,7 @@ P57 changed time-engine evidence:
 - candidate events are persisted as `time_event_candidate_ledger_only`,
 - repeated requests replay the same `time_engine_run_id`,
 - `/v1/timeline/worldlines/{id}/time-engine` and `/loom` expose the latest candidate ledger,
-- remaining gap is production public branch publish and production telemetry fitting, not absence of a durable FastAPI candidate service or P59 rollback fixture.
+- production public branch publish and production telemetry fitting are now proven by P63/P64, so the remaining gap is remote live runtime trace, not absence of a durable FastAPI candidate service or P59 rollback fixture.
 
 P58 changed Reader branch publish evidence:
 
@@ -104,7 +105,18 @@ P63 Production Public Publish Gate changed Reader visibility evidence:
 - the request must include `release_owner_id`, `ops_reviewer_id`, `rollback_owner_id`, `confirmed = true`, and `public_publish_enabled = true`,
 - successful calls write `reader_visible_branch_release` into `public_branch_releases` plus an `analytics_events` audit record,
 - `/loom` exposes `public_branch_release_summary`,
-- remaining gap is remote live runtime trace and production telemetry fitting, not absence of Reader-visible branch release.
+- P64 resolves the production telemetry fitting follow-up, so the current remaining gap is remote live runtime trace, not absence of Reader-visible branch release.
+
+P64 TimeEngine Telemetry Fit Gate changed production fitting evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/time-engine/telemetry-fit`,
+- the gate requires `Idempotency-Key`,
+- the gate requires latest P63 `reader_visible_branch_release`,
+- the gate requires latest `time_event_candidate_ledger_only`,
+- the request must include `fit_operator_id` and `confirmed = true`,
+- successful calls write `production_time_engine_fit` into `time_engine_telemetry_fits` plus an `analytics_events` audit record,
+- `/loom` exposes `time_engine_fit_summary`,
+- remaining gap is remote live runtime trace, not absence of production TimeEngine telemetry fitting.
 
 ## Verification
 
@@ -128,6 +140,7 @@ npm run check:runtime-completion-refresh
 - Branch commit draft not proven after authorization.
 - Production branch table persistence not proven after commit draft.
 - Reader-visible public branch release not proven after private production commit.
+- The formerly stale claim that Production TimeEngine telemetry fitting is missing after public branch release.
 
 ## Boundary
 
@@ -142,4 +155,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, paid commercial launch, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, or paid commercial launch.

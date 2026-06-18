@@ -35,6 +35,7 @@ from .db import (
     BillingRetryAttemptRow,
     ProductionBranchCommitRow,
     PublicBranchReleaseRow,
+    TimeEngineTelemetryFitRow,
     AuthorApprovalRecordRow,
     AuthorCommentMessageRow,
     AuthorDraftWatcherRow,
@@ -2898,6 +2899,142 @@ class SQLAlchemyPlatformRepository:
             "reader_visibility_enabled": row.visibility_status == "reader_visible",
             "idempotency_key_hash": row.idempotency_key_hash,
             "rollback_plan": dict(row.rollback_plan_json or {}),
+            "payload": dict(row.payload_json or {}),
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+
+    def persist_time_engine_telemetry_fit(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        telemetry_fit_id = str(payload.get("telemetry_fit_id") or "").strip()
+        worldline_id = str(payload.get("worldline_id") or "").strip()
+        session_id = str(payload.get("session_id") or worldline_id).strip()
+        time_engine_run_id = str(payload.get("time_engine_run_id") or "").strip()
+        public_release_id = str(payload.get("public_release_id") or "").strip()
+        branch_commit_id = str(payload.get("branch_commit_id") or "").strip()
+        fit_operator_id = str(payload.get("fit_operator_id") or "").strip()
+        idempotency_key_hash = str(payload.get("idempotency_key_hash") or "").strip()
+        if not telemetry_fit_id:
+            raise ValueError("telemetry_fit_id_required")
+        if not worldline_id:
+            raise ValueError("worldline_id_required")
+        if not session_id:
+            raise ValueError("session_id_required")
+        if not time_engine_run_id:
+            raise ValueError("time_engine_run_id_required")
+        if not public_release_id:
+            raise ValueError("public_release_id_required")
+        if not branch_commit_id:
+            raise ValueError("branch_commit_id_required")
+        if not fit_operator_id:
+            raise ValueError("fit_operator_id_required")
+        if not idempotency_key_hash:
+            raise ValueError("idempotency_key_hash_required")
+        now = payload.get("created_at") or utcnow_iso()
+        with self.SessionLocal() as session:
+            existing = session.get(TimeEngineTelemetryFitRow, telemetry_fit_id)
+            if existing is not None:
+                event = (
+                    session.execute(
+                        select(AnalyticsEventRow)
+                        .where(
+                            AnalyticsEventRow.event_name == "time_engine_telemetry_fit_persisted",
+                            AnalyticsEventRow.session_id == session_id,
+                        )
+                        .order_by(desc(AnalyticsEventRow.occurred_at), desc(AnalyticsEventRow.event_id))
+                    )
+                    .scalars()
+                    .first()
+                )
+                return {
+                    **self._time_engine_telemetry_fit_row_to_dict(existing),
+                    "audit_event_id": event.event_id if event is not None else None,
+                    "idempotent_replay": True,
+                    "tables_written": ["time_engine_telemetry_fits", "analytics_events"],
+                }
+            if session.get(SessionRow, session_id) is None:
+                raise KeyError("unknown_session:%s" % session_id)
+            if session.get(PublicBranchReleaseRow, public_release_id) is None:
+                raise KeyError("unknown_public_branch_release:%s" % public_release_id)
+            row = TimeEngineTelemetryFitRow(
+                telemetry_fit_id=telemetry_fit_id,
+                worldline_id=worldline_id,
+                session_id=session_id,
+                world_id=payload.get("world_id"),
+                world_version_id=payload.get("world_version_id"),
+                time_engine_run_id=time_engine_run_id,
+                public_release_id=public_release_id,
+                branch_commit_id=branch_commit_id,
+                fit_operator_id=fit_operator_id,
+                status="fitted_candidate",
+                write_scope="production_time_engine_fit",
+                sample_size=int(payload.get("sample_size") or 0),
+                fit_summary_json=dict(payload.get("fit_summary") or {}),
+                idempotency_key_hash=idempotency_key_hash,
+                payload_json=dict(payload.get("payload_json") or {}),
+                created_at=now,
+                updated_at=now,
+            )
+            event = AnalyticsEventRow(
+                event_name="time_engine_telemetry_fit_persisted",
+                reader_id=payload.get("reader_id"),
+                session_id=session_id,
+                world_version_id=payload.get("world_version_id"),
+                payload_json={
+                    "telemetry_fit_id": telemetry_fit_id,
+                    "worldline_id": worldline_id,
+                    "time_engine_run_id": time_engine_run_id,
+                    "public_release_id": public_release_id,
+                    "branch_commit_id": branch_commit_id,
+                    "fit_operator_id": fit_operator_id,
+                    "sample_size": int(payload.get("sample_size") or 0),
+                    "idempotency_key_hash": idempotency_key_hash,
+                },
+                occurred_at=now,
+            )
+            session.add(row)
+            session.add(event)
+            session.commit()
+            return {
+                **self._time_engine_telemetry_fit_row_to_dict(row),
+                "audit_event_id": event.event_id,
+                "idempotent_replay": False,
+                "tables_written": ["time_engine_telemetry_fits", "analytics_events"],
+            }
+
+    def latest_time_engine_telemetry_fit(self, *, worldline_id: str) -> Optional[Dict[str, Any]]:
+        with self.SessionLocal() as session:
+            row = (
+                session.execute(
+                    select(TimeEngineTelemetryFitRow)
+                    .where(TimeEngineTelemetryFitRow.worldline_id == worldline_id)
+                    .order_by(
+                        desc(TimeEngineTelemetryFitRow.created_at),
+                        desc(TimeEngineTelemetryFitRow.telemetry_fit_id),
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if row is None:
+                return None
+            return self._time_engine_telemetry_fit_row_to_dict(row)
+
+    def _time_engine_telemetry_fit_row_to_dict(self, row: TimeEngineTelemetryFitRow) -> Dict[str, Any]:
+        return {
+            "telemetry_fit_id": row.telemetry_fit_id,
+            "worldline_id": row.worldline_id,
+            "session_id": row.session_id,
+            "world_id": row.world_id,
+            "world_version_id": row.world_version_id,
+            "time_engine_run_id": row.time_engine_run_id,
+            "public_release_id": row.public_release_id,
+            "branch_commit_id": row.branch_commit_id,
+            "fit_operator_id": row.fit_operator_id,
+            "status": row.status,
+            "write_scope": row.write_scope,
+            "sample_size": row.sample_size,
+            "fit_summary": dict(row.fit_summary_json or {}),
+            "idempotency_key_hash": row.idempotency_key_hash,
             "payload": dict(row.payload_json or {}),
             "created_at": row.created_at,
             "updated_at": row.updated_at,

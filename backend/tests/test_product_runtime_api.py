@@ -108,6 +108,29 @@ def _prepare_production_branch_commit(client: TestClient, *, reader_id: str = "r
     }
 
 
+def _prepare_public_branch_release(client: TestClient) -> dict:
+    prepared = _prepare_production_branch_commit(client, reader_id="reader_time_fit")
+    session_id = prepared["session_id"]
+    released = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/public-publish",
+        headers={"Idempotency-Key": "public-branch-time-fit-key"},
+        json={
+            "branch_commit_id": prepared["branch_commit_id"],
+            "release_owner_id": "release-owner",
+            "ops_reviewer_id": "ops-reviewer",
+            "rollback_owner_id": "rollback-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert released.status_code == 200
+    assert released.json()["write_scope"] == "reader_visible_branch_release"
+    return {
+        **prepared,
+        "public_release_id": released.json()["public_release_id"],
+    }
+
+
 def test_reader_snapshot_and_worldline_use_session_state(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     world_id = _first_world_id(client)
@@ -1108,6 +1131,154 @@ def test_public_branch_publish_requires_private_commit_and_release_controls(tmp_
     assert release_summary["branch_commit_id"] == branch_commit_id
     assert release_summary["reader_visibility_enabled"] is True
     assert release_summary["production_public_publish"] is True
+
+
+def test_time_engine_telemetry_fit_requires_public_release_and_operator(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_fit_missing"})
+    session_without_release = started.json()["session_id"]
+
+    missing_release = client.post(
+        f"/v1/timeline/worldlines/{session_without_release}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-missing-release-key"},
+        json={"fit_operator_id": "fit-operator", "confirmed": True},
+    )
+    assert missing_release.status_code == 200
+    assert missing_release.json()["status"] == "blocked"
+    assert missing_release.json()["reason"] == "public_branch_release_required"
+
+    prepared = _prepare_public_branch_release(client)
+    session_id = prepared["session_id"]
+    public_release_id = prepared["public_release_id"]
+
+    time_snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/time-engine")
+    assert time_snapshot.status_code == 200
+    time_engine_run_id = time_snapshot.json()["time_engine_run_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": time_engine_run_id,
+            "fit_operator_id": "fit-operator",
+            "confirmed": True,
+        },
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    missing_operator = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": time_engine_run_id,
+            "confirmed": True,
+        },
+    )
+    assert missing_operator.status_code == 200
+    assert missing_operator.json()["status"] == "blocked"
+    assert missing_operator.json()["reason"] == "fit_operator_id_required"
+
+    unconfirmed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": time_engine_run_id,
+            "fit_operator_id": "fit-operator",
+            "confirmed": False,
+        },
+    )
+    assert unconfirmed.status_code == 200
+    assert unconfirmed.json()["status"] == "blocked"
+    assert unconfirmed.json()["reason"] == "time_engine_fit_confirmation_required"
+
+    release_mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": "public_branch_release_wrong",
+            "time_engine_run_id": time_engine_run_id,
+            "fit_operator_id": "fit-operator",
+            "confirmed": True,
+        },
+    )
+    assert release_mismatch.status_code == 200
+    assert release_mismatch.json()["status"] == "blocked"
+    assert release_mismatch.json()["reason"] == "public_release_mismatch"
+
+    run_mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": "time_engine_wrong",
+            "fit_operator_id": "fit-operator",
+            "confirmed": True,
+        },
+    )
+    assert run_mismatch.status_code == 200
+    assert run_mismatch.json()["status"] == "blocked"
+    assert run_mismatch.json()["reason"] == "time_engine_run_mismatch"
+
+    fitted = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": time_engine_run_id,
+            "fit_operator_id": "fit-operator",
+            "confirmed": True,
+        },
+    )
+    assert fitted.status_code == 200
+    payload = fitted.json()
+    assert payload["status"] == "fitted_candidate"
+    assert payload["capability_mode"] == "production_time_engine_fit_gate"
+    assert payload["write_scope"] == "production_time_engine_fit"
+    assert payload["time_engine_run_id"] == time_engine_run_id
+    assert payload["public_release_id"] == public_release_id
+    assert payload["fit_operator_id"] == "fit-operator"
+    assert payload["sample_size"] == len(time_snapshot.json()["candidate_events"])
+    assert payload["fit_summary"]["mode"] == "production_time_engine_fit"
+    assert payload["fit_summary"]["fitted_mu"] > 0
+    assert payload["fit_summary"]["fitted_alpha"] > 0
+    assert payload["fit_summary"]["fitted_beta"] > 0
+    assert payload["tables_written"] == ["time_engine_telemetry_fits", "analytics_events"]
+    assert payload["audit_event_id"] is not None
+    assert "remote_live_runtime_trace" in payload["next_required"]
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit",
+        headers={"Idempotency-Key": "time-fit-key"},
+        json={
+            "public_release_id": public_release_id,
+            "time_engine_run_id": time_engine_run_id,
+            "fit_operator_id": "fit-operator",
+            "confirmed": True,
+        },
+    )
+    assert replayed.status_code == 200
+    assert replayed.json()["idempotent_replay"] is True
+    assert replayed.json()["telemetry_fit_id"] == payload["telemetry_fit_id"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/time-engine/telemetry-fit")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["telemetry_fit_id"] == payload["telemetry_fit_id"]
+    assert snapshot.json()["write_scope"] == "production_time_engine_fit"
+    assert snapshot.json()["fit_summary"]["mode"] == "production_time_engine_fit"
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    fit_summary = worldline.json()["time_engine_fit_summary"]
+    assert fit_summary["status"] == "fitted_candidate"
+    assert fit_summary["write_scope"] == "production_time_engine_fit"
+    assert fit_summary["telemetry_fit_id"] == payload["telemetry_fit_id"]
+    assert fit_summary["public_release_id"] == public_release_id
+    assert fit_summary["sample_size"] == payload["sample_size"]
 
 
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):

@@ -94,11 +94,15 @@ assertIncludes('docs/backend/P49_TIME_ENGINE_CONTRACT.md', [
   'Poisson',
   'Hawkes',
   'candidate-only',
+  'P64',
+  'production telemetry fitting',
 ])
 assertIncludes('docs/backend/P57_FASTAPI_TIME_ENGINE_SERVICE.md', [
   'P57 FastAPI TimeEngine Service',
   'time_event_candidate_ledger_only',
   'not canon',
+  'P64',
+  'production telemetry fitting',
 ])
 assertIncludes('docs/backend/P58_READER_BRANCH_PUBLISH_CANDIDATE_GATE.md', [
   'branch_publish_candidate_ledger_only',
@@ -118,9 +122,9 @@ const artifact = {
   ],
   serviceScope: 'fastapi_durable_candidate_ledger',
   stillPartial: [
-    'not yet connected to production public branch publish',
-    'not yet writing canon or branch state',
-    'not yet fitted from production telemetry',
+    'P49/P57 remain candidate-contract scope',
+    'production telemetry fitting is owned by P64',
+    'remote live runtime trace is not yet proven',
   ],
 }
 

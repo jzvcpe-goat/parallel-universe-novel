@@ -107,7 +107,7 @@ const artifact = {
   ],
   stillPartial: [
     'not remote live runtime proof',
-    'not fitted production TimeEngine telemetry',
+    'production TimeEngine telemetry fitting is owned by P64',
     'not paid commercial release owner/legal packet',
   ],
 }

@@ -52,6 +52,7 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'test_branch_commit_draft_requires_authorization_and_proves_multitable_rollback',
   'test_production_branch_commit_requires_draft_and_release_owner',
   'test_public_branch_publish_requires_private_commit_and_release_controls',
+  'test_time_engine_telemetry_fit_requires_public_release_and_operator',
   'harness_trace',
   'branch_writeback',
   'quality_brake',
@@ -63,11 +64,14 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'branch_commit_draft_ledger_only',
   'production_branch_table_private',
   'reader_visible_branch_release',
+  'production_time_engine_fit',
 ])
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
   '@router.post("/v1/scene/advance")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/time-engine/candidates")',
   '@router.get("/v1/timeline/worldlines/{worldline_id}/time-engine")',
+  '@router.post("/v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit")',
+  '@router.get("/v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")',
   '@router.get("/v1/timeline/worldlines/{worldline_id}/branches/publish-candidate")',
   '@router.post("/v1/timeline/worldlines/{worldline_id}/branches/publish-rollback-fixture")',
@@ -109,6 +113,7 @@ assertIncludes('docs/backend/P48_PRODUCT_RUNTIME_API_COVERAGE.md', [
   'branch commit draft',
   'production branch commit',
   'public branch publish',
+  'time engine telemetry fit',
   'quality evaluate',
   'canon commit',
 ])
@@ -123,6 +128,7 @@ const artifact = {
       '/timeline/worldlines/{id}/loom',
       '/timeline/worldlines/{id}/time-engine/candidates',
       '/timeline/worldlines/{id}/time-engine',
+      '/timeline/worldlines/{id}/time-engine/telemetry-fit',
       '/timeline/worldlines/{id}/branches/publish-candidate',
       '/timeline/worldlines/{id}/branches/publish-rollback-fixture',
       '/timeline/worldlines/{id}/branches/publish-authorization',

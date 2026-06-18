@@ -28,6 +28,7 @@ for (const required of [
   'scripts/check-branch-commit-draft.mjs',
   'scripts/check-production-branch-commit.mjs',
   'scripts/check-public-branch-publish.mjs',
+  'scripts/check-time-engine-telemetry-fit.mjs',
   'scripts/check-studio-canon-trace.mjs',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
   'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
@@ -37,6 +38,7 @@ for (const required of [
   'docs/backend/P61_BRANCH_COMMIT_DRAFT_GATE.md',
   'docs/backend/P62_PRODUCTION_BRANCH_COMMIT_GATE.md',
   'docs/backend/P63_PRODUCTION_PUBLIC_PUBLISH_GATE.md',
+  'docs/backend/P64_TIME_ENGINE_TELEMETRY_FIT_GATE.md',
   'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
   'time_event_candidate_ledger_only',
   'branch_publish_candidate_ledger_only',
@@ -48,6 +50,8 @@ for (const required of [
   'production_branch_commit_summary',
   'reader_visible_branch_release',
   'public_branch_release_summary',
+  'production_time_engine_fit',
+  'time_engine_fit_summary',
   'fastapi_durable_time_engine',
   'idempotent_replay',
   'rollback_plan',
@@ -55,7 +59,6 @@ for (const required of [
   'quality_report_hash',
   'route_choice_ledger_only',
   'remote live runtime trace',
-  'Production TimeEngine telemetry fitting',
 ]) {
   assert(script.includes(required), `runtime completion script must include ${required}`)
 }
@@ -73,12 +76,14 @@ for (const required of [
   'P61 Branch Commit Draft Gate',
   'P62 Production Branch Commit Gate',
   'P63 Production Public Publish Gate',
+  'P64 TimeEngine Telemetry Fit Gate',
   'P53 Reader Branch Trace Gate',
   'P56 Studio Canon Trace Gate',
   'branch_writeback_summary',
   'branch_publish_summary',
   'production_branch_commit_summary',
   'public_branch_release_summary',
+  'time_engine_fit_summary',
   'studio_trace',
   'quality_report_hash',
 ]) {
@@ -115,10 +120,10 @@ const artifact = {
     'P61 Branch Commit Draft Gate',
     'P62 Production Branch Commit Gate',
     'P63 Production Public Publish Gate',
+    'P64 TimeEngine Telemetry Fit Gate',
   ],
   remainingGaps: [
     'remote live runtime trace',
-    'TimeEngine production telemetry fitting',
   ],
 }
 const artifactPath = join(outputDir, `runtime-completion-refresh-${Date.now()}.json`)

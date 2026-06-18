@@ -113,9 +113,17 @@ P63 is a Reader visibility gate:
 15. `/loom` exposes `public_branch_release_summary`.
 16. `check:public-branch-publish` is part of root `npm run test`.
 
-## Next Gate
+## Next Gate Status
 
-P64 should be **Remote Live Runtime Trace Gate**:
+P64 now implements **TimeEngine Telemetry Fit Gate**:
+
+- public release after P63,
+- latest durable TimeEngine candidate ledger,
+- fit operator confirmation,
+- `production_time_engine_fit`,
+- `/loom.time_engine_fit_summary`.
+
+The next unresolved gate should move to **Remote Live Runtime Trace Gate**:
 
 - remote FastAPI HTTPS origin,
 - remote Agent Runtime HTTPS origin,

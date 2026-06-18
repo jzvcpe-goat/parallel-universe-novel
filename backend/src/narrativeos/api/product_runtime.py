@@ -20,6 +20,14 @@ class TimeEngineCandidateRequest(BaseModel):
     beats: list[str] = Field(default_factory=list)
 
 
+class TimeEngineTelemetryFitRequest(BaseModel):
+    public_release_id: Optional[str] = None
+    time_engine_run_id: Optional[str] = None
+    fit_operator_id: Optional[str] = None
+    confirmed: bool = False
+    project_id: Optional[str] = None
+
+
 class BranchPublishCandidateRequest(BaseModel):
     source_run_id: Optional[str] = None
     branch_id: Optional[str] = None
@@ -182,6 +190,33 @@ def time_engine_candidates(
 def time_engine_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
     try:
         return request.app.state.product_runtime_service.time_engine_snapshot(worldline_id=worldline_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit")
+def time_engine_telemetry_fit(
+    worldline_id: str,
+    payload: TimeEngineTelemetryFitRequest,
+    request: Request,
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.fit_time_engine_telemetry(
+            worldline_id=worldline_id,
+            payload=payload.model_dump(),
+            idempotency_key=idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/v1/timeline/worldlines/{worldline_id}/time-engine/telemetry-fit")
+def time_engine_telemetry_fit_snapshot(worldline_id: str, request: Request) -> Dict[str, Any]:
+    try:
+        return request.app.state.product_runtime_service.time_engine_telemetry_fit_snapshot(worldline_id=worldline_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

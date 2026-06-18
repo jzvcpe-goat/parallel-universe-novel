@@ -52,7 +52,7 @@ P57 的唯一写入是 `time_event_candidate_ledger_only`：
 - not branch
 - not public publish
 - not WorldInstance durable mutation
-- not production telemetry fitting
+- not production telemetry fitting in this candidate service
 
 候选事件可被后续 Reader branch publish 或 Studio runtime 使用，但不能在 P57 阶段自动进入正史。
 
@@ -85,10 +85,13 @@ P58 已经把 latest TimeEngine candidate ledger 接到 Reader branch publish ca
 - TimeEngine 继续写 `time_event_candidate_ledger_only`。
 - Branch publish candidate 消费 TimeEngine event ids，并写 `branch_publish_candidate_ledger_only`。
 
-## Next Gate
+## Follow-Up Gates
 
-下一步不是重写 TimeEngine，而是补 `P59 Database Transaction Rollback Fixture`：
+P58-P63 已经把候选 TimeEngine ledger 接入 Reader branch publish、授权、commit draft、private production branch 和 Reader-visible public release。P64 在此基础上补上 production telemetry fitting：
 
-- branch publish candidate 进入数据库事务草案，
-- route choice、branch record、WorldInstance patch 和 TimeEngine event consumption 必须能同一事务回滚，
-- production telemetry fitting 只更新 kernel 参数，不直接改作者正文。
+- fitting 必须发生在 Reader-visible public release 之后；
+- fitting 必须消费 latest `time_event_candidate_ledger_only`；
+- fitting 只写 `production_time_engine_fit` 与 audit event；
+- fitting 仍不直接改作者正文、不写 canon、不替代 remote live runtime trace。
+
+下一步不是重写 TimeEngine，而是补 Remote Live Runtime Trace Gate。
