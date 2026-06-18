@@ -43,6 +43,12 @@ Runtime source `genre-runtime-rules.v1.json` is currently version 2 and contains
 2. Secondary profiles inferred from the seed.
 3. Compatible kernels sorted by profile order.
 
+Kernel application is `compatible_profile_only`: a kernel cannot activate from
+an isolated browser note, prompt experiment, or one-off negative example. If a
+new premise changes pacing, event structure, motive pressure, conflict
+pressure, climax recovery, or time controls, update the human-editable
+ConstraintProfile and GenreKernel docs first, then sync the runtime registry.
+
 The active kernel IDs are:
 
 - `kernel-xuanhuan-xianxia`

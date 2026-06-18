@@ -28,6 +28,19 @@ test('agent runtime exposes shared rulebook metadata', () => {
   assert.equal(agentRuntimeMeta.runtimeRules.kernelCount, genreKernels.length)
   assert.equal(agentRuntimeMeta.runtimeRules.privacy.representativeWorks, 'encrypted_vault_only')
   assert.equal(agentRuntimeMeta.runtimeRules.privacy.publicReferenceField, 'sourceRefs')
+  assert.equal(agentRuntimeMeta.runtimeRules.documentCore.policy, 'document_registry_only')
+  assert.equal(
+    agentRuntimeMeta.runtimeRules.documentCore.runtimeContract.constraintApplication,
+    'active_profile_rules_only',
+  )
+  assert.equal(
+    agentRuntimeMeta.runtimeRules.documentCore.runtimeContract.kernelApplication,
+    'compatible_profile_only',
+  )
+  assert.equal(
+    agentRuntimeMeta.runtimeRules.documentCore.runtimeContract.noMatchBehavior,
+    'socratic_clarify_without_runtime_constraints',
+  )
 })
 
 test('tool bridge service token default is only allowed outside protected deploy env', () => {

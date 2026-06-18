@@ -1,5 +1,26 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P4 运行时合同重做
+
+用户明确要求 P4 从头做，并废弃此前围绕单一题材测试形成的约束逻辑。本轮不新增旧 case 词表，也不把某个负例转成全局禁令，而是把约束入口收敛到 `documentCore.runtimeContract`。
+
+新的工程标准：
+
+1. 约束只能来自 `ConstraintProfile.rules[]`，不得从 browser note、prompt experiment、后端建议或人工负例直接进入运行时。
+2. 内核只能来自 `GenreKernel.compatibleProfiles`，不得在 workflow 或后端服务里硬编码 profile/kernel 分支。
+3. 无匹配 profile 时，运行时只做苏格拉底式澄清，不暗自创建临时约束。
+4. 同一个词项是否允许，取决于 active profile 的规则；不能维护跨题材全局禁词表。
+5. 后端 `genre_constraint_facts.runtime_rules.document_core` 和 Agent `runtimeRules.documentCore` 必须回传合同摘要，方便调试和审计。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run scan:p4-rule-source
+npm --workspace @narrativeos/agent-runtime test
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py backend/tests/test_tool_bridge_api.py
+```
+
 ## 2026-06-17 P4 文档核心硬重置
 
 用户要求 P4 从头做，并明确废弃此前围绕某次题材验收形成的约束逻辑。这里不能把旧问题换成另一张禁词表；正确做法是删除样本词表本身，让约束只从文档注册表进入运行时。

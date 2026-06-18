@@ -166,6 +166,11 @@ def test_creator_dialogue_uses_shared_runtime_rules_for_each_document_profile(tm
         assert runtime_rules["source"] == "docs/product/rules/genre-runtime-rules.v1.json"
         assert runtime_rules["profile_count"] == len(rules["constraintProfiles"])
         assert runtime_rules["kernel_count"] == len(rules["genreKernels"])
+        assert runtime_rules["document_core"]["policy"] == "document_registry_only"
+        assert runtime_rules["document_core"]["constraint_application"] == "active_profile_rules_only"
+        assert runtime_rules["document_core"]["kernel_application"] == "compatible_profile_only"
+        assert runtime_rules["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
+        assert runtime_rules["document_core"]["quality_boundary"] == "document_rule_fail_behavior_only"
         assert runtime_rules["privacy"]["representative_works"] == "encrypted_vault_only"
         assert runtime_rules["privacy"]["public_reference_field"] == "sourceRefs"
         assert cards["genre_signal"] == profile["displayName"]
@@ -210,6 +215,7 @@ def test_creator_dialogue_does_not_apply_constraints_to_unmatched_selected_genre
     assert cards["genre_constraints"] == []
     assert cards["genre_kernels"] == []
     assert cards["genre_constraint_facts"]["active_profile_ids"] == []
+    assert cards["genre_constraint_facts"]["runtime_rules"]["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
     assert cards["genre_constraint_facts"]["activation_order"] == [
         "selected_topic_template_direction",
         "user_freeform_intent",

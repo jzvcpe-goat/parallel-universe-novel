@@ -26,6 +26,27 @@
       "activation": "profile_rule_only",
       "examplesAreNotRuntimeRules": true
     },
+    "runtimeContract": {
+      "resolverInputs": [
+        "selected_template",
+        "selected_genre",
+        "story_direction",
+        "user_seed",
+        "explicit_author_override"
+      ],
+      "resolverOutputs": [
+        "activeProfiles",
+        "activeRules",
+        "activeKernels",
+        "activationEvidence",
+        "qualityBrakeDecision"
+      ],
+      "constraintApplication": "active_profile_rules_only",
+      "kernelApplication": "compatible_profile_only",
+      "noMatchBehavior": "socratic_clarify_without_runtime_constraints",
+      "publicSurfacePolicy": "hide_profile_ids_kernel_ids_source_refs_provider_prompt_plumbing",
+      "qualityBoundary": "document_rule_fail_behavior_only"
+    },
     "nonExecutableInputs": [
       "browser_qa_note",
       "research_intake_note",

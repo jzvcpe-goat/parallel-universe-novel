@@ -9,6 +9,10 @@ interface RuntimeRules {
     representativeWorks?: string
     publicReferenceField?: string
   }
+  documentCore?: {
+    policy?: string
+    runtimeContract?: Record<string, unknown>
+  }
   constraintProfiles: ConstraintProfile[]
   genreKernels: GenreKernel[]
 }
@@ -47,6 +51,10 @@ export const runtimeRulesMeta = {
   privacy: {
     representativeWorks: runtimeRules.privacy?.representativeWorks || 'unknown',
     publicReferenceField: runtimeRules.privacy?.publicReferenceField || 'sourceRefs',
+  },
+  documentCore: {
+    policy: runtimeRules.documentCore?.policy || 'unknown',
+    runtimeContract: runtimeRules.documentCore?.runtimeContract || {},
   },
 }
 

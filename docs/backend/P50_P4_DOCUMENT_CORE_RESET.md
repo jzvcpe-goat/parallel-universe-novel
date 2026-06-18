@@ -49,6 +49,22 @@ P4 runtime behavior:
 4. Use kernels to influence BeatPlan, motive pressure, conflict pressure, climax recovery, and time controls.
 5. Send any violation through Quality Brake using the documented `failBehavior`.
 
+The executable registry now carries `documentCore.runtimeContract` so this
+boundary is machine-checkable:
+
+- `resolverInputs`: `selected_template`, `selected_genre`, `story_direction`,
+  `user_seed`, `explicit_author_override`
+- `resolverOutputs`: `activeProfiles`, `activeRules`, `activeKernels`,
+  `activationEvidence`, `qualityBrakeDecision`
+- `constraintApplication`: `active_profile_rules_only`
+- `kernelApplication`: `compatible_profile_only`
+- `noMatchBehavior`: `socratic_clarify_without_runtime_constraints`
+- `qualityBoundary`: `document_rule_fail_behavior_only`
+
+No-match means the runtime keeps the turn conversational and asks the author to
+clarify direction; it must not create a temporary profile, global ban, provider
+prompt patch, or hidden kernel branch.
+
 P4 does not allow:
 
 - one-off branches in workflows,
@@ -70,6 +86,7 @@ The gate verifies:
 - the runtime registry points to the v3 baseline contract,
 - the runtime registry declares the 21-type document corpus and rejects temporary runtime branches,
 - the runtime registry declares deprecated case-derived constraints purged,
+- the runtime registry declares the explicit runtime contract above,
 - human-editable source documents exist,
 - research intake notes are marked non-executable,
 - the registry does not contain ad hoc override keys or one-off branches,

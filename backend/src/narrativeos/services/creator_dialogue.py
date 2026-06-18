@@ -249,11 +249,36 @@ def _runtime_rules() -> Dict[str, Any]:
 def _runtime_rules_meta() -> Dict[str, Any]:
     rules = _runtime_rules()
     privacy = rules.get("privacy") if isinstance(rules.get("privacy"), dict) else {}
+    document_core = rules.get("documentCore") if isinstance(rules.get("documentCore"), dict) else {}
+    runtime_contract = (
+        document_core.get("runtimeContract")
+        if isinstance(document_core.get("runtimeContract"), dict)
+        else {}
+    )
     return {
         "version": int(rules.get("version") or 0),
         "source": "docs/product/rules/genre-runtime-rules.v1.json",
         "profile_count": len(rules.get("constraintProfiles") or []),
         "kernel_count": len(rules.get("genreKernels") or []),
+        "document_core": {
+            "policy": _clean_text(document_core.get("policy") or "unknown", limit=80),
+            "constraint_application": _clean_text(
+                runtime_contract.get("constraintApplication") or "unknown",
+                limit=120,
+            ),
+            "kernel_application": _clean_text(
+                runtime_contract.get("kernelApplication") or "unknown",
+                limit=120,
+            ),
+            "no_match_behavior": _clean_text(
+                runtime_contract.get("noMatchBehavior") or "unknown",
+                limit=120,
+            ),
+            "quality_boundary": _clean_text(
+                runtime_contract.get("qualityBoundary") or "unknown",
+                limit=120,
+            ),
+        },
         "privacy": {
             "representative_works": _clean_text(privacy.get("representativeWorks") or "unknown", limit=80),
             "public_reference_field": _clean_text(privacy.get("publicReferenceField") or "sourceRefs", limit=80),

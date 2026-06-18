@@ -90,6 +90,17 @@ if (!existsSync(runtimeRulesSource)) {
   expect(documentCore.deprecatedCasePolicy?.caseDerivedGlobalConstraints === 'rejected', 'runtime rules must reject case-derived global constraints')
   expect(documentCore.deprecatedCasePolicy?.activation === 'profile_rule_only', 'runtime rules must activate constraints only through selected profiles and rules')
   expect(documentCore.deprecatedCasePolicy?.examplesAreNotRuntimeRules === true, 'runtime rules must keep examples non-executable')
+  expect(documentCore.runtimeContract?.constraintApplication === 'active_profile_rules_only', 'runtime rules must apply constraints only through active profile rules')
+  expect(documentCore.runtimeContract?.kernelApplication === 'compatible_profile_only', 'runtime rules must select kernels only through compatible profiles')
+  expect(documentCore.runtimeContract?.noMatchBehavior === 'socratic_clarify_without_runtime_constraints', 'runtime rules must clarify rather than invent constraints when no profile matches')
+  expect(documentCore.runtimeContract?.publicSurfacePolicy === 'hide_profile_ids_kernel_ids_source_refs_provider_prompt_plumbing', 'runtime rules must keep internal profile/kernel plumbing out of public surfaces')
+  expect(documentCore.runtimeContract?.qualityBoundary === 'document_rule_fail_behavior_only', 'runtime rules must route quality decisions through documented failBehavior only')
+  for (const input of ['selected_template', 'selected_genre', 'story_direction', 'user_seed', 'explicit_author_override']) {
+    expect(documentCore.runtimeContract?.resolverInputs?.includes(input), `runtime contract must include resolver input ${input}`)
+  }
+  for (const output of ['activeProfiles', 'activeRules', 'activeKernels', 'activationEvidence', 'qualityBrakeDecision']) {
+    expect(documentCore.runtimeContract?.resolverOutputs?.includes(output), `runtime contract must include resolver output ${output}`)
+  }
   expectArray(documentCore.humanEditableSources, 'runtime rules must list human-editable source documents')
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_CONSTRAINT_RULES.md'), 'runtime rules must list GENRE_CONSTRAINT_RULES.md as a human source')
   expect(documentCore.humanEditableSources.includes('docs/product/rules/GENRE_KERNEL_RULES.md'), 'runtime rules must list GENRE_KERNEL_RULES.md as a human source')

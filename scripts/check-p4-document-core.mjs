@@ -46,6 +46,17 @@ assert(core.deprecatedCasePolicy?.status === 'purged', 'P4 must purge deprecated
 assert(core.deprecatedCasePolicy?.caseDerivedGlobalConstraints === 'rejected', 'P4 must reject case-derived global constraints')
 assert(core.deprecatedCasePolicy?.activation === 'profile_rule_only', 'P4 activation must be profile_rule_only')
 assert(core.deprecatedCasePolicy?.examplesAreNotRuntimeRules === true, 'P4 examples must remain non-executable')
+assert(core.runtimeContract?.constraintApplication === 'active_profile_rules_only', 'P4 constraints must apply only through active ConstraintProfile.rules')
+assert(core.runtimeContract?.kernelApplication === 'compatible_profile_only', 'P4 kernels must apply only through compatibleProfiles')
+assert(core.runtimeContract?.noMatchBehavior === 'socratic_clarify_without_runtime_constraints', 'P4 no-match behavior must clarify instead of inventing runtime constraints')
+assert(core.runtimeContract?.publicSurfacePolicy === 'hide_profile_ids_kernel_ids_source_refs_provider_prompt_plumbing', 'P4 public surfaces must hide internal rule plumbing')
+assert(core.runtimeContract?.qualityBoundary === 'document_rule_fail_behavior_only', 'P4 quality brake must use documented failBehavior only')
+for (const input of ['selected_template', 'selected_genre', 'story_direction', 'user_seed', 'explicit_author_override']) {
+  assert(core.runtimeContract?.resolverInputs?.includes(input), `P4 runtimeContract must include resolver input ${input}`)
+}
+for (const output of ['activeProfiles', 'activeRules', 'activeKernels', 'activationEvidence', 'qualityBrakeDecision']) {
+  assert(core.runtimeContract?.resolverOutputs?.includes(output), `P4 runtimeContract must include resolver output ${output}`)
+}
 assert(Array.isArray(core.nonExecutableInputs), 'P4 must declare non-executable research inputs')
 const allowedNonExecutableInputs = new Set([
   'browser_qa_note',
@@ -86,6 +97,7 @@ const artifact = {
   nonExecutableInputs: core.nonExecutableInputs,
   sourceAuthority: core.sourceAuthority,
   deprecatedCasePolicy: core.deprecatedCasePolicy,
+  runtimeContract: core.runtimeContract,
 }
 const artifactPath = join(outputDir, `p4-document-core-${Date.now()}.json`)
 writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)

@@ -43,6 +43,21 @@ Representative work titles from research materials are not public runtime data.
 }
 ```
 
+## Runtime Contract
+
+P4 is not a prompt-case rule table. The runtime must resolve constraints only
+through the document registry:
+
+- Inputs: selected template, selected genre, story direction, user seed, and
+  explicit author override.
+- Outputs: active profiles, active rules, active kernels, activation evidence,
+  and quality-brake decision.
+- Constraint application: `active_profile_rules_only`.
+- No-match behavior: `socratic_clarify_without_runtime_constraints`; ask a
+  natural-language follow-up instead of inventing a hidden rule.
+- Quality boundary: use each rule's documented `failBehavior`; do not add
+  provider prompt patches or one-off service branches.
+
 ## Active Profiles
 
 Runtime source `genre-runtime-rules.v1.json` is currently version 2 and contains 21 document-derived profiles:
