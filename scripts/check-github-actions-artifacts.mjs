@@ -12,6 +12,7 @@ const defaultArtifacts = [
   'github-pages',
 ]
 if (checkCurrentRun) defaultArtifacts.splice(1, 0, 'live-cutover-attestation')
+if (checkCurrentRun) defaultArtifacts.splice(2, 0, 'live-rollback-rehearsal')
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))
   .split(',')
   .map(item => item.trim())

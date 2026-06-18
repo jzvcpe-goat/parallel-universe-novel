@@ -4,10 +4,11 @@ Date: 2026-06-17
 
 ## Goal
 
-把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下四类可下载证据：
+把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下五类可下载证据：
 
 - `runtime-readiness-ledger`
 - `live-cutover-attestation`
+- `live-rollback-rehearsal`
 - `local-live-runtime-visual-qa`
 - `github-pages`
 
@@ -19,7 +20,7 @@ Date: 2026-06-17
 npm run check:github-actions-artifacts
 ```
 
-检查当前 CI run。CI 当前 run 必须包含四类 artifact，包括 `live-cutover-attestation`：
+检查当前 CI run。CI 当前 run 必须包含五类 artifact，包括 `live-cutover-attestation` 和 `live-rollback-rehearsal`：
 
 ```bash
 CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
@@ -33,6 +34,7 @@ npm run check:github-actions-artifacts
 
 - `runtime-readiness-ledger` exists and is non-empty.
 - `live-cutover-attestation` exists and is non-empty.
+- `live-rollback-rehearsal` exists and is non-empty.
 - `local-live-runtime-visual-qa` exists and is non-empty.
 - `github-pages` exists and is non-empty.
 - None of the required artifacts are expired.
@@ -48,7 +50,8 @@ This gate only checks artifact metadata: artifact names, sizes, expiration state
 1. `Upload local live runtime visual QA`
 2. `Upload runtime readiness ledger`
 3. `Upload live cutover attestation`
-4. `Upload artifact`
+4. `Upload live rollback rehearsal`
+5. `Upload artifact`
 
 That placement proves the same run that will deploy Pages also produced the required evidence package.
 
@@ -56,6 +59,6 @@ That placement proves the same run that will deploy Pages also produced the requ
 
 1. `package.json` exposes `check:github-actions-artifacts`.
 2. `scripts/check-github-actions-artifacts.mjs` checks the latest successful run by default.
-3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`.
+3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation` and `live-rollback-rehearsal`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.

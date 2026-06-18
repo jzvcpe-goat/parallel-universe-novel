@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P77 Live Rollback Rehearsal Gate
+
+P76 证明 live cutover 是否满足条件，但还没有证明出事时能稳定退回静态预览。P77 把 rollback 从 runbook 文本推进为 CI artifact：每次 Pages run 都要留下 `live-rollback-rehearsal` 证据。
+
+新的工程标准：
+
+1. 回滚命令必须同时存在于 service manifest 和 origin execution plan。
+2. 默认检查不执行破坏性 GitHub variable 变更，只验证命令、静态预览可达性和 P76 证据链接。
+3. 严格演练必须带 `ROLLBACK_OWNER_ID`、`ROLLBACK_REHEARSAL_CONFIRMED=true` 和 `ROLLBACK_GITHUB_RUN_ID`。
+4. Pages workflow 必须上传 `live-rollback-rehearsal` artifact，并由 current-run artifact gate 校验。
+5. artifact 不得包含 provider secret、数据库 URL、模型 key、system prompt、raw state 或 reference vault 私有映射。
+
+必跑检查：
+
+```bash
+npm run check:live-rollback-rehearsal
+REQUIRE_LIVE_ROLLBACK_REHEARSED=true npm run check:live-rollback-rehearsal
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-18 P4 废弃特例逻辑回归门禁
 
 用户再次明确：P4 必须从文档核心重新出发，早期围绕单个测试题材形成的约束逻辑全部弃用。本轮新增的不是另一张禁词表，而是一个防回归门禁，确保废弃 case 不会再次进入运行时规则、Agent workflow、FastAPI 服务或公开前端。

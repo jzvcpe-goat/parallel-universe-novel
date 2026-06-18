@@ -87,3 +87,5 @@ No provider secret value is exposed to the frontend build.
 - Strict mode fails until service assignment, P73, P66, and P23 are ready.
 - Generated artifacts do not contain provider secrets, database URLs, model keys,
   system prompts, raw state, or private reference mappings.
+- After P76, run `npm run check:live-rollback-rehearsal` so the same release
+  chain has rollback evidence before live traffic is trusted.

@@ -135,6 +135,28 @@ Strict cutover check:
 REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
 ```
 
+### Live Rollback Rehearsal
+
+Before or immediately after a live cutover attempt, verify the rollback path
+without changing repository variables:
+
+```bash
+npm run check:live-rollback-rehearsal
+```
+
+Strict rehearsal after an operator has intentionally tested rollback:
+
+```bash
+ROLLBACK_OWNER_ID=<owner> \
+ROLLBACK_REHEARSAL_CONFIRMED=true \
+ROLLBACK_GITHUB_RUN_ID=<pages-run-id> \
+REQUIRE_LIVE_ROLLBACK_REHEARSED=true \
+npm run check:live-rollback-rehearsal
+```
+
+The rehearsal proves the rollback command bundle exists, static preview remains
+reachable, and a rollback owner/run id can be attached without exposing secrets.
+
 GitHub Actions may use non-secret repository variables for service-assignment
 attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
 `REMOTE_API_SECRETS_CONFIGURED=true`, and
@@ -367,6 +389,7 @@ gh variable delete VITE_AGENT_RUNTIME_BASE_URL --repo jzvcpe-goat/parallel-unive
 Rollback acceptance:
 
 - GitHub Pages deploy succeeds.
+- `npm run check:live-rollback-rehearsal` returns `live_rollback_static_preview_verified` or strict `live_rollback_rehearsed`.
 - Public `/create` displays `创作服务待连接`.
 - Submitting a seed does not create a local fake draft.
 
@@ -380,7 +403,9 @@ Capture and attach:
 - `npm run check:public-runtime-preview` output.
 - `npm run audit:live-runtime-readiness` output and generated `artifacts/runtime/live-runtime-readiness-*.json`.
 - `npm run check:live-cutover-attestation` output and generated `artifacts/runtime/live-cutover-attestation-*.json`.
+- `npm run check:live-rollback-rehearsal` output and generated `artifacts/runtime/live-rollback-rehearsal-*.json`.
 - GitHub Actions `runtime-readiness-ledger` artifact.
+- GitHub Actions `live-rollback-rehearsal` artifact.
 - `npm run smoke:creator-chain` output, or `npm run test` output proving the smoke ran inside the root gate.
 - `npm run qa:live-runtime-browser` output and screenshot path.
 - GitHub Actions run URL.

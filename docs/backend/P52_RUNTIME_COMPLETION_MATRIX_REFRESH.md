@@ -203,6 +203,20 @@ P76 Live Cutover Attestation Gate changed live release evidence:
 - remaining gap is live provider execution, not absence of a cutover attestation
   contract.
 
+P77 Live Rollback Rehearsal Gate changed rollback evidence:
+
+- `check:live-rollback-rehearsal` verifies rollback commands from the service
+  manifest and origin execution plan,
+- the gate confirms static GitHub Pages preview remains reachable in disabled
+  mode,
+- strict mode requires `ROLLBACK_OWNER_ID`,
+  `ROLLBACK_REHEARSAL_CONFIRMED=true`, and `ROLLBACK_GITHUB_RUN_ID`,
+- Pages workflow uploads a `live-rollback-rehearsal` artifact for the same run,
+- current expected state is `live_rollback_static_preview_verified` in disabled
+  mode until an operator performs a strict rehearsal,
+- remaining gap is live provider execution and operator-confirmed rollback, not
+  absence of a rollback rehearsal contract.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,
@@ -241,6 +255,7 @@ npm run check:remote-origin-operator-pack
 npm run check:remote-runtime-assignment-intake
 npm run check:remote-origin-execution
 npm run check:live-cutover-attestation
+npm run check:live-rollback-rehearsal
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:runtime-preview-compose

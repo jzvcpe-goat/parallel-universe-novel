@@ -2,7 +2,7 @@
 
 ## Goal
 
-让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：CI 先通过 `qa:live-runtime-local` 证明本地 FastAPI + Agent Runtime + live-mode 浏览器链路可执行；只有远端 API 与 Agent Runtime URL 都配置好，`audit:live-runtime-readiness`、`check:live-cutover-attestation` 和 `qa:live-runtime-browser` 全部通过，CI 才会构建 live Creator Studio。
+让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：CI 先通过 `qa:live-runtime-local` 证明本地 FastAPI + Agent Runtime + live-mode 浏览器链路可执行；只有远端 API 与 Agent Runtime URL 都配置好，`audit:live-runtime-readiness`、`check:live-cutover-attestation`、`check:live-rollback-rehearsal` 和 `qa:live-runtime-browser` 全部通过，CI 才会构建 live Creator Studio。
 
 ## Default State
 
@@ -56,6 +56,7 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
   REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
   REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
+  npm run check:live-rollback-rehearsal
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 # After all uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
@@ -65,7 +66,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -83,8 +84,9 @@ This proves:
 5. CI verifies current-run artifacts through `check:github-actions-artifacts`.
 6. Live mode fails if any required remote URL is missing.
 7. Live mode fails if `check:live-cutover-attestation` cannot prove assignment, origin execution, provisioning and readiness.
-8. Live mode fails if browser submission cannot create a candidate draft.
-9. Live mode never enables local fallback.
+8. Live mode must always leave a `live-rollback-rehearsal` artifact proving rollback commands and static preview health.
+9. Live mode fails if browser submission cannot create a candidate draft.
+10. Live mode never enables local fallback.
 
 ## Operational Rule
 
