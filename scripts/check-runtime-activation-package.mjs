@@ -44,6 +44,7 @@ const requiredFiles = [
   'docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md',
   'docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md',
   'docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md',
+  'docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -74,6 +75,7 @@ const requiredFiles = [
   'scripts/check-remote-assignment-fill-plan-artifact.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
   'scripts/check-remote-assignment-local-boundary.mjs',
+  'scripts/check-github-runtime-variable-boundary.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -108,6 +110,7 @@ const p105 = read('docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md')
 const p106 = read('docs/backend/P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION.md')
 const p107 = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p108 = read('docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md')
+const p109 = read('docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -205,6 +208,10 @@ assert(
   'package.json must expose check:remote-assignment-local-boundary',
 )
 assert(
+  packageJson.scripts['check:github-runtime-variable-boundary'] === 'node scripts/check-github-runtime-variable-boundary.mjs',
+  'package.json must expose check:github-runtime-variable-boundary',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -291,6 +298,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-local-boundary'),
   'npm run test must include check:remote-assignment-local-boundary',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:github-runtime-variable-boundary'),
+  'npm run test must include check:github-runtime-variable-boundary',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -568,6 +579,13 @@ assert(
   'P108 local boundary guard must define ignored local assignment and fixture readiness boundaries',
 )
 assert(
+  p109.includes('P109 GitHub Runtime Variable Boundary Guard')
+    && p109.includes('check:github-runtime-variable-boundary')
+    && p109.includes('Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.')
+    && p109.includes('github-runtime-variable-boundary'),
+  'P109 GitHub runtime variable boundary guard must define allowed public variables and secret rejection boundaries',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -658,6 +676,7 @@ for (const required of [
 for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
+  'npm run check:github-runtime-variable-boundary',
   'npm run check:remote-origin-operator-pack',
 		  'npm run check:remote-assignment-handoff',
 		  'npm run check:public-privacy-artifacts',

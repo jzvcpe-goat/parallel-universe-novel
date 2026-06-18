@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, and P108 remote assignment local boundary guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, and P109 GitHub runtime variable boundary guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -481,3 +481,18 @@ P108 protects the local operator assignment boundary after P105/P106/P107:
   readiness.
 - The remaining live-runtime blocker set is unchanged; P108 only prevents local
   operator evidence or fixture data from being mistaken for production readiness.
+
+## P109 GitHub Runtime Variable Boundary Guard Refresh
+
+P109 protects the GitHub repository variable boundary after P107/P108:
+
+- P45 commercial-release evidence now includes
+  `check:github-runtime-variable-boundary`.
+- Root `npm run test` runs P109 after public live config validation so
+  repository variables cannot contain database URLs, Tool Bridge token values,
+  model keys, private keys, provider API tokens or unknown runtime variable
+  names.
+- The generated `github-runtime-variable-boundary` artifact records names and
+  issue codes only, not variable values.
+- The remaining live-runtime blocker set is unchanged; P109 only prevents
+  public runtime configuration from becoming a secret storage surface.

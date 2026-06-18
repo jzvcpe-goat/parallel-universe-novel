@@ -18,6 +18,7 @@ const p43Doc = read('docs/backend/P43_CI_ARTIFACT_EVIDENCE_GATE.md')
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
 const p107Doc = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p108Doc = read('docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md')
+const p109Doc = read('docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md')
 const p99Doc = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const packageJson = JSON.parse(read('package.json'))
 const node24ActionVersions = [
@@ -306,6 +307,10 @@ assert(
   'package.json must expose check:remote-assignment-local-boundary',
 )
 assert(
+  packageJson.scripts['check:github-runtime-variable-boundary'] === 'node scripts/check-github-runtime-variable-boundary.mjs',
+  'package.json must expose check:github-runtime-variable-boundary',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -350,6 +355,10 @@ assert(
   'npm run test must include check:remote-assignment-local-boundary',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:github-runtime-variable-boundary'),
+  'npm run test must include check:github-runtime-variable-boundary',
+)
+assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
@@ -366,6 +375,7 @@ assert(
     && p16Doc.includes('check:remote-assignment-fill-plan-artifact')
     && p16Doc.includes('check:ci-artifact-content-coverage')
     && p16Doc.includes('check:remote-assignment-local-boundary')
+    && p16Doc.includes('check:github-runtime-variable-boundary')
     && p16Doc.includes('check:public-privacy-artifacts')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
@@ -427,6 +437,13 @@ assert(
   'P108 doc must describe the ignored local assignment boundary and fixture readiness rule',
 )
 assert(
+  p109Doc.includes('P109 GitHub Runtime Variable Boundary Guard')
+    && p109Doc.includes('check:github-runtime-variable-boundary')
+    && p109Doc.includes('Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.')
+    && p109Doc.includes('github-runtime-variable-boundary'),
+  'P109 doc must describe repository variable boundary and privacy-safe evidence',
+)
+assert(
   p15Doc.includes('P15 proves those deployed units actually satisfy the Creator Studio product flow.'),
   'P15 doc must remain the browser-level proof consumed by the P16 release gate',
 )
@@ -454,6 +471,7 @@ console.log(JSON.stringify({
   remoteAssignmentFillPlan: 'remote-assignment-fill-plan',
   remoteAssignmentFillPlanContent: 'check:remote-assignment-fill-plan-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',
+  githubRuntimeVariableBoundary: 'check:github-runtime-variable-boundary',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
   publicPrivacyArtifactContent: 'check:public-privacy-artifacts',

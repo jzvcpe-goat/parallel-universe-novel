@@ -1,5 +1,28 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P109 GitHub Runtime Variable Boundary Guard
+
+P108 保护的是被忽略的本地 operator assignment 文件；P109 保护的是 GitHub
+repository variables。两者必须同时存在：本地文件不能入库，远端 repo vars
+也不能变成 secret 存储面。
+
+新的工程标准：
+
+1. GitHub repository variables 只允许公开 runtime origin、remote service id
+   和 secret-store 已配置的布尔 attestation。
+2. DB URL、Tool Bridge token、模型 key、provider token、private key 只能在
+   provider secret store 或 ignored local operator 文件中出现，不能进 repo vars。
+3. `check:github-runtime-variable-boundary` 必须进入 root `npm run test`，不能只
+   作为上线前手动命令。
+4. 证据 artifact 只能记录变量名和 issue code，不能复制变量值。
+
+验证命令：
+
+```bash
+npm run check:github-runtime-variable-boundary
+npm run test
+```
+
 ## 2026-06-18 Backward Sweep Python 3.11 Test Boundary
 
 Public Projection Privacy Audit 和 Backward Consistency Sweep 都通过后，又

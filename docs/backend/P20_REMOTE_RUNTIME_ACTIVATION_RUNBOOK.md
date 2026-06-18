@@ -99,6 +99,8 @@ REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-int
 `remote-assignment.local.json` is ignored by Git. It may contain service ids,
 public HTTPS origins and provider-secret-store confirmation flags. It must not
 contain database URLs, Tool Bridge token values, model keys or provider tokens.
+P109 GitHub Runtime Variable Boundary Guard enforces the same public repository
+variable boundary for CI.
 
 ### Origin Execution Gate
 
@@ -234,6 +236,7 @@ attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
 `REMOTE_AGENT_SECRETS_CONFIGURED=true`. These are flags and service ids only;
 never store database URLs, Tool Bridge token values, model keys or provider API
 tokens in repository variables.
+never store database URLs, Tool Bridge token values, model keys or provider API tokens in repository variables.
 
 Use `deploy/runtime-production/origin.env.example` as the operator checklist.
 Validate it with:
@@ -350,6 +353,18 @@ gh variable set VITE_API_BASE_URL --repo jzvcpe-goat/parallel-universe-novel --b
 
 Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `false`.
 
+Run the P109 GitHub Runtime Variable Boundary Guard before requesting a live
+Pages build:
+
+```bash
+npm run check:github-runtime-variable-boundary
+```
+
+The gate accepts only public runtime origins, remote service ids and non-secret
+secret-store attestation flags. It rejects database URLs, Tool Bridge token
+values, model keys, private keys, provider API tokens and unknown runtime
+variable names.
+
 ## Activation Sequence
 
 1. Run `npm run check:remote-host-target` and pick the host profile.
@@ -372,6 +387,7 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 18. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
 19. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
 20. Verify both health endpoints with the commands from the P79 Markdown artifact.
+21. Run `npm run check:github-runtime-variable-boundary`.
 17. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
 18. Run local strict config check:
 

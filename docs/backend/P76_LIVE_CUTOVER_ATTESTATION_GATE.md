@@ -36,6 +36,12 @@ These values confirm that concrete services exist and that provider secret
 stores were configured. They must not contain database URLs, Tool Bridge token
 values, model keys, private keys, provider API tokens, system prompts, raw
 state, or reference-vault contents.
+Repository variables must not contain database URLs, Tool Bridge token values, model keys, private keys, provider API tokens, system prompts, raw state, or reference-vault contents.
+
+P109 GitHub Runtime Variable Boundary Guard validates this repository-variable
+surface. GitHub repository variables must not contain database URLs, Tool Bridge
+token values, model keys, private keys, provider API tokens, system prompts, raw
+state, or reference-vault contents.
 
 ## Decisions
 
@@ -78,7 +84,10 @@ No provider secret value is exposed to the frontend build.
 ## Acceptance
 
 - `package.json` exposes `check:live-cutover-attestation`.
+- `package.json` exposes `check:github-runtime-variable-boundary`.
 - Root `npm run test` includes `check:live-cutover-attestation` after P75/P73.
+- Root `npm run test` includes `check:github-runtime-variable-boundary` so
+  repository variables are checked before live runtime readiness is trusted.
 - Pages workflow runs `npm run check:live-cutover-attestation`.
 - When `VITE_PUBLIC_RUNTIME_MODE=live`, Pages workflow runs strict
   `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation`

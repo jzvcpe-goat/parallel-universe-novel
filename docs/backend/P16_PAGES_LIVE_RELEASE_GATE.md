@@ -79,6 +79,7 @@ fi
 # After P90 blocker content gate: CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED=true npm run check:remote-assignment-fill-plan-artifact
 # Root release gate: npm run check:ci-artifact-content-coverage
 # Root local-boundary gate: npm run check:remote-assignment-local-boundary
+# Root repo-variable boundary gate: npm run check:github-runtime-variable-boundary
 ```
 
 This proves:
@@ -96,6 +97,11 @@ This proves:
   pre-upload generator gate, built bundle privacy scan or visual evidence path.
 - P108 proves the ignored `remote-assignment.local.json` boundary stays local,
   template-only and impossible to satisfy with fixture data.
+- P109 GitHub Runtime Variable Boundary Guard proves repository variables stay
+  limited to public runtime configuration and non-secret attestation. Do not put
+  database URLs, Tool Bridge token values, model keys, private keys or provider
+  API tokens in repository variables.
+  Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.
 - The `reference-privacy` and `public-projection-privacy` artifact contents pass
   P92 redaction and zero-violation checks.
 - The `remote-assignment-schema`, `remote-assignment-execution-pack` and
@@ -145,8 +151,12 @@ This proves:
     Pages artifact is only uploaded without an explicit verification owner.
 24. Root `npm run test` must run `check:remote-assignment-local-boundary` so
     ignored local assignment state cannot be committed or replaced by fixture data.
-25. Live mode fails if browser submission cannot create a candidate draft.
-26. Live mode never enables local fallback.
+25. Root `npm run test` must run `check:github-runtime-variable-boundary` so
+    GitHub repository variables cannot contain database URLs, Tool Bridge token
+    values, model keys, private keys, provider API tokens or unknown runtime
+    variables.
+26. Live mode fails if browser submission cannot create a candidate draft.
+27. Live mode never enables local fallback.
 
 ## Operational Rule
 
