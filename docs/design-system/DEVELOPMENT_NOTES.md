@@ -3564,3 +3564,15 @@ P71 补的是 P70 和 P66 中间的执行断点：有了部署 manifest，并不
 5. GHCR push 必须用 `push_with_retry` 抵抗 transient 5xx。镜像层已上传但 manifest/tag push 失败时，下一次重试可以复用已有层。
 6. `check:runtime-image-workflow` 进入 root test，并被 P14/P20/P45/P52/P66/P70 引用，防止“部署文档有镜像，实际 CI 不发布镜像”的断层。
 7. P71 不等于上线：远端 HTTPS origin、health、Pages live variables 和 public runtime trace 仍由 P66/P65 证明。
+
+## 2026-06-18 P72 Runtime Image Publish Evidence Gate
+
+P72 来自一次真实发布断点：镜像 workflow 已经成功 push，但本地 `gh api` 查询 package versions 被 `read:packages` 权限挡住。这个权限不应该成为普通 operator 验收镜像发布的必要条件。
+
+本轮原则：
+
+1. `check:runtime-image-publish-evidence` 读取 `Publish Runtime Images` 的 GitHub Actions run，而不是 GHCR package versions API。
+2. 证据来自 workflow log：当前 commit 的 API/Agent image refs、`runtime-latest` refs 和 digest 行。
+3. 默认模式不阻塞 Pages CI，因为 Pages CI 会先于手动镜像发布运行；此时输出 `passed_with_publish_blockers`。
+4. 严格模式 `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true` 用于手动触发 P71 后的验收，当前 commit 没有成功镜像发布则失败。
+5. P72 仍然不代表远端服务上线；它只证明“远端宿主可以拉到这两张镜像”，P66/P65 继续负责 origin health 和 public runtime trace。

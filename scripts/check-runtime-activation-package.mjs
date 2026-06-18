@@ -23,6 +23,7 @@ const requiredFiles = [
   'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
   'docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md',
   'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
+  'docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-preview/docker-compose.yml',
@@ -48,6 +49,7 @@ const p23 = read('docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md')
 const p69 = read('docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md')
 const p70 = read('docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md')
 const p71 = read('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md')
+const p72 = read('docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const runtimeImagesWorkflow = read('.github/workflows/runtime-images.yml')
@@ -77,6 +79,10 @@ assert(
   'package.json must expose check:runtime-image-workflow',
 )
 assert(
+  packageJson.scripts['check:runtime-image-publish-evidence'] === 'node scripts/check-runtime-image-publish-evidence.mjs',
+  'package.json must expose check:runtime-image-publish-evidence',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -91,6 +97,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-workflow'),
   'npm run test must include check:runtime-image-workflow',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:runtime-image-publish-evidence'),
+  'npm run test must include check:runtime-image-publish-evidence',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -186,6 +196,13 @@ assert(
     && p71.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime')
     && p71.includes('does not enable public live runtime'),
   'P71 image publish gate must define image refs and keep live runtime disabled',
+)
+assert(
+  p72.includes('P72 Runtime Image Publish Evidence Gate')
+    && p72.includes('read:packages')
+    && p72.includes('REQUIRE_RUNTIME_IMAGE_PUBLISHED=true')
+    && p72.includes('does not enable public live runtime'),
+  'P72 image publish evidence gate must define strict evidence without requiring package API access',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

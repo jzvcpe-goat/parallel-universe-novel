@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -398,6 +398,25 @@ remote HTTPS origins.
 Remaining gaps stay explicit: P71 does not create cloud resources, does not set
 Pages live variables, does not enable public live runtime, and does not replace
 P66 health checks or P65 remote trace proof.
+
+## P72 Runtime Image Publish Evidence Gate
+
+P72 turns the successful P71 workflow run into machine-readable evidence:
+
+- `check:runtime-image-publish-evidence` finds the latest successful
+  `Publish Runtime Images` run for the current commit.
+- The gate checks workflow logs for API and Agent Runtime image refs,
+  `runtime-latest` refs and digest lines.
+- It avoids GitHub package version APIs, so operators do not need
+  `read:packages` just to prove image publication.
+- Default mode records `passed_with_publish_blockers` before image publication;
+  strict mode requires a successful current-head publish run.
+
+Current decision is that P72 is ready as an evidence gate after P71 succeeds.
+It still does not pull, run, provision or expose those images publicly.
+
+Remaining gaps stay explicit: P72 does not replace P66 remote origin readiness
+or P65 remote live trace proof.
 
 ## Privacy Boundary
 

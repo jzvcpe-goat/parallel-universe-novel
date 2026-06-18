@@ -68,6 +68,9 @@ Are the pulled services actually running behind remote HTTPS origins?
 P71 does not enable public live runtime. P66 and P65 remain the gates for public
 origin readiness and remote trace proof.
 
+P72 reads the successful P71 workflow logs and records image reference/digest
+evidence without requiring GitHub `read:packages` scope.
+
 ## Acceptance
 
 1. `.github/workflows/runtime-images.yml` exists.
