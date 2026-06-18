@@ -22,9 +22,11 @@ const requiredFiles = [
   'docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md',
   'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
   'docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md',
+  'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-preview/docker-compose.yml',
+  '.github/workflows/runtime-images.yml',
   'packages/agent-runtime/src/server.ts',
   'packages/agent-runtime/src/toolBridge.ts',
   'packages/agent-runtime/src/workflows.ts',
@@ -45,8 +47,10 @@ const p20 = read('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md')
 const p23 = read('docs/backend/P23_LIVE_RUNTIME_READINESS_LEDGER.md')
 const p69 = read('docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md')
 const p70 = read('docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md')
+const p71 = read('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
+const runtimeImagesWorkflow = read('.github/workflows/runtime-images.yml')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
 const agentServer = read('packages/agent-runtime/src/server.ts')
 const toolBridge = read('packages/agent-runtime/src/toolBridge.ts')
@@ -69,6 +73,10 @@ assert(
   'package.json must expose check:remote-deploy-manifest',
 )
 assert(
+  packageJson.scripts['check:runtime-image-workflow'] === 'node scripts/check-runtime-image-workflow.mjs',
+  'package.json must expose check:runtime-image-workflow',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -79,6 +87,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-deploy-manifest'),
   'npm run test must include check:remote-deploy-manifest',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:runtime-image-workflow'),
+  'npm run test must include check:runtime-image-workflow',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -170,6 +182,12 @@ assert(
   'P70 deploy manifest gate must define the service manifest, secret boundary, and P66 handoff',
 )
 assert(
+  p71.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-api')
+    && p71.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime')
+    && p71.includes('does not enable public live runtime'),
+  'P71 image publish gate must define image refs and keep live runtime disabled',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -181,10 +199,19 @@ assert(
   serviceManifest.includes('P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE')
     && serviceManifest.includes('deploy/api/Dockerfile')
     && serviceManifest.includes('deploy/agent-runtime/Dockerfile')
+    && serviceManifest.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-api')
+    && serviceManifest.includes('ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime')
     && serviceManifest.includes('VITE_API_ORIGIN')
     && serviceManifest.includes('VITE_AGENT_RUNTIME_BASE_URL')
     && serviceManifest.includes('provider_secret_store_only'),
   'service manifest must preserve deployable service boundaries and public runtime variables',
+)
+assert(
+  runtimeImagesWorkflow.includes('packages: write')
+    && runtimeImagesWorkflow.includes('parallel-universe-novel-api')
+    && runtimeImagesWorkflow.includes('parallel-universe-novel-agent-runtime')
+    && runtimeImagesWorkflow.includes('docker push'),
+  'runtime image workflow must publish both runtime images to GHCR',
 )
 for (const required of [
   'Activation Sequence',

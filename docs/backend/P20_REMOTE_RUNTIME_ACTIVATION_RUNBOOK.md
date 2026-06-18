@@ -49,6 +49,21 @@ Use `deploy/runtime-production/service-manifest.json` as the source of truth for
 service names, Dockerfiles, ports, health paths, provider-secret-store-only
 variables and public GitHub Pages variables.
 
+### Runtime Image Publish Gate
+
+Before provisioning a remote host, validate and publish the checked runtime
+images:
+
+```bash
+npm run check:runtime-image-workflow
+gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel
+```
+
+The host should pull these image names or their `runtime-latest` tags:
+
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>`
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>`
+
 Use `deploy/runtime-production/origin.env.example` as the operator checklist.
 Validate it with:
 
@@ -168,10 +183,12 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 
 1. Run `npm run check:remote-host-target` and pick the host profile.
 2. Run `npm run check:remote-deploy-manifest` and use `deploy/runtime-production/service-manifest.json` as the service contract.
-3. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
-4. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-5. Verify both health endpoints.
-6. Run local strict config check:
+3. Run `npm run check:runtime-image-workflow`.
+4. Publish images with `gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel`.
+5. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+6. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+7. Verify both health endpoints.
+8. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
@@ -182,7 +199,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-live-config
 ```
 
-7. Run public runtime preview check:
+9. Run public runtime preview check:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -192,7 +209,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-8. Generate the readiness ledger:
+10. Generate the readiness ledger:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true \
@@ -203,7 +220,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run audit:live-runtime-readiness
 ```
 
-9. Run Live Smoke:
+11. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -213,10 +230,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-10. Set GitHub repository variables.
-11. Push or manually dispatch `Deploy Creator Studio Preview`.
-12. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
-13. Open public `/#/create` and verify it shows `创作服务可用`.
+12. Set GitHub repository variables.
+13. Push or manually dispatch `Deploy Creator Studio Preview`.
+14. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
+15. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 

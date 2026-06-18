@@ -45,6 +45,8 @@ const requiredFiles = [
   'deploy/agent-runtime/Dockerfile',
   'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
   'docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md',
+  'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
+  '.github/workflows/runtime-images.yml',
   'docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md',
   'docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md',
 ]
@@ -138,6 +140,7 @@ for (const command of [
   'npm run check:remote-host-target',
   'npm run check:runtime-deploy-readiness',
   'npm run check:runtime-preview-compose',
+  'npm run check:runtime-image-workflow',
 ]) {
   assert(manifest.preflightCommands.includes(command), `preflightCommands missing ${command}`)
 }
@@ -155,6 +158,14 @@ assertContains('docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md', [
   'check:remote-deploy-manifest',
   'provider_secret_store_only',
   'P66 Remote Runtime Origin Provisioning Gate',
+  'P71 Runtime Image Publish Gate',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-api',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime',
+])
+assertContains('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md', [
+  'P71 Runtime Image Publish Gate',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-api',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime',
 ])
 assertContains('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md', [
   'Deploy Manifest Gate',

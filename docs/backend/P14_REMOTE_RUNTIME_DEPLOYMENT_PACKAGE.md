@@ -18,7 +18,15 @@ Production origin checklist:
 - `deploy/runtime-production/origin.env.example`
 - `npm run check:remote-host-target`
 - `npm run check:remote-deploy-manifest`
+- `npm run check:runtime-image-workflow`
 - `npm run check:remote-origin-provisioning`
+
+Published runtime images are owned by P71:
+
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>`
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>`
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:runtime-latest`
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:runtime-latest`
 
 ### FastAPI API
 
@@ -141,6 +149,7 @@ cp app/dist/index.html app/dist/404.html
 ```bash
 npm run check:runtime-deploy-readiness
 npm run check:runtime-preview-compose
+npm run check:runtime-image-workflow
 npm run check:remote-origin-provisioning
 npm run check:public-runtime-preview
 PYTHON_BIN=/Users/james/Documents/PUF/workspaces/integration-harness/backend/.venv/bin/python npm run test
@@ -171,6 +180,13 @@ deployment contract. Validate it with:
 
 ```bash
 npm run check:remote-deploy-manifest
+```
+
+Publish the runtime images before asking the remote host to pull them:
+
+```bash
+npm run check:runtime-image-workflow
+gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel
 ```
 
 Once host URLs exist, update GitHub Actions Pages build from:

@@ -44,12 +44,22 @@ Before origin provisioning, run P69:
 ```bash
 npm run check:remote-host-target
 npm run check:remote-deploy-manifest
+npm run check:runtime-image-workflow
 ```
 
 Use `deploy/runtime-production/host-profiles.json` to select the host profile.
 Use `deploy/runtime-production/service-manifest.json` to provision the concrete
 API and Agent services. P66 then verifies the remote HTTPS origins produced by
 that host.
+
+P71 publishes the runtime images referenced by the service manifest. The current
+image names are:
+
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>`
+- `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>`
+
+P66 does not publish images. It only checks whether the deployed services are
+reachable after the host pulls and runs them.
 
 FastAPI:
 
@@ -145,3 +155,5 @@ material.
 7. All stages ready returns `ready_for_public_live_runtime`.
 8. Strict mode fails if provisioning is incomplete.
 9. The artifact passes the privacy boundary.
+10. P71 runtime image publishing has a separate green gate before remote host
+    provisioning.

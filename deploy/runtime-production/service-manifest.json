@@ -18,6 +18,11 @@
       "role": "fastapi_business_runtime",
       "buildContext": ".",
       "dockerfile": "deploy/api/Dockerfile",
+      "imageName": "ghcr.io/jzvcpe-goat/parallel-universe-novel-api",
+      "imageTags": [
+        "<commit-sha>",
+        "runtime-latest"
+      ],
       "containerPort": 8787,
       "healthPath": "/health",
       "publicOriginVariable": "VITE_API_ORIGIN",
@@ -42,6 +47,11 @@
       "role": "mastra_workflow_runtime",
       "buildContext": ".",
       "dockerfile": "deploy/agent-runtime/Dockerfile",
+      "imageName": "ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime",
+      "imageTags": [
+        "<commit-sha>",
+        "runtime-latest"
+      ],
       "containerPort": 4111,
       "healthPath": "/health",
       "publicOriginVariable": "VITE_AGENT_RUNTIME_BASE_URL",
@@ -103,7 +113,8 @@
   "preflightCommands": [
     "npm run check:remote-host-target",
     "npm run check:runtime-deploy-readiness",
-    "npm run check:runtime-preview-compose"
+    "npm run check:runtime-preview-compose",
+    "npm run check:runtime-image-workflow"
   ],
   "postProvisionCommands": [
     "npm run check:remote-origin-provisioning",

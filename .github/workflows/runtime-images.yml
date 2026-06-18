@@ -1,0 +1,82 @@
+name: Publish Runtime Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag. Defaults to the commit SHA.
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build and publish runtime images
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_TAG_INPUT: ${{ inputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Select image tag
+        id: tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$IMAGE_TAG_INPUT" ]; then
+            echo "value=$IMAGE_TAG_INPUT" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login to GitHub Container Registry
+        shell: bash
+        run: echo "${{ github.token }}" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+
+      - name: Build API image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            -f deploy/api/Dockerfile \
+            -t "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:${{ steps.tag.outputs.value }}" \
+            -t "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:runtime-latest" \
+            .
+
+      - name: Build Agent Runtime image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            -f deploy/agent-runtime/Dockerfile \
+            -t "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:${{ steps.tag.outputs.value }}" \
+            -t "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:runtime-latest" \
+            .
+
+      - name: Push API image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:${{ steps.tag.outputs.value }}"
+          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:runtime-latest"
+
+      - name: Push Agent Runtime image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:${{ steps.tag.outputs.value }}"
+          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:runtime-latest"
+
+      - name: Output image references
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat <<EOF
+          api=ghcr.io/${{ github.repository_owner }}/parallel-universe-novel-api:${{ steps.tag.outputs.value }}
+          agent=ghcr.io/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:${{ steps.tag.outputs.value }}
+          EOF

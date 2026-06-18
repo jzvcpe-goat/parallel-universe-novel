@@ -4,6 +4,7 @@
   "releaseRootMarker": "/releases/parallel-universe-novel-github",
   "syncAsIs": [
     ".github/workflows/pages.yml",
+    ".github/workflows/runtime-images.yml",
     ".gitignore",
     "app/.env.example",
     "app/src/api/creator.ts",
@@ -74,6 +75,7 @@
     "docs/backend/P68_RUNTIME_PREVIEW_COMPOSE_GATE.md",
     "docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md",
     "docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md",
+    "docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
@@ -127,6 +129,7 @@
     "scripts/check-remote-origin-provisioning.mjs",
     "scripts/check-remote-host-target.mjs",
     "scripts/check-remote-deploy-manifest.mjs",
+    "scripts/check-runtime-image-workflow.mjs",
     "scripts/check-runtime-activation-package.mjs",
     "scripts/check-runtime-preview-compose.mjs",
     "scripts/check-runtime-artifact-contract.mjs",

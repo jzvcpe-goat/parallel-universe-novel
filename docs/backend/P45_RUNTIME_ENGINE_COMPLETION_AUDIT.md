@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -374,6 +374,30 @@ remote API and Agent origins exist.
 
 Remaining gaps stay explicit: P70 does not create cloud resources, does not set
 secrets, and does not replace P66 health checks or P65 remote trace proof.
+
+## P71 Runtime Image Publish Gate
+
+P71 publishes the checked runtime containers so the P70 deploy manifest can be
+executed by a Docker-compatible remote host:
+
+- `.github/workflows/runtime-images.yml` builds `deploy/api/Dockerfile` and
+  `deploy/agent-runtime/Dockerfile`.
+- The workflow pushes `ghcr.io/jzvcpe-goat/parallel-universe-novel-api` and
+  `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime` with both
+  `<commit-sha>` and `runtime-latest` tags.
+- `check:runtime-image-workflow` validates workflow permissions, Docker image
+  names, service manifest image fields and secret boundaries.
+- The workflow has `packages: write` but does not receive provider secrets,
+  database URLs, Tool Bridge tokens or reference-vault keys.
+
+Current decision is that P71 is ready as a runtime image publishing gate once
+the GitHub workflow completes successfully. P66 remains
+`remote_origin_unprovisioned` until those images are actually deployed behind
+remote HTTPS origins.
+
+Remaining gaps stay explicit: P71 does not create cloud resources, does not set
+Pages live variables, does not enable public live runtime, and does not replace
+P66 health checks or P65 remote trace proof.
 
 ## Privacy Boundary
 

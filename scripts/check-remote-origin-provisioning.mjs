@@ -140,6 +140,9 @@ const requiredFiles = [
   'docs/backend/P65_REMOTE_LIVE_RUNTIME_TRACE_GATE.md',
   'docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md',
   'docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md',
+  'docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md',
+  'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
+  '.github/workflows/runtime-images.yml',
 ]
 
 for (const file of requiredFiles) {
@@ -185,6 +188,18 @@ assertContains('docs/backend/P66_REMOTE_RUNTIME_ORIGIN_PROVISIONING_GATE.md', [
   'ready_for_public_live_runtime',
   'check:remote-host-target',
   'check:remote-deploy-manifest',
+  'check:runtime-image-workflow',
+])
+assertContains('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md', [
+  'P71 Runtime Image Publish Gate',
+  'P66 Remote Runtime Origin Provisioning Gate',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-api',
+  'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime',
+])
+assertContains('.github/workflows/runtime-images.yml', [
+  'Publish Runtime Images',
+  'packages: write',
+  'docker push',
 ])
 assertContains('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md', [
   'GitHub Repository Variables',

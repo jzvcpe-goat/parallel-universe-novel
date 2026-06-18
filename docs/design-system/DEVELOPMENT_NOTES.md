@@ -3550,3 +3550,16 @@ P70 承接 P69，不再停留在“选择宿主形态”，而是把默认宿主
 3. `DATABASE_URL`、Tool Bridge token、模型 key、reference vault key 都列入 forbidden public variables。
 4. manifest 明确 preflight：P69 host target、runtime deploy readiness、P68 compose；post-provision：P66 origin、readiness ledger、live browser QA。
 5. `check:remote-deploy-manifest` 进入 root test，并被 P20/P66/P45/P52 引用，防止部署合同成为旁路文档。
+
+## 2026-06-18 P71 Runtime Image Publish Gate
+
+P71 补的是 P70 和 P66 中间的执行断点：有了部署 manifest，并不代表远端宿主能直接拉到可部署镜像。如果不把镜像发布纳入门禁，后续上线很容易回到手工 build、临时 tag 或不同环境镜像不一致。
+
+本轮原则：
+
+1. `.github/workflows/runtime-images.yml` 只负责构建和发布 FastAPI/Agent Runtime 两个容器镜像到 GHCR。
+2. 镜像命名固定为 `ghcr.io/jzvcpe-goat/parallel-universe-novel-api` 和 `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime`，tag 使用 `<commit-sha>` 与 `runtime-latest`。
+3. workflow 只能拿 `packages: write`，不能接触数据库 URL、Tool Bridge token、模型 key、reference vault key 或 Pages live variables。
+4. `deploy/runtime-production/service-manifest.json` 记录镜像名和 tag 约定，让 Docker-compatible host 可以按同一份合同部署。
+5. `check:runtime-image-workflow` 进入 root test，并被 P14/P20/P45/P52/P66/P70 引用，防止“部署文档有镜像，实际 CI 不发布镜像”的断层。
+6. P71 不等于上线：远端 HTTPS origin、health、Pages live variables 和 public runtime trace 仍由 P66/P65 证明。
