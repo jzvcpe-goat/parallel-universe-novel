@@ -137,6 +137,13 @@ assert(
   'Pages workflow must upload the remote assignment execution pack artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote assignment fixture gate')
+    && workflow.includes('remote-assignment-fixture-gate')
+    && workflow.includes('artifacts/runtime/remote-assignment-fixture-gate-*.json')
+    && workflow.indexOf('Upload remote assignment fixture gate') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote assignment fixture gate artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('Upload reference privacy evidence')
@@ -189,6 +196,7 @@ assert(
     && p43Doc.includes('live-rollback-rehearsal')
     && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('remote-assignment-execution-pack')
+    && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
@@ -214,6 +222,7 @@ console.log(JSON.stringify({
   rollbackRehearsal: 'check:live-rollback-rehearsal',
   activationControl: 'check:remote-runtime-activation-control',
   assignmentExecutionPack: 'remote-assignment-execution-pack',
+  assignmentFixtureGate: 'remote-assignment-fixture-gate',
   referencePrivacy: 'reference-privacy',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',

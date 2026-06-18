@@ -255,6 +255,18 @@ P80 Reference Privacy Artifact Gate changed privacy release evidence:
 - remaining gap is team legal/access governance, not absence of an engineering
   privacy release artifact.
 
+P81 Remote Assignment Fixture Gate changed remote assignment evidence:
+
+- `deploy/runtime-production/remote-assignment.fixture.json` provides a
+  committed no-secret assignment fixture with reserved `.invalid` origins,
+- `check:remote-assignment-fixture` proves P79 strict execution-pack generation
+  can reach `assignment_execution_pack_ready`,
+- the same gate proves P75 remains at `remote_assignment_pending_health` because
+  the fixture is not a real remote service,
+- Pages workflow uploads `remote-assignment-fixture-gate`,
+- remaining gap is actual provider assignment and health, not absence of a
+  safe contract fixture.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,

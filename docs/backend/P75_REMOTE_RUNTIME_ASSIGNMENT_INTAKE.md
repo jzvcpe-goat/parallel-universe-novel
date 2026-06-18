@@ -19,6 +19,16 @@ The committed template is:
 deploy/runtime-production/remote-assignment.example.json
 ```
 
+The committed contract fixture is:
+
+```text
+deploy/runtime-production/remote-assignment.fixture.json
+```
+
+The fixture uses reserved `.invalid` origins. It is only for validating the
+assignment shape and P79 command generation. It must produce
+`remote_assignment_pending_health`, not `remote_assignment_ready`.
+
 ## Command
 
 ```bash
@@ -115,4 +125,6 @@ and P66 in strict mode.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.
 - Strict mode fails until assignment is `remote_assignment_ready`.
+- The fixture with reserved `.invalid` origins stays at
+  `remote_assignment_pending_health`.
 - Generated artifacts do not contain provider secrets, database URLs, model keys, system prompts, raw state or private reference mappings.

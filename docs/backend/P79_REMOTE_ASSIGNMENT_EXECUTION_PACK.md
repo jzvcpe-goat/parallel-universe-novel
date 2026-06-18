@@ -30,6 +30,18 @@ REMOTE_RUNTIME_ASSIGNMENT_FILE=/path/to/remote-assignment.local.json \
 npm run check:remote-assignment-execution-pack
 ```
 
+Fixture check:
+
+```bash
+REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.fixture.json \
+REQUIRE_REMOTE_ASSIGNMENT_EXECUTION_READY=true \
+npm run check:remote-assignment-execution-pack
+```
+
+The fixture should produce `assignment_execution_pack_ready`, while P75 should
+still stop at `remote_assignment_pending_health` because the fixture uses
+reserved `.invalid` origins.
+
 ## Decisions
 
 - `assignment_execution_waiting_for_assignment`: no local assignment file exists
@@ -85,5 +97,7 @@ P79 must not include:
 - Missing assignment files produce `assignment_execution_waiting_for_assignment`
   without failing normal CI.
 - Strict mode fails until an execution pack is ready.
+- `remote-assignment.fixture.json` proves command generation without pretending
+  the reserved `.invalid` origins are live.
 - The generated JSON and Markdown artifacts contain no secrets.
 - P78 links to this pack as the next action when it is waiting for assignment.

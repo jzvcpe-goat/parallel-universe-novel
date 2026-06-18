@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P81 Remote Assignment Fixture Gate
+
+远端 Runtime 的真实上线还缺 provider service assignment，但等待外部服务期间仍然可以推进一层：把 assignment 文件本身做成可验证合同 fixture。关键不是伪造远端成功，而是证明“有真实服务后应该如何填、如何生成命令、如何失败在健康检查”。
+
+新的工程标准：
+
+1. `remote-assignment.fixture.json` 使用保留 `.invalid` 域名，不允许被当成 live origin。
+2. P79 对 fixture 必须能 strict 生成 `assignment_execution_pack_ready`，说明字段、镜像、GitHub Variables、strict gate 和 rollback 命令都能拼出来。
+3. P75 对同一个 fixture 必须停在 `remote_assignment_pending_health`，说明 fixture 不会越权证明远端服务健康。
+4. Pages workflow 上传 `remote-assignment-fixture-gate`，让 CI run 自带 assignment contract 证据。
+5. 真正上线仍必须由部署负责人提供 ignored `remote-assignment.local.json`，并让 P75/P73/P76/P78 strict 全部通过。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-fixture
+npm run check:remote-assignment-execution-pack
+npm run check:remote-runtime-assignment-intake
+```
+
 ## 2026-06-18 P80 Reference Privacy Artifact Gate
 
 代表作品名加密以后，不能只停留在“本地扫描通过”。上线链路必须留下可下载证据，否则团队无法证明当前 Pages build 和 Git history 没有泄漏代表作品名。

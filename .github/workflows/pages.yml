@@ -145,6 +145,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Upload remote assignment fixture gate
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-fixture-gate
+          path: artifacts/runtime/remote-assignment-fixture-gate-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash

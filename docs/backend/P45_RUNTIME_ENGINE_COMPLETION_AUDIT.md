@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `reference-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `reference-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -48,6 +48,7 @@ The release chain must continue to produce:
 - `live-rollback-rehearsal`
 - `remote-runtime-activation-control`
 - `remote-assignment-execution-pack`
+- `remote-assignment-fixture-gate`
 - `reference-privacy`
 - `local-live-runtime-visual-qa`
 - `github-pages`
@@ -565,6 +566,21 @@ P80 turns representative-work privacy scanning into release evidence:
 
 Current decision is that P80 is ready as a release-evidence privacy gate. It is
 not legal advice and does not replace team-only access governance.
+
+## P81 Remote Assignment Fixture Gate
+
+P81 proves the remote assignment contract before real provider origins exist:
+
+- `deploy/runtime-production/remote-assignment.fixture.json` is a committed
+  no-secret assignment fixture using reserved `.invalid` origins.
+- `check:remote-assignment-fixture` runs P79 strict mode and requires
+  `assignment_execution_pack_ready`.
+- The same gate runs P75 against the fixture and requires
+  `remote_assignment_pending_health`.
+- Pages workflow uploads `remote-assignment-fixture-gate` for the current run.
+
+Current decision is that P81 is ready as a remote assignment contract fixture.
+It is not live runtime proof and does not replace a real provider assignment.
 
 ## Privacy Boundary
 

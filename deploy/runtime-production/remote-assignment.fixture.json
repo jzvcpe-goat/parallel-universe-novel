@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "gate": "P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE",
+  "repository": "jzvcpe-goat/parallel-universe-novel",
+  "hostTargetProfile": "docker-compatible-two-service-paas",
+  "operator": {
+    "owner": "fixture-deployment-owner",
+    "provider": "fixture-provider",
+    "environment": "contract-fixture"
+  },
+  "services": {
+    "api": {
+      "serviceId": "fixture-api-service",
+      "origin": "https://api.parallel-universe-runtime.invalid",
+      "image": "ghcr.io/jzvcpe-goat/parallel-universe-novel-api:runtime-latest",
+      "providerSecretsConfigured": true,
+      "healthPath": "/health"
+    },
+    "agent": {
+      "serviceId": "fixture-agent-service",
+      "origin": "https://agent.parallel-universe-runtime.invalid",
+      "image": "ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:runtime-latest",
+      "providerSecretsConfigured": true,
+      "healthPath": "/health",
+      "dependsOn": [
+        "api"
+      ]
+    }
+  },
+  "pagesVariablesAfterHealth": {
+    "VITE_PUBLIC_RUNTIME_MODE": "live",
+    "VITE_API_ORIGIN": "https://api.parallel-universe-runtime.invalid",
+    "VITE_API_BASE_URL": "https://api.parallel-universe-runtime.invalid/v1",
+    "VITE_AGENT_RUNTIME_BASE_URL": "https://agent.parallel-universe-runtime.invalid"
+  },
+  "notes": [
+    "This is a no-secret contract fixture. The reserved .invalid origins must never be treated as live remote services.",
+    "P79 must produce an execution pack from this file, while P75 must remain pending health until real provider origins replace it."
+  ]
+}
