@@ -189,12 +189,20 @@ assert(
   'Pages workflow must verify the current run evidence artifacts after all required artifacts are uploaded',
 )
 assert(
+  workflow.includes('Check public privacy artifact content')
+    && workflow.includes('CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:public-privacy-artifacts')
+    && workflow.indexOf('Check public privacy artifact content') > workflow.indexOf('Check current run evidence artifacts'),
+  'Pages workflow must verify public privacy artifact contents after the current-run artifact metadata gate',
+)
+assert(
   workflow.includes('Check remote assignment handoff artifact content')
     && workflow.includes('CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:remote-assignment-handoff-artifact')
-    && workflow.indexOf('Check remote assignment handoff artifact content') > workflow.indexOf('Check current run evidence artifacts'),
-  'Pages workflow must verify remote assignment handoff artifact content after the current-run artifact metadata gate',
+    && workflow.indexOf('Check remote assignment handoff artifact content') > workflow.indexOf('Check public privacy artifact content'),
+  'Pages workflow must verify remote assignment handoff artifact content after the public privacy artifact content gate',
 )
 assert(
   workflow.includes('Check remote runtime blocker artifact content')
@@ -233,6 +241,10 @@ assert(
   'package.json must expose check:remote-assignment-schema',
 )
 assert(
+  packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
+  'package.json must expose check:public-privacy-artifacts',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -249,6 +261,10 @@ assert(
   'npm run test must include check:remote-assignment-schema',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
+  'npm run test must include check:public-privacy-artifacts',
+)
+assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
@@ -260,6 +276,7 @@ assert(
     && p16Doc.includes('check:remote-assignment-handoff-artifact')
     && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('check:remote-runtime-blockers-artifact')
+    && p16Doc.includes('check:public-privacy-artifacts')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
 )
@@ -272,6 +289,8 @@ assert(
     && p43Doc.includes('remote-assignment-schema')
     && p43Doc.includes('check:remote-assignment-handoff-artifact')
     && p43Doc.includes('check:remote-runtime-blockers-artifact')
+    && p43Doc.includes('check:public-privacy-artifacts')
+    && p43Doc.includes('P92')
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
@@ -309,6 +328,7 @@ console.log(JSON.stringify({
   remoteRuntimeBlockersContent: 'check:remote-runtime-blockers-artifact',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
+  publicPrivacyArtifactContent: 'check:public-privacy-artifacts',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
 }, null, 2))

@@ -61,7 +61,8 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 # After all evidence uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
-# After P43 metadata gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
+# After P43 metadata gate: CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED=true npm run check:public-privacy-artifacts
+# After P92 privacy artifact content gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
 # After P89 handoff content gate: CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED=true npm run check:remote-runtime-blockers-artifact
 ```
 
@@ -74,6 +75,8 @@ This proves:
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
   privacy and cross-gate consistency checks.
+- The `reference-privacy` and `public-projection-privacy` artifact contents pass
+  P92 redaction and zero-violation checks.
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
@@ -102,10 +105,12 @@ This proves:
 16. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
 17. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-18. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+18. Every Pages run must run `check:public-privacy-artifacts` after P43 so
+    privacy artifact content is validated, not only its presence.
+19. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
     so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
-19. Live mode fails if browser submission cannot create a candidate draft.
-20. Live mode never enables local fallback.
+20. Live mode fails if browser submission cannot create a candidate draft.
+21. Live mode never enables local fallback.
 
 ## Operational Rule
 

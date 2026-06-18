@@ -69,5 +69,7 @@ readiness, rollback, activation, assignment, visual QA and Pages artifacts.
 4. Pages CI uploads the artifact as `reference-privacy`.
 5. `check:github-actions-artifacts` requires `reference-privacy` in current-run
    mode.
-6. P45 and P52 include P80 so runtime completion reports cannot omit the privacy
+6. `check:public-privacy-artifacts` downloads the current-run artifact and
+   validates the redacted JSON content.
+7. P45 and P52 include P80/P92 so runtime completion reports cannot omit the privacy
    evidence boundary.

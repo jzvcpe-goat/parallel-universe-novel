@@ -21,7 +21,7 @@ This is intentionally not a refactor. It is a consistency pass across rule docs,
 | Creator Studio / Reader UI public output | Public UI scans block runtime/debug fields and public build scan checks generated `dist` | No | None | `npm run scan:public-ui-boundary`, `npm run check:public-projection-privacy` |
 | Quality Brake fixtures | Fixture surfaces remain redacted and are included in redacted artifact scanning | No | None | `npm run check:public-projection-privacy`, `npm run scan:reference-privacy` |
 | Reference-work vault / public refs | Vault is AES-256-GCM, public refs expose ids only, CI does not own default decryptability | No | None | `npm run check:reference-vault-access`, `npm run scan:reference-privacy` |
-| Existing scan scripts and root test chain | Root `npm run test` includes P4, sourceRefs drift, public projection, backward consistency and reference privacy gates | Yes: deployed smoke script still used old `prompt_id` contract; Pages did not upload public projection privacy artifact separately; P43 artifact evidence doc still said twelve artifacts after the workflow required thirteen | Replaced old deployed-smoke request context with `guide_id`; added `public-projection-privacy` Pages artifact and current-run artifact gate; updated P43 artifact count to thirteen | `npm run check:backward-consistency-sweep`, `npm run test` |
+| Existing scan scripts and root test chain | Root `npm run test` includes P4, sourceRefs drift, public projection, backward consistency, reference privacy and public privacy artifact content gates | Yes: deployed smoke script still used old `prompt_id` contract; Pages did not upload public projection privacy artifact separately; P43 artifact evidence doc still said twelve artifacts after the workflow required thirteen | Replaced old deployed-smoke request context with `guide_id`; added `public-projection-privacy` Pages artifact and current-run artifact gate; updated P43 artifact count to thirteen; added P92 privacy artifact content attestation | `npm run check:backward-consistency-sweep`, `npm run test` |
 | Development notes / handoff docs | Notes and handoff docs describe the same boundaries as implementation | Yes: no dedicated backward sweep handoff existed | Added this P83 handoff and development note entry | `npm run check:backward-consistency-sweep` |
 
 ## Required Commands
@@ -33,6 +33,7 @@ npm run scan:p4-rule-source
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:public-projection-privacy
+npm run check:public-privacy-artifacts
 npm run check:backward-consistency-sweep
 npm run test
 ```

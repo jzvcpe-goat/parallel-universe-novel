@@ -74,6 +74,7 @@ const requiredRootCommands = [
   'npm run check:reference-vault-access',
   'npm run scan:reference-privacy',
   'npm run check:public-projection-privacy',
+  'npm run check:public-privacy-artifacts',
   'npm run check:backward-consistency-sweep',
 ]
 for (const command of requiredRootCommands) {
@@ -87,6 +88,10 @@ assert(
 assert(
   packageJson.scripts['check:public-projection-privacy'] === 'node scripts/check-public-projection-privacy.mjs',
   'package.json must expose check:public-projection-privacy',
+)
+assert(
+  packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
+  'package.json must expose check:public-privacy-artifacts',
 )
 
 assertIncludes('docs/product/rules/GENRE_CONSTRAINT_RULES.md', [
@@ -145,6 +150,13 @@ assertIncludes('scripts/check-public-projection-privacy.mjs', [
   'redactedArtifactRoots',
   'PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD',
 ])
+assertIncludes('scripts/check-public-privacy-artifacts.mjs', [
+  'P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION',
+  'reference-privacy',
+  'public-projection-privacy',
+  'violationCount',
+  'redaction',
+])
 
 assertIncludes('backend/src/narrativeos/services/creator_dialogue.py', [
   'def _public_session',
@@ -184,6 +196,9 @@ assertIncludes('scripts/smoke-deployed-api.sh', [
 assertIncludes('.github/workflows/pages.yml', [
   'run: npm run test',
   'PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy',
+  'Check public privacy artifact content',
+  'CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED: true',
+  'npm run check:public-privacy-artifacts',
   'name: public-projection-privacy',
   'path: artifacts/runtime/public-projection-privacy-*.json',
   'name: reference-privacy',
@@ -199,12 +214,16 @@ assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [
   'P4 Public Projection And FailBehavior',
   'P4 废弃特例逻辑回归门禁',
   'Backward Consistency Sweep',
+  'privacy 类 release artifact',
+  'redaction flags',
 ])
 assertIncludes('docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md', [
   '| Area | Checked | Issue Found | Fix Applied | Gate |',
   'GENRE_CONSTRAINT_RULES.md',
   'GENRE_KERNEL_RULES.md',
   'Public Projection Privacy Audit',
+  'check:public-privacy-artifacts',
+  'P92',
 ])
 
 for (const requiredFile of [
