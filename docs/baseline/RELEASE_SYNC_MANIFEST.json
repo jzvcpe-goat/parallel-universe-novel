@@ -142,6 +142,7 @@
     "scripts/check-remote-deploy-manifest.mjs",
     "scripts/check-runtime-image-workflow.mjs",
     "scripts/check-runtime-image-publish-evidence.mjs",
+    "scripts/check-p4-deprecated-case-logic.mjs",
     "scripts/check-runtime-activation-package.mjs",
     "scripts/check-runtime-preview-compose.mjs",
     "scripts/check-runtime-artifact-contract.mjs",

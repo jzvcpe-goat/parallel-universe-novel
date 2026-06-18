@@ -4,6 +4,8 @@ import { dirname, join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const rulePath = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
+const packagePath = join(root, 'package.json')
+const p50Path = join(root, 'docs/backend/P50_P4_DOCUMENT_CORE_RESET.md')
 const outputDir = join(root, 'artifacts/runtime')
 
 function assert(condition, message) {
@@ -29,6 +31,8 @@ function collectKeys(value, keys = []) {
 }
 
 const rules = readJson(rulePath)
+const packageJson = readJson(packagePath)
+const p50Doc = readFileSync(p50Path, 'utf8')
 const core = rules.documentCore || {}
 
 assert(core.policy === 'document_registry_only', 'P4 must use document_registry_only policy')
@@ -69,6 +73,10 @@ assert(unexpectedInputs.length === 0, `P4 non-executable inputs must stay generi
 assert(core.nonExecutableInputs.includes('research_intake_note'), 'P4 must keep manual research notes non-executable until generalized into the registry')
 assert(existsSync(join(root, core.baselineContract)), `missing ${core.baselineContract}`)
 for (const source of core.humanEditableSources) assert(existsSync(join(root, source)), `missing ${source}`)
+assert(packageJson.scripts?.['check:p4-deprecated-case-logic'] === 'node scripts/check-p4-deprecated-case-logic.mjs', 'package.json must expose check:p4-deprecated-case-logic')
+assert(packageJson.scripts?.test?.includes('npm run check:p4-deprecated-case-logic'), 'root npm run test must include check:p4-deprecated-case-logic')
+assert(p50Doc.includes('npm run check:p4-deprecated-case-logic'), 'P50 doc must document the deprecated case regression gate')
+assert(p50Doc.includes('discarded premise-specific P4 logic'), 'P50 doc must explain the discarded premise-specific P4 boundary')
 
 const forbiddenKeys = collectKeys(rules).filter(key => /promptCase|legacyCase|caseOverride|scenarioPatch|oneOff|adHoc/i.test(key))
 assert(forbiddenKeys.length === 0, `P4 registry contains case-specific override keys: ${forbiddenKeys.join(', ')}`)

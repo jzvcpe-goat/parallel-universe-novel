@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P4 废弃特例逻辑回归门禁
+
+用户再次明确：P4 必须从文档核心重新出发，早期围绕单个测试题材形成的约束逻辑全部弃用。本轮新增的不是另一张禁词表，而是一个防回归门禁，确保废弃 case 不会再次进入运行时规则、Agent workflow、FastAPI 服务或公开前端。
+
+新的工程标准：
+
+1. `genre-runtime-rules.v1.json` 只接受从 `GENRE_CONSTRAINT_RULES.md` 与 `GENRE_KERNEL_RULES.md` 编译出来的通用规则。
+2. 单个用户样例、浏览器批注、provider prompt experiment 和后端建议只能进入 `nonExecutableInputs` 对应的研究流程，不能直接成为执行逻辑。
+3. 特定题材是否允许某个表达，必须由 active `ConstraintProfile.rules[]` 决定；不得维护跨题材隐藏分支或全局 premise blacklist。
+4. `GenreKernel` 只负责节奏、动机、冲突、高潮回收和时间控制，不负责硬编码某个案例。
+5. P4 回归检查只扫描产品执行面，不扫描历史说明，避免把“讨论过的问题”误当成运行时能力。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run check:p4-deprecated-case-logic
+npm run scan:p4-rule-source
+```
+
 ## 2026-06-18 P73 远端 Origin 执行门禁
 
 P72 证明镜像已经发布，但它仍然不能说明远端服务已经创建、密钥已经放入 provider secret store、健康检查已经通过，或者 Pages live variables 可以安全写入。P73 把这个中间断点变成执行门禁。

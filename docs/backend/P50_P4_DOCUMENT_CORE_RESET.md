@@ -27,7 +27,8 @@ are allowed as research notes only. They must not become runtime branches,
 global bans, provider prompt patches, or UI copy.
 
 The 2026-06-18 reset adds an explicit deprecated-case policy to the runtime
-registry:
+registry and treats the earlier premise-specific P4 attempt as discarded
+implementation history:
 
 - `deprecatedCasePolicy.status = purged`
 - `caseDerivedGlobalConstraints = rejected`
@@ -38,6 +39,20 @@ This means P4 is no longer allowed to carry any premise-specific global
 constraint from earlier QA or prompt experiments. If a premise boundary matters,
 it must be generalized into the human-editable rule documents and then compiled
 into `ConstraintProfile.rules[]` plus compatible `GenreKernel` behavior.
+
+The discarded path includes any runtime logic derived from a single test
+premise, a single browser note, or a single negative sample. It must not appear
+in:
+
+- `docs/product/rules/genre-runtime-rules.v1.json`,
+- Agent workflow or resolver code,
+- FastAPI creator/runtime services,
+- public Creator/Reader UI,
+- Quality Brake rules outside active `ConstraintProfile.rules[]`.
+
+The product can still support those story directions if the human-editable
+rule documents define them as reusable profiles. They are not allowed to exist
+as hidden branches or global bans.
 
 ## Runtime Boundary
 
@@ -81,6 +96,12 @@ New gate:
 npm run check:p4-document-core
 ```
 
+Regression gate:
+
+```bash
+npm run check:p4-deprecated-case-logic
+```
+
 The gate verifies:
 
 - the runtime registry points to the v3 baseline contract,
@@ -92,6 +113,10 @@ The gate verifies:
 - the registry does not contain ad hoc override keys or one-off branches,
 - all profiles and kernels use anonymous `rwref_*` source refs,
 - every kernel maps back to at least one document profile.
+
+The regression gate scans executable/product-facing surfaces and fails if the
+discarded premise-specific P4 logic reappears in runtime rules, Agent Runtime,
+FastAPI services/tests, or public app source.
 
 Existing gate:
 
@@ -116,4 +141,5 @@ When adding a new premise boundary:
 2. Sync `genre-runtime-rules.v1.json`.
 3. Add resolver coverage that selects the profile through public product inputs.
 4. Add Quality Brake fixture coverage for the documented fail behavior.
-5. Run `npm run check:p4-document-core`, `npm run scan:p4-rule-source`, and `npm run test`.
+5. Run `npm run check:p4-document-core`, `npm run check:p4-deprecated-case-logic`,
+   `npm run scan:p4-rule-source`, and `npm run test`.
