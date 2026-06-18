@@ -1144,6 +1144,173 @@ class ProductRuntimeService:
         latest["latest_path"] = str(self._branch_commit_draft_latest_path(worldline_id))
         return latest
 
+    def commit_production_branch(
+        self,
+        *,
+        worldline_id: str,
+        payload: Dict[str, Any],
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        key = str(idempotency_key or payload.get("idempotency_key") or "").strip()
+        if not key:
+            return {
+                "status": "blocked",
+                "reason": "idempotency_key_required",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        commit_draft_record = self._latest_branch_commit_draft_record(worldline_id)
+        if commit_draft_record is None:
+            return {
+                "status": "blocked",
+                "reason": "branch_commit_draft_required",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+            }
+        requested_commit_draft_id = str(payload.get("commit_draft_id") or "").strip()
+        commit_draft_id = str(commit_draft_record.get("commit_draft_id") or "")
+        if requested_commit_draft_id and requested_commit_draft_id != commit_draft_id:
+            return {
+                "status": "blocked",
+                "reason": "commit_draft_mismatch",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "commit_draft_id": commit_draft_id,
+            }
+        release_owner_id = str(payload.get("release_owner_id") or "").strip()
+        if not release_owner_id:
+            return {
+                "status": "blocked",
+                "reason": "release_owner_id_required",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "commit_draft_id": commit_draft_id,
+            }
+        if payload.get("confirmed") is not True:
+            return {
+                "status": "blocked",
+                "reason": "release_owner_confirmation_required",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "commit_draft_id": commit_draft_id,
+                "release_owner_id": release_owner_id,
+            }
+        if payload.get("public_publish_enabled") is True:
+            return {
+                "status": "blocked",
+                "reason": "public_publish_disabled_for_p62",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "commit_draft_id": commit_draft_id,
+                "release_owner_id": release_owner_id,
+                "production_public_publish": False,
+            }
+
+        key_hash = _idempotency_hash(key)
+        branch_commit_id = "production_branch_commit_%s" % _stable_payload_hash(
+            {
+                "idempotency_key_hash": key_hash,
+                "worldline_id": worldline_id,
+                "commit_draft_id": commit_draft_id,
+                "release_owner_id": release_owner_id,
+            }
+        )
+        persisted = self.repository.persist_production_branch_commit(
+            {
+                "branch_commit_id": branch_commit_id,
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "world_version_id": str(session.metadata.get("world_version_id") or ""),
+                "branch_id": str(commit_draft_record.get("branch_id") or worldline_id),
+                "chapter_id": str(commit_draft_record.get("world_instance_patch_candidate", {}).get("chapter_id") or ""),
+                "route_choice_event_id": commit_draft_record.get("route_choice_event_id"),
+                "time_engine_run_id": commit_draft_record.get("time_engine_run_id"),
+                "branch_publish_candidate_id": commit_draft_record.get("branch_publish_candidate_id"),
+                "authorization_id": commit_draft_record.get("authorization_id"),
+                "commit_draft_id": commit_draft_id,
+                "release_owner_id": release_owner_id,
+                "source_run_id": commit_draft_record.get("source_run_id"),
+                "reader_id": dict(session.player_profile or {}).get("reader_id"),
+                "idempotency_key_hash": key_hash,
+                "public_publish_enabled": False,
+                "payload_json": {
+                    "capability_mode": "production_branch_persistence_gate",
+                    "commit_draft": {
+                        "commit_draft_id": commit_draft_id,
+                        "write_scope": commit_draft_record.get("write_scope"),
+                        "branch_publish_candidate_id": commit_draft_record.get("branch_publish_candidate_id"),
+                        "authorization_id": commit_draft_record.get("authorization_id"),
+                    },
+                    "world_instance_patch_candidate": dict(
+                        commit_draft_record.get("world_instance_patch_candidate") or {}
+                    ),
+                    "time_engine_run_id": commit_draft_record.get("time_engine_run_id"),
+                    "route_choice_event_id": commit_draft_record.get("route_choice_event_id"),
+                },
+            }
+        )
+        return {
+            "status": "persisted_private",
+            "capability_mode": "production_branch_persistence_gate",
+            "write_scope": "production_branch_table_private",
+            "branch_commit_id": persisted["branch_commit_id"],
+            "worldline_id": worldline_id,
+            "session_id": worldline_id,
+            "world_id": session.world_id,
+            "branch_id": persisted["branch_id"],
+            "commit_draft_id": commit_draft_id,
+            "authorization_id": persisted["authorization_id"],
+            "branch_publish_candidate_id": persisted["branch_publish_candidate_id"],
+            "release_owner_id": persisted["release_owner_id"],
+            "tables_written": list(persisted.get("tables_written") or []),
+            "audit_event_id": persisted.get("audit_event_id"),
+            "public_publish_enabled": False,
+            "production_public_publish": False,
+            "next_required": ["public_publish_gate", "remote_live_runtime_trace"],
+            "idempotency_key_hash": key_hash,
+            "idempotent_replay": bool(persisted.get("idempotent_replay")),
+            "created_at": persisted.get("created_at"),
+        }
+
+    def production_branch_commit_snapshot(self, *, worldline_id: str) -> Dict[str, Any]:
+        session = self.repository.get_session(worldline_id)
+        latest = self.repository.latest_production_branch_commit(worldline_id=worldline_id)
+        if latest is None:
+            return {
+                "status": "waiting",
+                "capability_mode": "production_branch_persistence_gate",
+                "write_scope": "none",
+                "worldline_id": worldline_id,
+                "session_id": worldline_id,
+                "world_id": session.world_id,
+                "service_note": "No private production branch commit has been persisted for this worldline yet.",
+            }
+        return {
+            "status": str(latest.get("status") or "persisted_private"),
+            "capability_mode": "production_branch_persistence_gate",
+            "write_scope": str(latest.get("write_scope") or "production_branch_table_private"),
+            "branch_commit_id": latest.get("branch_commit_id"),
+            "worldline_id": latest.get("worldline_id"),
+            "session_id": latest.get("session_id"),
+            "world_id": latest.get("world_id"),
+            "branch_id": latest.get("branch_id"),
+            "commit_draft_id": latest.get("commit_draft_id"),
+            "authorization_id": latest.get("authorization_id"),
+            "branch_publish_candidate_id": latest.get("branch_publish_candidate_id"),
+            "release_owner_id": latest.get("release_owner_id"),
+            "public_publish_enabled": bool(latest.get("public_publish_enabled") or False),
+            "production_public_publish": False,
+            "created_at": latest.get("created_at"),
+        }
+
     def reader_snapshot(self, *, session_id: str) -> Dict[str, Any]:
         session = self.repository.get_session(session_id)
         steps = self.repository.list_steps(session_id)
@@ -1331,6 +1498,7 @@ class ProductRuntimeService:
         branch_publish_record = self._latest_branch_publish_record(worldline_id)
         branch_authorization_record = self._latest_branch_authorization_record(worldline_id)
         branch_commit_draft_record = self._latest_branch_commit_draft_record(worldline_id)
+        production_branch_commit_record = self.repository.latest_production_branch_commit(worldline_id=worldline_id)
         return {
             "worldline_id": worldline_id,
             "world_id": session.world_id,
@@ -1412,6 +1580,22 @@ class ProductRuntimeService:
                 "production_public_publish": bool(
                     dict(branch_commit_draft_record or {}).get("production_public_publish") or False
                 ),
+            },
+            "production_branch_commit_summary": {
+                "status": str(dict(production_branch_commit_record or {}).get("status") or "waiting"),
+                "write_scope": str(
+                    dict(production_branch_commit_record or {}).get("write_scope") or "none"
+                ),
+                "branch_commit_id": dict(production_branch_commit_record or {}).get("branch_commit_id"),
+                "commit_draft_id": dict(production_branch_commit_record or {}).get("commit_draft_id"),
+                "authorization_id": dict(production_branch_commit_record or {}).get("authorization_id"),
+                "branch_publish_candidate_id": dict(production_branch_commit_record or {}).get(
+                    "branch_publish_candidate_id"
+                ),
+                "public_publish_enabled": bool(
+                    dict(production_branch_commit_record or {}).get("public_publish_enabled") or False
+                ),
+                "production_public_publish": False,
             },
         }
 

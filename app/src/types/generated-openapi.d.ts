@@ -705,6 +705,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/timeline/worldlines/{worldline_id}/branches/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Production Branch Commit Snapshot */
+        get: operations["production_branch_commit_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_get"];
+        put?: never;
+        /** Production Branch Commit */
+        post: operations["production_branch_commit_v1_timeline_worldlines__worldline_id__branches_commit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/quality/evaluate": {
         parameters: {
             query?: never;
@@ -4154,6 +4172,25 @@ export interface components {
             /** Project Id */
             project_id?: string | null;
         };
+        /** ProductionBranchCommitRequest */
+        ProductionBranchCommitRequest: {
+            /** Commit Draft Id */
+            commit_draft_id?: string | null;
+            /** Release Owner Id */
+            release_owner_id?: string | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /**
+             * Public Publish Enabled
+             * @default false
+             */
+            public_publish_enabled: boolean;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** BranchPublishRollbackFixtureRequest */
         BranchPublishRollbackFixtureRequest: {
             /** Branch Publish Candidate Id */
@@ -6567,6 +6604,78 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    production_branch_commit_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    production_branch_commit_v1_timeline_worldlines__worldline_id__branches_commit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                worldline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductionBranchCommitRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

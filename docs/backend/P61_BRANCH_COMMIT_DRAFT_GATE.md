@@ -84,10 +84,10 @@ P61 的唯一持久写入是 `branch_commit_draft_ledger_only`：
 
 ## Next Gate
 
-P61 后的下一步是 **P62 Production Release Owner Gate**：
+P61 后的下一步是 **P62 Production Branch Commit Gate**：
 
-- release-owner approval,
-- remote live runtime trace reference,
-- production branch table migration plan,
-- public publish kill switch,
-- audit trail export for ops/legal review.
+- release-owner confirmation,
+- private production branch table write,
+- production branch audit event,
+- `public_publish_enabled = false`,
+- public publish kill switch and remote runtime trace stay for P63.

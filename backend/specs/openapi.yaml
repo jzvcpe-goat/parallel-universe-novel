@@ -1339,6 +1339,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /v1/timeline/worldlines/{worldline_id}/branches/commit:
+    post:
+      tags:
+      - product-runtime
+      summary: Production Branch Commit
+      operationId: production_branch_commit_v1_timeline_worldlines__worldline_id__branches_commit_post
+      parameters:
+      - name: worldline_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Worldline Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductionBranchCommitRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Production Branch Commit V1 Timeline Worldlines
+                  Worldline Id Branches Commit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - product-runtime
+      summary: Production Branch Commit Snapshot
+      operationId: production_branch_commit_snapshot_v1_timeline_worldlines__worldline_id__branches_commit_get
+      parameters:
+      - name: worldline_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Worldline Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Production Branch Commit Snapshot V1 Timeline Worldlines
+                  Worldline Id Branches Commit Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /v1/quality/evaluate:
     post:
       tags:
@@ -8303,6 +8374,33 @@ components:
           title: Project Id
       type: object
       title: BranchCommitDraftRequest
+    ProductionBranchCommitRequest:
+      properties:
+        commit_draft_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Commit Draft Id
+        release_owner_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Release Owner Id
+        confirmed:
+          type: boolean
+          title: Confirmed
+          default: false
+        public_publish_enabled:
+          type: boolean
+          title: Public Publish Enabled
+          default: false
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
+      type: object
+      title: ProductionBranchCommitRequest
     BranchPublishRollbackFixtureRequest:
       properties:
         branch_publish_candidate_id:

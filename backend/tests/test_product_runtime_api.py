@@ -655,6 +655,179 @@ def test_branch_commit_draft_requires_authorization_and_proves_multitable_rollba
     assert commit_summary["production_public_publish"] is False
 
 
+def test_production_branch_commit_requires_draft_and_release_owner(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    world_id = _first_world_id(client)
+    started = client.post("/v1/reader/sessions", json={"world_id": world_id, "reader_id": "reader_branch_commit"})
+    session_id = started.json()["session_id"]
+
+    advanced = client.post(
+        "/v1/scene/advance",
+        json={
+            "session_id": session_id,
+            "choice_id": "choice_keep_witness_hidden",
+            "freeform_intent": "让证人暂留暗室，自己把灯塔日志交给可信的记录员。",
+            "worldline_id": session_id,
+            "branch_id": "private-branch-commit-proof",
+            "source_run_id": "reader-run-private-branch-commit-proof",
+        },
+    )
+    assert advanced.status_code == 200
+    route_choice_event_id = advanced.json()["branch_writeback"]["choice_event_id"]
+
+    planned = client.post(
+        f"/v1/timeline/worldlines/{session_id}/time-engine/candidates",
+        json={
+            "source_run_id": "time-run-private-branch-commit-proof",
+            "beat_plan": ["暗室留证", "记录员核验", "灯塔回火", "私有分支落库"],
+        },
+    )
+    assert planned.status_code == 200
+
+    missing_draft = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={"release_owner_id": "release-owner", "confirmed": True},
+    )
+    assert missing_draft.status_code == 200
+    assert missing_draft.json()["status"] == "blocked"
+    assert missing_draft.json()["reason"] == "branch_commit_draft_required"
+
+    published = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-candidate",
+        headers={"Idempotency-Key": "branch-publish-private-commit-key"},
+        json={
+            "branch_id": "private-branch-commit-proof",
+            "route_choice_event_id": route_choice_event_id,
+            "source_run_id": "branch-publish-private-commit-proof",
+        },
+    )
+    assert published.status_code == 200
+    branch_publish_candidate_id = published.json()["branch_publish_candidate_id"]
+
+    authorized = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/publish-authorization",
+        headers={"Idempotency-Key": "authorization-private-commit-key"},
+        json={
+            "branch_publish_candidate_id": branch_publish_candidate_id,
+            "operator_id": "ops-editor",
+            "confirmed": True,
+        },
+    )
+    assert authorized.status_code == 200
+    authorization_id = authorized.json()["authorization_id"]
+
+    drafted = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit-draft",
+        headers={"Idempotency-Key": "commit-draft-private-commit-key"},
+        json={"authorization_id": authorization_id},
+    )
+    assert drafted.status_code == 200
+    commit_draft_id = drafted.json()["commit_draft_id"]
+
+    missing_key = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        json={"commit_draft_id": commit_draft_id, "release_owner_id": "release-owner", "confirmed": True},
+    )
+    assert missing_key.status_code == 200
+    assert missing_key.json()["status"] == "blocked"
+    assert missing_key.json()["reason"] == "idempotency_key_required"
+
+    missing_owner = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={"commit_draft_id": commit_draft_id, "confirmed": True},
+    )
+    assert missing_owner.status_code == 200
+    assert missing_owner.json()["status"] == "blocked"
+    assert missing_owner.json()["reason"] == "release_owner_id_required"
+
+    unconfirmed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={"commit_draft_id": commit_draft_id, "release_owner_id": "release-owner", "confirmed": False},
+    )
+    assert unconfirmed.status_code == 200
+    assert unconfirmed.json()["status"] == "blocked"
+    assert unconfirmed.json()["reason"] == "release_owner_confirmation_required"
+
+    mismatch = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={"commit_draft_id": "branch_commit_draft_wrong", "release_owner_id": "release-owner", "confirmed": True},
+    )
+    assert mismatch.status_code == 200
+    assert mismatch.json()["status"] == "blocked"
+    assert mismatch.json()["reason"] == "commit_draft_mismatch"
+
+    public_publish_attempt = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={
+            "commit_draft_id": commit_draft_id,
+            "release_owner_id": "release-owner",
+            "confirmed": True,
+            "public_publish_enabled": True,
+        },
+    )
+    assert public_publish_attempt.status_code == 200
+    assert public_publish_attempt.json()["status"] == "blocked"
+    assert public_publish_attempt.json()["reason"] == "public_publish_disabled_for_p62"
+
+    committed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={
+            "commit_draft_id": commit_draft_id,
+            "release_owner_id": "release-owner",
+            "confirmed": True,
+        },
+    )
+    assert committed.status_code == 200
+    payload = committed.json()
+    assert payload["status"] == "persisted_private"
+    assert payload["capability_mode"] == "production_branch_persistence_gate"
+    assert payload["write_scope"] == "production_branch_table_private"
+    assert payload["commit_draft_id"] == commit_draft_id
+    assert payload["authorization_id"] == authorization_id
+    assert payload["branch_publish_candidate_id"] == branch_publish_candidate_id
+    assert payload["release_owner_id"] == "release-owner"
+    assert payload["tables_written"] == ["production_branch_commits", "analytics_events"]
+    assert payload["audit_event_id"] is not None
+    assert payload["public_publish_enabled"] is False
+    assert payload["production_public_publish"] is False
+    assert "public_publish_gate" in payload["next_required"]
+
+    replayed = client.post(
+        f"/v1/timeline/worldlines/{session_id}/branches/commit",
+        headers={"Idempotency-Key": "production-branch-commit-key"},
+        json={
+            "commit_draft_id": commit_draft_id,
+            "release_owner_id": "release-owner",
+            "confirmed": True,
+        },
+    )
+    assert replayed.status_code == 200
+    replayed_payload = replayed.json()
+    assert replayed_payload["idempotent_replay"] is True
+    assert replayed_payload["branch_commit_id"] == payload["branch_commit_id"]
+
+    snapshot = client.get(f"/v1/timeline/worldlines/{session_id}/branches/commit")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["branch_commit_id"] == payload["branch_commit_id"]
+    assert snapshot.json()["write_scope"] == "production_branch_table_private"
+    assert snapshot.json()["production_public_publish"] is False
+
+    worldline = client.get(f"/v1/timeline/worldlines/{session_id}/loom")
+    assert worldline.status_code == 200
+    commit_summary = worldline.json()["production_branch_commit_summary"]
+    assert commit_summary["status"] == "persisted_private"
+    assert commit_summary["write_scope"] == "production_branch_table_private"
+    assert commit_summary["branch_commit_id"] == payload["branch_commit_id"]
+    assert commit_summary["commit_draft_id"] == commit_draft_id
+    assert commit_summary["production_public_publish"] is False
+
+
 def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     candidate_body = (

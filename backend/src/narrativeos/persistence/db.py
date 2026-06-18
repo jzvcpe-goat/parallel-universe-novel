@@ -348,6 +348,38 @@ class BillingLifecycleEventRow(PlatformBase):
     processed_at = Column(String, nullable=True)
 
 
+class ProductionBranchCommitRow(PlatformBase):
+    __tablename__ = "production_branch_commits"
+    __table_args__ = (
+        Index("idx_production_branch_commits_worldline_created_at", "worldline_id", "created_at"),
+        Index("idx_production_branch_commits_session_created_at", "session_id", "created_at"),
+        Index("idx_production_branch_commits_status_created_at", "status", "created_at"),
+        Index("idx_production_branch_commits_commit_draft_id", "commit_draft_id"),
+    )
+
+    branch_commit_id = Column(String, primary_key=True)
+    worldline_id = Column(String, nullable=False, index=True)
+    session_id = Column(String, nullable=False, index=True)
+    world_id = Column(String, nullable=True, index=True)
+    world_version_id = Column(String, nullable=True, index=True)
+    branch_id = Column(String, nullable=False, index=True)
+    chapter_id = Column(String, nullable=True, index=True)
+    route_choice_event_id = Column(String, nullable=True, index=True)
+    time_engine_run_id = Column(String, nullable=True, index=True)
+    branch_publish_candidate_id = Column(String, nullable=False, index=True)
+    authorization_id = Column(String, nullable=False, index=True)
+    commit_draft_id = Column(String, nullable=False, index=True)
+    release_owner_id = Column(String, nullable=False, index=True)
+    source_run_id = Column(String, nullable=True, index=True)
+    status = Column(String, nullable=False, default="persisted_private")
+    write_scope = Column(String, nullable=False, default="production_branch_table_private")
+    public_publish_enabled = Column(String, nullable=False, default="false")
+    idempotency_key_hash = Column(String, nullable=False, index=True)
+    payload_json = Column(JSON, nullable=True)
+    created_at = Column(String, nullable=False, default=utcnow_iso)
+    updated_at = Column(String, nullable=False, default=utcnow_iso)
+
+
 class AnalyticsEventRow(PlatformBase):
     __tablename__ = "analytics_events"
     __table_args__ = (

@@ -26,6 +26,7 @@ for (const required of [
   'scripts/check-branch-publish-rollback-fixture.mjs',
   'scripts/check-branch-publish-authorization.mjs',
   'scripts/check-branch-commit-draft.mjs',
+  'scripts/check-production-branch-commit.mjs',
   'scripts/check-studio-canon-trace.mjs',
   'docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md',
   'docs/backend/P53_READER_BRANCH_TRACE_GATE.md',
@@ -33,6 +34,7 @@ for (const required of [
   'docs/backend/P59_DATABASE_TRANSACTION_ROLLBACK_FIXTURE.md',
   'docs/backend/P60_BRANCH_PUBLISH_AUTHORIZATION_GATE.md',
   'docs/backend/P61_BRANCH_COMMIT_DRAFT_GATE.md',
+  'docs/backend/P62_PRODUCTION_BRANCH_COMMIT_GATE.md',
   'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
   'time_event_candidate_ledger_only',
   'branch_publish_candidate_ledger_only',
@@ -40,13 +42,15 @@ for (const required of [
   'rollback_fixture_only',
   'branch_publish_authorization_ledger_only',
   'branch_commit_draft_ledger_only',
+  'production_branch_table_private',
+  'production_branch_commit_summary',
   'fastapi_durable_time_engine',
   'idempotent_replay',
   'rollback_plan',
   'studio_trace',
   'quality_report_hash',
   'route_choice_ledger_only',
-  'Production branch table persistence',
+  'production public branch publish and remote live runtime trace',
 ]) {
   assert(script.includes(required), `runtime completion script must include ${required}`)
 }
@@ -62,10 +66,12 @@ for (const required of [
   'P59 Database Transaction Rollback Fixture',
   'P60 Branch Publish Authorization Gate',
   'P61 Branch Commit Draft Gate',
+  'P62 Production Branch Commit Gate',
   'P53 Reader Branch Trace Gate',
   'P56 Studio Canon Trace Gate',
   'branch_writeback_summary',
   'branch_publish_summary',
+  'production_branch_commit_summary',
   'studio_trace',
   'quality_report_hash',
 ]) {
@@ -100,9 +106,10 @@ const artifact = {
     'P59 Database Transaction Rollback Fixture',
     'P60 Branch Publish Authorization Gate',
     'P61 Branch Commit Draft Gate',
+    'P62 Production Branch Commit Gate',
   ],
   remainingGaps: [
-    'production Reader branch publish and production branch table persistence',
+    'production Reader public branch publish and remote live runtime trace',
     'TimeEngine production telemetry fitting',
   ],
 }

@@ -3389,3 +3389,35 @@ commit draft，而不是直接写生产 branch 表。
 - `backend/tests/test_product_runtime_api.py` 覆盖缺候选、缺授权、缺幂等键、授权不匹配、
   成功草案、幂等 replay、snapshot 和 `/loom`。
 - `check:branch-commit-draft` 纳入 root test，防止草案门禁回退。
+
+## 2026-06-17 P62 Production Branch Commit Gate
+
+### 现象
+
+P61 已经证明 commit draft 能在多表事务边界内回滚，但仍没有真实生产分支表。
+继续说“生产分支表未证明”已经不够精确；下一步应该先落私有生产表，再单独证明
+公开发布和 Reader 可见性。
+
+### 修复原则
+
+1. P62 可以写真实 `production_branch_commits`，但只能是私有持久化。
+2. 所有写入必须要求 `Idempotency-Key`、最新 P61 commit draft、`release_owner_id`
+   和 `confirmed = true`。
+3. `public_publish_enabled = true` 在 P62 必须被拒绝，避免把持久化误报为公开发布。
+4. Repository 要同时写 `production_branch_commits` 与 `analytics_events`，作为生产
+   分支提交审计证据。
+5. P45/P52 的剩余断点要收敛到“公开发布、Reader 可见性、远端 live runtime、生产
+   TimeEngine 拟合”，不能继续笼统写“生产分支表未证明”。
+
+### 本轮落地
+
+- FastAPI 新增 `/v1/timeline/worldlines/{id}/branches/commit` POST/GET。
+- Repository 新增 `persist_production_branch_commit` 与 `latest_production_branch_commit`。
+- DB 新增 `production_branch_commits` 模型、Postgres schema 和 `0013` migration。
+- `ProductRuntimeService.commit_production_branch` 返回
+  `write_scope = production_branch_table_private`。
+- `/loom` 新增 `production_branch_commit_summary`。
+- `backend/tests/test_product_runtime_api.py` 覆盖缺 draft、缺幂等键、缺 release owner、
+  未确认、draft mismatch、禁止公开发布、成功私有持久化、幂等 replay、snapshot 和
+  `/loom`。
+- `check:production-branch-commit` 纳入 root test，防止私有生产提交门禁回退。

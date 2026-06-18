@@ -84,6 +84,17 @@ P61 Branch Commit Draft Gate changed commit-draft evidence:
 - `/loom` exposes `branch_commit_draft_summary`,
 - remaining gap is production public branch publish, production branch tables, and remote live runtime trace, not absence of a branch commit draft.
 
+P62 Production Branch Commit Gate changed production branch persistence evidence:
+
+- FastAPI now exposes `/v1/timeline/worldlines/{id}/branches/commit`,
+- the gate requires `Idempotency-Key`,
+- the gate requires latest `branch_commit_draft_ledger_only`,
+- the request must include `release_owner_id` and `confirmed = true`,
+- `public_publish_enabled = true` is blocked for P62,
+- successful calls write `production_branch_table_private` into `production_branch_commits` plus an `analytics_events` audit record,
+- `/loom` exposes `production_branch_commit_summary`,
+- remaining gap is production public branch publish and remote live runtime trace, not absence of production branch table persistence.
+
 ## Verification
 
 Run:
@@ -104,6 +115,7 @@ npm run check:runtime-completion-refresh
 - Database transaction rollback fixture not proven after branch publish candidate.
 - Branch publish release-owner gate not proven after commit draft.
 - Branch commit draft not proven after authorization.
+- Production branch table persistence not proven after commit draft.
 
 ## Boundary
 
@@ -118,4 +130,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, production branch table persistence, or fitted TimeEngine telemetry.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, production public branch publish, Reader Web visibility switch, or fitted TimeEngine telemetry.

@@ -33,6 +33,7 @@ from .db import (
     BillingCheckoutSessionRow,
     BillingLifecycleEventRow,
     BillingRetryAttemptRow,
+    ProductionBranchCommitRow,
     AuthorApprovalRecordRow,
     AuthorCommentMessageRow,
     AuthorDraftWatcherRow,
@@ -2589,6 +2590,156 @@ class SQLAlchemyPlatformRepository:
             "after_event_count": len(after_event_rows),
             "tables_checked": ["route_choices", "analytics_events"],
             "occurred_at": occurred_at,
+        }
+
+    def persist_production_branch_commit(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        branch_commit_id = str(payload.get("branch_commit_id") or "").strip()
+        worldline_id = str(payload.get("worldline_id") or "").strip()
+        session_id = str(payload.get("session_id") or worldline_id).strip()
+        branch_id = str(payload.get("branch_id") or "").strip()
+        branch_publish_candidate_id = str(payload.get("branch_publish_candidate_id") or "").strip()
+        authorization_id = str(payload.get("authorization_id") or "").strip()
+        commit_draft_id = str(payload.get("commit_draft_id") or "").strip()
+        release_owner_id = str(payload.get("release_owner_id") or "").strip()
+        idempotency_key_hash = str(payload.get("idempotency_key_hash") or "").strip()
+        public_publish_enabled = bool(payload.get("public_publish_enabled") or False)
+        if not branch_commit_id:
+            raise ValueError("branch_commit_id_required")
+        if not worldline_id:
+            raise ValueError("worldline_id_required")
+        if not session_id:
+            raise ValueError("session_id_required")
+        if not branch_id:
+            raise ValueError("branch_id_required")
+        if not branch_publish_candidate_id:
+            raise ValueError("branch_publish_candidate_id_required")
+        if not authorization_id:
+            raise ValueError("authorization_id_required")
+        if not commit_draft_id:
+            raise ValueError("commit_draft_id_required")
+        if not release_owner_id:
+            raise ValueError("release_owner_id_required")
+        if not idempotency_key_hash:
+            raise ValueError("idempotency_key_hash_required")
+        if public_publish_enabled:
+            raise ValueError("public_publish_disabled_for_p62")
+        now = payload.get("created_at") or utcnow_iso()
+        with self.SessionLocal() as session:
+            existing = session.get(ProductionBranchCommitRow, branch_commit_id)
+            if existing is not None:
+                event = (
+                    session.execute(
+                        select(AnalyticsEventRow)
+                        .where(
+                            AnalyticsEventRow.event_name == "production_branch_commit_persisted",
+                            AnalyticsEventRow.session_id == session_id,
+                        )
+                        .order_by(desc(AnalyticsEventRow.occurred_at), desc(AnalyticsEventRow.event_id))
+                    )
+                    .scalars()
+                    .first()
+                )
+                return {
+                    **self._production_branch_commit_row_to_dict(existing),
+                    "audit_event_id": event.event_id if event is not None else None,
+                    "idempotent_replay": True,
+                    "tables_written": ["production_branch_commits", "analytics_events"],
+                }
+            session_row = session.get(SessionRow, session_id)
+            if session_row is None:
+                raise KeyError("unknown_session:%s" % session_id)
+            chapter_id = str(payload.get("chapter_id") or "").strip()
+            if chapter_id and session.get(ChapterRow, chapter_id) is None:
+                raise KeyError("unknown_chapter:%s" % chapter_id)
+            row = ProductionBranchCommitRow(
+                branch_commit_id=branch_commit_id,
+                worldline_id=worldline_id,
+                session_id=session_id,
+                world_id=payload.get("world_id"),
+                world_version_id=payload.get("world_version_id"),
+                branch_id=branch_id,
+                chapter_id=chapter_id or None,
+                route_choice_event_id=str(payload.get("route_choice_event_id") or "").strip() or None,
+                time_engine_run_id=str(payload.get("time_engine_run_id") or "").strip() or None,
+                branch_publish_candidate_id=branch_publish_candidate_id,
+                authorization_id=authorization_id,
+                commit_draft_id=commit_draft_id,
+                release_owner_id=release_owner_id,
+                source_run_id=str(payload.get("source_run_id") or "").strip() or None,
+                status=str(payload.get("status") or "persisted_private"),
+                write_scope="production_branch_table_private",
+                public_publish_enabled="false",
+                idempotency_key_hash=idempotency_key_hash,
+                payload_json=dict(payload.get("payload_json") or {}),
+                created_at=now,
+                updated_at=now,
+            )
+            event = AnalyticsEventRow(
+                event_name="production_branch_commit_persisted",
+                reader_id=payload.get("reader_id"),
+                session_id=session_id,
+                world_version_id=payload.get("world_version_id"),
+                payload_json={
+                    "branch_commit_id": branch_commit_id,
+                    "worldline_id": worldline_id,
+                    "branch_id": branch_id,
+                    "branch_publish_candidate_id": branch_publish_candidate_id,
+                    "authorization_id": authorization_id,
+                    "commit_draft_id": commit_draft_id,
+                    "release_owner_id": release_owner_id,
+                    "public_publish_enabled": False,
+                    "idempotency_key_hash": idempotency_key_hash,
+                },
+                occurred_at=now,
+            )
+            session.add(row)
+            session.add(event)
+            session.commit()
+            return {
+                **self._production_branch_commit_row_to_dict(row),
+                "audit_event_id": event.event_id,
+                "idempotent_replay": False,
+                "tables_written": ["production_branch_commits", "analytics_events"],
+            }
+
+    def latest_production_branch_commit(self, *, worldline_id: str) -> Optional[Dict[str, Any]]:
+        with self.SessionLocal() as session:
+            row = (
+                session.execute(
+                    select(ProductionBranchCommitRow)
+                    .where(ProductionBranchCommitRow.worldline_id == worldline_id)
+                    .order_by(desc(ProductionBranchCommitRow.created_at), desc(ProductionBranchCommitRow.branch_commit_id))
+                )
+                .scalars()
+                .first()
+            )
+            if row is None:
+                return None
+            return self._production_branch_commit_row_to_dict(row)
+
+    def _production_branch_commit_row_to_dict(self, row: ProductionBranchCommitRow) -> Dict[str, Any]:
+        return {
+            "branch_commit_id": row.branch_commit_id,
+            "worldline_id": row.worldline_id,
+            "session_id": row.session_id,
+            "world_id": row.world_id,
+            "world_version_id": row.world_version_id,
+            "branch_id": row.branch_id,
+            "chapter_id": row.chapter_id,
+            "route_choice_event_id": row.route_choice_event_id,
+            "time_engine_run_id": row.time_engine_run_id,
+            "branch_publish_candidate_id": row.branch_publish_candidate_id,
+            "authorization_id": row.authorization_id,
+            "commit_draft_id": row.commit_draft_id,
+            "release_owner_id": row.release_owner_id,
+            "source_run_id": row.source_run_id,
+            "status": row.status,
+            "write_scope": row.write_scope,
+            "public_publish_enabled": str(row.public_publish_enabled).lower() == "true",
+            "idempotency_key_hash": row.idempotency_key_hash,
+            "payload": dict(row.payload_json or {}),
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
         }
 
     def list_analytics_events(
