@@ -6,6 +6,7 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const rulePath = join(root, 'docs/product/rules/genre-runtime-rules.v1.json')
 const packagePath = join(root, 'package.json')
 const p50Path = join(root, 'docs/backend/P50_P4_DOCUMENT_CORE_RESET.md')
+const creatorDialoguePath = join(root, 'backend/src/narrativeos/services/creator_dialogue.py')
 const outputDir = join(root, 'artifacts/runtime')
 
 function assert(condition, message) {
@@ -33,6 +34,7 @@ function collectKeys(value, keys = []) {
 const rules = readJson(rulePath)
 const packageJson = readJson(packagePath)
 const p50Doc = readFileSync(p50Path, 'utf8')
+const creatorDialogue = readFileSync(creatorDialoguePath, 'utf8')
 const core = rules.documentCore || {}
 
 assert(core.policy === 'document_registry_only', 'P4 must use document_registry_only policy')
@@ -79,6 +81,10 @@ assert(p50Doc.includes('npm run check:p4-deprecated-case-logic'), 'P50 doc must 
 assert(p50Doc.includes('discarded premise-specific P4 logic'), 'P50 doc must explain the discarded premise-specific P4 boundary')
 assert(p50Doc.includes('structural, not a replacement negative-word list'), 'P50 doc must define the P4 regression gate as structural, not a term list')
 assert(p50Doc.includes('global premise ban lists outside active `ConstraintProfile.rules[]`'), 'P50 doc must forbid global premise ban lists outside active profile rules')
+assert(creatorDialogue.includes('fail_behavior=_clean_text(rule.get("failBehavior")'), 'Creator Dialogue must copy document rule failBehavior into active rule facts')
+assert(creatorDialogue.includes('def _public_setting_cards('), 'Creator Dialogue must project internal setting cards through a public-safe view')
+assert(creatorDialogue.includes('"public_surface": "story_guidance_only"'), 'Creator Dialogue public P4 facts must declare story_guidance_only')
+assert(creatorDialogue.includes('"setting_cards": _public_setting_cards'), 'Creator Dialogue API response must use public setting cards')
 
 const forbiddenKeys = collectKeys(rules).filter(key => /promptCase|legacyCase|caseOverride|scenarioPatch|oneOff|adHoc/i.test(key))
 assert(forbiddenKeys.length === 0, `P4 registry contains case-specific override keys: ${forbiddenKeys.join(', ')}`)
@@ -108,6 +114,8 @@ const artifact = {
   sourceAuthority: core.sourceAuthority,
   deprecatedCasePolicy: core.deprecatedCasePolicy,
   runtimeContract: core.runtimeContract,
+  publicProjection: 'story_guidance_only',
+  failBehaviorSource: 'ConstraintProfile.rules[].failBehavior',
 }
 const artifactPath = join(outputDir, `p4-document-core-${Date.now()}.json`)
 writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)

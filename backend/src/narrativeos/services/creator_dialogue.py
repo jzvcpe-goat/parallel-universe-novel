@@ -200,10 +200,12 @@ def _story_context(value: Any) -> Dict[str, Any]:
 def _genre_constraint(
     *,
     constraint_id: str,
+    display_name: str,
     category: str,
     applies_when: List[str],
     rule: str,
     source: str,
+    fail_behavior: str,
     condition: Optional[Dict[str, Any]] = None,
     activation_evidence: Optional[Dict[str, List[str]]] = None,
     prohibited_terms: Optional[List[str]] = None,
@@ -215,6 +217,7 @@ def _genre_constraint(
 ) -> Dict[str, Any]:
     return {
         "id": constraint_id,
+        "display_name": display_name,
         "category": category,
         "applies_when": applies_when,
         "condition": condition or {},
@@ -222,6 +225,7 @@ def _genre_constraint(
         "positive_guidance": positive_guidance,
         "prohibited_terms": prohibited_terms or [],
         "replacement_guidance": replacement_guidance or [],
+        "fail_behavior": fail_behavior,
         "source": source,
         "activation_evidence": activation_evidence or {"selected_context": [], "user_text": []},
         "severity": severity,
@@ -388,6 +392,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
             active.append(
                 _genre_constraint(
                     constraint_id=_clean_text(rule.get("id"), limit=160),
+                    display_name=_clean_text(profile.get("displayName"), limit=120),
                     category=profile_id,
                     applies_when=[str(item) for item in rule.get("appliesWhen", [])],
                     condition={
@@ -403,6 +408,7 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
                     positive_guidance="；".join(str(item) for item in rule.get("replacementGuidance", [])[:4]),
                     prohibited_terms=[str(item) for item in rule.get("prohibitedTerms", [])],
                     replacement_guidance=[str(item) for item in rule.get("replacementGuidance", [])],
+                    fail_behavior=_clean_text(rule.get("failBehavior") or "warn", limit=40) or "warn",
                     source="+".join(source_parts),
                     activation_evidence=activation_evidence,
                     severity=_clean_text(rule.get("severity") or "hard", limit=40) or "hard",
@@ -443,6 +449,86 @@ def _genre_constraint_profile(*, selected_text: str, user_text: str) -> Dict[str
         },
         "active": active,
     }
+
+
+def _public_constraint_summary(constraint: Any) -> Dict[str, Any]:
+    if not isinstance(constraint, dict):
+        return {}
+    return {
+        "display_name": _clean_text(constraint.get("display_name"), limit=120),
+        "rule": _clean_text(constraint.get("rule"), limit=800),
+        "severity": _clean_text(constraint.get("severity") or "warn", limit=40),
+        "fail_behavior": _clean_text(constraint.get("fail_behavior") or "warn", limit=40),
+        "positive_guidance": _clean_text(constraint.get("positive_guidance"), limit=400),
+        "applies_to": [
+            _clean_text(item, limit=80)
+            for item in constraint.get("applies_to", [])
+            if _clean_text(item, limit=80)
+        ],
+    }
+
+
+def _public_kernel_summary(kernel: Any) -> Dict[str, Any]:
+    if not isinstance(kernel, dict):
+        return {}
+    return {
+        "name": _clean_text(kernel.get("name"), limit=120).replace("内核", ""),
+        "thesis": _clean_text(kernel.get("thesis"), limit=260),
+        "event_structure": [
+            _clean_text(item, limit=120)
+            for item in kernel.get("event_structure", [])
+            if _clean_text(item, limit=120)
+        ][:5],
+    }
+
+
+def _public_constraint_facts(facts: Any) -> Dict[str, Any]:
+    if not isinstance(facts, dict):
+        return {}
+    active_profiles = facts.get("active_profiles") if isinstance(facts.get("active_profiles"), list) else []
+    active_kernels = facts.get("active_kernels") if isinstance(facts.get("active_kernels"), list) else []
+    runtime_rules = facts.get("runtime_rules") if isinstance(facts.get("runtime_rules"), dict) else {}
+    document_core = runtime_rules.get("document_core") if isinstance(runtime_rules.get("document_core"), dict) else {}
+    primary_profile = active_profiles[0] if active_profiles and isinstance(active_profiles[0], dict) else {}
+    primary_kernel = active_kernels[0] if active_kernels and isinstance(active_kernels[0], dict) else {}
+    return {
+        "active_profile_count": len(active_profiles),
+        "active_kernel_count": len(active_kernels),
+        "primary_genre": _clean_text(primary_profile.get("display_name"), limit=120),
+        "primary_kernel": _clean_text(primary_kernel.get("name"), limit=120).replace("内核", ""),
+        "activation_order": [
+            _clean_text(item, limit=120)
+            for item in facts.get("activation_order", [])
+            if _clean_text(item, limit=120)
+        ],
+        "document_core": {
+            "policy": _clean_text(document_core.get("policy"), limit=80),
+            "constraint_application": _clean_text(document_core.get("constraint_application"), limit=120),
+            "kernel_application": _clean_text(document_core.get("kernel_application"), limit=120),
+            "no_match_behavior": _clean_text(document_core.get("no_match_behavior"), limit=120),
+            "quality_boundary": _clean_text(document_core.get("quality_boundary"), limit=120),
+        },
+        "public_surface": "story_guidance_only",
+    }
+
+
+def _public_setting_cards(cards: Any) -> Dict[str, Any]:
+    if not isinstance(cards, dict):
+        return {}
+    public_cards = copy.deepcopy(cards)
+    public_cards["genre_constraints"] = [
+        summary
+        for summary in (_public_constraint_summary(item) for item in cards.get("genre_constraints", []))
+        if summary
+    ]
+    public_cards["genre_kernels"] = [
+        summary
+        for summary in (_public_kernel_summary(item) for item in cards.get("genre_kernels", []))
+        if summary
+    ]
+    public_cards["genre_constraint_facts"] = _public_constraint_facts(cards.get("genre_constraint_facts"))
+    public_cards.pop("active_kernels", None)
+    return public_cards
 
 
 class CreatorDialogueService:
@@ -705,7 +791,7 @@ class CreatorDialogueService:
             "phase": session.get("phase"),
             "turn_index": len(session.get("turns", [])),
             "assistant": latest,
-            "setting_cards": session.get("setting_cards") or {},
+            "setting_cards": _public_setting_cards(session.get("setting_cards") or {}),
             "turns": session.get("turns", []),
             "source": session.get("source", {}),
             "updated_at": session.get("updated_at"),

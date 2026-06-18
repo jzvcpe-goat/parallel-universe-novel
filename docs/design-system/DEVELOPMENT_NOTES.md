@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P4 Public Projection And FailBehavior
+
+用户再次要求 P4 从头做，并明确弃用此前围绕单个题材测试形成的约束逻辑。本轮不是新增或删除某组题材词，而是把执行关系重新对齐到文档核心：`ConstraintProfile.rules[]` 负责规则，`GenreKernel.compatibleProfiles` 负责内核选择，Quality Brake 必须使用文档里的 `failBehavior`。
+
+本轮修正两个容易被忽略的断点：
+
+1. FastAPI Creator Dialogue 之前把 `failBehavior` 丢掉了，只保留 severity 和禁用词，导致“文档说 regenerate/repair/block，运行时只能泛化处理”。
+2. 公开 `setting_cards` 里泄漏了 profile id、kernel id、`sourceRefs` 和 runtime rule facts，容易把 Creator Studio 变成后台控制台。
+
+新的约束是：内部 session 可以保存完整规则事实用于审计、净化、质量刹车；公开 API 只能返回故事向的摘要，例如题材承诺、规则说明、严重度、`fail_behavior`、正向改写建议和内核节拍。不要把调试字段、代表作品引用、provider、prompt 或 profile/kernel id 暴露给用户。
+
+验证命令：
+
+```bash
+npm run check:p4-document-core
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_creator_dialogue_api.py
+```
+
+执行同步脚本时不要在 zsh 里把循环变量命名为 `path`；zsh 会把它和命令搜索路径绑定，导致 `dirname`、`npm`、`node` 等命令突然不可见。用 `rel`、`file`、`target` 这类变量名。
+
 ## 2026-06-18 P81 Remote Assignment Fixture Gate
 
 远端 Runtime 的真实上线还缺 provider service assignment，但等待外部服务期间仍然可以推进一层：把 assignment 文件本身做成可验证合同 fixture。关键不是伪造远端成功，而是证明“有真实服务后应该如何填、如何生成命令、如何失败在健康检查”。

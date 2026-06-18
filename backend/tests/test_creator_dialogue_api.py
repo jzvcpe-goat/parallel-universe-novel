@@ -160,33 +160,45 @@ def test_creator_dialogue_uses_shared_runtime_rules_for_each_document_profile(tm
         )
 
         assert response.status_code == 200
-        cards = response.json()["setting_cards"]
-        runtime_rules = cards["genre_constraint_facts"]["runtime_rules"]
-        assert runtime_rules["version"] == rules["version"]
-        assert runtime_rules["source"] == "docs/product/rules/genre-runtime-rules.v1.json"
-        assert runtime_rules["profile_count"] == len(rules["constraintProfiles"])
-        assert runtime_rules["kernel_count"] == len(rules["genreKernels"])
-        assert runtime_rules["document_core"]["policy"] == "document_registry_only"
-        assert runtime_rules["document_core"]["constraint_application"] == "active_profile_rules_only"
-        assert runtime_rules["document_core"]["kernel_application"] == "compatible_profile_only"
-        assert runtime_rules["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
-        assert runtime_rules["document_core"]["quality_boundary"] == "document_rule_fail_behavior_only"
-        assert runtime_rules["privacy"]["representative_works"] == "encrypted_vault_only"
-        assert runtime_rules["privacy"]["public_reference_field"] == "sourceRefs"
+        payload = response.json()
+        session_path = tmp_path / "creator_dialogue_sessions" / f"{payload['session_id']}.json"
+        internal_session = json.loads(session_path.read_text(encoding="utf-8"))
+        internal_cards = internal_session["setting_cards"]
+        cards = payload["setting_cards"]
+        runtime_rules = cards["genre_constraint_facts"].get("runtime_rules", {})
+        assert runtime_rules == {}
+        internal_runtime_rules = internal_cards["genre_constraint_facts"]["runtime_rules"]
+        assert internal_runtime_rules["version"] == rules["version"]
+        assert internal_runtime_rules["source"] == "docs/product/rules/genre-runtime-rules.v1.json"
+        assert internal_runtime_rules["profile_count"] == len(rules["constraintProfiles"])
+        assert internal_runtime_rules["kernel_count"] == len(rules["genreKernels"])
+        assert internal_runtime_rules["document_core"]["policy"] == "document_registry_only"
+        assert internal_runtime_rules["document_core"]["constraint_application"] == "active_profile_rules_only"
+        assert internal_runtime_rules["document_core"]["kernel_application"] == "compatible_profile_only"
+        assert internal_runtime_rules["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
+        assert internal_runtime_rules["document_core"]["quality_boundary"] == "document_rule_fail_behavior_only"
+        assert internal_runtime_rules["privacy"]["representative_works"] == "encrypted_vault_only"
+        assert internal_runtime_rules["privacy"]["public_reference_field"] == "sourceRefs"
         assert cards["genre_signal"] == profile["displayName"]
-        constraint_ids = {item["id"] for item in cards["genre_constraints"]}
+        constraint_ids = {item["id"] for item in internal_cards["genre_constraints"]}
         for rule in profile["rules"]:
             assert rule["id"] in constraint_ids
-        assert cards["genre_constraint_facts"]["active_profile_ids"][0] == profile["id"]
-        assert expected_kernel["id"] in cards["genre_constraint_facts"]["active_kernel_ids"]
-        assert cards["genre_kernels"][0]["id"] == expected_kernel["id"]
-        active_refs = cards["genre_constraint_facts"]["active_profiles"][0]["source_refs"]
+            internal_constraint = next(item for item in internal_cards["genre_constraints"] if item["id"] == rule["id"])
+            assert internal_constraint["fail_behavior"] == rule["failBehavior"]
+        assert internal_cards["genre_constraint_facts"]["active_profile_ids"][0] == profile["id"]
+        assert expected_kernel["id"] in internal_cards["genre_constraint_facts"]["active_kernel_ids"]
+        assert internal_cards["genre_kernels"][0]["id"] == expected_kernel["id"]
+        active_refs = internal_cards["genre_constraint_facts"]["active_profiles"][0]["source_refs"]
         for source_ref in profile.get("sourceRefs", []):
             assert source_ref in active_refs
         serialized = json.dumps(cards, ensure_ascii=False)
         assert "source_evidence" not in serialized
+        assert "source_refs" not in serialized
+        assert "rwref_" not in serialized
+        assert profile["id"] not in serialized
+        assert expected_kernel["id"] not in serialized
         for source_ref in profile.get("sourceRefs", []):
-            assert source_ref in serialized
+            assert source_ref not in serialized
 
 
 def test_creator_dialogue_does_not_apply_constraints_to_unmatched_selected_genres(tmp_path: Path, monkeypatch):
@@ -214,8 +226,10 @@ def test_creator_dialogue_does_not_apply_constraints_to_unmatched_selected_genre
     assert cards["genre_signal"] != "仙侠玄幻"
     assert cards["genre_constraints"] == []
     assert cards["genre_kernels"] == []
-    assert cards["genre_constraint_facts"]["active_profile_ids"] == []
-    assert cards["genre_constraint_facts"]["runtime_rules"]["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
+    assert cards["genre_constraint_facts"]["active_profile_count"] == 0
+    assert cards["genre_constraint_facts"]["active_kernel_count"] == 0
+    assert cards["genre_constraint_facts"]["document_core"]["no_match_behavior"] == "socratic_clarify_without_runtime_constraints"
+    assert "runtime_rules" not in cards["genre_constraint_facts"]
     assert cards["genre_constraint_facts"]["activation_order"] == [
         "selected_topic_template_direction",
         "user_freeform_intent",

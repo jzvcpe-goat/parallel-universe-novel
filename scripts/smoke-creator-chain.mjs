@@ -116,21 +116,25 @@ function seedForProfile(profile) {
   return `我想写${profile.displayName}，从${entry}开始，${signal}和${tone}会把人物推到选择前。`
 }
 
-function assertRuntimeRuleHandshake(agentRules, fastapiRules) {
+function assertRuntimeRuleHandshake(agentRules, fastapiFacts, profile, kernel) {
   assert(agentRules && typeof agentRules === 'object', 'agent health must expose runtime rule metadata')
-  assert(fastapiRules && typeof fastapiRules === 'object', 'FastAPI creator dialogue must expose runtime rule metadata')
-  assert(agentRules.version === fastapiRules.version, 'agent and FastAPI rule versions must match')
-  assert(agentRules.source === fastapiRules.source, 'agent and FastAPI rule sources must match')
-  assert(agentRules.profileCount === fastapiRules.profile_count, 'agent and FastAPI profile counts must match')
-  assert(agentRules.kernelCount === fastapiRules.kernel_count, 'agent and FastAPI kernel counts must match')
+  assert(fastapiFacts && typeof fastapiFacts === 'object', 'FastAPI creator dialogue must expose public P4 facts')
+  assert(!('runtime_rules' in fastapiFacts), 'public Creator Dialogue must not expose raw runtime rule metadata')
+  assert(fastapiFacts.active_profile_count >= 1, 'FastAPI public P4 facts must show an active profile count')
+  assert(fastapiFacts.active_kernel_count >= 1, 'FastAPI public P4 facts must show an active kernel count')
   assert(
-    agentRules.privacy?.representativeWorks === fastapiRules.privacy?.representative_works,
-    'agent and FastAPI representative work privacy policies must match',
+    fastapiFacts.document_core?.policy === agentRules.documentCore?.policy,
+    'public FastAPI P4 facts must carry the shared document-core policy',
   )
   assert(
-    agentRules.privacy?.publicReferenceField === fastapiRules.privacy?.public_reference_field,
-    'agent and FastAPI public reference privacy fields must match',
+    fastapiFacts.document_core?.constraint_application === agentRules.documentCore?.runtimeContract?.constraintApplication,
+    'public FastAPI P4 facts must carry shared constraint application policy',
   )
+  const serialized = JSON.stringify(fastapiFacts)
+  assert(!serialized.includes('rwref_'), 'public FastAPI P4 facts must not expose source refs')
+  assert(!serialized.includes('source_refs'), 'public FastAPI P4 facts must not expose source_refs')
+  assert(!serialized.includes(profile.id), 'public FastAPI P4 facts must not expose profile ids')
+  assert(!serialized.includes(kernel.id), 'public FastAPI P4 facts must not expose kernel ids')
 }
 
 function assertPublicCopy(value, path = 'payload') {
@@ -255,7 +259,9 @@ try {
   })
   assertRuntimeRuleHandshake(
     agentHealth.runtimeRules,
-    creatorDialogue.setting_cards?.genre_constraint_facts?.runtime_rules,
+    creatorDialogue.setting_cards?.genre_constraint_facts,
+    smokeProfile,
+    smokeKernel,
   )
 
   const seed = seedForProfile(smokeProfile)

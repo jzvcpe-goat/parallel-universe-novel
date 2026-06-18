@@ -88,6 +88,22 @@ P4 does not allow:
 - public UI copy that exposes profile ids, kernel ids, source refs, provider details, or prompt plumbing,
 - plaintext representative work names.
 
+## Public Projection Boundary
+
+Creator Dialogue keeps two views of P4 runtime facts:
+
+1. Internal session state keeps full active `ConstraintProfile.rules[]`,
+   `GenreKernel` evidence, anonymous `sourceRefs`, and each rule's documented
+   `failBehavior`.
+2. Public API responses project those facts into story-facing guidance only:
+   `display_name`, `rule`, `severity`, `fail_behavior`, `positive_guidance`,
+   kernel thesis, and event structure.
+
+This keeps P4 auditable without turning Creator Studio into a backend console.
+FastAPI must copy `ConstraintProfile.rules[].failBehavior` into internal active
+rule facts, and `check:p4-document-core` fails if the public projection or
+fail-behavior mapping disappears.
+
 ## Verification
 
 New gate:
