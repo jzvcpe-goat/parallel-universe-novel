@@ -121,7 +121,7 @@ Name: 仙侠玄幻
 
 Compatible profile: `xuanhuan-xianxia`
 
-Source refs: `rwref_0013`, `rwref_0027`, `rwref_0038`
+Source refs: `rwref_0013`, `rwref_0030`
 
 Thesis:
 
@@ -153,7 +153,7 @@ Name: 游戏异界
 
 Compatible profile: `game-litrpg`
 
-Source refs: `rwref_0023`, `rwref_0024`, `rwref_0044`
+Source refs: `rwref_0034`, `rwref_0041`
 
 Thesis:
 
@@ -169,7 +169,7 @@ Name: 喜剧反套路
 
 Compatible profile: `comedy-misfit`
 
-Source refs: `rwref_0008`, `rwref_0010`, `rwref_0014`, `rwref_0019`, `rwref_0042`
+Source refs: `rwref_0008`, `rwref_0010`, `rwref_0014`, `rwref_0019`
 
 Thesis:
 

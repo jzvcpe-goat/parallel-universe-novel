@@ -149,7 +149,7 @@ or selected-genre exception.
 
 Display name: 仙侠玄幻
 
-Source refs: `rwref_0013`, `rwref_0027`, `rwref_0038`
+Source refs: `rwref_0013`, `rwref_0030`
 
 Signals:
 
@@ -183,7 +183,7 @@ Rules:
 
 Display name: 游戏异界
 
-Source refs: `rwref_0023`, `rwref_0024`, `rwref_0044`
+Source refs: `rwref_0034`, `rwref_0041`
 
 Signals:
 
@@ -200,7 +200,7 @@ Rules:
 
 Display name: 喜剧反套路
 
-Source refs: `rwref_0008`, `rwref_0010`, `rwref_0014`, `rwref_0019`, `rwref_0042`
+Source refs: `rwref_0008`, `rwref_0010`, `rwref_0014`, `rwref_0019`
 
 Signals:
 

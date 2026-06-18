@@ -1,5 +1,24 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P82 Reference Ref Consistency Gate
+
+代表作品隐私已经由 encrypted vault、匿名 `rwref_*` 和历史扫描保护，但还有一个更隐蔽的工程风险：公开文档里的匿名引用本身可能漂移。即使没有泄漏真实作品名，如果 `GENRE_CONSTRAINT_RULES.md` 表格、同文件 profile 章节、`GENRE_KERNEL_RULES.md` 表格、kernel 章节和 `genre-runtime-rules.v1.json` 使用不同的 `rwref_*`，后端、产品和法务都会误读“这个内核到底由哪组私有样本支撑”。
+
+新的工程标准：
+
+1. `genre-runtime-rules.v1.json` 仍是运行时真值，公开文档只能同步它的匿名 `sourceRefs`。
+2. 公开文档可以展示 `rwref_*`，但不能产生自己的 ref 组合；文档表格和章节说明必须与 runtime registry 完全一致。
+3. `scan:p4-rule-source` 必须同时检查 registry、表格行和章节 `Source refs:`，防止“匿名但错误”的代表作品映射进入主分支。
+4. 代表作品明文仍然只能存在于团队私有 encrypted vault，公开仓库、Pages bundle、Actions artifacts 和 Git history 都不能出现真实标题。
+
+验证命令：
+
+```bash
+npm run scan:p4-rule-source
+npm run check:reference-vault-access
+npm run scan:reference-privacy
+```
+
 ## 2026-06-18 P4 Public Projection And FailBehavior
 
 用户再次要求 P4 从头做，并明确弃用此前围绕单个题材测试形成的约束逻辑。本轮不是新增或删除某组题材词，而是把执行关系重新对齐到文档核心：`ConstraintProfile.rules[]` 负责规则，`GenreKernel.compatibleProfiles` 负责内核选择，Quality Brake 必须使用文档里的 `failBehavior`。

@@ -61,6 +61,45 @@ function hasPlainReferenceLeak(value) {
   return /《[^》]+》|workTitle|authorName|representativeWorkTitle/.test(JSON.stringify(value))
 }
 
+function refsFromText(value) {
+  const text = String(value || '')
+  if (/\bnone yet\b/i.test(text)) return []
+  return [...text.matchAll(/rwref_\d{4}/g)].map(match => match[0])
+}
+
+function refListLabel(refs) {
+  return refs.length ? refs.join(',') : 'none yet'
+}
+
+function expectSameRefs(actual, expected, message) {
+  const actualLabel = refListLabel(actual)
+  const expectedLabel = refListLabel(expected)
+  expect(actualLabel === expectedLabel, `${message}; expected ${expectedLabel}, got ${actualLabel}`)
+}
+
+function tableSourceRefs(docText, itemId) {
+  const escaped = escapeRegExp(itemId)
+  const rowPattern = new RegExp(`^\\|\\s*\\\`${escaped}\\\`[^\\n]*\\|$`, 'm')
+  const match = docText.match(rowPattern)
+  if (!match) return null
+  const cells = match[0].split('|').slice(1, -1).map(cell => cell.trim())
+  return refsFromText(cells[2] || '')
+}
+
+function sectionSourceRefs(docText, itemId) {
+  const escaped = escapeRegExp(itemId)
+  const headerPattern = new RegExp(`^###\\s+\\\`${escaped}\\\`\\s*$`, 'm')
+  const header = docText.match(headerPattern)
+  if (!header?.index && header?.index !== 0) return null
+  const bodyStart = header.index + header[0].length
+  const rest = docText.slice(bodyStart)
+  const nextHeaderIndex = rest.search(/^###\s+`/m)
+  const body = nextHeaderIndex >= 0 ? rest.slice(0, nextHeaderIndex) : rest
+  const sourceLine = body.match(/^Source refs:\s*(.+)$/m)
+  if (!sourceLine) return null
+  return refsFromText(sourceLine[1])
+}
+
 const violations = []
 
 if (!existsSync(runtimeRulesSource)) {
@@ -167,6 +206,15 @@ if (!existsSync(runtimeRulesSource)) {
     for (const profile of profiles) {
       expect(constraintDocText.includes(`\`${profile.id}\``), `GENRE_CONSTRAINT_RULES.md must list profile id ${profile.id}`)
       expect(constraintDocText.includes(profile.displayName), `GENRE_CONSTRAINT_RULES.md must list displayName ${profile.displayName}`)
+      const expectedRefs = profile.sourceRefs || []
+      const tableRefs = tableSourceRefs(constraintDocText, profile.id)
+      if (tableRefs) {
+        expectSameRefs(tableRefs, expectedRefs, `GENRE_CONSTRAINT_RULES.md table source refs for ${profile.id} must match runtime registry`)
+      }
+      const sectionRefs = sectionSourceRefs(constraintDocText, profile.id)
+      if (sectionRefs) {
+        expectSameRefs(sectionRefs, expectedRefs, `GENRE_CONSTRAINT_RULES.md section source refs for ${profile.id} must match runtime registry`)
+      }
       for (const rule of profile.rules || []) {
         expect(constraintDocText.includes(`\`${rule.id}\``), `GENRE_CONSTRAINT_RULES.md must list rule id ${rule.id}`)
       }
@@ -181,6 +229,15 @@ if (!existsSync(runtimeRulesSource)) {
       expect(kernelDocText.includes(`\`${kernel.id}\``), `GENRE_KERNEL_RULES.md must list kernel id ${kernel.id}`)
       expect(kernelDocText.includes(kernel.name.replace(/内核$/, '')), `GENRE_KERNEL_RULES.md must list kernel name ${kernel.name}`)
       expect(kernelDocText.includes(kernel.pacingModel), `GENRE_KERNEL_RULES.md must list pacing model for ${kernel.id}`)
+      const expectedRefs = kernel.sourceRefs || []
+      const tableRefs = tableSourceRefs(kernelDocText, kernel.id)
+      if (tableRefs) {
+        expectSameRefs(tableRefs, expectedRefs, `GENRE_KERNEL_RULES.md table source refs for ${kernel.id} must match runtime registry`)
+      }
+      const sectionRefs = sectionSourceRefs(kernelDocText, kernel.id)
+      if (sectionRefs) {
+        expectSameRefs(sectionRefs, expectedRefs, `GENRE_KERNEL_RULES.md section source refs for ${kernel.id} must match runtime registry`)
+      }
       for (const profileId of kernel.compatibleProfiles || []) {
         expect(kernelDocText.includes(`\`${profileId}\``), `GENRE_KERNEL_RULES.md must list compatible profile ${profileId}`)
       }
