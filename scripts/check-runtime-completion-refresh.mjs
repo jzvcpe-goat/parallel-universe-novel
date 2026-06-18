@@ -45,6 +45,8 @@ for (const required of [
   'scripts/check-remote-origin-execution.mjs',
   'scripts/check-reference-vault-access.mjs',
   'scripts/scan-reference-privacy.mjs',
+  'scripts/check-public-projection-privacy.mjs',
+  'scripts/check-backward-consistency-sweep.mjs',
   'scripts/check-runtime-preview-compose.mjs',
   'scripts/check-studio-canon-trace.mjs',
   'docs/backend/P67_REFERENCE_VAULT_ACCESS_HARDENING_GATE.md',
@@ -74,6 +76,8 @@ for (const required of [
   'docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md',
   'docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md',
   'docs/backend/P81_REMOTE_ASSIGNMENT_FIXTURE_GATE.md',
+  'docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md',
+  'docs/backend/P84_RUNTIME_COMPLETION_EVIDENCE_ALIGNMENT.md',
   'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
   '.github/workflows/runtime-images.yml',
   'deploy/runtime-production/host-profiles.json',
@@ -124,6 +128,7 @@ for (const required of [
   'P79 Remote Assignment Execution Pack',
   'P80 Reference Privacy Artifact Gate',
   'P81 Remote Assignment Fixture Gate',
+  'P84 Runtime Completion Evidence Alignment',
   'check:runtime-image-publish-evidence',
   'check:remote-origin-operator-pack',
   'check:remote-runtime-assignment-intake',
@@ -140,6 +145,7 @@ for (const required of [
   'zero_plaintext_public_refs',
   'P80_REFERENCE_PRIVACY_ARTIFACT_GATE',
   'reference-privacy',
+  'public-projection-privacy',
   'violationDetailsIncluded',
   'P81_REMOTE_ASSIGNMENT_FIXTURE_GATE',
   'remote-assignment-fixture-gate',
@@ -151,6 +157,7 @@ for (const required of [
   'rollback_plan',
   'studio_trace',
   'quality_report_hash',
+  'public-projection-privacy',
   'route_choice_ledger_only',
   'remote live runtime trace',
 ]) {
@@ -184,6 +191,7 @@ for (const required of [
   'P77 Live Rollback Rehearsal Gate',
   'P80 Reference Privacy Artifact Gate',
   'P81 Remote Assignment Fixture Gate',
+  'P84 Runtime Completion Evidence Alignment',
   'P67 Reference Vault Access Hardening Gate',
   'P68 Runtime Preview Compose Gate',
   'P53 Reader Branch Trace Gate',
@@ -195,6 +203,7 @@ for (const required of [
   'time_engine_fit_summary',
   'studio_trace',
   'quality_report_hash',
+  'public-projection-privacy',
 ]) {
   assert(doc.includes(required), `P45 audit doc must include refreshed phrase: ${required}`)
 }

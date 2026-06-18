@@ -1,5 +1,23 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P84 Runtime Completion Evidence Alignment
+
+P83 把 `public-projection-privacy` 接进 Pages workflow 和 root test 后，P45 runtime completion matrix 仍然只列旧的 9 个 release artifact。这类问题很危险：CI 实际上更严格了，但完成度审计还在描述旧世界，后续团队会误以为 `reference-privacy` 一份证据就足够。
+
+新的工程标准：
+
+1. Runtime completion matrix 的 artifact 列表必须跟 Pages workflow、current-run artifact gate 和 root test 保持一致。
+2. 只要 release chain 新增证据包，就要同时更新 P45 文档、`check:runtime-engine-completion` 和 `check:runtime-completion-refresh`。
+3. `reference-privacy` 证明代表作品与 vault 边界，`public-projection-privacy` 证明 public projection 不泄漏内部字段；两者不能互相替代。
+
+验证命令：
+
+```bash
+npm run check:runtime-engine-completion
+npm run check:runtime-completion-refresh
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-18 Backward Consistency Sweep
 
 Public Projection Privacy Audit 通过后不能马上收口，因为 P4、reference privacy、sourceRefs、deprecated case logic 和 public projection 是多层边界：规则文档、runtime registry、后端 internal session、FastAPI public response、Creator/Reader UI、fixtures、CI artifacts 都可能各说各话。

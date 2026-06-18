@@ -92,6 +92,7 @@
     "docs/backend/P80_REFERENCE_PRIVACY_ARTIFACT_GATE.md",
     "docs/backend/P81_REMOTE_ASSIGNMENT_FIXTURE_GATE.md",
     "docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md",
+    "docs/backend/P84_RUNTIME_COMPLETION_EVIDENCE_ALIGNMENT.md",
     "docs/baseline/NarrativeOS_Quantum_Engineering_Contract_v3_Onboarding.md",
     "docs/baseline/RELEASE_SYNC_MANIFEST.json",
     "docs/baseline/REUSE_AUDIT.md",
