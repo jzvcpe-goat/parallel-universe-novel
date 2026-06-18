@@ -27,6 +27,7 @@ const requiredFiles = [
   'docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md',
   'docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md',
   'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
+  'docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -44,6 +45,7 @@ const requiredFiles = [
   'scripts/check-remote-origin-execution.mjs',
   'scripts/check-remote-origin-operator-pack.mjs',
   'scripts/check-remote-runtime-assignment-intake.mjs',
+  'scripts/check-live-cutover-attestation.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -61,6 +63,7 @@ const p72 = read('docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md')
 const p73 = read('docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md')
 const p74 = read('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md')
 const p75 = read('docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md')
+const p76 = read('docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -108,6 +111,10 @@ assert(
   'package.json must expose check:remote-runtime-assignment-intake',
 )
 assert(
+  packageJson.scripts['check:live-cutover-attestation'] === 'node scripts/check-live-cutover-attestation.mjs',
+  'package.json must expose check:live-cutover-attestation',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -138,6 +145,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-runtime-assignment-intake'),
   'npm run test must include check:remote-runtime-assignment-intake',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:live-cutover-attestation'),
+  'npm run test must include check:live-cutover-attestation',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -268,10 +279,23 @@ assert(
     && p75.includes('remote-assignment.example.json')
     && p75.includes('remote-assignment.local.json')
     && p75.includes('check:remote-runtime-assignment-intake')
+    && p75.includes('check:live-cutover-attestation')
     && p75.includes('remote_assignment_missing')
     && p75.includes('remote_assignment_ready')
     && p75.includes('REQUIRE_REMOTE_ASSIGNMENT_READY=true'),
   'P75 assignment intake gate must define the ignored local assignment file, decisions and strict mode',
+)
+assert(
+  p76.includes('P76 Live Cutover Attestation Gate')
+    && p76.includes('check:live-cutover-attestation')
+    && p76.includes('REMOTE_API_SERVICE_ID')
+    && p76.includes('REMOTE_AGENT_SERVICE_ID')
+    && p76.includes('REMOTE_API_SECRETS_CONFIGURED')
+    && p76.includes('REMOTE_AGENT_SECRETS_CONFIGURED')
+    && p76.includes('live_cutover_disabled')
+    && p76.includes('live_cutover_attested')
+    && p76.includes('REQUIRE_LIVE_CUTOVER_ATTESTED=true'),
+  'P76 live cutover gate must define non-secret attestation variables, decisions and strict mode',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
@@ -326,6 +350,7 @@ for (const required of [
   'Host Target Gate',
   'Operator Handoff',
   'Assignment Intake',
+  'Live Cutover Attestation',
   'Live Smoke',
   'Rollback',
   'Acceptance Evidence',
@@ -337,6 +362,7 @@ for (const command of [
   'npm run check:public-runtime-preview',
   'npm run check:remote-origin-operator-pack',
   'npm run check:remote-runtime-assignment-intake',
+  'npm run check:live-cutover-attestation',
   'npm run qa:live-runtime-browser',
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',
@@ -384,6 +410,9 @@ assert(
 assert(
   workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser')
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
+    && workflow.includes('REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation')
+    && workflow.includes('REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}')
+    && workflow.includes('REMOTE_AGENT_SERVICE_ID: ${{ vars.REMOTE_AGENT_SERVICE_ID }}')
     && workflow.includes('Upload runtime readiness ledger')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('actions: read')

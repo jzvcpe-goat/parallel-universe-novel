@@ -54,6 +54,10 @@ jobs:
           VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}
+          REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}
+          REMOTE_AGENT_SERVICE_ID: ${{ vars.REMOTE_AGENT_SERVICE_ID }}
+          REMOTE_API_SECRETS_CONFIGURED: ${{ vars.REMOTE_API_SECRETS_CONFIGURED || 'false' }}
+          REMOTE_AGENT_SECRETS_CONFIGURED: ${{ vars.REMOTE_AGENT_SECRETS_CONFIGURED || 'false' }}
         run: npm run test
 
       - name: Run local live runtime browser QA
@@ -76,12 +80,18 @@ jobs:
           VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_AGENT_RUNTIME_BASE_URL: ${{ vars.VITE_AGENT_RUNTIME_BASE_URL }}
+          REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}
+          REMOTE_AGENT_SERVICE_ID: ${{ vars.REMOTE_AGENT_SERVICE_ID }}
+          REMOTE_API_SECRETS_CONFIGURED: ${{ vars.REMOTE_API_SECRETS_CONFIGURED || 'false' }}
+          REMOTE_AGENT_SECRETS_CONFIGURED: ${{ vars.REMOTE_AGENT_SECRETS_CONFIGURED || 'false' }}
         run: |
           npm run check:public-runtime-preview
           npm run audit:live-runtime-readiness
+          npm run check:live-cutover-attestation
           if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
             REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
             REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
+            REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
             REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
           fi
 
@@ -91,6 +101,15 @@ jobs:
         with:
           name: runtime-readiness-ledger
           path: artifacts/runtime/live-runtime-readiness-*.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload live cutover attestation
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-cutover-attestation
+          path: artifacts/runtime/live-cutover-attestation-*.json
           if-no-files-found: ignore
           retention-days: 14
 

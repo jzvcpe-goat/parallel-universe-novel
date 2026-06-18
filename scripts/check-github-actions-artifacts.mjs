@@ -6,11 +6,13 @@ const branch = process.env.GITHUB_REF_NAME || process.env.CHECK_GITHUB_ARTIFACTS
 const workflowName = process.env.CHECK_GITHUB_ARTIFACTS_WORKFLOW || 'Deploy Creator Studio Preview'
 const required = process.env.CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED === 'true'
 const checkCurrentRun = process.env.CHECK_CURRENT_GITHUB_RUN_ARTIFACTS === 'true'
-const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || [
+const defaultArtifacts = [
   'runtime-readiness-ledger',
   'local-live-runtime-visual-qa',
   'github-pages',
-].join(','))
+]
+if (checkCurrentRun) defaultArtifacts.splice(1, 0, 'live-cutover-attestation')
+const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))
   .split(',')
   .map(item => item.trim())
   .filter(Boolean)

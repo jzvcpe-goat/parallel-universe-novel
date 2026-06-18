@@ -120,6 +120,28 @@ Strict execution check:
 REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution
 ```
 
+### Live Cutover Attestation
+
+Before switching GitHub Pages to live mode, join the assignment, origin
+execution, provisioning and readiness evidence:
+
+```bash
+npm run check:live-cutover-attestation
+```
+
+Strict cutover check:
+
+```bash
+REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
+```
+
+GitHub Actions may use non-secret repository variables for service-assignment
+attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
+`REMOTE_API_SECRETS_CONFIGURED=true`, and
+`REMOTE_AGENT_SECRETS_CONFIGURED=true`. These are flags and service ids only;
+never store database URLs, Tool Bridge token values, model keys or provider API
+tokens in repository variables.
+
 Use `deploy/runtime-production/origin.env.example` as the operator checklist.
 Validate it with:
 
@@ -250,7 +272,8 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 11. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
 12. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
 13. Verify both health endpoints.
-14. Run local strict config check:
+14. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+15. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
@@ -261,7 +284,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-live-config
 ```
 
-15. Run public runtime preview check:
+16. Run public runtime preview check:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -271,7 +294,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-16. Generate the readiness ledger:
+17. Generate the readiness ledger:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true \
@@ -282,7 +305,21 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run audit:live-runtime-readiness
 ```
 
-17. Run Live Smoke:
+18. Run strict live cutover attestation:
+
+```bash
+REQUIRE_LIVE_CUTOVER_ATTESTED=true \
+VITE_PUBLIC_RUNTIME_MODE=live \
+VITE_API_ORIGIN=https://<api-host> \
+VITE_AGENT_RUNTIME_BASE_URL=https://<agent-host> \
+REMOTE_API_SERVICE_ID=<provider-api-service-id> \
+REMOTE_AGENT_SERVICE_ID=<provider-agent-service-id> \
+REMOTE_API_SECRETS_CONFIGURED=true \
+REMOTE_AGENT_SECRETS_CONFIGURED=true \
+npm run check:live-cutover-attestation
+```
+
+19. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -292,10 +329,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-18. Set GitHub repository variables.
-19. Push or manually dispatch `Deploy Creator Studio Preview`.
-20. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
-21. Open public `/#/create` and verify it shows `创作服务可用`.
+20. Set GitHub repository variables.
+21. Push or manually dispatch `Deploy Creator Studio Preview`.
+22. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` and `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation` before `qa:live-runtime-browser`.
+23. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 
@@ -342,6 +379,7 @@ Capture and attach:
 - `npm run check:public-live-config` output.
 - `npm run check:public-runtime-preview` output.
 - `npm run audit:live-runtime-readiness` output and generated `artifacts/runtime/live-runtime-readiness-*.json`.
+- `npm run check:live-cutover-attestation` output and generated `artifacts/runtime/live-cutover-attestation-*.json`.
 - GitHub Actions `runtime-readiness-ledger` artifact.
 - `npm run smoke:creator-chain` output, or `npm run test` output proving the smoke ran inside the root gate.
 - `npm run qa:live-runtime-browser` output and screenshot path.

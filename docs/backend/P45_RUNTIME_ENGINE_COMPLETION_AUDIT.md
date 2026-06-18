@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -475,6 +475,23 @@ P75 adds the durable intake file for the deployment owner:
 Current decision is that P75 is ready as an assignment-intake gate. It still does
 not choose a provider, create services, store secrets, or enable public live
 runtime.
+
+## P76 Live Cutover Attestation Gate
+
+P76 joins the final public-live evidence:
+
+- P75 assignment intake or non-secret CI repository-variable attestation,
+- P73 remote origin execution,
+- P66 remote origin provisioning,
+- P23 live runtime readiness.
+
+`scripts/check-live-cutover-attestation.mjs` outputs
+`live_cutover_disabled`, `live_cutover_assignment_unattested`,
+`live_cutover_pending_runtime_evidence`, or `live_cutover_attested`.
+
+Current decision is that P76 is ready as a cutover-attestation gate. It still
+does not deploy remote services, create secrets, choose a provider, or make the
+public runtime commercially launched.
 
 ## Privacy Boundary
 

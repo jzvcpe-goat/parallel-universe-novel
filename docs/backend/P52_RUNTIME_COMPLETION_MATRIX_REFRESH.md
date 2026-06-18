@@ -190,6 +190,19 @@ P75 Remote Runtime Assignment Intake changed assignment evidence:
 - remaining gap is actual remote service assignment, not absence of a durable
   assignment intake path.
 
+P76 Live Cutover Attestation Gate changed live release evidence:
+
+- `check:live-cutover-attestation` joins P75/P73/P66/P23 evidence before public
+  live mode,
+- Pages workflow receives only non-secret `REMOTE_*` service ids and
+  provider-secret-store confirmation flags,
+- strict mode outputs `live_cutover_attested` only after assignment, origin
+  execution, provisioning and live runtime readiness are all ready,
+- current expected state remains `live_cutover_disabled` or
+  `live_cutover_assignment_unattested` until remote services exist,
+- remaining gap is live provider execution, not absence of a cutover attestation
+  contract.
+
 P67 Reference Vault Access Hardening Gate changed privacy evidence:
 
 - `.gitignore` explicitly ignores `private/` and `reference-work-vault.key`,
@@ -227,6 +240,7 @@ npm run check:remote-origin-provisioning
 npm run check:remote-origin-operator-pack
 npm run check:remote-runtime-assignment-intake
 npm run check:remote-origin-execution
+npm run check:live-cutover-attestation
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:runtime-preview-compose
@@ -251,6 +265,7 @@ npm run check:runtime-preview-compose
 - Remote origin execution gate missing after P70/P71/P72 materials exist.
 - Remote runtime operator handoff missing after P72/P73 materials exist.
 - Remote runtime assignment intake missing after P74 materials exist.
+- Live cutover attestation missing after P75/P73/P66/P23 materials exist.
 - Reference vault access hardening missing after anonymous ref scans exist.
 - Runtime preview compose smoke missing after Docker deployment files exist.
 
@@ -267,4 +282,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.

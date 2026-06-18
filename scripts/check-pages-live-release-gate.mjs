@@ -81,8 +81,16 @@ assert(
   workflow.includes('if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then')
     && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview')
     && workflow.includes('REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness')
+    && workflow.includes('REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation')
     && workflow.includes('REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser'),
-  'Pages workflow must require live checks, readiness ledger, and browser smoke before any live public build',
+  'Pages workflow must require live checks, readiness ledger, cutover attestation, and browser smoke before any live public build',
+)
+assert(
+  workflow.includes('REMOTE_API_SERVICE_ID: ${{ vars.REMOTE_API_SERVICE_ID }}')
+    && workflow.includes('REMOTE_AGENT_SERVICE_ID: ${{ vars.REMOTE_AGENT_SERVICE_ID }}')
+    && workflow.includes("REMOTE_API_SECRETS_CONFIGURED: ${{ vars.REMOTE_API_SECRETS_CONFIGURED || 'false' }}")
+    && workflow.includes("REMOTE_AGENT_SECRETS_CONFIGURED: ${{ vars.REMOTE_AGENT_SECRETS_CONFIGURED || 'false' }}"),
+  'Pages workflow must receive non-secret remote service attestation vars',
 )
 assert(
   workflow.includes('npm run audit:live-runtime-readiness')
@@ -96,6 +104,13 @@ assert(
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.indexOf('Upload runtime readiness ledger') > workflow.indexOf('Gate public runtime release mode'),
   'Pages workflow must upload the readiness ledger artifact after the runtime gate, including failed live gates',
+)
+assert(
+  workflow.includes('Upload live cutover attestation')
+    && workflow.includes('live-cutover-attestation')
+    && workflow.includes('artifacts/runtime/live-cutover-attestation-*.json')
+    && workflow.indexOf('Upload live cutover attestation') > workflow.indexOf('Gate public runtime release mode'),
+  'Pages workflow must upload the live cutover attestation artifact after the runtime gate',
 )
 assert(
   workflow.includes('Check current run evidence artifacts')
@@ -129,11 +144,13 @@ assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
+    && p16Doc.includes('check:live-cutover-attestation')
     && p16Doc.includes('GitHub repository variables'),
-  'P16 doc must describe the live release gate and required GitHub vars',
+  'P16 doc must describe the live release gate, cutover attestation, and required GitHub vars',
 )
 assert(
   p43Doc.includes('runtime-readiness-ledger')
+    && p43Doc.includes('live-cutover-attestation')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
@@ -154,6 +171,7 @@ console.log(JSON.stringify({
   defaultMode: 'disabled',
   readinessLedger: 'audit:live-runtime-readiness',
   ledgerArtifact: 'runtime-readiness-ledger',
+  cutoverAttestation: 'check:live-cutover-attestation',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
 }, null, 2))

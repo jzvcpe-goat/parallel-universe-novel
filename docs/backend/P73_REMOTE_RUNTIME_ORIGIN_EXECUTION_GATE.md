@@ -68,6 +68,11 @@ REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-int
 ```
 
 The P75 artifact emits the `REMOTE_*` export commands consumed by strict P73.
+After strict P73 is ready, run P76 before switching public Pages to live mode:
+
+```bash
+REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
+```
 
 ## Required Operator Inputs
 
@@ -211,4 +216,6 @@ health-checked.
    `check:remote-origin-operator-pack`.
 9. P75 Remote Runtime Assignment Intake is available through
    `check:remote-runtime-assignment-intake`.
-10. P73 appears in the runtime activation package and release sync manifest.
+10. P76 Live Cutover Attestation is available through
+   `check:live-cutover-attestation`.
+11. P73 appears in the runtime activation package and release sync manifest.

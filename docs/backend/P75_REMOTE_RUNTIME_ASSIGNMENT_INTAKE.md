@@ -84,6 +84,22 @@ export REMOTE_AGENT_SECRETS_CONFIGURED=true
 REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution
 ```
 
+For GitHub Actions live cutover, P76 can use non-secret repository variables
+instead of the ignored local assignment file:
+
+```text
+REMOTE_API_SERVICE_ID
+REMOTE_AGENT_SERVICE_ID
+REMOTE_API_SECRETS_CONFIGURED=true
+REMOTE_AGENT_SECRETS_CONFIGURED=true
+```
+
+Then run:
+
+```bash
+REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
+```
+
 ## Boundary
 
 P75 does not choose a provider, create a service, write GitHub Pages live

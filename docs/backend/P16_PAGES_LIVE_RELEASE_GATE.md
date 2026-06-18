@@ -2,7 +2,7 @@
 
 ## Goal
 
-让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：CI 先通过 `qa:live-runtime-local` 证明本地 FastAPI + Agent Runtime + live-mode 浏览器链路可执行；只有远端 API 与 Agent Runtime URL 都配置好，并且 `qa:live-runtime-browser` 通过，CI 才会构建 live Creator Studio。
+让 GitHub Pages 从静态预览模式切换到 live 模式时具备硬门禁：CI 先通过 `qa:live-runtime-local` 证明本地 FastAPI + Agent Runtime + live-mode 浏览器链路可执行；只有远端 API 与 Agent Runtime URL 都配置好，`audit:live-runtime-readiness`、`check:live-cutover-attestation` 和 `qa:live-runtime-browser` 全部通过，CI 才会构建 live Creator Studio。
 
 ## Default State
 
@@ -25,8 +25,15 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
 | `VITE_API_ORIGIN` | `https://api.example.com` | yes |
 | `VITE_API_BASE_URL` | `https://api.example.com/v1` | optional |
 | `VITE_AGENT_RUNTIME_BASE_URL` | `https://agent.example.com` | yes |
+| `REMOTE_API_SERVICE_ID` | `api-service-id` | yes |
+| `REMOTE_AGENT_SERVICE_ID` | `agent-service-id` | yes |
+| `REMOTE_API_SECRETS_CONFIGURED` | `true` | yes |
+| `REMOTE_AGENT_SECRETS_CONFIGURED` | `true` | yes |
 
 Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK` in repository variables. The workflow hard-codes it to `false`.
+The `REMOTE_*` variables are non-secret attestation values only. Do not put
+database URLs, Tool Bridge token values, model keys, private keys or provider
+API tokens in repository variables.
 
 Live release is enabled only by setting GitHub repository variables such as:
 
@@ -48,6 +55,7 @@ npm run qa:live-runtime-local
 if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run check:public-runtime-preview
   REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
+  REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 # After all uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
@@ -61,6 +69,7 @@ This proves:
 - API health is reachable.
 - Agent Runtime health is reachable.
 - Agent workflow preflight can return a public candidate.
+- Remote service ids and provider secret-store confirmation flags are attested without exposing secret values.
 - Creator Studio can submit a story seed in live mode.
 - A candidate draft is returned.
 - Public UI still hides internal implementation terms.
@@ -73,8 +82,9 @@ This proves:
 4. CI uploads local live-mode screenshots as `local-live-runtime-visual-qa`.
 5. CI verifies current-run artifacts through `check:github-actions-artifacts`.
 6. Live mode fails if any required remote URL is missing.
-7. Live mode fails if browser submission cannot create a candidate draft.
-8. Live mode never enables local fallback.
+7. Live mode fails if `check:live-cutover-attestation` cannot prove assignment, origin execution, provisioning and readiness.
+8. Live mode fails if browser submission cannot create a candidate draft.
+9. Live mode never enables local fallback.
 
 ## Operational Rule
 
