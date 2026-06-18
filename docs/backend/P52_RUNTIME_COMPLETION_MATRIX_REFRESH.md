@@ -118,6 +118,18 @@ P64 TimeEngine Telemetry Fit Gate changed production fitting evidence:
 - `/loom` exposes `time_engine_fit_summary`,
 - remaining gap is remote live runtime trace, not absence of production TimeEngine telemetry fitting.
 
+P65 Remote Live Runtime Trace Gate changed remote evidence semantics:
+
+- the gate reads latest P23 `live-runtime-readiness` artifact,
+- the gate reads latest P46 `remote-runtime-activation` artifact,
+- the gate reads latest P47 `runtime-trace-continuity` artifact,
+- the gate outputs `hold_remote_live_trace_unproven`,
+  `creator_remote_trace_ready_reader_partial`, or `remote_live_trace_ready`,
+- current expected state remains `hold_remote_live_trace_unproven` until remote
+  FastAPI, remote Agent Runtime and GitHub Pages runtime variables are proven,
+- remaining gap is remote infrastructure/runtime configuration, not absence of a
+  machine-readable remote live runtime trace decision.
+
 ## Verification
 
 Run:
@@ -125,6 +137,7 @@ Run:
 ```bash
 npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
+npm run check:remote-live-runtime-trace
 ```
 
 `check:runtime-completion-refresh` prevents these stale claims from returning:
@@ -141,6 +154,7 @@ npm run check:runtime-completion-refresh
 - Production branch table persistence not proven after commit draft.
 - Reader-visible public branch release not proven after private production commit.
 - The formerly stale claim that Production TimeEngine telemetry fitting is missing after public branch release.
+- Remote live runtime trace gate missing after P23/P46/P47 evidence exists.
 
 ## Boundary
 
@@ -155,4 +169,4 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64 improve proof quality, but they do not replace live remote runtime, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.

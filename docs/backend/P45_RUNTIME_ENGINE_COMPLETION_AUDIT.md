@@ -262,6 +262,23 @@ runtime:
 Remaining gaps stay explicit: P64 is not remote live runtime and not a paid
 commercial release/legal packet.
 
+## P65 Remote Live Runtime Trace Gate
+
+P65 consumes P23/P46/P47 evidence and decides whether the public Pages app may
+claim a remote live runtime trace:
+
+- P23 provides the latest `live-runtime-readiness` ledger.
+- P46 provides the latest `remote-runtime-activation` release decision.
+- P47 provides Creator, Reader, and Studio trace continuity status.
+- `check:remote-live-runtime-trace` writes a `remote-live-runtime-trace`
+  artifact.
+
+Current conservative decision is `hold_remote_live_trace_unproven` until remote
+FastAPI, remote Agent Runtime, and GitHub Pages runtime variables are proven.
+
+Remaining gaps stay explicit: P65 is a release evidence gate, not an
+infrastructure deploy, paid commercial launch, or legal/privacy release packet.
+
 ## Privacy Boundary
 
 This audit must not expose representative work names. It only accepts the public rule registry shape:

@@ -102,6 +102,7 @@ P64 is a telemetry fitting gate:
 
 P65 should be **Remote Live Runtime Trace Gate**:
 
+- reuse P23/P46/P47 artifacts instead of duplicating their checks,
 - configure public Pages live mode variables,
 - connect remote FastAPI HTTPS origin,
 - connect remote Agent Runtime HTTPS origin,
