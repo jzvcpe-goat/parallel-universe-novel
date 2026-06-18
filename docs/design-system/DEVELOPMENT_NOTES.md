@@ -47,6 +47,7 @@ Public Projection Privacy Audit 通过后不能马上收口，因为 P4、refere
 3. 旧的 `prompt_id`、`prompt_contract`、`imported_novel_starter_system_prompt` 只能作为历史说明被讨论，不得出现在当前 smoke request、public response 或 product-facing code path 中。
 4. Pages workflow 在最终 build 后必须同时跑 `scan:reference-privacy` 和 `check:public-projection-privacy`，并上传 `reference-privacy` 与 `public-projection-privacy` 两份证据。
 5. Root `npm run test` 必须包含 P4 document-core、deprecated case logic、sourceRefs drift、public projection privacy、backward consistency、reference vault 和 reference privacy 全链路。
+6. 新增或重命名 release artifact 时，必须同步 P16/P43/P83 这类 handoff 文档里的 artifact 数量和名称；否则 CI 实际更严格但文档仍描述旧链路。
 
 验证命令：
 

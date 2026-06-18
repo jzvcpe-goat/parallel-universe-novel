@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -48,6 +48,7 @@ The release chain must continue to produce:
 - `live-rollback-rehearsal`
 - `remote-runtime-activation-control`
 - `remote-assignment-handoff`
+- `remote-assignment-schema`
 - `remote-assignment-execution-pack`
 - `remote-assignment-fixture-gate`
 - `remote-runtime-blockers`
@@ -641,6 +642,26 @@ Command: `npm run check:remote-assignment-handoff-artifact`.
 Current decision is that P89 is a content attestation gate. It does not change
 the remote runtime blocker ledger and does not mark assignment or live cutover
 ready.
+
+## P91 Remote Assignment Schema Gate
+
+`scripts/check-remote-assignment-schema.mjs` validates the committed assignment
+schema, example, fixture and optional ignored local assignment before P75/P79
+consume it.
+
+Command: `npm run check:remote-assignment-schema`.
+
+- template and fixture shape,
+- unsupported field rejection,
+- Agent -> API dependency,
+- API/Agent image ref families,
+- Pages variable shape,
+- no secrets, reference work names, `sourceRefs`, `profile.id`, `kernel.id`,
+  raw state or provider prompt plumbing.
+
+Current decision is that P91 is ready as a preflight. Normal CI may report
+`remote_assignment_schema_waiting_for_local_assignment` until the operator
+creates the ignored local assignment file.
 
 ## P90 Remote Runtime Blocker Artifact Attestation
 

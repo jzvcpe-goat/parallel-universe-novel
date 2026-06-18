@@ -31,6 +31,12 @@ assignment shape and P79 command generation. It must produce
 
 ## Command
 
+Schema preflight:
+
+```bash
+npm run check:remote-assignment-schema
+```
+
 ```bash
 npm run check:remote-runtime-assignment-intake
 ```
@@ -121,6 +127,7 @@ and P66 in strict mode.
 
 - `.gitignore` ignores `deploy/runtime-production/remote-assignment.local.json`.
 - `remote-assignment.example.json` is committed and contains placeholders only.
+- `remote-assignment.schema.json` is committed and checked before P75/P79.
 - `package.json` exposes `check:remote-runtime-assignment-intake`.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.

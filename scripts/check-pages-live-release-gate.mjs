@@ -145,6 +145,13 @@ assert(
   'Pages workflow must upload the remote assignment handoff artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote assignment schema gate')
+    && workflow.includes('remote-assignment-schema')
+    && workflow.includes('artifacts/runtime/remote-assignment-schema-*.json')
+    && workflow.indexOf('Upload remote assignment schema gate') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote assignment schema artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload remote assignment fixture gate')
     && workflow.includes('remote-assignment-fixture-gate')
     && workflow.includes('artifacts/runtime/remote-assignment-fixture-gate-*.json')
@@ -222,6 +229,10 @@ assert(
   'package.json must expose check:remote-runtime-blockers-artifact',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-schema'] === 'node scripts/check-remote-assignment-schema.mjs',
+  'package.json must expose check:remote-assignment-schema',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
 )
@@ -234,6 +245,10 @@ assert(
   'npm run test must include check:remote-runtime-blockers-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-schema'),
+  'npm run test must include check:remote-assignment-schema',
+)
+assert(
   p16Doc.includes('VITE_PUBLIC_RUNTIME_MODE=live')
     && p16Doc.includes('qa:live-runtime-browser')
     && p16Doc.includes('qa:live-runtime-local')
@@ -241,6 +256,7 @@ assert(
     && p16Doc.includes('check:live-rollback-rehearsal')
     && p16Doc.includes('check:remote-runtime-activation-control')
     && p16Doc.includes('remote-assignment-handoff')
+    && p16Doc.includes('remote-assignment-schema')
     && p16Doc.includes('check:remote-assignment-handoff-artifact')
     && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('check:remote-runtime-blockers-artifact')
@@ -253,6 +269,7 @@ assert(
     && p43Doc.includes('live-rollback-rehearsal')
     && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('remote-assignment-handoff')
+    && p43Doc.includes('remote-assignment-schema')
     && p43Doc.includes('check:remote-assignment-handoff-artifact')
     && p43Doc.includes('check:remote-runtime-blockers-artifact')
     && p43Doc.includes('remote-assignment-execution-pack')
@@ -285,6 +302,7 @@ console.log(JSON.stringify({
   activationControl: 'check:remote-runtime-activation-control',
   assignmentHandoff: 'remote-assignment-handoff',
   assignmentHandoffContent: 'check:remote-assignment-handoff-artifact',
+  assignmentSchema: 'remote-assignment-schema',
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
   remoteRuntimeBlockers: 'remote-runtime-blockers',

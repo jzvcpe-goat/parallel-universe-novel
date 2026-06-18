@@ -19,6 +19,7 @@ if (checkCurrentRun) {
     'live-rollback-rehearsal',
     'remote-runtime-activation-control',
     'remote-assignment-handoff',
+    'remote-assignment-schema',
     'remote-assignment-execution-pack',
     'remote-assignment-fixture-gate',
     'remote-runtime-blockers',

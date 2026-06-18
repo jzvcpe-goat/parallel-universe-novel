@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jzvcpe-goat.github.io/parallel-universe-novel/schemas/remote-assignment.v1.json",
+  "title": "Parallel Universe Novel Remote Runtime Assignment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "gate",
+    "repository",
+    "hostTargetProfile",
+    "operator",
+    "services",
+    "pagesVariablesAfterHealth"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "gate": {
+      "const": "P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE"
+    },
+    "repository": {
+      "const": "jzvcpe-goat/parallel-universe-novel"
+    },
+    "hostTargetProfile": {
+      "const": "docker-compatible-two-service-paas"
+    },
+    "operator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "provider",
+        "environment"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "api",
+        "agent"
+      ],
+      "properties": {
+        "api": {
+          "$ref": "#/$defs/service"
+        },
+        "agent": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/service"
+            },
+            {
+              "type": "object",
+              "required": [
+                "dependsOn"
+              ],
+              "properties": {
+                "dependsOn": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "contains": {
+                    "const": "api"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "pagesVariablesAfterHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "VITE_PUBLIC_RUNTIME_MODE",
+        "VITE_API_ORIGIN",
+        "VITE_API_BASE_URL",
+        "VITE_AGENT_RUNTIME_BASE_URL"
+      ],
+      "properties": {
+        "VITE_PUBLIC_RUNTIME_MODE": {
+          "const": "live"
+        },
+        "VITE_API_ORIGIN": {
+          "type": "string",
+          "minLength": 1
+        },
+        "VITE_API_BASE_URL": {
+          "type": "string",
+          "minLength": 1
+        },
+        "VITE_AGENT_RUNTIME_BASE_URL": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceId",
+        "origin",
+        "image",
+        "providerSecretsConfigured",
+        "healthPath"
+      ],
+      "properties": {
+        "serviceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerSecretsConfigured": {
+          "type": "boolean"
+        },
+        "healthPath": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

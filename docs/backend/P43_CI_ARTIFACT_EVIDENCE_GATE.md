@@ -4,13 +4,14 @@ Date: 2026-06-17
 
 ## Goal
 
-把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下十二类可下载证据：
+把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下十三类可下载证据：
 
 - `runtime-readiness-ledger`
 - `live-cutover-attestation`
 - `live-rollback-rehearsal`
 - `remote-runtime-activation-control`
 - `remote-assignment-handoff`
+- `remote-assignment-schema`
 - `remote-assignment-execution-pack`
 - `remote-assignment-fixture-gate`
 - `remote-runtime-blockers`
@@ -27,7 +28,7 @@ Date: 2026-06-17
 npm run check:github-actions-artifacts
 ```
 
-检查当前 CI run。CI 当前 run 必须包含十二类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`reference-privacy` 和 `public-projection-privacy`：
+检查当前 CI run。CI 当前 run 必须包含十三类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`reference-privacy` 和 `public-projection-privacy`：
 
 ```bash
 CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
@@ -57,6 +58,7 @@ npm run check:remote-runtime-blockers-artifact
 - `live-rollback-rehearsal` exists and is non-empty.
 - `remote-runtime-activation-control` exists and is non-empty.
 - `remote-assignment-handoff` exists and is non-empty.
+- `remote-assignment-schema` exists and is non-empty.
 - `remote-assignment-execution-pack` exists and is non-empty.
 - `remote-assignment-fixture-gate` exists and is non-empty.
 - `remote-runtime-blockers` exists and is non-empty.
@@ -68,7 +70,7 @@ npm run check:remote-runtime-blockers-artifact
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P91 owns the assignment schema artifact.
 
 ## Workflow Placement
 

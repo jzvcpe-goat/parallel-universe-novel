@@ -145,6 +145,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote assignment schema gate
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-schema
+          path: artifacts/runtime/remote-assignment-schema-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload remote assignment execution pack
         if: always()
         uses: actions/upload-artifact@v7

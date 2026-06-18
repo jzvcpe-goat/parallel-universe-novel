@@ -13,6 +13,12 @@ bundle and checklist from the assignment evidence.
 
 ## Command
 
+Schema preflight:
+
+```bash
+npm run check:remote-assignment-schema
+```
+
 ```bash
 npm run check:remote-assignment-execution-pack
 ```
@@ -94,6 +100,7 @@ P79 must not include:
 
 - `package.json` exposes `check:remote-assignment-execution-pack`.
 - Root `npm run test` includes `check:remote-assignment-execution-pack`.
+- P91 schema preflight runs before P79 in root `npm run test`.
 - Missing assignment files produce `assignment_execution_waiting_for_assignment`
   without failing normal CI.
 - Strict mode fails until an execution pack is ready.

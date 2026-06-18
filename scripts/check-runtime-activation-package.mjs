@@ -35,9 +35,11 @@ const requiredFiles = [
   'docs/backend/P81_REMOTE_ASSIGNMENT_FIXTURE_GATE.md',
   'docs/backend/P87_REMOTE_ASSIGNMENT_HANDOFF_GATE.md',
   'docs/backend/P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
+  'deploy/runtime-production/remote-assignment.schema.json',
   'deploy/runtime-production/remote-assignment.example.json',
   'deploy/runtime-preview/docker-compose.yml',
   '.github/workflows/runtime-images.yml',
@@ -57,6 +59,7 @@ const requiredFiles = [
   'scripts/check-remote-runtime-activation-control.mjs',
   'scripts/check-remote-assignment-handoff.mjs',
   'scripts/check-remote-assignment-handoff-artifact.mjs',
+  'scripts/check-remote-assignment-schema.mjs',
   'scripts/check-remote-assignment-execution-pack.mjs',
 ]
 
@@ -81,9 +84,11 @@ const p78 = read('docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md')
 const p79 = read('docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md')
 const p87 = read('docs/backend/P87_REMOTE_ASSIGNMENT_HANDOFF_GATE.md')
 const p89 = read('docs/backend/P89_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_ATTESTATION.md')
+const p91 = read('docs/backend/P91_REMOTE_ASSIGNMENT_SCHEMA_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
+const remoteAssignmentSchema = read('deploy/runtime-production/remote-assignment.schema.json')
 const remoteAssignmentExample = read('deploy/runtime-production/remote-assignment.example.json')
 const runtimeImagesWorkflow = read('.github/workflows/runtime-images.yml')
 const compose = read('deploy/runtime-preview/docker-compose.yml')
@@ -148,6 +153,10 @@ assert(
   'package.json must expose check:remote-assignment-handoff-artifact',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-schema'] === 'node scripts/check-remote-assignment-schema.mjs',
+  'package.json must expose check:remote-assignment-schema',
+)
+assert(
   packageJson.scripts['check:remote-assignment-execution-pack'] === 'node scripts/check-remote-assignment-execution-pack.mjs',
   'package.json must expose check:remote-assignment-execution-pack',
 )
@@ -202,6 +211,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-handoff-artifact'),
   'npm run test must include check:remote-assignment-handoff-artifact',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-schema'),
+  'npm run test must include check:remote-assignment-schema',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-execution-pack'),
@@ -403,6 +416,13 @@ assert(
   'P89 remote assignment handoff artifact attestation must define metadata/content split and strict ready mode',
 )
 assert(
+  p91.includes('P91 Remote Assignment Schema Gate')
+    && p91.includes('check:remote-assignment-schema')
+    && p91.includes('remote_assignment_schema_waiting_for_local_assignment')
+    && p91.includes('remote_assignment_schema_ready'),
+  'P91 remote assignment schema gate must define decisions and strict mode',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -440,6 +460,13 @@ assert(
   'remote assignment example must preserve the no-secret P75 intake contract',
 )
 assert(
+  remoteAssignmentSchema.includes('Parallel Universe Novel Remote Runtime Assignment')
+    && remoteAssignmentSchema.includes('providerSecretsConfigured')
+    && remoteAssignmentSchema.includes('VITE_AGENT_RUNTIME_BASE_URL')
+    && remoteAssignmentSchema.includes('dependsOn'),
+  'remote assignment schema must describe services, provider secret flags and Pages variables',
+)
+assert(
   runtimeImagesWorkflow.includes('packages: write')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-api')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-agent-runtime')
@@ -469,9 +496,10 @@ for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
   'npm run check:remote-origin-operator-pack',
-  'npm run check:remote-assignment-handoff',
-  'npm run check:remote-assignment-handoff-artifact',
-  'npm run check:remote-runtime-assignment-intake',
+	  'npm run check:remote-assignment-handoff',
+	  'npm run check:remote-assignment-handoff-artifact',
+	  'npm run check:remote-assignment-schema',
+	  'npm run check:remote-runtime-assignment-intake',
   'npm run check:live-cutover-attestation',
   'npm run check:live-rollback-rehearsal',
   'npm run check:remote-runtime-activation-control',
@@ -532,6 +560,7 @@ assert(
     && workflow.includes('Upload live rollback rehearsal')
     && workflow.includes('Upload remote runtime activation control')
     && workflow.includes('Upload remote assignment handoff')
+    && workflow.includes('Upload remote assignment schema gate')
     && workflow.includes('Check remote assignment handoff artifact content')
     && workflow.includes('Upload remote assignment execution pack')
     && workflow.includes('Upload remote assignment fixture gate')
@@ -540,6 +569,7 @@ assert(
     && workflow.includes('artifacts/runtime/live-rollback-rehearsal-*.json')
     && workflow.includes('artifacts/runtime/remote-activation-control-*.json')
     && workflow.includes('artifacts/runtime/remote-assignment-handoff-*.json')
+    && workflow.includes('artifacts/runtime/remote-assignment-schema-*.json')
     && workflow.includes('CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED: true')
     && workflow.includes('npm run check:remote-assignment-handoff-artifact')
     && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
