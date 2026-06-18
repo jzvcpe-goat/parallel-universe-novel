@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P73 remote origin execution gate, P68 runtime preview compose, `runtime-readiness-ledger`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -438,6 +438,24 @@ operator-executable remote-origin plan:
 Current decision is that P73 is ready as an execution-evidence gate. It still
 does not choose a cloud provider, store secrets, enable Pages live mode, replace
 P66 origin provisioning or replace P65 remote trace proof.
+
+## P74 Remote Runtime Operator Handoff
+
+P74 turns the remote execution contract into a no-secret operator handoff:
+
+- `scripts/check-remote-origin-operator-pack.mjs` generates JSON and Markdown
+  artifacts under `artifacts/runtime/remote-origin-operator-pack-*`.
+- The pack includes the current commit SHA images for API and Agent Runtime.
+- The pack lists service assignment inputs, provider secret names, public Pages
+  variable commands, strict verification commands and rollback commands.
+- The gate outputs `operator_pack_waiting_for_service_assignment` until the
+  deployment owner supplies service ids, HTTPS origins and provider secret-store
+  confirmation; strict mode can require
+  `operator_pack_ready_for_strict_origin_execution`.
+
+Current decision is that P74 is ready as a handoff-evidence gate. It still does
+not choose a provider, store secrets, create remote services, or enable live
+public runtime.
 
 ## Privacy Boundary
 

@@ -64,6 +64,21 @@ The host should pull these image names or their `runtime-latest` tags:
 - `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>`
 - `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>`
 
+### Operator Handoff
+
+After strict image evidence is green, generate the no-secret operator handoff
+pack:
+
+```bash
+npm run check:remote-origin-operator-pack
+```
+
+The generated artifacts under `artifacts/runtime/remote-origin-operator-pack-*`
+list the current commit images, service assignment inputs, provider secret
+names, GitHub Pages variable commands, verification commands and rollback
+commands. The pack is intentionally blocked until the deployment owner supplies
+remote service ids, HTTPS origins and provider secret-store confirmations.
+
 ### Origin Execution Gate
 
 After image evidence is green and before writing GitHub Pages live variables,
@@ -206,12 +221,13 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 3. Run `npm run check:runtime-image-workflow`.
 4. Publish images with `gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel`.
 5. Run `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence`.
-6. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
-7. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-8. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-9. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
-10. Verify both health endpoints.
-11. Run local strict config check:
+6. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
+7. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
+8. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
+9. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+10. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
+11. Verify both health endpoints.
+12. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
@@ -222,7 +238,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-live-config
 ```
 
-12. Run public runtime preview check:
+13. Run public runtime preview check:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -232,7 +248,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-13. Generate the readiness ledger:
+14. Generate the readiness ledger:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true \
@@ -243,7 +259,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run audit:live-runtime-readiness
 ```
 
-14. Run Live Smoke:
+15. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -253,10 +269,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-15. Set GitHub repository variables.
-16. Push or manually dispatch `Deploy Creator Studio Preview`.
-17. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
-18. Open public `/#/create` and verify it shows `创作服务可用`.
+16. Set GitHub repository variables.
+17. Push or manually dispatch `Deploy Creator Studio Preview`.
+18. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` before `qa:live-runtime-browser`.
+19. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 

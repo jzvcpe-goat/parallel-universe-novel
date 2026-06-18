@@ -49,6 +49,18 @@ Before creating or updating remote services, run:
 REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence
 ```
 
+Generate the no-secret P74 Remote Runtime Operator Handoff pack before assigning
+work to the remote deployment owner:
+
+```bash
+npm run check:remote-origin-operator-pack
+```
+
+The P74 pack records the current commit images, required service assignment
+inputs, provider secret names, GitHub Pages variable commands, verification
+commands and rollback commands. It must remain blocked until concrete service
+ids, HTTPS origins and provider secret-store confirmations are supplied.
+
 ## Required Operator Inputs
 
 P73 does not own a cloud provider. The deployment owner supplies proof that the
@@ -90,37 +102,43 @@ Strict mode fails until `remote_origin_execution_ready`.
 REQUIRE_RUNTIME_IMAGE_PUBLISHED=true npm run check:runtime-image-publish-evidence
 ```
 
-2. Provision FastAPI from:
+2. Generate the operator handoff:
+
+```bash
+npm run check:remote-origin-operator-pack
+```
+
+3. Provision FastAPI from:
 
 ```text
 ghcr.io/jzvcpe-goat/parallel-universe-novel-api:<commit-sha>
 ```
 
-3. Provision Agent Runtime from:
+4. Provision Agent Runtime from:
 
 ```text
 ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:<commit-sha>
 ```
 
-4. Configure provider secret stores:
+5. Configure provider secret stores:
 
 - FastAPI: `DATABASE_URL`, `NARRATIVEOS_TOOL_BRIDGE_TOKEN`
 - Agent Runtime: `MASTRA_TOOL_BRIDGE_TOKEN`
 
-5. Verify health:
+6. Verify health:
 
 ```bash
 curl -fsS $REMOTE_API_ORIGIN/health
 curl -fsS $REMOTE_AGENT_ORIGIN/health
 ```
 
-6. Run strict origin provisioning:
+7. Run strict origin provisioning:
 
 ```bash
 REQUIRE_REMOTE_ORIGIN_PROVISIONED=true npm run check:remote-origin-provisioning
 ```
 
-7. Only after both health checks pass, write GitHub repository variables:
+8. Only after both health checks pass, write GitHub repository variables:
 
 ```bash
 gh variable set VITE_PUBLIC_RUNTIME_MODE --repo jzvcpe-goat/parallel-universe-novel --body live
@@ -128,7 +146,7 @@ gh variable set VITE_API_ORIGIN --repo jzvcpe-goat/parallel-universe-novel --bod
 gh variable set VITE_AGENT_RUNTIME_BASE_URL --repo jzvcpe-goat/parallel-universe-novel --body $REMOTE_AGENT_ORIGIN
 ```
 
-8. Verify readiness and browser smoke:
+9. Verify readiness and browser smoke:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness
@@ -175,4 +193,6 @@ health-checked.
 7. The artifact does not include API keys, database URLs, Tool Bridge tokens,
    provider secret values, system prompts, candidate prose, raw runtime state or
    private reference mappings.
-8. P73 appears in the runtime activation package and release sync manifest.
+8. P74 Remote Runtime Operator Handoff is available through
+   `check:remote-origin-operator-pack`.
+9. P73 appears in the runtime activation package and release sync manifest.

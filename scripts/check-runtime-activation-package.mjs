@@ -25,6 +25,7 @@ const requiredFiles = [
   'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
   'docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md',
   'docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md',
+  'docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -39,6 +40,7 @@ const requiredFiles = [
   'scripts/audit-live-runtime-readiness.mjs',
   'scripts/check-runtime-readiness-ledger.mjs',
   'scripts/check-remote-origin-execution.mjs',
+  'scripts/check-remote-origin-operator-pack.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -54,6 +56,7 @@ const p70 = read('docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md')
 const p71 = read('docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md')
 const p72 = read('docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md')
 const p73 = read('docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md')
+const p74 = read('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -92,6 +95,10 @@ assert(
   'package.json must expose check:remote-origin-execution',
 )
 assert(
+  packageJson.scripts['check:remote-origin-operator-pack'] === 'node scripts/check-remote-origin-operator-pack.mjs',
+  'package.json must expose check:remote-origin-operator-pack',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -114,6 +121,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-origin-execution'),
   'npm run test must include check:remote-origin-execution',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-origin-operator-pack'),
+  'npm run test must include check:remote-origin-operator-pack',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -220,10 +231,21 @@ assert(
 assert(
   p73.includes('P73 Remote Runtime Origin Execution Gate')
     && p73.includes('deploy/runtime-production/origin-execution-plan.json')
+    && p73.includes('P74 Remote Runtime Operator Handoff')
+    && p73.includes('check:remote-origin-operator-pack')
     && p73.includes('REQUIRE_REMOTE_ORIGIN_EXECUTED=true')
     && p73.includes('remote_origin_execution_unassigned')
     && p73.includes('remote_origin_execution_ready'),
   'P73 remote origin execution gate must define execution plan, strict mode and decisions',
+)
+assert(
+  p74.includes('P74 Remote Runtime Operator Handoff')
+    && p74.includes('check:remote-origin-operator-pack')
+    && p74.includes('operator_pack_waiting_for_service_assignment')
+    && p74.includes('operator_pack_ready_for_strict_origin_execution')
+    && p74.includes('Provider secret names only')
+    && p74.includes('REQUIRE_REMOTE_ORIGIN_EXECUTED=true'),
+  'P74 operator handoff gate must define the no-secret operator pack, decisions and strict P73 handoff',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
@@ -268,6 +290,7 @@ for (const required of [
   'CORS Contract',
   'Health Contract',
   'Host Target Gate',
+  'Operator Handoff',
   'Live Smoke',
   'Rollback',
   'Acceptance Evidence',
@@ -277,6 +300,7 @@ for (const required of [
 for (const command of [
   'npm run check:public-live-config',
   'npm run check:public-runtime-preview',
+  'npm run check:remote-origin-operator-pack',
   'npm run qa:live-runtime-browser',
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',
