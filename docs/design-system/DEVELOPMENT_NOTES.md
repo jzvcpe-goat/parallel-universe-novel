@@ -3561,5 +3561,6 @@ P71 补的是 P70 和 P66 中间的执行断点：有了部署 manifest，并不
 2. 镜像命名固定为 `ghcr.io/jzvcpe-goat/parallel-universe-novel-api` 和 `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime`，tag 使用 `<commit-sha>` 与 `runtime-latest`。
 3. workflow 只能拿 `packages: write`，不能接触数据库 URL、Tool Bridge token、模型 key、reference vault key 或 Pages live variables。
 4. `deploy/runtime-production/service-manifest.json` 记录镜像名和 tag 约定，让 Docker-compatible host 可以按同一份合同部署。
-5. `check:runtime-image-workflow` 进入 root test，并被 P14/P20/P45/P52/P66/P70 引用，防止“部署文档有镜像，实际 CI 不发布镜像”的断层。
-6. P71 不等于上线：远端 HTTPS origin、health、Pages live variables 和 public runtime trace 仍由 P66/P65 证明。
+5. GHCR push 必须用 `push_with_retry` 抵抗 transient 5xx。镜像层已上传但 manifest/tag push 失败时，下一次重试可以复用已有层。
+6. `check:runtime-image-workflow` 进入 root test，并被 P14/P20/P45/P52/P66/P70 引用，防止“部署文档有镜像，实际 CI 不发布镜像”的断层。
+7. P71 不等于上线：远端 HTTPS origin、health、Pages live variables 和 public runtime trace 仍由 P66/P65 证明。

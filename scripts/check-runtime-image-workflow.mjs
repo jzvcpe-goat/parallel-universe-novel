@@ -51,6 +51,7 @@ for (const required of [
   'parallel-universe-novel-api',
   'parallel-universe-novel-agent-runtime',
   'docker push',
+  'push_with_retry',
   'runtime-latest',
 ]) {
   assert(workflow.includes(required), `runtime image workflow must include ${required}`)

@@ -210,7 +210,8 @@ assert(
   runtimeImagesWorkflow.includes('packages: write')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-api')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-agent-runtime')
-    && runtimeImagesWorkflow.includes('docker push'),
+    && runtimeImagesWorkflow.includes('docker push')
+    && runtimeImagesWorkflow.includes('push_with_retry'),
   'runtime image workflow must publish both runtime images to GHCR',
 )
 for (const required of [

@@ -62,15 +62,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:${{ steps.tag.outputs.value }}"
-          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:runtime-latest"
+          push_with_retry() {
+            local image="$1"
+            for attempt in 1 2 3; do
+              if docker push "$image"; then
+                return 0
+              fi
+              if [ "$attempt" = "3" ]; then
+                return 1
+              fi
+              sleep $((attempt * 10))
+            done
+          }
+          push_with_retry "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:${{ steps.tag.outputs.value }}"
+          push_with_retry "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-api:runtime-latest"
 
       - name: Push Agent Runtime image
         shell: bash
         run: |
           set -euo pipefail
-          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:${{ steps.tag.outputs.value }}"
-          docker push "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:runtime-latest"
+          push_with_retry() {
+            local image="$1"
+            for attempt in 1 2 3; do
+              if docker push "$image"; then
+                return 0
+              fi
+              if [ "$attempt" = "3" ]; then
+                return 1
+              fi
+              sleep $((attempt * 10))
+            done
+          }
+          push_with_retry "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:${{ steps.tag.outputs.value }}"
+          push_with_retry "$REGISTRY/${{ github.repository_owner }}/parallel-universe-novel-agent-runtime:runtime-latest"
 
       - name: Output image references
         shell: bash

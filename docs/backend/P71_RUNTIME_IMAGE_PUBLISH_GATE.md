@@ -75,6 +75,7 @@ origin readiness and remote trace proof.
 3. It builds `deploy/api/Dockerfile`.
 4. It builds `deploy/agent-runtime/Dockerfile`.
 5. It pushes API and Agent Runtime images to GHCR.
-6. It does not reference runtime secrets.
-7. `deploy/runtime-production/service-manifest.json` records the image names.
-8. Root `npm run test` includes `check:runtime-image-workflow`.
+6. It retries transient registry push failures through `push_with_retry`.
+7. It does not reference runtime secrets.
+8. `deploy/runtime-production/service-manifest.json` records the image names.
+9. Root `npm run test` includes `check:runtime-image-workflow`.
