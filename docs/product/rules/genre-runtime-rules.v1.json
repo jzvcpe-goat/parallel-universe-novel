@@ -20,6 +20,12 @@
       "runtimeResolver": "registry_fields_only",
       "temporaryRuntimeBranches": "rejected"
     },
+    "deprecatedCasePolicy": {
+      "status": "purged",
+      "caseDerivedGlobalConstraints": "rejected",
+      "activation": "profile_rule_only",
+      "examplesAreNotRuntimeRules": true
+    },
     "nonExecutableInputs": [
       "browser_qa_note",
       "research_intake_note",

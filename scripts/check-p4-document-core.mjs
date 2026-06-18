@@ -42,6 +42,10 @@ assert(core.sourceAuthority?.normalizedCorpus === '21_type_constraint_kernel_pdf
 assert(core.sourceAuthority?.compilePath === 'human_editable_rule_docs_then_runtime_registry', 'P4 must compile through human-editable rule docs before runtime registry')
 assert(core.sourceAuthority?.runtimeResolver === 'registry_fields_only', 'P4 runtime resolver must read registry fields only')
 assert(core.sourceAuthority?.temporaryRuntimeBranches === 'rejected', 'P4 must reject temporary runtime branches')
+assert(core.deprecatedCasePolicy?.status === 'purged', 'P4 must purge deprecated case-derived constraints')
+assert(core.deprecatedCasePolicy?.caseDerivedGlobalConstraints === 'rejected', 'P4 must reject case-derived global constraints')
+assert(core.deprecatedCasePolicy?.activation === 'profile_rule_only', 'P4 activation must be profile_rule_only')
+assert(core.deprecatedCasePolicy?.examplesAreNotRuntimeRules === true, 'P4 examples must remain non-executable')
 assert(Array.isArray(core.nonExecutableInputs), 'P4 must declare non-executable research inputs')
 const allowedNonExecutableInputs = new Set([
   'browser_qa_note',
@@ -81,6 +85,7 @@ const artifact = {
   kernelCount: rules.genreKernels.length,
   nonExecutableInputs: core.nonExecutableInputs,
   sourceAuthority: core.sourceAuthority,
+  deprecatedCasePolicy: core.deprecatedCasePolicy,
 }
 const artifactPath = join(outputDir, `p4-document-core-${Date.now()}.json`)
 writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)

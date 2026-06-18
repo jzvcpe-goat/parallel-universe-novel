@@ -124,6 +124,12 @@ boundary, or character-action boundary in reusable terms. Do not encode a single
 intake note as a private branch in workflow, backend service code, provider
 adapter prompts, smoke payloads, or public UI copy.
 
+Runtime registry field `documentCore.deprecatedCasePolicy` is the handoff guard:
+deprecated case-derived constraints are purged, examples are non-executable, and
+activation is `profile_rule_only`. Teams may use old QA material to inspire a
+new reusable rule, but the material itself must not survive as a hidden ban list
+or selected-genre exception.
+
 ### `xuanhuan-xianxia`
 
 Display name: 仙侠玄幻

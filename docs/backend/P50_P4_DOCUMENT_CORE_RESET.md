@@ -26,6 +26,19 @@ Temporary prompt examples, browser comments, and special-case negative samples
 are allowed as research notes only. They must not become runtime branches,
 global bans, provider prompt patches, or UI copy.
 
+The 2026-06-18 reset adds an explicit deprecated-case policy to the runtime
+registry:
+
+- `deprecatedCasePolicy.status = purged`
+- `caseDerivedGlobalConstraints = rejected`
+- `activation = profile_rule_only`
+- `examplesAreNotRuntimeRules = true`
+
+This means P4 is no longer allowed to carry any premise-specific global
+constraint from earlier QA or prompt experiments. If a premise boundary matters,
+it must be generalized into the human-editable rule documents and then compiled
+into `ConstraintProfile.rules[]` plus compatible `GenreKernel` behavior.
+
 ## Runtime Boundary
 
 P4 runtime behavior:
@@ -56,6 +69,7 @@ The gate verifies:
 
 - the runtime registry points to the v3 baseline contract,
 - the runtime registry declares the 21-type document corpus and rejects temporary runtime branches,
+- the runtime registry declares deprecated case-derived constraints purged,
 - human-editable source documents exist,
 - research intake notes are marked non-executable,
 - the registry does not contain ad hoc override keys or one-off branches,

@@ -74,6 +74,7 @@
     "docs/product/rules/genre-runtime-rules.v1.json",
     "docs/product/rules/reference-work-public-refs.json",
     "docs/product/rules/reference-work-vault.enc.json",
+    "docs/product/breakpoints/00_NARRATIVE_RUNTIME_ENGINE.md",
     "docs/product/reviews/BACKEND_TODOLIST_REVIEW_20260615.md",
     "packages/agent-runtime/package.json",
     "packages/agent-runtime/src/constraints.ts",

@@ -115,6 +115,13 @@ research examples are useful as research material, but they are not runtime fact
 and must not be copied into workflow branches, provider prompts, FastAPI service
 conditionals, or smoke payloads.
 
+The runtime registry now carries `documentCore.deprecatedCasePolicy` to make this
+enforceable. Creator Runtime must treat every earlier case-derived premise rule
+as deleted unless it has been re-authored in the document registry. The allowed
+path is profile selection -> `ConstraintProfile.rules[]` -> compatible
+`GenreKernel` -> Quality Brake. There is no side channel for global premise
+blacklists, provider-specific patches, or hidden selected-genre exceptions.
+
 When the product needs a new premise boundary, implement it in this order:
 
 1. Add or revise the reusable `ConstraintProfile` rule.
