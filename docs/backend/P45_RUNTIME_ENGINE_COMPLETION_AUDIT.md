@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -49,6 +49,7 @@ The release chain must continue to produce:
 - `remote-runtime-activation-control`
 - `remote-assignment-execution-pack`
 - `remote-assignment-fixture-gate`
+- `remote-runtime-blockers`
 - `reference-privacy`
 - `public-projection-privacy`
 - `local-live-runtime-visual-qa`
@@ -583,6 +584,20 @@ P84 closes the drift created when P83 added a second public privacy artifact:
 Current decision is that P45 completion evidence is aligned with the P83 public
 projection privacy gate. The live runtime remains blocked until remote API and
 Agent origins are configured.
+
+## P85 Remote Runtime Blocker Normalization
+
+P85 converts scattered remote-runtime blockers into a single operator ledger:
+
+- `check:remote-runtime-blockers` reads the latest P23/P65/P66/P72/P75/P76/P78
+  and P79 artifacts.
+- It emits `remote-runtime-blockers` JSON and Markdown artifacts with owner,
+  gate, required input, current decision and strict command per stage.
+- Pages uploads the ledger and the current-run artifact gate requires it.
+
+Current decision is that remote launch blockers are normalized and safe to hand
+to a deployment owner. Public live runtime is still blocked until the listed
+operator inputs are supplied and strict gates pass.
 
 ## P81 Remote Assignment Fixture Gate
 

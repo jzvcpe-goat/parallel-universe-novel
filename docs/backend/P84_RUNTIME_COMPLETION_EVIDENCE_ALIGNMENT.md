@@ -21,6 +21,8 @@ npm run check:runtime-completion-refresh
 
 - P45 commercial release chain evidence includes both `reference-privacy` and
   `public-projection-privacy`.
+- P45 commercial release chain evidence includes `remote-runtime-blockers`
+  whenever P85 is part of the release chain.
 - P45 required evidence artifacts list contains the same public privacy evidence
   uploaded by `.github/workflows/pages.yml`.
 - `check:runtime-engine-completion` validates the Pages upload step, the public
@@ -41,4 +43,6 @@ deprecated case logic.
 - `npm run check:runtime-completion-refresh` passes.
 - `npm run check:pages-live-release-gate` still reports
   `publicProjectionPrivacy`.
+- `npm run check:pages-live-release-gate` still reports
+  `remoteRuntimeBlockers`.
 - `npm run test` keeps both privacy artifacts in the root release chain.

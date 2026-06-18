@@ -144,6 +144,14 @@ assert(
   'Pages workflow must upload the remote assignment fixture gate artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote runtime blocker ledger')
+    && workflow.includes('remote-runtime-blockers')
+    && workflow.includes('artifacts/runtime/remote-runtime-blockers-*.json')
+    && workflow.includes('artifacts/runtime/remote-runtime-blockers-*.md')
+    && workflow.indexOf('Upload remote runtime blocker ledger') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote runtime blocker ledger artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -192,6 +200,7 @@ assert(
     && p16Doc.includes('check:live-cutover-attestation')
     && p16Doc.includes('check:live-rollback-rehearsal')
     && p16Doc.includes('check:remote-runtime-activation-control')
+    && p16Doc.includes('remote-runtime-blockers')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
 )
@@ -202,6 +211,7 @@ assert(
     && p43Doc.includes('remote-runtime-activation-control')
     && p43Doc.includes('remote-assignment-execution-pack')
     && p43Doc.includes('remote-assignment-fixture-gate')
+    && p43Doc.includes('remote-runtime-blockers')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
@@ -229,6 +239,7 @@ console.log(JSON.stringify({
   activationControl: 'check:remote-runtime-activation-control',
   assignmentExecutionPack: 'remote-assignment-execution-pack',
   assignmentFixtureGate: 'remote-assignment-fixture-gate',
+  remoteRuntimeBlockers: 'remote-runtime-blockers',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
   liveModeGate: 'qa:live-runtime-browser',

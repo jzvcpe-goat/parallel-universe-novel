@@ -1,5 +1,23 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P85 Remote Runtime Blocker Normalization
+
+P84 对齐了 release evidence，但 P45 仍显示 commercial release chain blocked。真正的下一个断点不是继续补 UI 或规则，而是把 P23/P65/P66/P72/P75/P76/P78/P79 这些分散输出统一成部署负责人能执行的一张断点表。
+
+新的工程标准：
+
+1. 远端 Runtime blocked 不能只停留在多份 JSON 里；必须生成 `remote-runtime-blockers` JSON/Markdown ledger，标出 owner、gate、required input、next action 和 strict command。
+2. 该 ledger 只允许包含非密信息，不允许出现数据库 URL、Tool Bridge token、模型 key、provider API token、system prompt、raw runtime state、reference vault、代表作品、`sourceRefs`、`profile.id` 或 `kernel.id`。
+3. Pages workflow 必须上传 `remote-runtime-blockers`，current-run artifact gate 必须检查它，P45 completion matrix 必须把它列入 commercial release evidence。
+
+验证命令：
+
+```bash
+npm run check:remote-runtime-blockers
+npm run check:pages-live-release-gate
+npm run check:github-actions-artifacts
+```
+
 ## 2026-06-18 P84 Runtime Completion Evidence Alignment
 
 P83 把 `public-projection-privacy` 接进 Pages workflow 和 root test 后，P45 runtime completion matrix 仍然只列旧的 9 个 release artifact。这类问题很危险：CI 实际上更严格了，但完成度审计还在描述旧世界，后续团队会误以为 `reference-privacy` 一份证据就足够。

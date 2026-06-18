@@ -154,6 +154,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote runtime blocker ledger
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-runtime-blockers
+          path: |
+            artifacts/runtime/remote-runtime-blockers-*.json
+            artifacts/runtime/remote-runtime-blockers-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
