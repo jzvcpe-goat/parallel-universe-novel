@@ -103,7 +103,7 @@ const artifact = {
     'rollback metadata remains available before public publish',
   ],
   stillPartial: [
-    'not a durable multi-table transaction',
+    'durable local canon promotion transaction is covered by P98',
     'not a remote live runtime proof',
     'not production operator authorization',
   ],

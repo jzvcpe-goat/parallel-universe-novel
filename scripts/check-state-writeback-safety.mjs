@@ -34,6 +34,8 @@ assertIncludes('backend/src/narrativeos/services/product_runtime.py', [
   'write_scope',
   'rollback_plan',
   'canon_ledger_only',
+  'production_canon_promotion',
+  'persist_production_canon_commit',
 ])
 
 assertIncludes('backend/tests/test_product_runtime_api.py', [
@@ -41,6 +43,8 @@ assertIncludes('backend/tests/test_product_runtime_api.py', [
   'idempotent_replay',
   'idempotency_key_required',
   'rollback_plan',
+  'production_canon_commits',
+  'multitable_rollback_fixture',
 ])
 
 assertIncludes('app/src/api/runtime.ts', [
@@ -61,6 +65,13 @@ assertIncludes('docs/backend/P51_STATE_WRITEBACK_SAFETY_GATE.md', [
   'rollback_plan',
 ])
 
+assertIncludes('docs/backend/P98_CANON_PROMOTION_TRANSACTION_GATE.md', [
+  'P98 Canon Promotion Transaction Gate',
+  'production_canon_promotion',
+  'production_canon_commits',
+  'analytics_events',
+])
+
 mkdirSync(outputDir, { recursive: true })
 const artifact = {
   status: 'passed',
@@ -70,10 +81,12 @@ const artifact = {
     'same Idempotency-Key replays the same ledger record',
     'candidate and unconfirmed states remain non-canon',
     'commit record declares rollback_plan before public publish',
+    'confirmed canon promotion writes production_canon_commits and analytics_events',
+    'production canon promotion verifies multi-table rollback before commit',
   ],
   stillPartial: [
-    'does not yet prove multi-table database transaction rollback',
     'does not yet prove production public branch publish or durable multi-table WorldInstance writeback against the shared runtime ledger',
+    'does not yet prove remote live runtime trace',
   ],
 }
 const artifactPath = join(outputDir, `state-writeback-safety-${Date.now()}.json`)

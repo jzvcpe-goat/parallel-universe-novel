@@ -1366,7 +1366,20 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     payload = committed.json()
     assert payload["status"] == "committed"
     assert payload["idempotent_replay"] is False
-    assert payload["write_scope"] == "canon_ledger_only"
+    assert payload["write_scope"] == "production_canon_promotion"
+    assert payload["ledger_write_scope"] == "canon_ledger_only"
+    assert payload["production_canon_commit_id"] == payload["commit_id"]
+    assert payload["tables_written"] == ["production_canon_commits", "analytics_events"]
+    assert payload["audit_event_id"]
+    assert payload["multitable_transaction"]["status"] == "committed"
+    assert payload["multitable_transaction"]["tables"] == ["production_canon_commits", "analytics_events"]
+    assert payload["multitable_transaction"]["rollback_verified_before_commit"] is True
+    assert payload["multitable_rollback_fixture"]["rollback_verified"] is True
+    assert payload["multitable_rollback_fixture"]["tables_checked"] == ["production_canon_commits", "analytics_events"]
+    assert payload["multitable_rollback_fixture"]["canon_visible_before_rollback"] is True
+    assert payload["multitable_rollback_fixture"]["analytics_visible_before_rollback"] is True
+    assert payload["multitable_rollback_fixture"]["canon_persisted_after_rollback"] is False
+    assert payload["multitable_rollback_fixture"]["analytics_persisted_after_rollback"] is False
     assert payload["source_run_id"] == "studio-run-candidate-demo"
     assert payload["quality_report_hash"] == report["studio_trace"]["quality_report_hash"]
     assert payload["studio_trace"]["source_run_id"] == "studio-run-candidate-demo"
@@ -1410,6 +1423,8 @@ def test_quality_evaluate_and_canon_commit_gate(tmp_path: Path, monkeypatch):
     assert replayed_payload["ledger_path"] == payload["ledger_path"]
     assert replayed_payload["idempotent_replay"] is True
     assert replayed_payload["studio_trace"]["trace_id"] == payload["studio_trace"]["trace_id"]
+    assert replayed_payload["write_scope"] == "production_canon_promotion"
+    assert replayed_payload["tables_written"] == ["production_canon_commits", "analytics_events"]
 
     missing_key = client.post(
         "/v1/canon/commit",

@@ -26,11 +26,11 @@ npm run check:runtime-engine-completion
 
 | Component ID | Module | Status | Evidence Summary | Open Gap |
 | --- | --- | --- | --- | --- |
-| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; P62 writes a private production branch table row and audit event; P63 writes a Reader-visible `public_branch_releases` row and audit event; P64 writes a `time_engine_telemetry_fits` row; Studio confirmation now carries `studio_trace` into the canon ledger. | Remote live runtime trace is not yet proven. |
+| `narrative-runtime-engine` | Narrative Runtime Engine | `partial` | `RuntimeArtifact` covers constraint set, kernel selection, scene plan, state preview, time consistency, quality brake, branch result; Reader choices now carry route trace and WorldInstance patch candidates; Reader branch publish candidate consumes TimeEngine candidate events; P59 proves a database transaction rollback fixture; P60 proves branch publish operator authorization as candidate ledger; P61 proves branch commit draft with multi-table rollback fixture; P62 writes a private production branch table row and audit event; P63 writes a Reader-visible `public_branch_releases` row and audit event; P64 writes a `time_engine_telemetry_fits` row; P98 writes confirmed Studio canon promotion into `production_canon_commits` plus `analytics_events` with `production_canon_promotion`. | Remote live runtime trace is not yet proven. |
 | `world-engine` | 世界引擎 | `partial` | Worldpack registry, `WorldBible`, frontend world/template data, Reader route-choice ledger proof, `world_instance_patch_candidate_only` readback, `branch_publish_candidate_ledger_only`, authorization, `branch_commit_draft_ledger_only`, `production_branch_table_private`, `reader_visible_branch_release`, and `production_time_engine_fit` proof exist. | Remote runtime facade is not yet proven. |
 | `genre-kernel` | 类型内核 | `ready` | 21 `ConstraintProfile` + 21 `GenreKernel`, P4 scanner, runtime rule handshake, per-profile workflow tests, P67 vault access gate, P80 reference privacy artifact gate. | Keep registry privacy, P4 scanner and reference privacy artifact green. |
 | `time-engine` | 时间引擎 | `partial` | deterministic TimeEngine generates Poisson/Hawkes-style candidate event density in Agent Runtime; FastAPI TimeEngine candidate ledger persists rollbackable `time_event_candidate_ledger_only` events for a worldline; Reader branch publish candidate consumes TimeEngine event ids; P64 persists `production_time_engine_fit` after public release. | Remote live runtime trace is not yet proven. |
-| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon ledger proof with `studio_trace` and `quality_report_hash`, Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
+| `state-writeback` | 状态回写 | `partial` | `stateWritebackPreview`, Tool Bridge `stateDeltaCandidate`, smoke proves preview-only, `/canon/commit` has idempotent canon promotion proof with `studio_trace`, `quality_report_hash`, `production_canon_commits`, `analytics_events`, `production_canon_promotion`, and a rollback fixture; Reader choices persist to route-choice ledger, WorldInstance relationship/memory patch candidates can be read back, branch publish candidates consume TimeEngine candidates behind `Idempotency-Key`, `database_transaction_rollback_fixture` proves rollback does not persist a probe row, P61 proves branch commit draft rollback across `route_choices` + `analytics_events`, P62 writes `production_branch_commits` plus audit event with `public_publish_enabled = false`, P63 writes `public_branch_releases` plus audit event with `public_publish_enabled = true`, and P64 writes `time_engine_telemetry_fits` plus audit event. | Remote live runtime trace is not yet proven. |
 | `model-orchestration` | 多模型编排 | `partial` | Mastra agent contracts, provider abstraction, provider-agnostic config gate, P97 cost-aware provider routing, `backend/tests/test_provider_runtime_routing.py`, and `check:cost-aware-provider-routing`. | Public remote provider smoke is not yet proven because remote API/Agent HTTPS origins remain disabled. |
 | `quality-brake` | 质量刹车 | `partial` | `qualityBrakeWorkflow`, `qualityBrakeReport`, repair tests, canon ledger commit gated by quality plus confirmation with a shared Studio trace, P60 structural branch authorization gate, and P63 release owner/ops/rollback owner gate. | Reader live-generation text quality gate against remote runtime is not yet proven. |
 | `agent-eval` | Agent Eval | `partial` | Eval services, quality gate modules, scorer tests and dependency policy exist. | Learned evaluator/reranker are not promoted into public live release gate. |
@@ -61,11 +61,12 @@ The current artifact gate is `check:github-actions-artifacts`. P45 consumes the 
 
 ## P52 Runtime Completion Matrix Refresh
 
-P52 refreshed this matrix after P49 and P51:
+P52 refreshed this matrix after P49 and P51, and P98 updates the canon promotion proof:
 
 - P49 proves deterministic TimeEngine candidate density in Agent Runtime.
 - P51 proves idempotent canon ledger commit with `Idempotency-Key`, `idempotent_replay`, and `rollback_plan`.
 - P51 is guarded by `check:state-writeback-safety`.
+- P98 Canon Promotion Transaction Gate proves confirmed Studio canon promotion with `production_canon_promotion`, `production_canon_commits`, `analytics_events`, and a pre-commit rollback fixture.
 - `check:runtime-completion-refresh` prevents stale P45 gaps from returning.
 
 The matrix remains conservative: P59 proves the single-probe database transaction rollback fixture, P60 proves candidate operator authorization, P61 proves branch commit draft rollback across two existing tables, P62 proves private production branch table persistence, P63 proves Reader-visible public branch release persistence, and P64 proves production TimeEngine telemetry fitting, while remote live runtime is still a future gate.
@@ -117,14 +118,15 @@ P56 proves the local Studio confirmation chain without claiming production
 publish:
 
 - `/v1/quality/evaluate` returns `studio_trace` and `quality_report_hash`.
-- `/v1/canon/commit` stores the same trace in the `canon_ledger_only` record.
+- `/v1/canon/commit` stores the same trace in the compatibility `canon_ledger_only` record and writes the confirmed promotion to `production_canon_commits`.
 - Idempotent replay returns the same ledger record.
 - Rollback metadata remains `available_before_public_publish`.
 - `check:studio-canon-trace` prevents Studio from regressing to an unlinked
   quality/commit flow.
 
-Remaining gaps stay explicit: P56 is not remote live runtime, not production
-operator authorization, and not durable multi-table canon publishing.
+Remaining gaps stay explicit: P56 is not remote live runtime and not production
+operator authorization. P98 now proves the local durable multi-table canon
+promotion path.
 
 ## P58 Reader Branch Publish Candidate Gate
 

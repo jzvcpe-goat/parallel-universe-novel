@@ -348,6 +348,39 @@ class BillingLifecycleEventRow(PlatformBase):
     processed_at = Column(String, nullable=True)
 
 
+class ProductionCanonCommitRow(PlatformBase):
+    __tablename__ = "production_canon_commits"
+    __table_args__ = (
+        Index("idx_production_canon_commits_project_created_at", "project_id", "created_at"),
+        Index("idx_production_canon_commits_session_created_at", "session_id", "created_at"),
+        Index("idx_production_canon_commits_world_created_at", "world_id", "created_at"),
+        Index("idx_production_canon_commits_candidate_id", "candidate_id"),
+        Index("idx_production_canon_commits_source_run_id", "source_run_id"),
+        Index("idx_production_canon_commits_idempotency_key_hash", "idempotency_key_hash"),
+    )
+
+    canon_commit_id = Column(String, primary_key=True)
+    project_id = Column(String, nullable=True, index=True)
+    session_id = Column(String, nullable=True, index=True)
+    worldline_id = Column(String, nullable=True, index=True)
+    world_id = Column(String, nullable=True, index=True)
+    world_version_id = Column(String, nullable=True, index=True)
+    chapter_id = Column(String, nullable=True, index=True)
+    candidate_id = Column(String, nullable=True, index=True)
+    source_run_id = Column(String, nullable=True, index=True)
+    confirmed_by = Column(String, nullable=False, index=True)
+    target_status = Column(String, nullable=False, default="canon")
+    status = Column(String, nullable=False, default="committed")
+    write_scope = Column(String, nullable=False, default="production_canon_promotion")
+    idempotency_key_hash = Column(String, nullable=False, index=True)
+    quality_report_hash = Column(String, nullable=False, index=True)
+    rollback_plan_json = Column(JSON, nullable=True)
+    studio_trace_json = Column(JSON, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_at = Column(String, nullable=False, default=utcnow_iso)
+    updated_at = Column(String, nullable=False, default=utcnow_iso)
+
+
 class ProductionBranchCommitRow(PlatformBase):
     __tablename__ = "production_branch_commits"
     __table_args__ = (

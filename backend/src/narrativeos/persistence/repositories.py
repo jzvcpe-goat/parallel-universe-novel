@@ -33,6 +33,7 @@ from .db import (
     BillingCheckoutSessionRow,
     BillingLifecycleEventRow,
     BillingRetryAttemptRow,
+    ProductionCanonCommitRow,
     ProductionBranchCommitRow,
     PublicBranchReleaseRow,
     TimeEngineTelemetryFitRow,
@@ -2592,6 +2593,261 @@ class SQLAlchemyPlatformRepository:
             "after_event_count": len(after_event_rows),
             "tables_checked": ["route_choices", "analytics_events"],
             "occurred_at": occurred_at,
+        }
+
+    def prove_production_canon_multitable_transaction_rollback(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        canon_commit_id = str(payload.get("canon_commit_id") or "").strip()
+        event_name = str(payload.get("event_name") or "production_canon_commit_transaction_fixture").strip()
+        idempotency_key_hash = str(payload.get("idempotency_key_hash") or "").strip()
+        quality_report_hash = str(payload.get("quality_report_hash") or "").strip()
+        confirmed_by = str(payload.get("confirmed_by") or "").strip()
+        if not canon_commit_id:
+            raise ValueError("canon_commit_id_required")
+        if not event_name:
+            raise ValueError("event_name_required")
+        if not idempotency_key_hash:
+            raise ValueError("idempotency_key_hash_required")
+        if not quality_report_hash:
+            raise ValueError("quality_report_hash_required")
+        if not confirmed_by:
+            raise ValueError("confirmed_by_required")
+        occurred_at = payload.get("occurred_at") or utcnow_iso()
+        analytics_event_id: Optional[int] = None
+        canon_visible_before_rollback = False
+        analytics_visible_before_rollback = False
+        with self.SessionLocal() as session:
+            before_canon_rows = (
+                session.execute(
+                    select(ProductionCanonCommitRow).where(
+                        ProductionCanonCommitRow.canon_commit_id == canon_commit_id
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            before_event_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+            canon_row = ProductionCanonCommitRow(
+                canon_commit_id=canon_commit_id,
+                project_id=payload.get("project_id"),
+                session_id=payload.get("session_id"),
+                worldline_id=payload.get("worldline_id"),
+                world_id=payload.get("world_id"),
+                world_version_id=payload.get("world_version_id"),
+                chapter_id=payload.get("chapter_id"),
+                candidate_id=payload.get("candidate_id"),
+                source_run_id=payload.get("source_run_id"),
+                confirmed_by=confirmed_by,
+                target_status=str(payload.get("target_status") or "canon"),
+                status="probe",
+                write_scope="production_canon_promotion",
+                idempotency_key_hash=idempotency_key_hash,
+                quality_report_hash=quality_report_hash,
+                rollback_plan_json=dict(payload.get("rollback_plan") or {}),
+                studio_trace_json=dict(payload.get("studio_trace") or {}),
+                payload_json=dict(payload.get("payload_json") or {}),
+                created_at=occurred_at,
+                updated_at=occurred_at,
+            )
+            analytics_row = AnalyticsEventRow(
+                event_name=event_name,
+                reader_id=payload.get("reader_id"),
+                session_id=payload.get("session_id"),
+                world_version_id=payload.get("world_version_id"),
+                payload_json={
+                    "canon_commit_id": canon_commit_id,
+                    "candidate_id": payload.get("candidate_id"),
+                    "source_run_id": payload.get("source_run_id"),
+                    "idempotency_key_hash": idempotency_key_hash,
+                    "quality_report_hash": quality_report_hash,
+                    "scope": "production_canon_transaction_probe",
+                },
+                occurred_at=occurred_at,
+            )
+            session.add(canon_row)
+            session.add(analytics_row)
+            session.flush()
+            analytics_event_id = analytics_row.event_id
+            canon_visible_before_rollback = session.get(ProductionCanonCommitRow, canon_commit_id) is not None
+            analytics_visible_before_rollback = session.get(AnalyticsEventRow, analytics_event_id) is not None
+            session.rollback()
+        with self.SessionLocal() as session:
+            canon_persisted = session.get(ProductionCanonCommitRow, canon_commit_id)
+            event_persisted = session.get(AnalyticsEventRow, analytics_event_id) if analytics_event_id is not None else None
+            after_canon_rows = (
+                session.execute(
+                    select(ProductionCanonCommitRow).where(
+                        ProductionCanonCommitRow.canon_commit_id == canon_commit_id
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            after_event_rows = (
+                session.execute(select(AnalyticsEventRow).where(AnalyticsEventRow.event_name == event_name))
+                .scalars()
+                .all()
+            )
+        rollback_verified = (
+            canon_visible_before_rollback
+            and analytics_visible_before_rollback
+            and canon_persisted is None
+            and event_persisted is None
+            and len(after_canon_rows) == len(before_canon_rows)
+            and len(after_event_rows) == len(before_event_rows)
+        )
+        return {
+            "event_name": event_name,
+            "canon_commit_id": canon_commit_id,
+            "analytics_event_id": analytics_event_id,
+            "canon_visible_before_rollback": canon_visible_before_rollback,
+            "analytics_visible_before_rollback": analytics_visible_before_rollback,
+            "canon_persisted_after_rollback": canon_persisted is not None,
+            "analytics_persisted_after_rollback": event_persisted is not None,
+            "rollback_verified": rollback_verified,
+            "before_canon_count": len(before_canon_rows),
+            "after_canon_count": len(after_canon_rows),
+            "before_event_count": len(before_event_rows),
+            "after_event_count": len(after_event_rows),
+            "tables_checked": ["production_canon_commits", "analytics_events"],
+            "occurred_at": occurred_at,
+        }
+
+    def persist_production_canon_commit(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        canon_commit_id = str(payload.get("canon_commit_id") or payload.get("commit_id") or "").strip()
+        idempotency_key_hash = str(payload.get("idempotency_key_hash") or "").strip()
+        quality_report_hash = str(payload.get("quality_report_hash") or "").strip()
+        confirmed_by = str(payload.get("confirmed_by") or "").strip()
+        if not canon_commit_id:
+            raise ValueError("canon_commit_id_required")
+        if not idempotency_key_hash:
+            raise ValueError("idempotency_key_hash_required")
+        if not quality_report_hash:
+            raise ValueError("quality_report_hash_required")
+        if not confirmed_by:
+            raise ValueError("confirmed_by_required")
+        now = payload.get("created_at") or utcnow_iso()
+        with self.SessionLocal() as session:
+            existing = session.get(ProductionCanonCommitRow, canon_commit_id)
+            if existing is not None:
+                event = (
+                    session.execute(
+                        select(AnalyticsEventRow)
+                        .where(AnalyticsEventRow.event_name == "production_canon_commit_persisted")
+                        .order_by(desc(AnalyticsEventRow.occurred_at), desc(AnalyticsEventRow.event_id))
+                    )
+                    .scalars()
+                    .first()
+                )
+                return {
+                    **self._production_canon_commit_row_to_dict(existing),
+                    "audit_event_id": event.event_id if event is not None else None,
+                    "idempotent_replay": True,
+                    "tables_written": ["production_canon_commits", "analytics_events"],
+                }
+            row = ProductionCanonCommitRow(
+                canon_commit_id=canon_commit_id,
+                project_id=payload.get("project_id"),
+                session_id=payload.get("session_id"),
+                worldline_id=payload.get("worldline_id"),
+                world_id=payload.get("world_id"),
+                world_version_id=payload.get("world_version_id"),
+                chapter_id=payload.get("chapter_id"),
+                candidate_id=payload.get("candidate_id"),
+                source_run_id=payload.get("source_run_id"),
+                confirmed_by=confirmed_by,
+                target_status=str(payload.get("target_status") or "canon"),
+                status=str(payload.get("status") or "committed"),
+                write_scope="production_canon_promotion",
+                idempotency_key_hash=idempotency_key_hash,
+                quality_report_hash=quality_report_hash,
+                rollback_plan_json=dict(payload.get("rollback_plan") or {}),
+                studio_trace_json=dict(payload.get("studio_trace") or {}),
+                payload_json=dict(payload.get("payload_json") or {}),
+                created_at=now,
+                updated_at=now,
+            )
+            event = AnalyticsEventRow(
+                event_name="production_canon_commit_persisted",
+                reader_id=payload.get("reader_id"),
+                session_id=payload.get("session_id"),
+                world_version_id=payload.get("world_version_id"),
+                payload_json={
+                    "canon_commit_id": canon_commit_id,
+                    "candidate_id": payload.get("candidate_id"),
+                    "source_run_id": payload.get("source_run_id"),
+                    "confirmed_by": confirmed_by,
+                    "target_status": str(payload.get("target_status") or "canon"),
+                    "idempotency_key_hash": idempotency_key_hash,
+                    "quality_report_hash": quality_report_hash,
+                },
+                occurred_at=now,
+            )
+            session.add(row)
+            session.add(event)
+            session.commit()
+            return {
+                **self._production_canon_commit_row_to_dict(row),
+                "audit_event_id": event.event_id,
+                "idempotent_replay": False,
+                "tables_written": ["production_canon_commits", "analytics_events"],
+            }
+
+    def latest_production_canon_commit(
+        self,
+        *,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        world_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        with self.SessionLocal() as session:
+            stmt = select(ProductionCanonCommitRow)
+            if project_id is not None:
+                stmt = stmt.where(ProductionCanonCommitRow.project_id == project_id)
+            if session_id is not None:
+                stmt = stmt.where(ProductionCanonCommitRow.session_id == session_id)
+            if world_id is not None:
+                stmt = stmt.where(ProductionCanonCommitRow.world_id == world_id)
+            row = (
+                session.execute(
+                    stmt.order_by(
+                        desc(ProductionCanonCommitRow.created_at),
+                        desc(ProductionCanonCommitRow.canon_commit_id),
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if row is None:
+                return None
+            return self._production_canon_commit_row_to_dict(row)
+
+    def _production_canon_commit_row_to_dict(self, row: ProductionCanonCommitRow) -> Dict[str, Any]:
+        return {
+            "canon_commit_id": row.canon_commit_id,
+            "commit_id": row.canon_commit_id,
+            "project_id": row.project_id,
+            "session_id": row.session_id,
+            "worldline_id": row.worldline_id,
+            "world_id": row.world_id,
+            "world_version_id": row.world_version_id,
+            "chapter_id": row.chapter_id,
+            "candidate_id": row.candidate_id,
+            "source_run_id": row.source_run_id,
+            "confirmed_by": row.confirmed_by,
+            "target_status": row.target_status,
+            "status": row.status,
+            "write_scope": row.write_scope,
+            "idempotency_key_hash": row.idempotency_key_hash,
+            "quality_report_hash": row.quality_report_hash,
+            "rollback_plan": dict(row.rollback_plan_json or {}),
+            "studio_trace": dict(row.studio_trace_json or {}),
+            "payload": dict(row.payload_json or {}),
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
         }
 
     def persist_production_branch_commit(self, payload: Dict[str, Any]) -> Dict[str, Any]:

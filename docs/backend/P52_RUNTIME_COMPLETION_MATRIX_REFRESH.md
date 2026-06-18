@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49 and P51. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51 and the later P98 canon promotion gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -20,8 +20,10 @@ P51 changed state-writeback and quality-brake evidence:
 
 - `/v1/canon/commit` requires `Idempotency-Key` for confirmed writes,
 - repeated keys replay the same idempotent canon ledger record,
-- commit records declare `write_scope = canon_ledger_only`,
+- P51 compatibility ledger records remain available as `ledger_write_scope = canon_ledger_only`,
 - commit records include `rollback_plan`,
+- P98 Canon Promotion Transaction Gate writes confirmed canon promotion to `production_canon_commits` and `analytics_events`,
+- P98 responses declare `write_scope = production_canon_promotion`,
 - P59 now proves a single-probe database transaction rollback fixture for Reader branch publish candidates,
 - P62 proves private production branch table persistence and P63 proves Reader-visible public release,
 - P64 proves production TimeEngine telemetry fitting after Reader-visible public release,
@@ -37,9 +39,17 @@ P55 changed world-engine/state-writeback evidence:
 P56 changed Studio/state-writeback evidence:
 
 - `/v1/quality/evaluate` returns `studio_trace` and `quality_report_hash`,
-- `/v1/canon/commit` stores the same trace in the `canon_ledger_only` record,
+- `/v1/canon/commit` stores the same trace in the compatibility `canon_ledger_only` record and P98 promotes the confirmed commit to `production_canon_commits`,
 - idempotent replay returns the same ledger record,
-- remaining gap is remote live commit, production release-owner approval and durable production publish, not absence of a Studio confirmation trace.
+- remaining gap is remote live commit, production release-owner approval and public release policy, not absence of a Studio confirmation trace or local canon promotion transaction.
+
+P98 Canon Promotion Transaction Gate changed state-writeback evidence:
+
+- FastAPI now persists confirmed Studio canon promotion to `production_canon_commits`,
+- the repository writes an `analytics_events` audit row in the same transaction,
+- the service verifies a rollback fixture across `production_canon_commits` and `analytics_events` before commit,
+- the public response reports `write_scope = production_canon_promotion` plus `ledger_write_scope = canon_ledger_only`,
+- `check:canon-promotion-transaction` is part of root `npm run test`.
 
 P57 changed time-engine evidence:
 
@@ -312,6 +322,7 @@ Run:
 npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
 npm run check:cost-aware-provider-routing
+npm run check:canon-promotion-transaction
 npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
 npm run check:remote-origin-operator-pack
@@ -330,6 +341,7 @@ npm run check:runtime-preview-compose
 
 - time simulation not implemented,
 - canon commit and rollback not proven at all,
+- durable multi-table canon promotion not proven after Studio confirmation,
 - quality brake not connected to author confirmation.
 - Studio quality evaluation and canon commit not linked by a shared trace.
 - TimeEngine not implemented as a durable backend candidate ledger.
@@ -364,7 +376,7 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78/P79 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78/P79/P98 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
 ## P96 Runtime Completion Blocker Convergence Refresh
 
 P96 extends this refresh contract by making the commercial release row consume

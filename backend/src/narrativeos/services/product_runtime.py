@@ -2117,6 +2117,73 @@ class ProductRuntimeService:
             idempotency_key_hash=key_hash,
             commit_id=commit_id,
         )
+        rollback_plan = {
+            "status": "available_before_public_publish",
+            "method": "remove_ledger_record_and_requeue_candidate",
+            "commit_id": commit_id,
+            "source_run_id": studio_trace["source_run_id"],
+            "quality_report_hash": studio_trace["quality_report_hash"],
+        }
+        rollback_proof = self.repository.prove_production_canon_multitable_transaction_rollback(
+            {
+                "canon_commit_id": commit_id,
+                "project_id": payload.get("project_id"),
+                "session_id": payload.get("session_id"),
+                "worldline_id": payload.get("worldline_id"),
+                "world_id": payload.get("world_id"),
+                "world_version_id": payload.get("world_version_id"),
+                "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
+                "candidate_id": payload.get("candidate_id"),
+                "source_run_id": studio_trace["source_run_id"],
+                "confirmed_by": payload.get("confirmed_by") or "web_operator",
+                "target_status": target_status,
+                "idempotency_key_hash": key_hash,
+                "quality_report_hash": studio_trace["quality_report_hash"],
+                "rollback_plan": rollback_plan,
+                "studio_trace": studio_trace,
+                "payload_json": {
+                    "quality_gate": gate,
+                    "quality_report_hash": studio_trace["quality_report_hash"],
+                    "ledger_write_scope": "canon_ledger_only",
+                },
+            }
+        )
+        if not rollback_proof.get("rollback_verified"):
+            return {
+                "status": "blocked",
+                "reason": "production_canon_multitable_rollback_failed",
+                "quality_gate": gate,
+                "write_scope": "none",
+                "multitable_rollback_fixture": {
+                    "rollback_verified": False,
+                    "tables_checked": list(rollback_proof.get("tables_checked") or []),
+                },
+            }
+        persisted = self.repository.persist_production_canon_commit(
+            {
+                "canon_commit_id": commit_id,
+                "project_id": payload.get("project_id"),
+                "session_id": payload.get("session_id"),
+                "worldline_id": payload.get("worldline_id"),
+                "world_id": payload.get("world_id"),
+                "world_version_id": payload.get("world_version_id"),
+                "chapter_id": payload.get("chapter_id") or report.get("chapter_id"),
+                "candidate_id": payload.get("candidate_id"),
+                "source_run_id": studio_trace["source_run_id"],
+                "confirmed_by": payload.get("confirmed_by") or "web_operator",
+                "target_status": target_status,
+                "idempotency_key_hash": key_hash,
+                "quality_report_hash": studio_trace["quality_report_hash"],
+                "rollback_plan": rollback_plan,
+                "studio_trace": studio_trace,
+                "payload_json": {
+                    "quality_gate": gate,
+                    "quality_report_hash": studio_trace["quality_report_hash"],
+                    "ledger_write_scope": "canon_ledger_only",
+                },
+                "created_at": now,
+            }
+        )
 
         record = {
             "commit_id": commit_id,
@@ -2134,14 +2201,25 @@ class ProductRuntimeService:
             "quality_report_hash": studio_trace["quality_report_hash"],
             "studio_trace": studio_trace,
             "idempotency_key_hash": key_hash,
-            "write_scope": "canon_ledger_only",
-            "rollback_plan": {
-                "status": "available_before_public_publish",
-                "method": "remove_ledger_record_and_requeue_candidate",
-                "commit_id": commit_id,
-                "source_run_id": studio_trace["source_run_id"],
-                "quality_report_hash": studio_trace["quality_report_hash"],
+            "write_scope": "production_canon_promotion",
+            "ledger_write_scope": "canon_ledger_only",
+            "production_canon_commit_id": persisted.get("canon_commit_id") or commit_id,
+            "tables_written": list(persisted.get("tables_written") or []),
+            "audit_event_id": persisted.get("audit_event_id"),
+            "multitable_transaction": {
+                "status": "committed",
+                "tables": list(persisted.get("tables_written") or []),
+                "rollback_verified_before_commit": bool(rollback_proof.get("rollback_verified")),
             },
+            "multitable_rollback_fixture": {
+                "rollback_verified": True,
+                "canon_visible_before_rollback": bool(rollback_proof.get("canon_visible_before_rollback")),
+                "analytics_visible_before_rollback": bool(rollback_proof.get("analytics_visible_before_rollback")),
+                "canon_persisted_after_rollback": bool(rollback_proof.get("canon_persisted_after_rollback")),
+                "analytics_persisted_after_rollback": bool(rollback_proof.get("analytics_persisted_after_rollback")),
+                "tables_checked": list(rollback_proof.get("tables_checked") or []),
+            },
+            "rollback_plan": rollback_plan,
             "created_at": now,
         }
         ledger_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")

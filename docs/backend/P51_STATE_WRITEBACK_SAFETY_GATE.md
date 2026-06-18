@@ -52,3 +52,12 @@ P51 intentionally leaves these as future work:
 - multi-table canon/branch commit,
 - Reader public branch publish / durable multi-table WorldInstance writeback tied to Creator run ledger,
 - production auth/permission boundary for publish operators.
+
+## P98 Follow-Up
+
+P98 closes the canon-specific database transaction gap for confirmed Studio canon promotion while keeping the P51 safety controls:
+
+- `/v1/canon/commit` still requires `Idempotency-Key`, explicit confirmation and a passing quality gate.
+- Confirmed canon promotion now writes `production_canon_commits` and `analytics_events`.
+- The response uses `write_scope = production_canon_promotion` and preserves `ledger_write_scope = canon_ledger_only` for compatibility with the P51 ledger.
+- P98 still does not claim remote live runtime trace, Reader-visible branch release, paid launch, or durable multi-table WorldInstance writeback.
