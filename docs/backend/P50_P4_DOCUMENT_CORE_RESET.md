@@ -114,9 +114,19 @@ The gate verifies:
 - all profiles and kernels use anonymous `rwref_*` source refs,
 - every kernel maps back to at least one document profile.
 
-The regression gate scans executable/product-facing surfaces and fails if the
-discarded premise-specific P4 logic reappears in runtime rules, Agent Runtime,
-FastAPI services/tests, or public app source.
+The regression gate is structural, not a replacement negative-word list. It
+does not carry the discarded premise's terms. It scans executable/product-facing
+surfaces for signs that P4 has been turned back into case logic:
+
+- prompt-case or legacy-case branches,
+- scenario patches or selected-genre exceptions,
+- global premise ban lists outside active `ConstraintProfile.rules[]`,
+- provider prompt patches,
+- hardcoded `profile.id` / `kernel.id` branching.
+
+The discarded premise-specific P4 logic is now implementation history only. It
+may be discussed in handoff notes, but it cannot survive as executable words,
+test fixtures, hidden branches, or runtime constraints.
 
 Existing gate:
 

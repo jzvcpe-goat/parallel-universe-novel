@@ -16,8 +16,12 @@ function readJson(rel) {
   return JSON.parse(read(rel))
 }
 
+function runtimePath(path) {
+  return String(path || '').startsWith('/') ? String(path) : join(root, path)
+}
+
 function maybeReadJson(rel) {
-  const path = join(root, rel)
+  const path = runtimePath(rel)
   if (!existsSync(path)) return null
   return JSON.parse(readFileSync(path, 'utf8'))
 }

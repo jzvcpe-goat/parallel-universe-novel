@@ -48,13 +48,31 @@ REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activa
    `deploy/runtime-production/remote-assignment.local.json`.
 3. Fill only non-secret service evidence: owner, provider, service ids, HTTPS
    origins, image refs and provider-secret-store confirmation flags.
-4. Run strict P75 until remote API and Agent `/health` pass.
-5. Set non-secret GitHub repository variables from the P75 assignment only after
+4. Generate the P79 Remote Assignment Execution Pack:
+
+   ```bash
+   npm run check:remote-assignment-execution-pack
+   ```
+
+5. Run strict P75 until remote API and Agent `/health` pass.
+6. Set non-secret GitHub repository variables from the P75 assignment only after
    health passes.
-6. Run strict P76.
-7. Run P77 once in static-preview mode and again in strict mode when an owner and
+7. Run strict P76.
+8. Run P77 once in static-preview mode and again in strict mode when an owner and
    rollback run id exist.
-8. Run strict P78 before public cutover.
+9. Run strict P78 before public cutover.
+
+## Remote Assignment Execution Pack
+
+When P78 reports `remote_activation_waiting_for_assignment`, run:
+
+```bash
+npm run check:remote-assignment-execution-pack
+```
+
+The execution pack turns the ignored assignment file into safe health commands,
+strict gate commands, GitHub Variable commands and rollback commands. It does
+not execute them.
 
 ## Public Boundary
 
@@ -82,6 +100,8 @@ P78 artifacts must not include:
 
 - `package.json` exposes `check:remote-runtime-activation-control`.
 - Root `npm run test` includes `check:remote-runtime-activation-control`.
+- P78 points operators to `check:remote-assignment-execution-pack` when
+  assignment evidence is missing.
 - The check emits `artifacts/runtime/remote-activation-control-*.json`.
 - Non-strict mode reports blockers without failing normal CI.
 - Strict mode fails until P72, P75, P76 and P77 are ready.

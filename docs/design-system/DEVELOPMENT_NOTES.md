@@ -1,5 +1,43 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-18 P4 文档核心重做补丁
+
+用户再次要求 P4 从头做，并明确废弃此前单个题材验收里形成的约束逻辑。本轮纠正了一个容易复发的问题：回归门禁不能保存旧案例词表，否则门禁自己就会变成新的残留。
+
+新的工程标准：
+
+1. P4 的执行事实只来自 `GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 和编译后的 `genre-runtime-rules.v1.json`。
+2. 防回归检查只找结构性绕路：prompt-case 分支、scenario patch、selected-genre exception、global ban list、provider prompt patch、硬编码 profile/kernel 分支。
+3. 不允许把某次浏览器批注、负例、模型测试事故、后端评审建议里的词汇直接做成 runtime 禁词。
+4. 如果一个题材真的需要边界，先写成通用 `ConstraintProfile.rules[]`，再挂接兼容 `GenreKernel`，最后由 Quality Brake 按 `failBehavior` 处理。
+5. 历史讨论可以留在 handoff 里，但不得进入执行面、测试 fixture、前端文案或 provider adapter。
+
+必跑检查：
+
+```bash
+npm run check:p4-document-core
+npm run check:p4-deprecated-case-logic
+npm run scan:p4-rule-source
+```
+
+## 2026-06-18 P79 Remote Assignment Execution Pack
+
+P78 能看出上线卡在远端 assignment，但部署负责人仍要手工拼健康检查、strict gate、GitHub Variables 和 rollback 命令。P79 把被 `.gitignore` 保护的 `remote-assignment.local.json` 转成 JSON + Markdown 执行包。
+
+经验：
+
+1. 执行包只生成命令，不执行命令；上线变量和 provider 服务仍由负责人显式操作。
+2. artifact 可以包含 service id、HTTPS origin、GHCR image ref 这类非密钥证据，但必须拒绝 database URL、Tool Bridge token、模型 key、provider API token、私钥、system prompt 和 raw state。
+3. Missing assignment 在普通 CI 中应该是 blocker report，不是失败；strict mode 才失败。
+4. Markdown handoff 比纯 JSON 更适合给部署负责人逐项执行，但 JSON 仍是机器门禁的依据。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-execution-pack
+REQUIRE_REMOTE_ASSIGNMENT_EXECUTION_READY=true npm run check:remote-assignment-execution-pack
+```
+
 ## 2026-06-18 P78 Remote Runtime Activation Control
 
 P77 证明了回滚路径，但上线决策仍分散在 P72/P75/P76/P77 多个输出里。P78 把这些证据合成一个只读控制板，让部署负责人直接看到当前断点是镜像、远端 assignment、健康检查、live vars，还是回滚责任人。

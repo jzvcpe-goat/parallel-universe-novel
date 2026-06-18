@@ -77,6 +77,8 @@ assert(packageJson.scripts?.['check:p4-deprecated-case-logic'] === 'node scripts
 assert(packageJson.scripts?.test?.includes('npm run check:p4-deprecated-case-logic'), 'root npm run test must include check:p4-deprecated-case-logic')
 assert(p50Doc.includes('npm run check:p4-deprecated-case-logic'), 'P50 doc must document the deprecated case regression gate')
 assert(p50Doc.includes('discarded premise-specific P4 logic'), 'P50 doc must explain the discarded premise-specific P4 boundary')
+assert(p50Doc.includes('structural, not a replacement negative-word list'), 'P50 doc must define the P4 regression gate as structural, not a term list')
+assert(p50Doc.includes('global premise ban lists outside active `ConstraintProfile.rules[]`'), 'P50 doc must forbid global premise ban lists outside active profile rules')
 
 const forbiddenKeys = collectKeys(rules).filter(key => /promptCase|legacyCase|caseOverride|scenarioPatch|oneOff|adHoc/i.test(key))
 assert(forbiddenKeys.length === 0, `P4 registry contains case-specific override keys: ${forbiddenKeys.join(', ')}`)

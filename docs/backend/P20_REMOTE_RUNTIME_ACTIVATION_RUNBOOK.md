@@ -177,6 +177,27 @@ variables, mutate provider services, or store secrets; it only aggregates image
 evidence, remote assignment, live cutover attestation, rollback rehearsal and
 static preview reachability.
 
+### Remote Assignment Execution Pack
+
+After the deployment owner fills
+`deploy/runtime-production/remote-assignment.local.json`, generate the safe
+operator command bundle:
+
+```bash
+npm run check:remote-assignment-execution-pack
+```
+
+Strict check:
+
+```bash
+REQUIRE_REMOTE_ASSIGNMENT_EXECUTION_READY=true npm run check:remote-assignment-execution-pack
+```
+
+The generated Markdown artifact contains health commands, strict gate commands,
+GitHub Variable commands, rollback commands and an ordered checklist. It does
+not store database URLs, Tool Bridge token values, model keys, provider API
+tokens, private keys, system prompts or raw runtime state.
+
 GitHub Actions may use non-secret repository variables for service-assignment
 attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
 `REMOTE_API_SECRETS_CONFIGURED=true`, and
@@ -310,12 +331,13 @@ Do not set `VITE_ALLOW_LOCAL_CREATOR_FALLBACK`. The workflow hard-codes it to `f
 7. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
 8. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
 9. Fill `deploy/runtime-production/remote-assignment.local.json`.
-10. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
-11. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-12. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
-13. Verify both health endpoints.
-14. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-15. Run local strict config check:
+10. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
+11. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
+12. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+13. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
+14. Verify both health endpoints with the commands from the P79 Markdown artifact.
+15. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+16. Run local strict config check:
 
 ```bash
 REQUIRE_PUBLIC_LIVE_CONFIG=true \
@@ -326,7 +348,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-live-config
 ```
 
-16. Run public runtime preview check:
+17. Run public runtime preview check:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -336,7 +358,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run check:public-runtime-preview
 ```
 
-17. Generate the readiness ledger:
+18. Generate the readiness ledger:
 
 ```bash
 REQUIRE_LIVE_RUNTIME_READY=true \
@@ -347,7 +369,7 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run audit:live-runtime-readiness
 ```
 
-18. Run strict live cutover attestation:
+19. Run strict live cutover attestation:
 
 ```bash
 REQUIRE_LIVE_CUTOVER_ATTESTED=true \
@@ -361,19 +383,19 @@ REMOTE_AGENT_SECRETS_CONFIGURED=true \
 npm run check:live-cutover-attestation
 ```
 
-19. Run rollback rehearsal control:
+20. Run rollback rehearsal control:
 
 ```bash
 npm run check:live-rollback-rehearsal
 ```
 
-20. Run the remote activation control board:
+21. Run the remote activation control board:
 
 ```bash
 REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control
 ```
 
-21. Run Live Smoke:
+22. Run Live Smoke:
 
 ```bash
 REQUIRE_PUBLIC_RUNTIME=true \
@@ -383,10 +405,10 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK=false \
 npm run qa:live-runtime-browser
 ```
 
-22. Set GitHub repository variables.
-23. Push or manually dispatch `Deploy Creator Studio Preview`.
-24. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness` and `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation` before `qa:live-runtime-browser`.
-25. Open public `/#/create` and verify it shows `创作服务可用`.
+23. Set GitHub repository variables.
+24. Push or manually dispatch `Deploy Creator Studio Preview`.
+25. Confirm GitHub Actions build and deploy jobs are green. In live mode, the workflow must run `REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness`, `REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation` and `REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activation-control` before `qa:live-runtime-browser`.
+26. Open public `/#/create` and verify it shows `创作服务可用`.
 
 ## Live Smoke
 

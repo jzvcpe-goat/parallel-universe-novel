@@ -6,7 +6,6 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const outputDir = join(root, 'artifacts/runtime')
 
 const scannedRoots = [
-  'docs/product/rules',
   'packages/agent-runtime/src',
   'packages/agent-runtime/scripts',
   'backend/src/narrativeos/api',
@@ -15,19 +14,27 @@ const scannedRoots = [
   'app/src',
 ]
 
-const deprecatedCaseSignals = [
-  '西幻',
-  '非游戏化',
-  '禁古代官署职业',
-  '古代官署职业',
-  '清河县',
-  '仵作',
-  '县衙',
-  '地下城与勇士',
-  'western fantasy',
-  'non-gamified',
-  'ancient-office',
-  'caseDerivedGlobalConstraints = allowed',
+const forbiddenRuntimeStructures = [
+  {
+    pattern: /caseDerivedGlobalConstraints\s*[:=]\s*['"]?allowed/i,
+    message: 'case-derived global constraints must stay rejected',
+  },
+  {
+    pattern: /promptCase|legacyCase|caseOverride|scenarioPatch|selectedGenreException/i,
+    message: 'P4 must not carry prompt-case, legacy-case, scenario-patch, or selected-genre-exception branches',
+  },
+  {
+    pattern: /global(?:Genre|Premise)?(?:Ban|Blacklist)|premiseBlacklist|hiddenBanList/i,
+    message: 'P4 must not add global premise bans or hidden ban lists outside active ConstraintProfile.rules',
+  },
+  {
+    pattern: /providerPromptPatch|promptPatch|providerSpecificConstraint/i,
+    message: 'P4 must not patch provider prompts instead of editing the document registry',
+  },
+  {
+    pattern: /profile\.id\s*={2,3}\s*['"`]|kernel\.id\s*={2,3}\s*['"`]/,
+    message: 'runtime code must not branch on hardcoded profile/kernel ids',
+  },
 ]
 
 const requiredDocumentCore = {
@@ -76,11 +83,10 @@ const violations = []
 for (const file of scannedFiles) {
   const rel = relative(root, file)
   const text = readFileSync(file, 'utf8')
-  for (const signal of deprecatedCaseSignals) {
-    let index = text.indexOf(signal)
-    while (index !== -1) {
-      violations.push(`${rel}:${lineNumber(text, index)} contains deprecated case-derived P4 signal "${signal}"`)
-      index = text.indexOf(signal, index + signal.length)
+  for (const check of forbiddenRuntimeStructures) {
+    const match = text.match(check.pattern)
+    if (match?.index !== undefined) {
+      violations.push(`${rel}:${lineNumber(text, match.index)} ${check.message}`)
     }
   }
 }
@@ -95,10 +101,11 @@ if (violations.length) {
 mkdirSync(outputDir, { recursive: true })
 const artifact = {
   status: 'passed',
-  scope: 'P4 deprecated case-derived logic purge',
+  scope: 'P4 document-authority structural regression gate',
   source: relative(root, rulePath),
   scannedRoots,
   scannedFileCount: scannedFiles.length,
+  structuralChecks: forbiddenRuntimeStructures.map(check => check.message),
   deprecatedCasePolicy: core.deprecatedCasePolicy,
   sourceAuthority: core.sourceAuthority,
 }

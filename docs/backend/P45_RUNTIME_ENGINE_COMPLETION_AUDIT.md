@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 image publish evidence gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-execution-pack`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | Public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -47,6 +47,7 @@ The release chain must continue to produce:
 - `live-cutover-attestation`
 - `live-rollback-rehearsal`
 - `remote-runtime-activation-control`
+- `remote-assignment-execution-pack`
 - `local-live-runtime-visual-qa`
 - `github-pages`
 
@@ -531,6 +532,21 @@ board:
 Current decision is that P78 is ready as an activation-control evidence gate. It
 does not write GitHub variables, provision remote services, store secrets, or
 replace the operator handoff.
+
+## P79 Remote Assignment Execution Pack
+
+P79 turns an ignored P75 assignment file into an operator command bundle:
+
+- `scripts/check-remote-assignment-execution-pack.mjs` reads
+  `remote-assignment.local.json` and emits JSON plus Markdown artifacts.
+- Missing assignment files produce `assignment_execution_waiting_for_assignment`
+  without failing normal CI.
+- A complete assignment can produce `assignment_execution_pack_ready`.
+- The generated pack includes health commands, GitHub Variable commands, strict
+  P75/P73/P76/P78 gate commands, rollback commands and an ordered checklist.
+
+Current decision is that P79 is ready as an operator execution-pack gate. It
+does not execute the generated commands and does not store secrets.
 
 ## Privacy Boundary
 

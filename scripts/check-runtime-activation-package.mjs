@@ -30,6 +30,7 @@ const requiredFiles = [
   'docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md',
   'docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md',
   'docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md',
+  'docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -50,6 +51,7 @@ const requiredFiles = [
   'scripts/check-live-cutover-attestation.mjs',
   'scripts/check-live-rollback-rehearsal.mjs',
   'scripts/check-remote-runtime-activation-control.mjs',
+  'scripts/check-remote-assignment-execution-pack.mjs',
 ]
 
 for (const file of requiredFiles) {
@@ -70,6 +72,7 @@ const p75 = read('docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md')
 const p76 = read('docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md')
 const p77 = read('docs/backend/P77_LIVE_ROLLBACK_REHEARSAL_GATE.md')
 const p78 = read('docs/backend/P78_REMOTE_RUNTIME_ACTIVATION_CONTROL.md')
+const p79 = read('docs/backend/P79_REMOTE_ASSIGNMENT_EXECUTION_PACK.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -129,6 +132,10 @@ assert(
   'package.json must expose check:remote-runtime-activation-control',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-execution-pack'] === 'node scripts/check-remote-assignment-execution-pack.mjs',
+  'package.json must expose check:remote-assignment-execution-pack',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-activation-package'),
   'npm run test must include check:runtime-activation-package',
 )
@@ -171,6 +178,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-runtime-activation-control'),
   'npm run test must include check:remote-runtime-activation-control',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-execution-pack'),
+  'npm run test must include check:remote-assignment-execution-pack',
 )
 assert(
   packageJson.scripts['audit:live-runtime-readiness'] === 'node scripts/audit-live-runtime-readiness.mjs',
@@ -333,8 +344,19 @@ assert(
     && p78.includes('check:remote-runtime-activation-control')
     && p78.includes('remote_activation_waiting_for_assignment')
     && p78.includes('remote_activation_ready_for_cutover')
+    && p78.includes('check:remote-assignment-execution-pack')
     && p78.includes('REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true'),
   'P78 remote activation control must define aggregate decisions and strict mode',
+)
+assert(
+  p79.includes('P79 Remote Assignment Execution Pack')
+    && p79.includes('check:remote-assignment-execution-pack')
+    && p79.includes('assignment_execution_waiting_for_assignment')
+    && p79.includes('assignment_execution_pack_ready')
+    && p79.includes('REQUIRE_REMOTE_ASSIGNMENT_EXECUTION_READY=true')
+    && p79.includes('GitHub Variable commands')
+    && p79.includes('rollback commands'),
+  'P79 remote assignment execution pack must define operator commands, decisions and strict mode',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
@@ -406,6 +428,7 @@ for (const command of [
   'npm run check:live-cutover-attestation',
   'npm run check:live-rollback-rehearsal',
   'npm run check:remote-runtime-activation-control',
+  'npm run check:remote-assignment-execution-pack',
   'npm run qa:live-runtime-browser',
   'gh variable set VITE_PUBLIC_RUNTIME_MODE',
   'gh variable set VITE_API_ORIGIN',
