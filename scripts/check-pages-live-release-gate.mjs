@@ -16,6 +16,7 @@ const workflow = read('.github/workflows/pages.yml')
 const p16Doc = read('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md')
 const p43Doc = read('docs/backend/P43_CI_ARTIFACT_EVIDENCE_GATE.md')
 const p15Doc = read('docs/backend/P15_LIVE_RUNTIME_SMOKE_CONTRACT.md')
+const p99Doc = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const packageJson = JSON.parse(read('package.json'))
 const node24ActionVersions = [
   'actions/checkout@v6',
@@ -34,6 +35,16 @@ for (const action of node24ActionVersions) {
   )
 }
 
+assert(
+  workflow.includes('workflow_run:')
+    && workflow.includes('- Publish Runtime Images')
+    && workflow.includes('- completed')
+    && workflow.includes('workflow_dispatch:')
+    && !/^  push:/m.test(workflow)
+    && workflow.includes("if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}")
+    && workflow.includes('ref: ${{ github.event.workflow_run.head_sha || github.sha }}'),
+  'Pages workflow must deploy after successful Publish Runtime Images workflow_run, not directly from push',
+)
 assert(
   workflow.includes('Gate public runtime release mode'),
   'Pages workflow must include an explicit public runtime release gate step',
@@ -233,6 +244,10 @@ assert(
   'package.json must expose check:pages-live-release-gate',
 )
 assert(
+  packageJson.scripts['check:release-workflow-ordering'] === 'node scripts/check-release-workflow-ordering.mjs',
+  'package.json must expose check:release-workflow-ordering',
+)
+assert(
   packageJson.scripts['check:github-actions-artifacts'] === 'node scripts/check-github-actions-artifacts.mjs',
   'package.json must expose check:github-actions-artifacts',
 )
@@ -259,6 +274,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:pages-live-release-gate'),
   'npm run test must include check:pages-live-release-gate',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:release-workflow-ordering'),
+  'npm run test must include check:release-workflow-ordering',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-handoff-artifact'),
@@ -296,6 +315,14 @@ assert(
     && p16Doc.includes('check:public-privacy-artifacts')
     && p16Doc.includes('GitHub repository variables'),
   'P16 doc must describe the live release gate, cutover attestation, rollback rehearsal, activation control, and required GitHub vars',
+)
+assert(
+  p16Doc.includes('does not deploy directly from `push`')
+    && p16Doc.includes('workflow_run')
+    && p16Doc.includes('Publish Runtime Images')
+    && p16Doc.includes('check:release-workflow-ordering')
+    && p99Doc.includes('P99 Release Workflow Ordering Gate'),
+  'P16/P99 docs must describe the ordered Runtime Images -> Pages release chain',
 )
 assert(
   p43Doc.includes('runtime-readiness-ledger')
@@ -351,4 +378,5 @@ console.log(JSON.stringify({
   assignmentArtifactContent: 'check:remote-assignment-artifacts',
   liveModeGate: 'qa:live-runtime-browser',
   actionsRuntime: 'node24',
+  releaseOrdering: 'runtime-images-before-pages',
 }, null, 2))

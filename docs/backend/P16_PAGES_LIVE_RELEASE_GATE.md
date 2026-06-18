@@ -15,6 +15,17 @@ VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
 
 如果没有配置 GitHub repository variables，公开页面会显示“创作服务待连接”，不会生成本地假正文。
 
+## Release Ordering
+
+Pages does not deploy directly from `push`. A main branch push first runs
+`Publish Runtime Images`; after that workflow succeeds for the same head,
+`Deploy Creator Studio Preview` starts from a `workflow_run` event and checks
+out `github.event.workflow_run.head_sha`. Manual `workflow_dispatch` is still
+available for explicit operator reruns.
+
+This ordering is enforced by `check:release-workflow-ordering` so Pages cannot
+create current-run release artifacts against stale P72 image evidence.
+
 ## Required GitHub Repository Variables
 
 在仓库 `Settings -> Secrets and variables -> Actions -> Variables` 中配置：

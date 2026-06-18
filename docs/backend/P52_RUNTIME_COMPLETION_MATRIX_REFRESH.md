@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51 and the later P98 canon promotion gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, and P99 release workflow ordering. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -50,6 +50,14 @@ P98 Canon Promotion Transaction Gate changed state-writeback evidence:
 - the service verifies a rollback fixture across `production_canon_commits` and `analytics_events` before commit,
 - the public response reports `write_scope = production_canon_promotion` plus `ledger_write_scope = canon_ledger_only`,
 - `check:canon-promotion-transaction` is part of root `npm run test`.
+
+P99 Release Workflow Ordering Gate changed commercial-release evidence:
+
+- `Publish Runtime Images` now runs on main push and manual dispatch,
+- `Deploy Creator Studio Preview` now runs after successful `Publish Runtime Images` workflow_run and manual dispatch,
+- Pages checks out the runtime image workflow head SHA for ordered deployments,
+- direct Pages `push` deployment is rejected by `check:release-workflow-ordering`,
+- `check:release-workflow-ordering` is part of root `npm run test`.
 
 P57 changed time-engine evidence:
 
@@ -323,6 +331,7 @@ npm run check:runtime-engine-completion
 npm run check:runtime-completion-refresh
 npm run check:cost-aware-provider-routing
 npm run check:canon-promotion-transaction
+npm run check:release-workflow-ordering
 npm run check:remote-live-runtime-trace
 npm run check:remote-origin-provisioning
 npm run check:remote-origin-operator-pack
@@ -356,6 +365,7 @@ npm run check:runtime-preview-compose
 - Remote origin provisioning gate missing after P65 blockers are known.
 - Remote origin execution gate missing after P70/P71/P72 materials exist.
 - Remote runtime operator handoff missing after P72/P73 materials exist.
+- Pages deployment can race ahead of current-head P72 runtime image evidence.
 - Remote runtime assignment intake missing after P74 materials exist.
 - Live cutover attestation missing after P75/P73/P66/P23 materials exist.
 - Reference vault access hardening missing after anonymous ref scans exist.
@@ -376,7 +386,7 @@ The refreshed matrix keeps these modules partial:
 - Creator Studio,
 - Commercial Release Chain.
 
-That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78/P79/P98 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
+That is intentional: P49/P51/P57/P58/P59/P60/P61/P62/P63/P64/P65/P66/P67/P68/P73/P74/P75/P76/P77/P78/P79/P98/P99 improve proof quality, but they do not replace live remote runtime infrastructure, legal/payment readiness, or paid commercial launch.
 ## P96 Runtime Completion Blocker Convergence Refresh
 
 P96 extends this refresh contract by making the commercial release row consume

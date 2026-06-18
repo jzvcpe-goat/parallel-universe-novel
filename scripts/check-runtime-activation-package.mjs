@@ -40,6 +40,7 @@ const requiredFiles = [
   'docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md',
   'docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md',
   'docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md',
+  'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
   'deploy/runtime-production/origin-execution-plan.json',
@@ -95,6 +96,7 @@ const p92 = read('docs/backend/P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION.md')
 const p93 = read('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md')
 const p94 = read('docs/backend/P94_LOCAL_ARTIFACT_MODE_COHERENCE.md')
 const p96 = read('docs/backend/P96_RUNTIME_COMPLETION_BLOCKER_CONVERGENCE.md')
+const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
 const originExecutionPlan = read('deploy/runtime-production/origin-execution-plan.json')
@@ -129,6 +131,10 @@ assert(
 assert(
   packageJson.scripts['check:runtime-image-publish-evidence'] === 'node scripts/check-runtime-image-publish-evidence.mjs',
   'package.json must expose check:runtime-image-publish-evidence',
+)
+assert(
+  packageJson.scripts['check:release-workflow-ordering'] === 'node scripts/check-release-workflow-ordering.mjs',
+  'package.json must expose check:release-workflow-ordering',
 )
 assert(
   packageJson.scripts['check:remote-origin-execution'] === 'node scripts/check-remote-origin-execution.mjs',
@@ -197,6 +203,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-publish-evidence'),
   'npm run test must include check:runtime-image-publish-evidence',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:release-workflow-ordering'),
+  'npm run test must include check:release-workflow-ordering',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-origin-execution'),
@@ -528,11 +538,29 @@ assert(
 )
 assert(
   runtimeImagesWorkflow.includes('packages: write')
+    && runtimeImagesWorkflow.includes('push:')
+    && runtimeImagesWorkflow.includes('- main')
+    && runtimeImagesWorkflow.includes('workflow_dispatch:')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-api')
     && runtimeImagesWorkflow.includes('parallel-universe-novel-agent-runtime')
     && runtimeImagesWorkflow.includes('docker push')
     && runtimeImagesWorkflow.includes('push_with_retry'),
-  'runtime image workflow must publish both runtime images to GHCR',
+  'runtime image workflow must publish both runtime images to GHCR on main push or manual dispatch',
+)
+assert(
+  workflow.includes('workflow_run:')
+    && workflow.includes('- Publish Runtime Images')
+    && !/^  push:/m.test(workflow)
+    && workflow.includes('ref: ${{ github.event.workflow_run.head_sha || github.sha }}')
+    && workflow.includes("github.event.workflow_run.conclusion == 'success'"),
+  'Pages workflow must wait for successful Publish Runtime Images workflow_run instead of direct push',
+)
+assert(
+  p99.includes('P99 Release Workflow Ordering Gate')
+    && p99.includes('workflow_run')
+    && p99.includes('does not contain a direct `push` trigger')
+    && p99.includes('check:release-workflow-ordering'),
+  'P99 release workflow ordering doc must define the Runtime Images before Pages deployment contract',
 )
 for (const required of [
   'Activation Sequence',

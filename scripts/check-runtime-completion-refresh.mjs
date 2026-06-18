@@ -36,6 +36,7 @@ for (const required of [
   'scripts/check-remote-deploy-manifest.mjs',
   'scripts/check-runtime-image-workflow.mjs',
   'scripts/check-runtime-image-publish-evidence.mjs',
+  'scripts/check-release-workflow-ordering.mjs',
   'scripts/check-remote-origin-operator-pack.mjs',
   'scripts/check-remote-runtime-assignment-intake.mjs',
   'scripts/check-live-cutover-attestation.mjs',
@@ -79,6 +80,7 @@ for (const required of [
   'docs/backend/P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE.md',
   'docs/backend/P71_RUNTIME_IMAGE_PUBLISH_GATE.md',
   'docs/backend/P72_RUNTIME_IMAGE_PUBLISH_EVIDENCE_GATE.md',
+  'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'docs/backend/P73_REMOTE_RUNTIME_ORIGIN_EXECUTION_GATE.md',
   'docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md',
   'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
@@ -140,6 +142,7 @@ for (const required of [
   'P70_REMOTE_RUNTIME_DEPLOY_MANIFEST_GATE',
   'P71 Runtime Image Publish Gate',
   'P72 Runtime Image Publish Evidence Gate',
+  'P99 Release Workflow Ordering Gate',
   'P73 Remote Runtime Origin Execution Gate',
   'P74 Remote Runtime Operator Handoff',
   'P75 Remote Runtime Assignment Intake',
@@ -160,6 +163,7 @@ for (const required of [
   'P94 Local Artifact Mode Coherence',
   'P96 Runtime Completion Blocker Convergence',
   'check:runtime-image-publish-evidence',
+  'check:release-workflow-ordering',
   'check:remote-origin-operator-pack',
   'check:remote-runtime-assignment-intake',
   'check:live-cutover-attestation',
@@ -176,6 +180,8 @@ for (const required of [
   'check:public-privacy-artifacts',
   'check:remote-assignment-artifacts',
   'Publish Runtime Images',
+  'workflow_run',
+  'github.event.workflow_run.head_sha',
   'ghcr.io/jzvcpe-goat/parallel-universe-novel-api',
   'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime',
   'team_only_decryption',
@@ -254,6 +260,7 @@ for (const required of [
   'P96 Runtime Completion Blocker Convergence',
   'P97 cost-aware provider routing',
   'P98 Canon Promotion Transaction Gate',
+  'P99 Release Workflow Ordering Gate',
   'P67 Reference Vault Access Hardening Gate',
   'P68 Runtime Preview Compose Gate',
   'P53 Reader Branch Trace Gate',
@@ -278,6 +285,7 @@ for (const required of [
   'check:cost-aware-provider-routing',
   'backend/tests/test_provider_runtime_routing.py',
   'Cost-Aware Provider Routing Contract',
+  'Release Workflow Ordering Gate',
 ]) {
   assert(doc.includes(required), `P45 audit doc must include refreshed phrase: ${required}`)
 }
@@ -294,6 +302,7 @@ for (const stale of [
   'Canon publishing is not yet gated by author confirmation plus quality brake.',
   'Durable multi-table canon promotion not proven after Studio confirmation.',
   'Cost-aware multi-provider routing is not proven in public Creator flow.',
+  'Pages deployment can race ahead of current-head P72 runtime image evidence.',
 ]) {
   assert(!doc.includes(stale), `P45 audit doc still contains stale gap: ${stale}`)
 }
@@ -341,6 +350,7 @@ const artifact = {
     'P96 Runtime Completion Blocker Convergence',
     'P97 Cost-Aware Provider Routing Contract',
     'P98 Canon Promotion Transaction Gate',
+    'P99 Release Workflow Ordering Gate',
     'P67 Reference Vault Access Hardening Gate',
     'P68 Runtime Preview Compose Gate',
   ],

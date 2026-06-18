@@ -51,6 +51,12 @@ P72 does not:
 P72 is evidence-only. It does not enable public live runtime. P66 still owns
 remote HTTPS origin readiness, and P65 still owns public remote trace proof.
 
+## Relationship To P99
+
+P99 Release Workflow Ordering Gate makes Pages wait for `Publish Runtime Images`
+before deploying from main. Pages deploys only after current-head image evidence is available,
+preventing current Pages artifacts from being checked against stale P72 evidence.
+
 ## Decisions
 
 Default mode exits successfully even if the current commit has not yet had a
@@ -70,3 +76,4 @@ run log lacks image refs/digests. Use strict mode after triggering P71.
    the current commit.
 5. The artifact does not include provider secrets, database URLs, Tool Bridge
    tokens, system prompts, candidate prose or private reference mappings.
+6. Pages release ordering is covered by P99.

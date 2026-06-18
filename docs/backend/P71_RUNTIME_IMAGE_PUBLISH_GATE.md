@@ -14,11 +14,15 @@ Command:
 npm run check:runtime-image-workflow
 ```
 
-Manual publish workflow:
+Publish workflow:
 
 ```bash
 gh workflow run "Publish Runtime Images" --repo jzvcpe-goat/parallel-universe-novel
 ```
+
+The workflow also runs automatically on `push` to `main`.
+P99 Release Workflow Ordering Gate requires this because Pages deployment waits
+for current-head runtime image evidence before building public artifacts.
 
 ## Images
 
@@ -82,3 +86,4 @@ evidence without requiring GitHub `read:packages` scope.
 7. It does not reference runtime secrets.
 8. `deploy/runtime-production/service-manifest.json` records the image names.
 9. Root `npm run test` includes `check:runtime-image-workflow`.
+10. The workflow supports `push` to `main` and `workflow_dispatch`.

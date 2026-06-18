@@ -43,7 +43,11 @@ assert(
 
 for (const required of [
   'name: Publish Runtime Images',
+  'push:',
+  'branches:',
+  '- main',
   'workflow_dispatch:',
+  'concurrency:',
   'packages: write',
   'docker login "$REGISTRY"',
   'deploy/api/Dockerfile',
@@ -84,6 +88,8 @@ for (const required of [
   'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime',
   'provider secrets',
   'does not enable public live runtime',
+  'P99 Release Workflow Ordering Gate',
+  'push` to `main`',
 ]) {
   assert(p71.includes(required), `P71 doc must include ${required}`)
 }
