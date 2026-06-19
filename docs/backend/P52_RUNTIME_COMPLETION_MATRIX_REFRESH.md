@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, and P110 runtime placeholder sentinel guard. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, and P116 remote assignment env apply gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -511,3 +511,21 @@ P110 protects the assignment handoff and repo-variable placeholder boundary:
   P79.
 - The remaining live-runtime blocker set is unchanged; P110 only prevents
   placeholder templates from being mistaken for production readiness.
+
+## P116 Remote Assignment Env Apply Gate Refresh
+
+P116 protects the operator assignment fill step after P112/P75/P108/P110:
+
+- P45 commercial-release evidence now includes
+  `check:remote-assignment-env-apply`.
+- Root `npm run test` runs P116 after P112 draft prep and before P113 image drift
+  so the local assignment write helper stays wired without writing in CI.
+- `apply:remote-assignment-env` accepts only non-secret operator evidence:
+  owner, provider, service ids, HTTPS origins and provider secret-store
+  confirmation booleans.
+- The generated `remote-assignment-env-apply` artifact is redacted and cannot
+  include service ids, origins, secrets, reference-work material, `sourceRefs`,
+  `profile.id`, `kernel.id`, raw state or provider prompt plumbing.
+- The remaining live-runtime blocker set is unchanged; P116 only makes the
+  ignored local assignment application safer before the existing P75/P73/P66/P23
+  strict gates run.

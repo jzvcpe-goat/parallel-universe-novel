@@ -90,6 +90,21 @@ cp deploy/runtime-production/remote-assignment.example.json \
 npm run check:remote-runtime-assignment-intake
 ```
 
+Preferred non-secret apply path after `remote-assignment.local.json` exists:
+
+```bash
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
+REMOTE_OPERATOR_OWNER=<owner-id> \
+REMOTE_OPERATOR_PROVIDER=<provider-name> \
+REMOTE_API_SERVICE_ID=<provider-api-service-id> \
+REMOTE_AGENT_SERVICE_ID=<provider-agent-service-id> \
+REMOTE_API_ORIGIN=https://<api-host> \
+REMOTE_AGENT_ORIGIN=https://<agent-host> \
+REMOTE_API_SECRETS_CONFIGURED=true \
+REMOTE_AGENT_SECRETS_CONFIGURED=true \
+npm run apply:remote-assignment-env
+```
+
 Strict assignment check:
 
 ```bash

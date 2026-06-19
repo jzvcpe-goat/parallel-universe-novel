@@ -51,6 +51,21 @@ npm run check:remote-assignment-schema
 npm run check:remote-runtime-assignment-intake
 ```
 
+Optional env-based apply helper:
+
+```bash
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
+REMOTE_OPERATOR_OWNER=<owner-id> \
+REMOTE_OPERATOR_PROVIDER=<provider-name> \
+REMOTE_API_SERVICE_ID=<provider-api-service-id> \
+REMOTE_AGENT_SERVICE_ID=<provider-agent-service-id> \
+REMOTE_API_ORIGIN=https://<api-host> \
+REMOTE_AGENT_ORIGIN=https://<agent-host> \
+REMOTE_API_SECRETS_CONFIGURED=true \
+REMOTE_AGENT_SECRETS_CONFIGURED=true \
+npm run apply:remote-assignment-env
+```
+
 Strict mode:
 
 ```bash
@@ -133,6 +148,10 @@ variables, store secrets, or mark public live runtime ready. It only proves that
 the operator-provided remote service assignment is complete enough to run P73
 and P66 in strict mode.
 
+P116 `apply:remote-assignment-env` is only a safer way to fill this same ignored
+local assignment file from non-secret operator environment variables. It must
+not accept secret values, and it does not replace P75 readiness checks.
+
 ## Acceptance
 
 - `.gitignore` ignores `deploy/runtime-production/remote-assignment.local.json`.
@@ -140,9 +159,12 @@ and P66 in strict mode.
 - `remote-assignment.example.json` is committed and contains placeholders only.
 - `remote-assignment.schema.json` is committed and checked before P75/P79.
 - `package.json` exposes `check:remote-runtime-assignment-intake`.
+- `package.json` exposes `apply:remote-assignment-env`.
+- `package.json` exposes `check:remote-assignment-env-apply`.
 - `package.json` exposes `check:remote-assignment-local-boundary`.
 - `package.json` exposes `check:runtime-placeholder-sentinel`.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
+- Root `npm run test` includes `check:remote-assignment-env-apply`.
 - Root `npm run test` includes `check:remote-assignment-local-boundary`.
 - Root `npm run test` includes `check:runtime-placeholder-sentinel`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.

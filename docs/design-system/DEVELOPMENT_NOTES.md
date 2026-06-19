@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P116 Remote Assignment Env Apply Gate
+
+P112 已经能生成当前镜像的 ignored assignment 草稿，但下一步仍要求 operator
+手动编辑 JSON。手动编辑会制造三类风险：复制旧镜像、把 secret 值写进本地文件、
+把 localhost / placeholder 当成远端 origin。P116 把这个步骤改为受控的
+env apply。
+
+新的工程标准：
+
+1. `apply:remote-assignment-env` 只写
+   `deploy/runtime-production/remote-assignment.local.json`，该文件必须继续被 Git
+   忽略。
+2. 写入必须显式带 `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true`。
+3. CI/root test 只运行 `check:remote-assignment-env-apply`，验证 wiring 和不写文件。
+4. P116 只接受非 secret 证据：owner、provider、service id、HTTPS origin、
+   provider secret-store configured boolean。
+5. P116 必须拒绝 `FILL_*`、localhost、`.invalid`、`example.com`、非 HTTPS origin、
+   database URL、Tool Bridge token、model key、provider token、private key、prompt、
+   raw state 和 reference vault material。
+6. P116 artifact 只能说明哪些字段被应用，不能输出真实 service id 或 origin。
+7. P116 不替代 P75；应用后仍必须跑
+   `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-env-apply
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true ... npm run apply:remote-assignment-env
+npm run check:remote-runtime-assignment-intake
+```
+
 ## 2026-06-19 P115 Runtime Image Smoke Artifact Attestation
 
 P114 让当前 GHCR API / Agent Runtime 镜像可以被本地 smoke，但如果 CI 只把
