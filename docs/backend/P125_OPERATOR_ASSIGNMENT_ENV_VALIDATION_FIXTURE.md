@@ -63,7 +63,7 @@ outputs.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-validation-fixture`.
-2. Root `npm run test` runs P125 after P124, then P126, P128 and P129 before dependency audit.
+2. Root `npm run test` runs P125 after P124, then P126, P128, P129 and P130 before dependency audit.
 3. Positive strict fixture returns `operator_env_ready_for_p116_apply`.
 4. Follow-up fixture with a false secret-store confirmation does not become
    ready for apply.
@@ -87,3 +87,5 @@ the real operator could still lack a safe local template for supplying those
 same fields.
 Without P129, the operator would still need to manually source the ignored env
 file, leaving a shell-state mismatch between P117 and P116.
+Without P130, the loop ledger could still reintroduce a stale command after the
+loader itself was correct.

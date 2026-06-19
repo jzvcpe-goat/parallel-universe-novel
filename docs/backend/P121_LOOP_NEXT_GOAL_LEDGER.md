@@ -43,6 +43,8 @@ without touching the production ignored assignment. P128 then validates the
 copyable local-only env template used by the deployment operator before real
 operator values are supplied. P129 then validates explicit ignored env-file
 loading for P117/P116 so the operator does not have to manually source values.
+P130 then verifies that P121, P123 and P129 all publish the same env-file
+operator command sequence, and that the legacy apply flag cannot return.
 
 ## Command
 
@@ -90,19 +92,24 @@ When P120 reports `operator_return_waiting_for_assignment`, P121 must select:
 Completion criteria for that goal:
 
 1. operator-filled assignment evidence exists outside Git-tracked files;
-2. API and Agent Runtime HTTPS origins are present;
-3. provider-side secret-store confirmations are true;
-4. both `/health` endpoints are reachable;
-5. P75 can reach `remote_assignment_ready`;
-6. P73/P66/P23/P65/P76/P78 strict gates can be run without relying on fixtures;
-7. public Pages remains privacy-clean and no internal model or rule identifiers
+2. `REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run` passes;
+3. `REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env` writes only the ignored local assignment;
+4. `npm run check:remote-runtime-assignment-intake` reports the assignment shape is no longer missing;
+5. `npm run check:remote-operator-return-intake` moves the loop toward health evidence;
+6. `npm run check:loop-next-goal-ledger` stops selecting assignment intake after complete evidence is present;
+7. API and Agent Runtime HTTPS origins are present;
+8. provider-side secret-store confirmations are true;
+9. both `/health` endpoints are reachable;
+10. P75 can reach `remote_assignment_ready`;
+11. P73/P66/P23/P65/P76/P78 strict gates can be run without relying on fixtures;
+12. public Pages remains privacy-clean and no internal model or rule identifiers
    leak to Reader or Creator UI.
 
 ## Acceptance
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P125, P126, P128 and P129 before dependency audit.
+   then P122, P123, P124, P125, P126, P128, P129 and P130 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current evidence, not hardcoded wishful
    thinking.

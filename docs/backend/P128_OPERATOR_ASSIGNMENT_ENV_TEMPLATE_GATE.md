@@ -20,7 +20,8 @@ remote services, does not set GitHub variables, does not store provider
 credentials and does not promote public live runtime.
 
 P129 follows this gate by proving P117 and P116 can load the ignored local env
-copy directly through `REMOTE_ASSIGNMENT_ENV_FILE`.
+copy directly through `REMOTE_ASSIGNMENT_ENV_FILE`. P130 follows P129 by
+verifying P121/P123/P129 command consistency.
 
 ## Files
 
@@ -48,6 +49,7 @@ cp deploy/runtime-production/remote-assignment.env.example \
 
 # Fill only non-secret evidence in the local file.
 REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
+REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true \
 npm run check:remote-assignment-env-dry-run
 REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
@@ -79,7 +81,7 @@ npm run check:operator-assignment-env-template
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-template`.
-2. Root `npm run test` runs P128 after P126 and before dependency audit.
+2. Root `npm run test` runs P128 after P126, then P129 and P130 before dependency audit.
 3. The tracked `.env.example` contains exactly the accepted assignment env
    keys and no concrete operator values.
 4. The local `.env.local` target is ignored by Git.
@@ -89,6 +91,7 @@ npm run check:operator-assignment-env-template
    prompt plumbing, raw state, private title material or rule identifiers.
 7. P129 proves the ignored env file can be loaded by P117/P116 without manual
    shell sourcing and without leaking values.
+8. P130 proves the loop handoff commands still point at the P129 env-file flow.
 
 ## Why This Exists
 

@@ -61,7 +61,7 @@ or kernel ids.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-apply-fixture`.
-2. Root `npm run test` runs P126 after P125, then P128 and P129 before dependency audit.
+2. Root `npm run test` runs P126 after P125, then P128, P129 and P130 before dependency audit.
 3. P126 uses the existing P116 apply helper; it does not duplicate apply logic.
 4. P126 proves a safe positive fixture can write a temporary assignment target.
 5. P126 proves unsafe negative fixtures fail without modifying that target.
@@ -72,6 +72,8 @@ or kernel ids.
 9. P128 runs after P126 in root test and verifies the local env template before
    dependency audit.
 10. P129 runs after P128 and verifies explicit ignored env-file loading before
+    dependency audit.
+11. P130 runs after P129 and verifies loop command consistency before
     dependency audit.
 
 ## Why This Exists

@@ -135,8 +135,8 @@ assert(
   'package.json must expose check:operator-assignment-evidence-intake',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
-  'root test must run P123/P124/P125/P126/P128/P129 after P121/P122 and before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
+  'root test must run P123/P124/P125/P126/P128/P129/P130 after P121/P122 and before dependency audit',
 )
 
 for (const file of [
@@ -145,6 +145,7 @@ for (const file of [
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
   'docs/backend/P128_OPERATOR_ASSIGNMENT_ENV_TEMPLATE_GATE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
+  'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
   'scripts/check-loop-next-goal-ledger.mjs',
@@ -162,6 +163,7 @@ assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
   'REMOTE_OPERATOR_OWNER',
   'REMOTE_API_ORIGIN',
   'P129',
+  'P130',
   'does not write',
 ])
 assertIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', [
@@ -299,8 +301,8 @@ const requiredOperatorEvidence = [
 ]
 
 const nextCommands = [
-  'npm run check:remote-assignment-env-dry-run',
-  'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+  'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
+  'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
   'npm run check:remote-runtime-assignment-intake',
   'npm run check:remote-operator-return-intake',
   'npm run check:loop-next-goal-ledger',

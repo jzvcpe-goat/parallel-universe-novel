@@ -79,6 +79,8 @@ P128 follows with the copyable env template that the operator can fill locally
 before running P117 and P116 against real non-secret assignment evidence.
 P129 then proves P117 and P116 can load that ignored local env file directly
 through `REMOTE_ASSIGNMENT_ENV_FILE`, without manual shell sourcing.
+P130 then verifies that P121, P123 and P129 all publish this same env-file
+handoff sequence, so stale apply commands cannot re-enter the loop artifact.
 
 ## Next Command Sequence
 
@@ -87,6 +89,7 @@ cp deploy/runtime-production/remote-assignment.env.example \
   deploy/runtime-production/remote-assignment.env.local
 # Fill the ignored local env file.
 REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
+REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true \
 npm run check:remote-assignment-env-dry-run
 REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
@@ -103,7 +106,7 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126, P128 and P129 before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126, P128, P129 and P130 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -125,6 +128,8 @@ After the assignment evidence is complete, P121 should stop selecting
     before a deployment operator fills real values.
 13. P129 validates explicit ignored env-file loading for P117/P116 and rejects
     tracked templates, unsupported keys and unignored paths.
+14. P130 validates that P121/P123/P129 all expose the env-file strict dry-run
+    and `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true` apply sequence.
 
 ## Failure Modes
 

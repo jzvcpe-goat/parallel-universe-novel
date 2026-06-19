@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P130 Operator Assignment Loop Command Consistency
+
+P129 让 P117/P116 都能显式读取同一份 ignored env 文件，但 P121 loop ledger、
+P123 operator intake、P118/P119 operator handoff 包裹里仍可能残留旧命令。P130
+把“下一步怎么跑”也纳入 gate，防止代码已经升级、交接文本还在指向旧 SOP。
+
+新的工程标准：
+
+1. 当 P121 选择 `operator-assignment-evidence-intake` 时，验收命令必须使用：
+   `REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local`
+   + `REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true`
+   + `check:remote-assignment-env-dry-run`。
+2. P116 apply 命令必须同时带 `REMOTE_ASSIGNMENT_ENV_FILE=...` 和
+   `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true`。
+3. P121 artifact、P123 intake packet、P129 loader 文档、P118 strict package 和
+   P119 readiness packet 不能出现不同版本的 operator SOP。
+4. `check:operator-assignment-loop-command-consistency` 必须在 root `npm run test`
+   中位于 P129 之后、dependency audit 之前。
+5. 如果未来改 operator 命令，必须同时改 P121 生成器、P123 handoff、P129 文档和
+   P130 检查器，不能只改一处。
+
+验证命令：
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-loop-command-consistency
+npm run test
+```
+
 ## 2026-06-19 P129 Operator Assignment Env File Loader
 
 P128 解决了“operator 有一个安全模板可填”的问题，但如果 P117 dry-run 和 P116 apply

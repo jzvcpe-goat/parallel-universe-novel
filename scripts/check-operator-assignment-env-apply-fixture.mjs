@@ -137,8 +137,8 @@ assert(
   'package.json must expose check:operator-assignment-env-apply-fixture',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
-  'root test must run P126 after P125, then P128 and P129 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
+  'root test must run P126 after P125, then P128, P129 and P130 before dependency audit',
 )
 
 for (const file of [
@@ -146,6 +146,7 @@ for (const file of [
   'docs/backend/P125_OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE.md',
   'docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
+  'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'scripts/apply-remote-assignment-env.mjs',
 ]) {
   assert(existsSync(join(root, file)), `missing P126 prerequisite: ${file}`)
@@ -157,6 +158,7 @@ assertIncludes('docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md', [
   'temporary fixture target',
   'does not write',
   'P129',
+  'P130',
 ])
 assertIncludes('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md', [
   'P126',

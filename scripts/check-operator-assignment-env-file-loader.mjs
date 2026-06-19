@@ -143,8 +143,8 @@ assert(
   'package.json must expose check:operator-assignment-env-file-loader',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
-  'root test must run P129 after P128 and before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
+  'root test must run P129 after P128, then P130 before dependency audit',
 )
 
 for (const file of [
@@ -155,6 +155,7 @@ for (const file of [
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P128_OPERATOR_ASSIGNMENT_ENV_TEMPLATE_GATE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
+  'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'deploy/runtime-production/remote-assignment.env.example',
   'deploy/runtime-production/remote-assignment.example.json',
 ]) {
@@ -178,6 +179,10 @@ assertIncludes('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md', [
 ])
 assertIncludes('docs/backend/P128_OPERATOR_ASSIGNMENT_ENV_TEMPLATE_GATE.md', [
   'P129',
+])
+assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md', [
+  'P130',
+  'check:operator-assignment-loop-command-consistency',
 ])
 
 cleanup()

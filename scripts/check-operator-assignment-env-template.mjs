@@ -111,6 +111,7 @@ for (const file of [
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
+  'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'scripts/check-remote-assignment-env-dry-run.mjs',
   'scripts/apply-remote-assignment-env.mjs',
   'scripts/check-operator-assignment-env-file-loader.mjs',
@@ -126,8 +127,8 @@ assert(
   'package.json must expose check:operator-assignment-env-template',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
-  'root test must run P128 after P126, then P129 before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
+  'root test must run P128 after P126, then P129 and P130 before dependency audit',
 )
 
 const gitignore = read('.gitignore')
@@ -148,6 +149,7 @@ assertIncludes('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md', ['P128']
 assertIncludes('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md', ['P128'])
 assertIncludes('docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md', ['P128'])
 assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P129', 'REMOTE_ASSIGNMENT_ENV_FILE'])
+assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md', ['P130', 'REMOTE_ASSIGNMENT_ENV_FILE'])
 
 const templateText = read(templateRel)
 const entries = parseEnvTemplate(templateText)
@@ -193,9 +195,9 @@ const payload = {
   },
   nextCommands: [
     'copy template to ignored local env file',
-    'load ignored local env file in the current shell',
-    'npm run check:remote-assignment-env-dry-run',
-    'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+    'fill ignored local env file with non-secret operator evidence',
+    'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
+    'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
     'npm run check:remote-runtime-assignment-intake',
     'npm run check:remote-operator-return-intake',
     'npm run check:loop-next-goal-ledger',

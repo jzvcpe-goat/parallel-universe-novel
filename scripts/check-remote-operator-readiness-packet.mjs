@@ -301,7 +301,7 @@ const operatorTasks = [
     label: 'Confirm remote service owner and deployment provider',
     owner: 'deployment operator',
     gate: 'P117',
-    command: 'npm run check:remote-assignment-env-dry-run',
+    command: 'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
     blockedUntil: 'REMOTE_OPERATOR_OWNER and provider are supplied outside Git',
   },
   {
@@ -309,7 +309,7 @@ const operatorTasks = [
     label: 'Fill operator environment without committing secrets',
     owner: 'deployment operator',
     gate: 'P117',
-    command: 'npm run check:remote-assignment-env-dry-run',
+    command: 'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
     blockedUntil: 'all required REMOTE_* inputs are present',
   },
   {
@@ -317,7 +317,7 @@ const operatorTasks = [
     label: 'Materialize ignored assignment file',
     owner: 'deployment operator',
     gate: 'P116',
-    command: 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+    command: 'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
     blockedUntil: 'P117 reports ready for apply',
   },
   {
