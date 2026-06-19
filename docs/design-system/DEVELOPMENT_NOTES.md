@@ -1,5 +1,22 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P119 Operator Readiness Packet
+
+P118 已经把远程上线步骤组织成 strict-run package，但部署 owner 仍需要一份
+更适合转交的 operator packet。P119 把 strict-run package、blocker ledger、
+fill plan、runtime image evidence 和 activation evidence 合成一份可交付包：
+
+1. `check:remote-operator-readiness-packet` 只能生成 redacted JSON/Markdown，
+   不写 `remote-assignment.local.json`，不创建服务，不设置 GitHub variables，
+   不存 provider secrets，不宣称 live runtime ready。
+2. Packet 必须保留 `activation-control`、`live-readiness` 和 remote assignment
+   blocker，不能因为“交接清楚”就把远端运行时误判为 ready。
+3. `check:remote-operator-readiness-packet-artifact` 必须支持 local mode 和
+   GitHub current-run mode，并验证同一 Pages run 下载到的 artifact 内容。
+4. 新增 release artifact 时要同步 P43 metadata gate、P107 content coverage、
+   Pages current-run content check、P16/P20/P45/P52 文档、runtime activation
+   package 和 release sync manifest。缺一项都说明证据链没有闭合。
+
 ## 2026-06-19 P118 Strict-Run Package After Fill Plan
 
 P105/P106 已经能把远程服务 assignment 变成 operator fill plan，但 fill plan

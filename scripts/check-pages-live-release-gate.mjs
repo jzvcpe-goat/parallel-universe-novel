@@ -198,6 +198,14 @@ assert(
   'Pages workflow must upload the remote assignment strict-run package artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote operator readiness packet')
+    && workflow.includes('remote-operator-readiness-packet')
+    && workflow.includes('artifacts/runtime/remote-operator-readiness-packet-*.json')
+    && workflow.includes('artifacts/runtime/remote-operator-readiness-packet-*.md')
+    && workflow.indexOf('Upload remote operator readiness packet') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote operator readiness packet artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload runtime image local smoke')
     && workflow.includes('runtime-image-local-smoke')
     && workflow.includes('artifacts/runtime/runtime-image-local-smoke-*.json')
@@ -275,12 +283,20 @@ assert(
   'Pages workflow must verify remote assignment strict-run package artifact content after the fill-plan artifact content gate',
 )
 assert(
+  workflow.includes('Check remote operator readiness packet artifact content')
+    && workflow.includes('CHECK_REMOTE_OPERATOR_READINESS_PACKET_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:remote-operator-readiness-packet-artifact')
+    && workflow.indexOf('Check remote operator readiness packet artifact content') > workflow.indexOf('Check remote assignment strict-run package artifact content'),
+  'Pages workflow must verify remote operator readiness packet artifact content after the strict-run package artifact content gate',
+)
+assert(
   workflow.includes('Check runtime image local smoke artifact content')
     && workflow.includes('CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:runtime-image-local-smoke-artifact')
-    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote assignment strict-run package artifact content'),
-  'Pages workflow must verify runtime image local smoke artifact content after the strict-run package artifact content gate',
+    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote operator readiness packet artifact content'),
+  'Pages workflow must verify runtime image local smoke artifact content after the operator packet artifact content gate',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
@@ -337,6 +353,14 @@ assert(
 assert(
   packageJson.scripts['check:remote-assignment-strict-run-package-artifact'] === 'node scripts/check-remote-assignment-strict-run-package-artifact.mjs',
   'package.json must expose check:remote-assignment-strict-run-package-artifact',
+)
+assert(
+  packageJson.scripts['check:remote-operator-readiness-packet'] === 'node scripts/check-remote-operator-readiness-packet.mjs',
+  'package.json must expose check:remote-operator-readiness-packet',
+)
+assert(
+  packageJson.scripts['check:remote-operator-readiness-packet-artifact'] === 'node scripts/check-remote-operator-readiness-packet-artifact.mjs',
+  'package.json must expose check:remote-operator-readiness-packet-artifact',
 )
 assert(
   packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
@@ -403,6 +427,14 @@ assert(
   'npm run test must include check:remote-assignment-strict-run-package-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-operator-readiness-packet'),
+  'npm run test must include check:remote-operator-readiness-packet',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-operator-readiness-packet-artifact'),
+  'npm run test must include check:remote-operator-readiness-packet-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-local-smoke-artifact'),
   'npm run test must include check:runtime-image-local-smoke-artifact',
 )
@@ -439,6 +471,8 @@ assert(
     && p16Doc.includes('check:remote-assignment-fill-plan-artifact')
     && p16Doc.includes('remote-assignment-strict-run-package')
     && p16Doc.includes('check:remote-assignment-strict-run-package-artifact')
+    && p16Doc.includes('remote-operator-readiness-packet')
+    && p16Doc.includes('check:remote-operator-readiness-packet-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('check:ci-artifact-content-coverage')
@@ -469,6 +503,7 @@ assert(
     && p43Doc.includes('check:remote-runtime-blockers-artifact')
     && p43Doc.includes('check:remote-assignment-fill-plan-artifact')
     && p43Doc.includes('check:remote-assignment-strict-run-package-artifact')
+    && p43Doc.includes('check:remote-operator-readiness-packet-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
@@ -479,6 +514,7 @@ assert(
     && p43Doc.includes('remote-runtime-blockers')
     && p43Doc.includes('remote-assignment-fill-plan')
     && p43Doc.includes('remote-assignment-strict-run-package')
+    && p43Doc.includes('remote-operator-readiness-packet')
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
@@ -493,6 +529,8 @@ assert(
     && p107Doc.includes('remote-assignment-fill-plan')
     && p107Doc.includes('remote-assignment-strict-run-package')
     && p107Doc.includes('P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE')
+    && p107Doc.includes('remote-operator-readiness-packet')
+    && p107Doc.includes('P119_REMOTE_OPERATOR_READINESS_PACKET')
     && p107Doc.includes('runtime-image-local-smoke')
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
@@ -557,6 +595,8 @@ console.log(JSON.stringify({
   remoteAssignmentFillPlanContent: 'check:remote-assignment-fill-plan-artifact',
   remoteAssignmentStrictRunPackage: 'remote-assignment-strict-run-package',
   remoteAssignmentStrictRunPackageContent: 'check:remote-assignment-strict-run-package-artifact',
+  remoteOperatorReadinessPacket: 'remote-operator-readiness-packet',
+  remoteOperatorReadinessPacketContent: 'check:remote-operator-readiness-packet-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',

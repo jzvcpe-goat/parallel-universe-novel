@@ -115,11 +115,15 @@ assignment apply checks:
 ```bash
 npm run check:remote-assignment-strict-run-package
 npm run check:remote-assignment-strict-run-package-artifact
+npm run check:remote-operator-readiness-packet
+npm run check:remote-operator-readiness-packet-artifact
 ```
 
 This package is a checklist and evidence bundle. It does not write the local
 assignment file, create services, set GitHub variables or mark live runtime
-ready.
+ready. The P119 operator readiness packet wraps the strict package, current
+blocker ledger, fill-plan and image evidence into one shareable handoff packet
+without creating services, writing local files or promoting live runtime.
 
 Strict assignment check:
 
@@ -425,13 +429,14 @@ repository variables.
 15. Fill `deploy/runtime-production/remote-assignment.local.json`, or dry-run the non-secret env path with `npm run check:remote-assignment-env-dry-run` before `npm run apply:remote-assignment-env`.
 16. Run `npm run check:remote-assignment-image-drift`.
 17. Run `npm run check:remote-assignment-strict-run-package` and hand the generated strict-run package to the deployment owner.
-18. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
-19. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
-20. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
-21. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
-22. Verify both health endpoints with the commands from the P79 Markdown artifact.
-23. Run `npm run check:github-runtime-variable-boundary`.
-24. Run `npm run check:runtime-placeholder-sentinel`.
+18. Run `npm run check:remote-operator-readiness-packet` and hand the generated operator packet to the deployment owner.
+19. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
+20. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
+21. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+22. Run `REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution`.
+23. Verify both health endpoints with the commands from the P79 Markdown artifact.
+24. Run `npm run check:github-runtime-variable-boundary`.
+25. Run `npm run check:runtime-placeholder-sentinel`.
 17. Set the non-secret remote assignment attestation variables locally or as GitHub repository variables: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
 18. Run local strict config check:
 

@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, and P118 remote assignment strict-run package. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, and P119 remote operator readiness packet. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -566,3 +566,21 @@ strict-run package:
   `profile.id` or `kernel.id`.
 - The remaining live-runtime blocker set is unchanged; P118 only proves that
   the strict operator sequence is complete and safe to hand off.
+
+## P119 Remote Operator Readiness Packet Refresh
+
+P119 turns the P118 strict-run package, blocker ledger, fill-plan, image
+evidence and activation evidence into one operator-safe handoff packet:
+
+- P45 commercial-release evidence now includes
+  `check:remote-operator-readiness-packet` and
+  `check:remote-operator-readiness-packet-artifact`.
+- Pages workflow uploads `remote-operator-readiness-packet` and validates the
+  current-run artifact content after P118.
+- Root `npm run test` runs P119 after P118 and before P114 local image smoke.
+- P107 counts the packet as a `download_content_gate`.
+- The generated packet is redacted and cannot expose service ids, origins,
+  provider tokens, prompt plumbing, private research material, `sourceRefs`,
+  `profile.id` or `kernel.id`.
+- The remaining live-runtime blocker set is unchanged; P119 only proves that
+  the operator handoff packet is complete and safe to share.
