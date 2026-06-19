@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 runtime image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P105 remote assignment fill plan, P106 remote assignment fill plan artifact attestation, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-env-apply`, `remote-assignment-env-dry-run`, `github-runtime-variable-boundary`, `runtime-placeholder-sentinel`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 runtime image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P105 remote assignment fill plan, P106 remote assignment fill plan artifact attestation, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-assignment-env-apply`, `remote-assignment-env-dry-run`, `github-runtime-variable-boundary`, `runtime-placeholder-sentinel`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -53,6 +53,7 @@ The release chain must continue to produce:
 - `remote-assignment-fixture-gate`
 - `remote-runtime-blockers`
 - `remote-assignment-fill-plan`
+- `remote-assignment-strict-run-package`
 - `reference-privacy`
 - `public-projection-privacy`
 - `local-live-runtime-visual-qa`
@@ -71,7 +72,7 @@ behavior:
 
 - Contract: `P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX`.
 - `check:ci-artifact-content-coverage` is part of root `npm run test`.
-- The matrix classifies all fourteen Pages artifacts into
+- The matrix classifies all sixteen Pages artifacts into
   `download_content_gate`, `pre_upload_generator_gate`,
   `built_bundle_privacy_scan`, or `visual_human_evidence`.
 - The gate fails if a Pages artifact exists in P43 but has no verification
@@ -950,6 +951,30 @@ Command: `npm run check:remote-assignment-fill-plan-artifact`.
 Current decision is that P106 closes the artifact-content gap left by P105. It
 does not make remote runtime ready; it proves the fill plan itself is safe and
 current.
+
+## P118 Remote Assignment Strict-Run Package
+
+`scripts/check-remote-assignment-strict-run-package.mjs` turns the P105/P106
+fill plan plus P116/P117 no-write/apply evidence and the current blocker ledger
+into one ordered operator execution package:
+
+Command: `npm run check:remote-assignment-strict-run-package`.
+
+- Contract: `P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE`.
+- The package covers P117/P116/P75/P79/P73/P66/P23/P65/P76/P78/P85/P96.
+- It emits JSON and Markdown artifacts named
+  `remote-assignment-strict-run-package`.
+- `scripts/check-remote-assignment-strict-run-package-artifact.mjs` validates
+  local or current-run artifact content with
+  `CHECK_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE_ARTIFACT_REQUIRED=true`.
+- Boundary flags prove it does not write local assignment state, create
+  services, set GitHub variables, store provider secrets, promote live runtime
+  or treat fixtures as production readiness.
+
+Current decision is that P118 is an operator strict-run package gate. It
+reduces execution ambiguity but intentionally keeps remote runtime blockers open
+until real service ids, HTTPS origins, provider secret-store confirmations,
+health, live trace, cutover and activation gates pass.
 
 ## P90 Remote Runtime Blocker Artifact Attestation
 

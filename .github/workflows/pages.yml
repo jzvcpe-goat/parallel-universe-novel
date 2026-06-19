@@ -203,6 +203,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote assignment strict-run package
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-assignment-strict-run-package
+          path: |
+            artifacts/runtime/remote-assignment-strict-run-package-*.json
+            artifacts/runtime/remote-assignment-strict-run-package-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload runtime image local smoke
         if: always()
         uses: actions/upload-artifact@v7
@@ -296,6 +307,13 @@ jobs:
           CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-assignment-fill-plan-artifact
+
+      - name: Check remote assignment strict-run package artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-assignment-strict-run-package-artifact
 
       - name: Check runtime image local smoke artifact content
         env:

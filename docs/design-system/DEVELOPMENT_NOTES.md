@@ -1,5 +1,22 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P118 Strict-Run Package After Fill Plan
+
+P105/P106 已经能把远程服务 assignment 变成 operator fill plan，但 fill plan
+仍然只回答“要填什么”。P118 补上“严格按什么顺序跑”的执行包：
+
+1. `check:remote-assignment-strict-run-package` 只能生成 redacted
+   JSON/Markdown，不写 `remote-assignment.local.json`，不创建服务，不设置
+   GitHub variables，不宣称 live runtime ready。
+2. Strict-run package 必须串起 P117/P116/P75/P79/P73/P66/P23/P65/P76/P78/P85/P96，
+   让 operator 的下一步从一堆 gate 变成一条可执行序列。
+3. `check:remote-assignment-strict-run-package-artifact` 必须支持 local mode
+   和 GitHub current-run mode，并且不能用当前开发机 ignored assignment 状态去
+   重写 CI artifact 的 blocker 判断。
+4. 任何新增 Pages release artifact 都必须同时进入 P43 metadata gate、P107
+   content coverage、Pages current-run content check、P16/P45/P52 文档和
+   release sync manifest。
+
 ## 2026-06-19 P117 Operator Dry-Run Before Apply
 
 P116 能把 operator 提供的非 secret `REMOTE_*` 环境变量写入 ignored

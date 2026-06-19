@@ -128,6 +128,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for fill areas, validation sequence and operator boundary.',
   },
   {
+    name: 'remote-assignment-strict-run-package',
+    kind: 'download_content_gate',
+    producer: 'check:remote-assignment-strict-run-package',
+    verifier: 'check:remote-assignment-strict-run-package-artifact',
+    contract: 'P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE',
+    uploadStep: 'Upload remote assignment strict-run package',
+    uploadPath: 'artifacts/runtime/remote-assignment-strict-run-package-*.json',
+    workflowStep: 'Check remote assignment strict-run package artifact content',
+    reason: 'Downloaded from the same Pages run and checked for strict operator sequence, boundary flags and blocker preservation.',
+  },
+  {
     name: 'runtime-image-local-smoke',
     kind: 'download_content_gate',
     producer: 'check:runtime-image-local-smoke',
@@ -229,7 +240,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 9, 'P107 expects nine artifacts with downloaded content gates')
+assert(downloadAttested.length === 10, 'P107 expects ten artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

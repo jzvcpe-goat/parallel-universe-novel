@@ -48,6 +48,7 @@ const requiredFiles = [
   'docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md',
   'docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md',
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
+  'docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -76,6 +77,8 @@ const requiredFiles = [
   'scripts/check-remote-assignment-execution-pack.mjs',
   'scripts/check-remote-assignment-fill-plan.mjs',
   'scripts/check-remote-assignment-fill-plan-artifact.mjs',
+  'scripts/check-remote-assignment-strict-run-package.mjs',
+  'scripts/check-remote-assignment-strict-run-package-artifact.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
   'scripts/check-remote-assignment-local-boundary.mjs',
   'scripts/check-github-runtime-variable-boundary.mjs',
@@ -119,6 +122,7 @@ const p109 = read('docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md')
 const p110 = read('docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md')
 const p116 = read('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md')
 const p117 = read('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md')
+const p118 = read('docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -206,6 +210,14 @@ assert(
 assert(
   packageJson.scripts['check:remote-assignment-fill-plan-artifact'] === 'node scripts/check-remote-assignment-fill-plan-artifact.mjs',
   'package.json must expose check:remote-assignment-fill-plan-artifact',
+)
+assert(
+  packageJson.scripts['check:remote-assignment-strict-run-package'] === 'node scripts/check-remote-assignment-strict-run-package.mjs',
+  'package.json must expose check:remote-assignment-strict-run-package',
+)
+assert(
+  packageJson.scripts['check:remote-assignment-strict-run-package-artifact'] === 'node scripts/check-remote-assignment-strict-run-package-artifact.mjs',
+  'package.json must expose check:remote-assignment-strict-run-package-artifact',
 )
 assert(
   packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
@@ -314,6 +326,14 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan-artifact'),
   'npm run test must include check:remote-assignment-fill-plan-artifact',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-strict-run-package'),
+  'npm run test must include check:remote-assignment-strict-run-package',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-strict-run-package-artifact'),
+  'npm run test must include check:remote-assignment-strict-run-package-artifact',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
@@ -642,6 +662,15 @@ assert(
     && p117.includes('operator_env_not_supplied')
     && p117.includes('does not write'),
   'P117 remote assignment env dry-run gate must define no-write operator preflight boundaries',
+)
+assert(
+  p118.includes('P118 Remote Assignment Strict-Run Package')
+    && p118.includes('check:remote-assignment-strict-run-package')
+    && p118.includes('check:remote-assignment-strict-run-package-artifact')
+    && p118.includes('remote-assignment-strict-run-package')
+    && p118.includes('does not write')
+    && p118.includes('P117/P116/P75/P79/P73/P66/P23/P76/P78'),
+  'P118 strict-run package must define the ordered operator execution package and no-write boundaries',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

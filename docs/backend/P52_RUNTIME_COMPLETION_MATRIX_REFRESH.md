@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, and P117 remote assignment env dry-run gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, and P118 remote assignment strict-run package. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -547,3 +547,22 @@ P117 protects the P116 apply step with a no-write preflight:
   material, `sourceRefs`, `profile.id` or `kernel.id`.
 - The remaining live-runtime blocker set is unchanged; P117 only proves that a
   future P116 apply attempt is safe enough to make the local ignored write.
+
+## P118 Remote Assignment Strict-Run Package Refresh
+
+P118 turns the operator fill plan and no-write/apply evidence into one ordered
+strict-run package:
+
+- P45 commercial-release evidence now includes
+  `check:remote-assignment-strict-run-package` and
+  `check:remote-assignment-strict-run-package-artifact`.
+- Pages workflow uploads `remote-assignment-strict-run-package` and validates
+  the current-run artifact content after P106.
+- Root `npm run test` runs P118 after P113 image drift and before P114 local
+  image smoke.
+- P107 counts the package as a `download_content_gate`.
+- The generated package is redacted and cannot expose service ids, origins,
+  provider tokens, prompt plumbing, reference-work material, `sourceRefs`,
+  `profile.id` or `kernel.id`.
+- The remaining live-runtime blocker set is unchanged; P118 only proves that
+  the strict operator sequence is complete and safe to hand off.
