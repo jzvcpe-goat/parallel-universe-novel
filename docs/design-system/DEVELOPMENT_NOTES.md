@@ -1,5 +1,41 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P127 Representative Work Custody Gate
+
+P111 证明“代表作品名已加密”之后，还差一个上线证据链问题：本地 root test
+知道 P111 绿了，不代表 Pages release artifact、P92 content attestation、P43
+metadata gate、P107 coverage matrix 和 handoff docs 都知道这件事。P127 把
+“用户与非团队成员不可见代表作品名”变成持续 custody gate。
+
+新的工程标准：
+
+1. 代表作品名的公开边界不只看页面输出，还要看 constraints、kernels、
+   runtime registry、public refs、encrypted vault、artifacts、Pages workflow、
+   P43/P92/P107/P16 和开发笔记。
+2. `check:representative-work-custody` 必须在 root `npm run test` 里位于
+   `check:reference-work-encryption-completion` 之后、`check:public-privacy-artifacts`
+   之前。
+3. Pages workflow 必须在 built Pages privacy scan 后重新生成 P111/P127 artifacts，
+   并上传 `reference-work-encryption-completion` 与 `representative-work-custody`。
+4. P92 必须下载并验证四类 privacy artifacts：`reference-privacy`、
+   `public-projection-privacy`、`reference-work-encryption-completion`、
+   `representative-work-custody`。
+5. P127 artifact 只允许输出 custody counts、边界名和 redaction flags，不得输出
+   title、author、decrypted mapping、sourceRef mapping、key value 或 provider payload。
+6. P127 通过后不要继续叠隐私同类门禁；下一轮应回到 operator assignment /
+   remote health evidence。
+
+验证命令：
+
+```bash
+npm run scan:reference-privacy
+npm run check:reference-work-encryption-completion
+npm run check:representative-work-custody
+npm run check:public-privacy-artifacts
+npm run check:ci-artifact-content-coverage
+npm run test
+```
+
 ## 2026-06-19 P126 Operator Env Apply Fixture
 
 P125 证明了 P117 的 no-write validator 能接受一组完整安全输入，也能拒绝坏输入。

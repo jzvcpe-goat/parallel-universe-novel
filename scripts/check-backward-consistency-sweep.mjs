@@ -74,6 +74,8 @@ const requiredRootCommands = [
   'npm run check:reference-vault-access',
   'npm run scan:reference-privacy',
   'npm run check:public-projection-privacy',
+  'npm run check:reference-work-encryption-completion',
+  'npm run check:representative-work-custody',
   'npm run check:public-privacy-artifacts',
   'npm run check:remote-assignment-artifacts',
   'npm run check:backward-consistency-sweep',
@@ -93,6 +95,14 @@ assert(
 assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
+)
+assert(
+  packageJson.scripts['check:reference-work-encryption-completion'] === 'node scripts/check-reference-work-encryption-completion.mjs',
+  'package.json must expose check:reference-work-encryption-completion',
+)
+assert(
+  packageJson.scripts['check:representative-work-custody'] === 'node scripts/check-representative-work-custody.mjs',
+  'package.json must expose check:representative-work-custody',
 )
 assert(
   packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
@@ -159,8 +169,18 @@ assertIncludes('scripts/check-public-privacy-artifacts.mjs', [
   'P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION',
   'reference-privacy',
   'public-projection-privacy',
+  'reference-work-encryption-completion',
+  'representative-work-custody',
   'violationCount',
   'redaction',
+])
+assertIncludes('scripts/check-representative-work-custody.mjs', [
+  'P127_REPRESENTATIVE_WORK_CUSTODY_GATE',
+  'GENRE_CONSTRAINT_RULES.md',
+  'GENRE_KERNEL_RULES.md',
+  'reference-work-vault.enc.json',
+  'reference-work-public-refs.json',
+  'non-team',
 ])
 assertIncludes('scripts/check-remote-assignment-artifacts.mjs', [
   'P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION',
@@ -218,6 +238,8 @@ assertIncludes('.github/workflows/pages.yml', [
   'name: public-projection-privacy',
   'path: artifacts/runtime/public-projection-privacy-*.json',
   'name: reference-privacy',
+  'name: reference-work-encryption-completion',
+  'name: representative-work-custody',
 ])
 assertIncludes('scripts/check-github-actions-artifacts.mjs', [
   'reference-privacy',
@@ -233,6 +255,7 @@ assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [
   'privacy 类 release artifact',
   'redaction flags',
   'P93 Remote Assignment Artifact Attestation',
+  'P127 Representative Work Custody Gate',
 ])
 assertIncludes('docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md', [
   '| Area | Checked | Issue Found | Fix Applied | Gate |',
@@ -243,6 +266,7 @@ assertIncludes('docs/backend/P83_BACKWARD_CONSISTENCY_SWEEP.md', [
   'check:remote-assignment-artifacts',
   'P92',
   'P93',
+  'P127',
 ])
 assertIncludes('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md', [
   'P93 Remote Assignment Artifact Attestation',

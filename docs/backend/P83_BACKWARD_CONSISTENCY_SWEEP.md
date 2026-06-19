@@ -21,8 +21,8 @@ This is intentionally not a refactor. It is a consistency pass across rule docs,
 | Creator Studio / Reader UI public output | Public UI scans block runtime/debug fields and public build scan checks generated `dist` | No | None | `npm run scan:public-ui-boundary`, `npm run check:public-projection-privacy` |
 | Quality Brake fixtures | Fixture surfaces remain redacted and are included in redacted artifact scanning | No | None | `npm run check:public-projection-privacy`, `npm run scan:reference-privacy` |
 | Reference-work vault / public refs | Vault is AES-256-GCM, public refs expose ids only, CI does not own default decryptability | No | None | `npm run check:reference-vault-access`, `npm run scan:reference-privacy` |
-| Existing scan scripts and root test chain | Root `npm run test` includes P4, sourceRefs drift, public projection, backward consistency, reference privacy, public privacy artifact content and remote assignment artifact content gates | Yes: deployed smoke script still used old `prompt_id` contract; Pages did not upload public projection privacy artifact separately; P43 artifact evidence doc still said twelve artifacts after the workflow required thirteen; assignment schema/execution/fixture artifacts had metadata evidence before P93 but not content attestation | Replaced old deployed-smoke request context with `guide_id`; added `public-projection-privacy` Pages artifact and current-run artifact gate; updated P43 artifact count to thirteen; added P92 privacy artifact content attestation; added P93 assignment artifact content attestation | `npm run check:backward-consistency-sweep`, `npm run test` |
-| Development notes / handoff docs | Notes and handoff docs describe the same boundaries as implementation | Yes: no dedicated backward sweep handoff existed | Added this P83 handoff and development note entry | `npm run check:backward-consistency-sweep` |
+| Existing scan scripts and root test chain | Root `npm run test` includes P4, sourceRefs drift, public projection, backward consistency, reference privacy, P111 encryption completion, P127 custody, public privacy artifact content and remote assignment artifact content gates | Yes: deployed smoke script still used old `prompt_id` contract; Pages did not upload public projection privacy artifact separately; P43 artifact evidence doc still said twelve artifacts after the workflow required thirteen; assignment schema/execution/fixture artifacts had metadata evidence before P93 but not content attestation; P111/P127 evidence needed Pages artifact custody | Replaced old deployed-smoke request context with `guide_id`; added `public-projection-privacy` Pages artifact and current-run artifact gate; updated P43 artifact count; added P92 privacy artifact content attestation; added P93 assignment artifact content attestation; added P127 representative-work custody gate | `npm run check:backward-consistency-sweep`, `npm run test` |
+| Development notes / handoff docs | Notes and handoff docs describe the same boundaries as implementation, including P127 Representative Work Custody Gate | Yes: no dedicated backward sweep handoff existed | Added this P83 handoff and development note entry; later P127 added non-team custody evidence for P111 | `npm run check:backward-consistency-sweep` |
 
 ## Required Commands
 
@@ -33,6 +33,8 @@ npm run scan:p4-rule-source
 npm run check:reference-vault-access
 npm run scan:reference-privacy
 npm run check:public-projection-privacy
+npm run check:reference-work-encryption-completion
+npm run check:representative-work-custody
 npm run check:public-privacy-artifacts
 npm run check:remote-assignment-artifacts
 npm run check:backward-consistency-sweep
@@ -46,3 +48,4 @@ npm run test
 3. Deprecated case logic is a guardrail, not executable product logic.
 4. Public projection is story-facing; internal session state may retain audit facts only behind projection.
 5. New privacy gates must be part of root `npm run test` or Pages/release CI, not only manual commands.
+6. Representative work custody must remain encrypted-vault-only and must leave redacted P111/P127 release artifacts.

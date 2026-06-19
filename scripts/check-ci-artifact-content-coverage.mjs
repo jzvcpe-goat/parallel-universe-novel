@@ -205,6 +205,28 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for public projection boundary and zero violations.',
   },
   {
+    name: 'reference-work-encryption-completion',
+    kind: 'download_content_gate',
+    producer: 'check:reference-work-encryption-completion',
+    verifier: 'check:public-privacy-artifacts',
+    contract: 'P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE',
+    uploadStep: 'Upload reference work encryption completion evidence',
+    uploadPath: 'artifacts/runtime/reference-work-encryption-completion-*.json',
+    workflowStep: 'Check public privacy artifact content',
+    reason: 'Downloaded from the same Pages run and checked for encrypted-vault-only representative work completion evidence.',
+  },
+  {
+    name: 'representative-work-custody',
+    kind: 'download_content_gate',
+    producer: 'check:representative-work-custody',
+    verifier: 'check:public-privacy-artifacts',
+    contract: 'P127_REPRESENTATIVE_WORK_CUSTODY_GATE',
+    uploadStep: 'Upload representative work custody evidence',
+    uploadPath: 'artifacts/runtime/representative-work-custody-*.json',
+    workflowStep: 'Check public privacy artifact content',
+    reason: 'Downloaded from the same Pages run and checked for non-team access custody and redaction evidence.',
+  },
+  {
     name: 'local-live-runtime-visual-qa',
     kind: 'visual_human_evidence',
     producer: 'qa:live-runtime-local',
@@ -273,7 +295,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 13, 'P107 expects thirteen artifacts with downloaded content gates')
+assert(downloadAttested.length === 15, 'P107 expects fifteen artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

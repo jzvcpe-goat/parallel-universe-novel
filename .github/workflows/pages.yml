@@ -272,6 +272,8 @@ jobs:
         run: |
           npm run scan:reference-privacy
           PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy
+          npm run check:reference-work-encryption-completion
+          npm run check:representative-work-custody
 
       - name: Upload reference privacy evidence
         if: always()
@@ -288,6 +290,24 @@ jobs:
         with:
           name: public-projection-privacy
           path: artifacts/runtime/public-projection-privacy-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload reference work encryption completion evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reference-work-encryption-completion
+          path: artifacts/runtime/reference-work-encryption-completion-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload representative work custody evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: representative-work-custody
+          path: artifacts/runtime/representative-work-custody-*.json
           if-no-files-found: error
           retention-days: 14
 

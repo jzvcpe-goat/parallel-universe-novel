@@ -31,6 +31,8 @@ if (checkCurrentRun) {
     'runtime-image-local-smoke',
     'reference-privacy',
     'public-projection-privacy',
+    'reference-work-encryption-completion',
+    'representative-work-custody',
   )
 }
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))

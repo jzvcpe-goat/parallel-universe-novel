@@ -65,7 +65,14 @@ vault keys, provider prompts or raw runtime state.
 
 ## Follow-Up Loop
 
-After P111 passes, the next engineering loop should move to the strongest
-remaining release blocker rather than adding another privacy layer: remote live
-runtime assignment and runtime health evidence are still the release path that
-turns the product from public-safe preview into live backend operation.
+After P111 passes, P127 runs one custody pass that proves the non-team access
+boundary is wired into root test, Pages artifacts and handoff docs:
+
+```bash
+npm run check:representative-work-custody
+```
+
+After P127 passes, the next engineering loop should move to the strongest
+remaining release blocker: remote live runtime assignment and runtime health
+evidence are still the release path that turns the product from public-safe
+preview into live backend operation.

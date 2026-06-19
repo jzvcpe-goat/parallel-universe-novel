@@ -34,6 +34,18 @@ const artifactSpecs = [
     contract: 'PUBLIC_PROJECTION_PRIVACY_AUDIT',
     validate: validatePublicProjectionPrivacy,
   },
+  {
+    name: 'reference-work-encryption-completion',
+    filePattern: /^reference-work-encryption-completion-.*\.json$/,
+    contract: 'P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE',
+    validate: validateReferenceWorkEncryptionCompletion,
+  },
+  {
+    name: 'representative-work-custody',
+    filePattern: /^representative-work-custody-.*\.json$/,
+    contract: 'P127_REPRESENTATIVE_WORK_CUSTODY_GATE',
+    validate: validateRepresentativeWorkCustody,
+  },
 ]
 
 function assert(condition, message) {
@@ -186,6 +198,57 @@ function validatePublicProjectionPrivacy(payload, label) {
   assert(payload.redaction?.promptTextIncluded === false, `${label} must not include prompt text`)
   assert(payload.redaction?.providerPayloadIncluded === false, `${label} must not include provider payloads`)
   assert(payload.redaction?.vaultMetadataIncluded === false, `${label} must not include vault metadata`)
+  scanNoPrivatePayload(payload, label)
+}
+
+function validateReferenceWorkEncryptionCompletion(payload, label) {
+  assert(payload.status === 'passed', `${label} must be passed`)
+  assert(payload.artifactContract === 'P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE', `${label} contract mismatch`)
+  assert(payload.publicBoundary?.representativeWorks === 'encrypted_vault_only', `${label} representative work boundary mismatch`)
+  assert(payload.publicBoundary?.publicReferenceField === 'sourceRefs', `${label} public reference field mismatch`)
+  assert(Number(payload.publicBoundary?.publicRefCount || 0) > 0, `${label} public ref count must be positive`)
+  assert(payload.violationCount === 0, `${label} violation count must be 0`)
+  for (const key of [
+    'rootTestIncludesGate',
+    'docsUseAnonymousRefsOnly',
+    'runtimeRefsExistInPublicMap',
+    'encryptedVaultHasNoPlaintextFields',
+    'publicRefsExposeOnlyIds',
+    'privacyArtifactsRedacted',
+  ]) {
+    assert(payload.checks?.[key] === true, `${label} check ${key} must be true`)
+  }
+  assert(payload.redaction?.representativeNamesIncluded === false, `${label} must not include representative names`)
+  assert(payload.redaction?.authorNamesIncluded === false, `${label} must not include author names`)
+  assert(payload.redaction?.decryptedMappingsIncluded === false, `${label} must not include decrypted mappings`)
+  assert(payload.redaction?.keyValuesIncluded === false, `${label} must not include key values`)
+  assert(payload.redaction?.providerPromptIncluded === false, `${label} must not include provider prompts`)
+  scanNoPrivatePayload(payload, label)
+}
+
+function validateRepresentativeWorkCustody(payload, label) {
+  assert(payload.status === 'passed', `${label} must be passed`)
+  assert(payload.artifactContract === 'P127_REPRESENTATIVE_WORK_CUSTODY_GATE', `${label} contract mismatch`)
+  assert(payload.custodyBoundary?.plaintextNamesAllowedOnlyIn === 'team_only_decrypted_memory_or_private_files_outside_public_repository', `${label} custody boundary mismatch`)
+  assert(payload.custodyBoundary?.publicRepository === 'anonymous_rwref_ids_and_encrypted_vault_ciphertext_only', `${label} public repository boundary mismatch`)
+  assert(payload.custodyBoundary?.keyEnv === 'REFERENCE_WORK_VAULT_KEY', `${label} key env mismatch`)
+  assert(payload.custodyBoundary?.vaultAlgorithm === 'AES-256-GCM', `${label} vault algorithm mismatch`)
+  assert(Number(payload.custodyBoundary?.publicRefCount || 0) > 0, `${label} public ref count must be positive`)
+  assert(payload.violationCount === 0, `${label} violation count must be 0`)
+  for (const artifactName of [
+    'reference-privacy',
+    'public-projection-privacy',
+    'reference-work-encryption-completion',
+  ]) {
+    assert(payload.checkedArtifacts?.includes(artifactName), `${label} must check ${artifactName}`)
+  }
+  assert(payload.redaction?.representativeNamesIncluded === false, `${label} must not include representative names`)
+  assert(payload.redaction?.authorNamesIncluded === false, `${label} must not include author names`)
+  assert(payload.redaction?.decryptedMappingsIncluded === false, `${label} must not include decrypted mappings`)
+  assert(payload.redaction?.sourceRefMappingsIncluded === false, `${label} must not include sourceRef mappings`)
+  assert(payload.redaction?.keyValuesIncluded === false, `${label} must not include key values`)
+  assert(payload.redaction?.providerPayloadIncluded === false, `${label} must not include provider payloads`)
+  assert(payload.redaction?.violationDetailsIncluded === false, `${label} must not include violation details`)
   scanNoPrivatePayload(payload, label)
 }
 

@@ -4,8 +4,9 @@ Date: 2026-06-18
 
 ## Goal
 
-P80 and the Public Projection Privacy Audit already create release artifacts.
-P92 verifies the contents of those uploaded artifacts, not just their presence.
+P80, the Public Projection Privacy Audit, P111 and P127 create release
+artifacts. P92 verifies the contents of those uploaded artifacts, not just their
+presence.
 
 This gate protects the legal/privacy boundary for representative works:
 
@@ -14,6 +15,10 @@ This gate protects the legal/privacy boundary for representative works:
 - `public-projection-privacy` must prove public API/UI/build outputs do not
   expose profile ids, kernel ids, source refs, provider prompt plumbing, vault
   metadata or deprecated case logic.
+- `reference-work-encryption-completion` must prove representative work names
+  have been reduced to encrypted-vault-only storage plus anonymous public refs.
+- `representative-work-custody` must prove the non-team access boundary still
+  agrees with constraints, kernels, runtime registry, Pages workflow and docs.
 - The attestation output is redacted and never prints titles, authors, decrypted
   mappings, prompt text, provider payloads or violation detail strings.
 
@@ -36,13 +41,19 @@ npm run check:public-privacy-artifacts
 
 ## What This Proves
 
-- Both downloadable privacy artifacts exist for the run being checked.
+- All four downloadable privacy artifacts exist for the run being checked.
 - Every JSON file inside the `reference-privacy` artifact has
   `artifactContract = P80_REFERENCE_PRIVACY_ARTIFACT_GATE`, `status = passed`,
   zero violations and redaction flags set to false.
 - Every JSON file inside the `public-projection-privacy` artifact has
   `artifactContract = PUBLIC_PROJECTION_PRIVACY_AUDIT`, `status = passed`, zero
   violations and redaction flags set to false.
+- Every JSON file inside the `reference-work-encryption-completion` artifact has
+  `artifactContract = P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE`,
+  `status = passed`, zero violations and redaction flags set to false.
+- Every JSON file inside the `representative-work-custody` artifact has
+  `artifactContract = P127_REPRESENTATIVE_WORK_CUSTODY_GATE`, `status = passed`,
+  zero violations and redaction flags set to false.
 - The artifact payloads do not include representative work titles, author
   fields, decrypted mappings, vault key values, prompt text, provider payloads
   or violation details.
@@ -69,7 +80,8 @@ npm run check:public-privacy-artifacts
 
 1. `package.json` exposes `check:public-privacy-artifacts`.
 2. Root `npm run test` includes `check:public-privacy-artifacts` after
-   `scan:reference-privacy`.
+   `scan:reference-privacy`, `check:reference-work-encryption-completion` and
+   `check:representative-work-custody`.
 3. Pages workflow runs `check:public-privacy-artifacts` in current-run mode.
 4. P16/P43/P45 handoff docs mention P92 so artifact metadata and content
    responsibilities stay aligned.

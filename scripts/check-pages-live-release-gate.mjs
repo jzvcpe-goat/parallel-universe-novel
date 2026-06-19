@@ -232,15 +232,23 @@ assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
+    && workflow.includes('npm run check:reference-work-encryption-completion')
+    && workflow.includes('npm run check:representative-work-custody')
     && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('reference-privacy')
     && workflow.includes('artifacts/runtime/reference-privacy-*.json')
     && workflow.includes('Upload public projection privacy evidence')
     && workflow.includes('public-projection-privacy')
     && workflow.includes('artifacts/runtime/public-projection-privacy-*.json')
+    && workflow.includes('Upload reference work encryption completion evidence')
+    && workflow.includes('reference-work-encryption-completion')
+    && workflow.includes('artifacts/runtime/reference-work-encryption-completion-*.json')
+    && workflow.includes('Upload representative work custody evidence')
+    && workflow.includes('representative-work-custody')
+    && workflow.includes('artifacts/runtime/representative-work-custody-*.json')
     && workflow.indexOf('Upload reference privacy evidence') > workflow.indexOf('Scan built Pages privacy')
     && workflow.indexOf('Upload public projection privacy evidence') > workflow.indexOf('Scan built Pages privacy'),
-  'Pages workflow must scan built Pages privacy and upload reference plus public projection privacy evidence artifacts',
+  'Pages workflow must scan built Pages privacy and upload reference, public projection, encryption completion and custody privacy evidence artifacts',
 )
 assert(
   workflow.includes('Check current run evidence artifacts')
@@ -367,6 +375,14 @@ assert(
   'package.json must expose check:public-privacy-artifacts',
 )
 assert(
+  packageJson.scripts['check:reference-work-encryption-completion'] === 'node scripts/check-reference-work-encryption-completion.mjs',
+  'package.json must expose check:reference-work-encryption-completion',
+)
+assert(
+  packageJson.scripts['check:representative-work-custody'] === 'node scripts/check-representative-work-custody.mjs',
+  'package.json must expose check:representative-work-custody',
+)
+assert(
   packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
   'package.json must expose check:remote-assignment-artifacts',
 )
@@ -453,6 +469,14 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
   'npm run test must include check:public-privacy-artifacts',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:reference-work-encryption-completion'),
+  'npm run test must include check:reference-work-encryption-completion',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:representative-work-custody'),
+  'npm run test must include check:representative-work-custody',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-artifacts'),
@@ -543,6 +567,8 @@ assert(
     && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
+    && p16Doc.includes('reference-work-encryption-completion')
+    && p16Doc.includes('representative-work-custody')
     && p16Doc.includes('check:ci-artifact-content-coverage')
     && p16Doc.includes('check:remote-assignment-local-boundary')
     && p16Doc.includes('check:github-runtime-variable-boundary')
@@ -590,6 +616,8 @@ assert(
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
+    && p43Doc.includes('reference-work-encryption-completion')
+    && p43Doc.includes('representative-work-custody')
     && p43Doc.includes('local-live-runtime-visual-qa')
     && p43Doc.includes('github-pages')
     && p43Doc.includes('check:github-actions-artifacts'),
@@ -611,6 +639,10 @@ assert(
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
     && p107Doc.includes('public-projection-privacy')
+    && p107Doc.includes('reference-work-encryption-completion')
+    && p107Doc.includes('P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE')
+    && p107Doc.includes('representative-work-custody')
+    && p107Doc.includes('P127_REPRESENTATIVE_WORK_CUSTODY_GATE')
     && p107Doc.includes('local-live-runtime-visual-qa')
     && p107Doc.includes('github-pages')
     && p107Doc.includes('download_content_gate')
@@ -684,6 +716,8 @@ console.log(JSON.stringify({
   runtimePlaceholderSentinel: 'check:runtime-placeholder-sentinel',
   referencePrivacy: 'reference-privacy',
   publicProjectionPrivacy: 'public-projection-privacy',
+  referenceWorkEncryptionCompletion: 'reference-work-encryption-completion',
+  representativeWorkCustody: 'representative-work-custody',
   publicPrivacyArtifactContent: 'check:public-privacy-artifacts',
   assignmentArtifactContent: 'check:remote-assignment-artifacts',
   liveModeGate: 'qa:live-runtime-browser',
