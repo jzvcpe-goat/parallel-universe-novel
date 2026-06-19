@@ -15,6 +15,9 @@ P87 会生成 operator 可复制的 assignment 模板，里面故意使用 `FILL
    临时 `FILL_*` fixture 证明 P75 返回 `remote_assignment_incomplete`、P79
    返回 `assignment_execution_incomplete`。
 4. 这个 gate 不减少真实远程服务 blocker，只防止模板被误当成生产证据。
+5. P110 会生成临时 `remote-assignment-placeholder-sentinel.fixture.json`，它可能随
+   P79 execution-pack 进入 CI artifact bundle。P93 artifact checker 必须接受它，
+   但只能在它保持 `blocked + assignment_execution_incomplete` 时接受。
 
 验证命令：
 

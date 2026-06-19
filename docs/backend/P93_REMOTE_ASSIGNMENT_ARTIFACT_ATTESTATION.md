@@ -41,6 +41,10 @@ npm run check:remote-assignment-artifacts
   assignment remains blocked honestly, while the committed fixture can produce a
   strict execution pack with health, GitHub variable, strict gate and rollback
   commands.
+- P110 placeholder sentinel execution-pack artifacts may also be present in the
+  same artifact bundle; they are accepted only when
+  `remote-assignment-placeholder-sentinel.fixture.json` remains blocked with
+  `assignment_execution_incomplete`.
 - `remote-assignment-fixture-gate` is a valid P81 artifact; fixture origins stay
   reserved `.invalid` domains, P79 is ready, P75 remains pending health, and the
   fixture does not claim live runtime.
@@ -73,5 +77,7 @@ npm run check:remote-assignment-artifacts
 3. Pages workflow runs `check:remote-assignment-artifacts` in current-run mode.
 4. P16/P20/P43/P45/P83/P84 handoff docs mention P93 so assignment artifact
    metadata and content responsibilities stay aligned.
-5. The attestation writes
+5. P110 placeholder sentinel artifacts are accepted only as blocked safety
+   evidence, never as live assignment evidence.
+6. The attestation writes
    `artifacts/runtime/remote-assignment-artifact-attestation-*.json`.

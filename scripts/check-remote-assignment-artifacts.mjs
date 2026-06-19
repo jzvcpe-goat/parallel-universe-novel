@@ -172,11 +172,15 @@ function validateExecutionPackArtifact(payload) {
   const blockedStages = Array.isArray(payload.blockedStages) ? payload.blockedStages : []
   const isFixture = payload.assignmentPath === 'deploy/runtime-production/remote-assignment.fixture.json'
   const isLocal = payload.assignmentPath === 'deploy/runtime-production/remote-assignment.local.json'
+  const isPlaceholderSentinel = basename(String(payload.assignmentPath || '')) === 'remote-assignment-placeholder-sentinel.fixture.json'
 
   assert(payload.version === 1, 'remote assignment execution pack artifact version must be 1')
   assert(payload.gate === 'P79_REMOTE_ASSIGNMENT_EXECUTION_PACK', 'remote assignment execution pack artifact gate mismatch')
   assert(payload.repository === repo, 'remote assignment execution pack artifact repository mismatch')
-  assert(isFixture || isLocal, 'execution pack assignment path must be fixture or ignored local assignment')
+  assert(
+    isFixture || isLocal || isPlaceholderSentinel,
+    'execution pack assignment path must be fixture, ignored local assignment, or P110 placeholder sentinel fixture',
+  )
   assert(
     ['assignment_execution_waiting_for_assignment', 'assignment_execution_incomplete', 'assignment_execution_pack_ready'].includes(payload.decision),
     `execution pack decision is unsupported: ${payload.decision}`,
@@ -210,6 +214,15 @@ function validateExecutionPackArtifact(payload) {
     assert(payload.services?.api?.origin === 'https://api.parallel-universe-runtime.invalid', 'fixture API origin must stay reserved .invalid domain')
     assert(payload.services?.agent?.origin === 'https://agent.parallel-universe-runtime.invalid', 'fixture Agent origin must stay reserved .invalid domain')
     assert(payload.pagesVariablesAfterHealth?.VITE_PUBLIC_RUNTIME_MODE === 'live', 'fixture execution pack must show post-health live variables only')
+  }
+
+  if (isPlaceholderSentinel) {
+    assert(payload.required === false, 'placeholder sentinel execution pack must not be strict')
+    assert(payload.status === 'blocked', 'placeholder sentinel execution pack must stay blocked')
+    assert(payload.decision === 'assignment_execution_incomplete', 'placeholder sentinel execution pack must stay incomplete')
+    for (const stage of ['api-service-id', 'agent-service-id', 'api-origin', 'agent-origin']) {
+      assert(blockedStages.includes(stage), `placeholder sentinel execution pack must block ${stage}`)
+    }
   }
 }
 

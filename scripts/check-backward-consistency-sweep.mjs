@@ -168,6 +168,7 @@ assertIncludes('scripts/check-remote-assignment-artifacts.mjs', [
   'remote-assignment-execution-pack',
   'remote-assignment-fixture-gate',
   'CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED',
+  'remote-assignment-placeholder-sentinel.fixture.json',
 ])
 
 assertIncludes('backend/src/narrativeos/services/creator_dialogue.py', [
@@ -249,6 +250,7 @@ assertIncludes('docs/backend/P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION.md', [
   'remote-assignment-schema',
   'remote-assignment-execution-pack',
   'remote-assignment-fixture-gate',
+  'remote-assignment-placeholder-sentinel.fixture.json',
 ])
 
 for (const requiredFile of [
