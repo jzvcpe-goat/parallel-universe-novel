@@ -20,11 +20,14 @@ The source of truth for P120 is always:
 
 P122 verifies that P120 selects the P75 artifact for that local ignored file,
 then verifies P121 routes the next goal from that real local assignment state.
+If that real state still needs operator assignment evidence, P123 must run next
+and emit the safe operator intake packet.
 
 ## Command
 
 ```bash
 npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
 ```
 
 ## Inputs
@@ -50,7 +53,7 @@ ids, kernel ids or raw runtime state.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-return-fixture-isolation`.
-2. Root `npm run test` runs P122 after P121 and before dependency audit.
+2. Root `npm run test` runs P122 after P121, then P123, before dependency audit.
 3. P120 filters P75 assignment evidence by `remote-assignment.local.json`.
 4. P120 packet cites the local assignment path in `sourceEvidence.assignmentIntake`.
 5. If P120 reports `operator_return_waiting_for_assignment`, P121 must select

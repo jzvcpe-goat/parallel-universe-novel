@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P123 Operator Assignment Evidence Intake
+
+P122 把 fixture 证据隔离之后，loop 的下一步不能直接跳到 remote health。当前真实
+状态是 `remote-assignment.local.json` 仍缺 operator owner、provider、service id、
+HTTPS origin 和 provider-side secret-store confirmation。P123 把这一步做成一份
+机器可校验的 operator assignment intake，而不是继续靠口头说明。
+
+新的工程标准：
+
+1. `check:operator-assignment-evidence-intake` 只能在 P121 选中
+   `operator-assignment-evidence-intake` 且 P122 已证明 fixture 未回流时通过。
+2. P123 必须验证 P113 image drift 已清除、P108 local assignment 仍未被 Git 跟踪、
+   P117 还没有完整 operator env、P75 仍指向 ignored local assignment。
+3. P123 只输出安全的 JSON/Markdown handoff：需要哪些非密 env key、当前 blocker、
+   下一步命令；不得写 assignment、不创建服务、不设置 GitHub variables、不保存
+   provider secrets、不推进 live runtime。
+4. Root `npm run test` 必须按 `P121 -> P122 -> P123 -> dependency audit` 的顺序
+   执行，防止 loop goal ledger 选出 assignment intake 后无人接住。
+5. 等 operator evidence 填齐后，P121 应从 `operator-assignment-evidence-intake`
+   自动切换到 `remote-health-evidence-intake`；否则说明 P117/P75/P120/P121 之间
+   证据没有刷新。
+
+验证命令：
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+```
+
 ## 2026-06-19 P122 Fixture Evidence Isolation
 
 P121 暴露了一个长链路里很容易被忽略的问题：root test 中 P81 会生成

@@ -208,13 +208,14 @@ assert(
   'package.json must expose check:loop-next-goal-ledger',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run audit:dependencies'),
-  'root npm run test must run P121 after CI artifact coverage, then P122, before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run audit:dependencies'),
+  'root npm run test must run P121 after CI artifact coverage, then P122 and P123, before dependency audit',
 )
 
 for (const file of [
   'docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md',
   'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
+  'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
   'docs/backend/P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION.md',
   'docs/product/rules/REFERENCE_WORK_PRIVACY.md',
 ]) {
@@ -226,6 +227,8 @@ for (const term of [
   'P121 Loop Next Goal Ledger',
   'check:loop-next-goal-ledger',
   'remote-health-evidence-intake',
+  'operator-assignment-evidence-intake',
+  'P123',
   'does not create services',
   'does not write',
 ]) {

@@ -32,6 +32,10 @@ P121 is immediately followed by P122, which checks that the P120 evidence used
 to select the next goal came from the ignored local operator assignment and not
 from the no-secret fixture path.
 
+When the selected goal is `operator-assignment-evidence-intake`, P122 is
+followed by P123, which packages the exact non-secret operator assignment
+evidence required before the loop can move to remote health.
+
 ## Command
 
 ```bash
@@ -90,7 +94,7 @@ Completion criteria for that goal:
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122 before dependency audit.
+   then P122 and P123 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current evidence, not hardcoded wishful
    thinking.

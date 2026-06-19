@@ -94,14 +94,15 @@ assert(
   'package.json must expose check:operator-return-fixture-isolation',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run audit:dependencies'),
-  'root test must run P122 after P121 and before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run audit:dependencies'),
+  'root test must run P122 after P121, then P123, before dependency audit',
 )
 
 for (const file of [
   'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
   'docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md',
   'docs/backend/P122_OPERATOR_RETURN_FIXTURE_ISOLATION.md',
+  'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
   'scripts/check-remote-operator-return-intake.mjs',
 ]) {
   assert(existsSync(join(root, file)), `missing P122 prerequisite: ${file}`)
