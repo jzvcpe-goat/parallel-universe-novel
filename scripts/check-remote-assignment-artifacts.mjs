@@ -160,6 +160,19 @@ function validateSchemaArtifact(payload) {
     assert(fileNames.has(name), `remote assignment schema artifact must include ${name} file status`)
   }
   assert(localEntry?.state === 'waiting_for_operator' || localEntry?.state === 'operator_assignment', 'local assignment state must be explicit')
+  assert(
+    [
+      'remote_assignment_schema_waiting_for_local_assignment',
+      'remote_assignment_schema_incomplete',
+      'remote_assignment_schema_ready',
+    ].includes(payload.decision),
+    `remote assignment schema artifact decision is unsupported: ${payload.decision}`,
+  )
+  if (payload.decision === 'remote_assignment_schema_incomplete') {
+    assert(localEntry?.state === 'operator_assignment', 'incomplete schema artifact must refer to an operator local assignment')
+    assert(localEntry?.status === 'blocked', 'incomplete schema artifact local entry must remain blocked')
+    assert(Array.isArray(payload.blockedStages) && payload.blockedStages.length > 0, 'incomplete schema artifact must include blocked stages')
+  }
   assert(payload.publicBoundary?.assignmentContentsIncluded === false, 'schema artifact must not include assignment contents')
   assert(payload.publicBoundary?.containsSecrets === false, 'schema artifact must not contain secrets')
   assert(payload.publicBoundary?.containsReferenceWorkNames === false, 'schema artifact must not contain reference work names')

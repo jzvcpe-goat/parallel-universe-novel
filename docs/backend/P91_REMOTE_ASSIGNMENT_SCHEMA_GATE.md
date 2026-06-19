@@ -52,6 +52,10 @@ npm run check:remote-assignment-schema
 
 - `remote_assignment_schema_waiting_for_local_assignment`: template and fixture
   are valid, but the ignored local assignment file does not exist yet.
+- `remote_assignment_schema_incomplete`: the ignored local assignment has the
+  expected safe shape, but still contains placeholders, missing remote origins
+  or false provider secret-store confirmations. This is the expected P112 draft
+  state and is not live-ready.
 - `remote_assignment_schema_invalid`: committed schema/template/fixture or the
   local assignment violates the contract.
 - `remote_assignment_schema_ready`: the operator-filled local assignment has the

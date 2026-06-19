@@ -94,4 +94,6 @@ REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers
 - Pages workflow uploads `remote-assignment-fill-plan`.
 - The generated artifact is operator-safe and redacted.
 - The gate keeps current P85 blockers visible instead of declaring remote
-  runtime ready.
+  runtime ready. If a P112 local draft exists, only
+  `remote-assignment-file-present` may become ready; assignment health, origin,
+  live readiness, live trace, cutover and activation blockers must remain.

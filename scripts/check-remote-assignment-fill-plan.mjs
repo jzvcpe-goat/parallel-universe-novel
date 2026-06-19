@@ -331,7 +331,13 @@ const artifact = {
 
 assert(fillPlan.length >= 6, 'P105 fill plan must cover ownership, services, origin, Pages variables and activation')
 assert(validationSequence.length >= 8, 'P105 validation sequence must cover all strict runtime assignment gates')
-assert(normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must preserve the remote assignment file blocker until operator input exists')
+const localAssignmentExists = existsSync(join(root, targetAssignmentPath))
+if (localAssignmentExists) {
+  assert(!normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must clear only the file-present blocker when a local assignment draft exists')
+  assert(normalizedBlockedStages.includes('remote-assignment-health-ready'), 'P105 must preserve assignment health blocker until operator input is complete')
+} else {
+  assert(normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must preserve the remote assignment file blocker until operator input exists')
+}
 assert(normalizedBlockedStages.includes('activation-control'), 'P105 must preserve activation-control as blocked until live cutover gates pass')
 assert(artifact.writesLocalAssignment === false, 'P105 must not write remote-assignment.local.json')
 assert(!existsSync(join(root, targetAssignmentPath)) || statSync(join(root, targetAssignmentPath)).isFile(), 'P105 must not create assignment directory state')

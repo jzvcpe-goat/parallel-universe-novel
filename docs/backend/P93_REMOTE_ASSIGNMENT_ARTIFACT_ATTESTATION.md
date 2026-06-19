@@ -36,7 +36,9 @@ npm run check:remote-assignment-artifacts
 
 - `remote-assignment-schema` is a valid P91 artifact, targets the ignored
   `remote-assignment.local.json` path, includes example/fixture/local status,
-  and does not include assignment contents.
+  and does not include assignment contents. P112 local draft artifacts may be
+  `remote_assignment_schema_incomplete`; P93 accepts that only when the local
+  entry remains blocked and the artifact still omits assignment contents.
 - `remote-assignment-execution-pack` is a valid P79 artifact; local missing
   assignment remains blocked honestly, while the committed fixture can produce a
   strict execution pack with health, GitHub variable, strict gate and rollback

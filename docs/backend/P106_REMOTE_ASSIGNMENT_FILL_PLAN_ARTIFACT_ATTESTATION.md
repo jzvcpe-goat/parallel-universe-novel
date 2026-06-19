@@ -32,8 +32,10 @@ The gate validates:
   Pages runtime variables and activation control;
 - strict validation sequence through assignment, origin, readiness, cutover,
   activation and blocker gates;
-- blocker preservation for `remote-assignment-file-present` and
-  `activation-control`;
+- blocker preservation for `activation-control` and assignment health/live
+  stages; without a local assignment draft, `remote-assignment-file-present`
+  must stay blocked; with a P112 local draft, only that file-present blocker may
+  become ready while `remote-assignment-health-ready` stays blocked;
 - boundary booleans proving the artifact does not write local assignment state,
   create services, set GitHub variables, promote live runtime or treat fixtures
   as production readiness.

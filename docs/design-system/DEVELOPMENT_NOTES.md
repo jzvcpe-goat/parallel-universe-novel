@@ -1,5 +1,46 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P112 Remote Assignment Local Draft Preparation
+
+P111 证明代表作品名已经进入 encrypted vault / anonymous refs 的完成态后，
+下一步不能继续叠加同类隐私门禁，而要推进远程 Runtime 上线断点。P87/P105
+已经能告诉 operator 要填什么，但仍要求人手动复制模板、寻找当前 GHCR image
+ref。这个人工步骤容易把旧镜像、fixture 或占位符当成生产证据。
+
+新的工程标准：
+
+1. `prepare:remote-assignment-local` 只生成被 Git 忽略的
+   `deploy/runtime-production/remote-assignment.local.json`。
+2. 生成器只填当前 P72 runtime image evidence 中的 API / Agent image refs；
+   owner、provider、service id、origin 全部保持 `FILL_*`。
+3. `providerSecretsConfigured` 必须保持 `false`，直到 operator 在 provider
+   secret store 完成真实配置。
+4. `check:remote-assignment-draft-prep` 必须是 read-only，并进入 root
+   `npm run test`；它证明 helper 可用，但不能写 local assignment。
+5. source workspace 不是 git checkout 时，read-only check 只能证明 wiring
+   和不写文件；真正生成 image-filled draft 必须在 release repo 或显式
+   `RUNTIME_IMAGE_HEAD_SHA` 下执行。
+6. 生成出的 local draft 必须继续让 P75/P79 返回 incomplete/blocker 状态，
+   不能误清 live runtime blockers。
+7. P91/P93 必须接受 `remote_assignment_schema_incomplete` 作为 P112 草稿证据，
+   但只有在 local entry 仍然 blocked 且 artifact 不包含 assignment 内容时才接受。
+8. P105/P106/P85 必须允许 P112 草稿清掉 `remote-assignment-file-present`，但必须继续
+   保留 assignment health、origin、live readiness、trace、cutover 和 activation
+   blockers。
+9. local assignment 不得入库，也不得包含 database URL、Tool Bridge token、
+   模型 key、provider API token、private key、system prompt、raw state 或
+   reference vault material。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-draft-prep
+npm run prepare:remote-assignment-local
+REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-runtime-assignment-intake
+REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-assignment-execution-pack
+npm run check:remote-assignment-local-boundary
+```
+
 ## 2026-06-19 P111 Representative Work Encryption Completion Gate
 
 P17/P18/P80/P83 已经把代表作品名从 kernel、constraints、runtime registry、

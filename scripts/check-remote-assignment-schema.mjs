@@ -36,7 +36,12 @@ function normalizeOrigin(value) {
 }
 
 function isPlaceholder(value) {
-  return /<.+>/.test(String(value || ''))
+  const text = String(value || '').trim()
+  return /<.+>/.test(text)
+    || /\bFILL_[A-Z0-9_]+\b/i.test(text)
+    || /\bREPLACE_ME\b/i.test(text)
+    || /\bYOUR[_-][A-Z0-9_-]+\b/i.test(text)
+    || /\bTODO[_-][A-Z0-9_-]+\b/i.test(text)
 }
 
 function isProvided(value) {
@@ -201,6 +206,13 @@ const fixtureIssues = checkShape('fixture', fixture, serviceManifest, { allowInv
 const localIssues = local
   ? checkShape('local', local, serviceManifest, { requireReadyFields: true })
   : [{ id: 'local-assignment-file-present', detail: `${assignmentPath} does not exist yet.` }]
+const localReadinessIssues = localIssues.filter(item =>
+  /^local-(api|agent)-(service-id-provided|remote-origin|provider-secrets-ready)$/.test(item.id)
+    || /^local-operator-(owner|provider)-provided$/.test(item.id),
+)
+const localHardIssues = local
+  ? localIssues.filter(item => !localReadinessIssues.includes(item))
+  : []
 
 const files = [
   summarize('example', 'deploy/runtime-production/remote-assignment.example.json', example, exampleIssues, 'template'),
@@ -208,12 +220,14 @@ const files = [
   summarize('local', assignmentPath, local, localIssues, local ? 'operator_assignment' : 'waiting_for_operator'),
 ]
 const hardIssues = [...exampleIssues, ...fixtureIssues]
-if (local && localIssues.length) hardIssues.push(...localIssues)
+if (localHardIssues.length) hardIssues.push(...localHardIssues)
 const blockedStages = hardIssues.map(item => item.id)
 const decision = hardIssues.length
   ? 'remote_assignment_schema_invalid'
   : local
-    ? 'remote_assignment_schema_ready'
+    ? localReadinessIssues.length
+      ? 'remote_assignment_schema_incomplete'
+      : 'remote_assignment_schema_ready'
     : 'remote_assignment_schema_waiting_for_local_assignment'
 
 const artifact = {
@@ -225,7 +239,7 @@ const artifact = {
   decision,
   status: hardIssues.length ? 'blocked' : 'ready',
   assignmentPath,
-  blockedStages,
+  blockedStages: hardIssues.length ? blockedStages : localReadinessIssues.map(item => item.id),
   files,
   publicBoundary: {
     assignmentContentsIncluded: false,
@@ -250,6 +264,6 @@ console.log(JSON.stringify({
   status: artifact.decision === 'remote_assignment_schema_ready' ? 'passed' : 'passed_waiting_for_operator_assignment',
   gate: artifact.gate,
   decision,
-  blockedStages,
+  blockedStages: artifact.blockedStages,
   artifactPath,
 }, null, 2))

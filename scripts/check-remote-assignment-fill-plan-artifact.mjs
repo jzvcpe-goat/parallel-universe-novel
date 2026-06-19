@@ -194,7 +194,13 @@ function validateFillPlan(payload, markdownText, expectedHeadSha) {
   ]) {
     assert(validationText.includes(command), `fill-plan validation sequence must include ${command}`)
   }
-  assert(blockedStages.includes('remote-assignment-file-present'), 'fill-plan must preserve remote-assignment-file-present blocker')
+  const localAssignmentExists = existsSync(join(root, targetAssignmentPath))
+  if (localAssignmentExists) {
+    assert(!blockedStages.includes('remote-assignment-file-present'), 'fill-plan must clear only the file-present blocker when a local assignment draft exists')
+    assert(blockedStages.includes('remote-assignment-health-ready'), 'fill-plan must preserve assignment health blocker until operator input is complete')
+  } else {
+    assert(blockedStages.includes('remote-assignment-file-present'), 'fill-plan must preserve the remote assignment file blocker until operator input exists')
+  }
   assert(blockedStages.includes('activation-control'), 'fill-plan must preserve activation-control blocker')
   if (sourceWorkspaceNoGit) {
     assert(blockedStages.includes('runtime-images-published'), 'source workspace fill-plan must keep runtime images blocked')
