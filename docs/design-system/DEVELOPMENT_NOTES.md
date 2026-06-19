@@ -1,5 +1,25 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P106 Current-Run Artifact Context
+
+P116 提交后，本地已经刷新了 ignored
+`deploy/runtime-production/remote-assignment.local.json`，但 GitHub Pages run
+里的 P105 `remote-assignment-fill-plan` artifact 是在 CI 环境生成的，CI 没有这个
+本地 assignment 草稿。因此 P106 current-run 下载校验不能读取当前开发机的
+ignored 文件来判断 GitHub artifact 是否应该清掉
+`remote-assignment-file-present` blocker。
+
+新的工程标准：
+
+1. Local artifact mode 可以用本机 ignored assignment 状态判断
+   `remote-assignment-file-present` 是否应被清掉。
+2. GitHub current-run artifact mode 必须以下载 artifact 自身的
+   `blockedStages` 为准。
+3. current-run artifact attestation 是“复核当时 CI 生成的证据”，不是“用现在的
+   本地 operator 文件重算证据”。
+4. 任何 artifact checker 只要同时支持 local mode 和 GitHub current-run mode，
+   都必须显式隔离这两种上下文。
+
 ## 2026-06-19 P116 Remote Assignment Env Apply Gate
 
 P112 已经能生成当前镜像的 ignored assignment 草稿，但下一步仍要求 operator

@@ -18,6 +18,11 @@ CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:remote-assignment-fill-plan-artifact
 ```
 
+In current-run mode, P106 validates the downloaded GitHub artifact as it was
+generated in CI. It must not reinterpret that artifact using the operator's
+current local `remote-assignment.local.json`, because local ignored state can be
+created or refreshed after the GitHub run completed.
+
 ## Contract
 
 The gate validates:
@@ -35,7 +40,9 @@ The gate validates:
 - blocker preservation for `activation-control` and assignment health/live
   stages; without a local assignment draft, `remote-assignment-file-present`
   must stay blocked; with a P112 local draft, only that file-present blocker may
-  become ready while `remote-assignment-health-ready` stays blocked;
+  become ready while `remote-assignment-health-ready` stays blocked; for a
+  downloaded GitHub artifact, the artifact's own blocked stages are authoritative
+  for whether CI had a local assignment draft;
 - boundary booleans proving the artifact does not write local assignment state,
   create services, set GitHub variables, promote live runtime or treat fixtures
   as production readiness.

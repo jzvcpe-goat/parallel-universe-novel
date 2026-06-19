@@ -136,7 +136,7 @@ function imageRef(service, headSha) {
   return `ghcr.io/jzvcpe-goat/parallel-universe-novel-${service}:${headSha}`
 }
 
-function validateFillPlan(payload, markdownText, expectedHeadSha) {
+function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) {
   const privateMatches = scanNoPrivatePayload(payload)
   const markdownPrivateMatches = scanNoPrivateText(markdownText)
   const blockedStages = Array.isArray(payload.upstreamEvidence?.blockerLedger?.blockedStages)
@@ -194,12 +194,17 @@ function validateFillPlan(payload, markdownText, expectedHeadSha) {
   ]) {
     assert(validationText.includes(command), `fill-plan validation sequence must include ${command}`)
   }
-  const localAssignmentExists = existsSync(join(root, targetAssignmentPath))
-  if (localAssignmentExists) {
+  const localAssignmentExists = options.localAssignmentExists
+  if (localAssignmentExists === true) {
     assert(!blockedStages.includes('remote-assignment-file-present'), 'fill-plan must clear only the file-present blocker when a local assignment draft exists')
     assert(blockedStages.includes('remote-assignment-health-ready'), 'fill-plan must preserve assignment health blocker until operator input is complete')
-  } else {
+  } else if (localAssignmentExists === false) {
     assert(blockedStages.includes('remote-assignment-file-present'), 'fill-plan must preserve the remote assignment file blocker until operator input exists')
+  } else {
+    assert(
+      blockedStages.includes('remote-assignment-file-present') || blockedStages.includes('remote-assignment-health-ready'),
+      'fill-plan must preserve either file-present or assignment-health blocker according to the artifact generation environment',
+    )
   }
   assert(blockedStages.includes('activation-control'), 'fill-plan must preserve activation-control blocker')
   if (sourceWorkspaceNoGit) {
@@ -290,7 +295,9 @@ try {
     process.exit(0)
   }
 
-  const validation = validateFillPlan(payload, readFileSync(markdownPath, 'utf8'), expectedHeadSha)
+  const validation = validateFillPlan(payload, readFileSync(markdownPath, 'utf8'), expectedHeadSha, {
+    localAssignmentExists: source === 'github' ? null : existsSync(join(root, targetAssignmentPath)),
+  })
   const result = {
     version: 1,
     gate: 'P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION',
