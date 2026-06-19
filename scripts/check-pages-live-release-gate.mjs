@@ -206,6 +206,14 @@ assert(
   'Pages workflow must upload the remote operator readiness packet artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote operator return intake')
+    && workflow.includes('remote-operator-return-intake')
+    && workflow.includes('artifacts/runtime/remote-operator-return-intake-*.json')
+    && workflow.includes('artifacts/runtime/remote-operator-return-intake-*.md')
+    && workflow.indexOf('Upload remote operator return intake') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote operator return intake artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload runtime image local smoke')
     && workflow.includes('runtime-image-local-smoke')
     && workflow.includes('artifacts/runtime/runtime-image-local-smoke-*.json')
@@ -291,12 +299,20 @@ assert(
   'Pages workflow must verify remote operator readiness packet artifact content after the strict-run package artifact content gate',
 )
 assert(
+  workflow.includes('Check remote operator return intake artifact content')
+    && workflow.includes('CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:remote-operator-return-intake-artifact')
+    && workflow.indexOf('Check remote operator return intake artifact content') > workflow.indexOf('Check remote operator readiness packet artifact content'),
+  'Pages workflow must verify remote operator return intake artifact content after the readiness packet artifact content gate',
+)
+assert(
   workflow.includes('Check runtime image local smoke artifact content')
     && workflow.includes('CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:runtime-image-local-smoke-artifact')
-    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote operator readiness packet artifact content'),
-  'Pages workflow must verify runtime image local smoke artifact content after the operator packet artifact content gate',
+    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote operator return intake artifact content'),
+  'Pages workflow must verify runtime image local smoke artifact content after the operator return intake artifact content gate',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
@@ -361,6 +377,14 @@ assert(
 assert(
   packageJson.scripts['check:remote-operator-readiness-packet-artifact'] === 'node scripts/check-remote-operator-readiness-packet-artifact.mjs',
   'package.json must expose check:remote-operator-readiness-packet-artifact',
+)
+assert(
+  packageJson.scripts['check:remote-operator-return-intake'] === 'node scripts/check-remote-operator-return-intake.mjs',
+  'package.json must expose check:remote-operator-return-intake',
+)
+assert(
+  packageJson.scripts['check:remote-operator-return-intake-artifact'] === 'node scripts/check-remote-operator-return-intake-artifact.mjs',
+  'package.json must expose check:remote-operator-return-intake-artifact',
 )
 assert(
   packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
@@ -435,6 +459,14 @@ assert(
   'npm run test must include check:remote-operator-readiness-packet-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-operator-return-intake'),
+  'npm run test must include check:remote-operator-return-intake',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-operator-return-intake-artifact'),
+  'npm run test must include check:remote-operator-return-intake-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-local-smoke-artifact'),
   'npm run test must include check:runtime-image-local-smoke-artifact',
 )
@@ -473,6 +505,8 @@ assert(
     && p16Doc.includes('check:remote-assignment-strict-run-package-artifact')
     && p16Doc.includes('remote-operator-readiness-packet')
     && p16Doc.includes('check:remote-operator-readiness-packet-artifact')
+    && p16Doc.includes('remote-operator-return-intake')
+    && p16Doc.includes('check:remote-operator-return-intake-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('check:ci-artifact-content-coverage')
@@ -504,6 +538,7 @@ assert(
     && p43Doc.includes('check:remote-assignment-fill-plan-artifact')
     && p43Doc.includes('check:remote-assignment-strict-run-package-artifact')
     && p43Doc.includes('check:remote-operator-readiness-packet-artifact')
+    && p43Doc.includes('check:remote-operator-return-intake-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
@@ -515,6 +550,7 @@ assert(
     && p43Doc.includes('remote-assignment-fill-plan')
     && p43Doc.includes('remote-assignment-strict-run-package')
     && p43Doc.includes('remote-operator-readiness-packet')
+    && p43Doc.includes('remote-operator-return-intake')
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
@@ -531,6 +567,8 @@ assert(
     && p107Doc.includes('P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE')
     && p107Doc.includes('remote-operator-readiness-packet')
     && p107Doc.includes('P119_REMOTE_OPERATOR_READINESS_PACKET')
+    && p107Doc.includes('remote-operator-return-intake')
+    && p107Doc.includes('P120_REMOTE_OPERATOR_RETURN_INTAKE')
     && p107Doc.includes('runtime-image-local-smoke')
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
@@ -597,6 +635,8 @@ console.log(JSON.stringify({
   remoteAssignmentStrictRunPackageContent: 'check:remote-assignment-strict-run-package-artifact',
   remoteOperatorReadinessPacket: 'remote-operator-readiness-packet',
   remoteOperatorReadinessPacketContent: 'check:remote-operator-readiness-packet-artifact',
+  remoteOperatorReturnIntake: 'remote-operator-return-intake',
+  remoteOperatorReturnIntakeContent: 'check:remote-operator-return-intake-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',

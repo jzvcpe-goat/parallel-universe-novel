@@ -1,5 +1,22 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P120 Operator Return Intake
+
+P119 解决的是“把什么交给部署 owner”，但部署 owner 回填之后仍需要一个单一
+验收入口。P120 把 P75 assignment intake、P117 env dry-run、P113 image drift、
+P85 blocker ledger、P78 activation control 和 P23 readiness 汇成 return intake：
+
+1. `check:remote-operator-return-intake` 只判断回填状态，不写
+   `remote-assignment.local.json`，不创建服务，不设置 GitHub variables，不存
+   provider secrets，也不宣称 live runtime ready。
+2. Return intake 只输出三类状态：等待 assignment、等待 remote health、或可进入
+   strict activation gates。它不能替代 P73/P66/P23/P65/P76/P78 的严格证明。
+3. `check:remote-operator-return-intake-artifact` 必须支持 local mode 和 GitHub
+   current-run mode，并验证同一 Pages run 下载到的 JSON/Markdown 内容。
+4. 新增 handoff/return 类 artifact 时，要同时更新 P16、P20、P43、P45、P52、
+   P107、runtime activation package、runtime completion gates 和 release sync
+   manifest。否则就是又造了一个孤立检查点。
+
 ## 2026-06-19 P119 Operator Readiness Packet
 
 P118 已经把远程上线步骤组织成 strict-run package，但部署 owner 仍需要一份

@@ -37,7 +37,7 @@ npm run check:runtime-engine-completion
 | `codex-harness` | Codex Harness | `ready` | Root `npm run test`, smoke, CI artifact gate, sync manifest, release identity gate. | Keep CI evidence green on every release. |
 | `web-reader-entry` | Web 阅读入口 | `partial` | `Home`, `Library`, `Story`, reader hooks, public UI boundary scan, Reader branch trace gate, backend branch publish candidate gate, and `public_branch_release_summary` exist. | Remote public runtime facade remains disabled; live Reader generation is not proven. |
 | `creator-studio` | 创作者工作台 | `partial` | `/create`, `socratic-create`, local live browser QA, 300+ candidate draft and 0-2 questions. | Public Pages still has remote runtime disabled until API/Agent HTTPS origins are configured. |
-| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 runtime image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P105 remote assignment fill plan, P106 remote assignment fill plan artifact attestation, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, P119 remote operator readiness packet, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-assignment-env-apply`, `remote-assignment-env-dry-run`, `github-runtime-variable-boundary`, `runtime-placeholder-sentinel`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
+| `commercial-release-chain` | 商业化发布链路 | `blocked` | GitHub Pages deploy, P69 host target gate, P70 deploy manifest gate, P71 runtime image publish gate, P72 runtime image publish evidence gate, P99 release workflow ordering gate, P74 operator handoff, P75 assignment intake, P73 remote origin execution gate, P76 live cutover attestation, P77 live rollback rehearsal, P78 remote activation control, P79 remote assignment execution pack, P80 reference privacy artifact gate, P81 remote assignment fixture gate, P83 backward consistency sweep, P84 runtime completion evidence alignment, P85 remote runtime blocker normalization, P87 remote assignment handoff, P89 remote assignment handoff artifact attestation, P90 remote runtime blocker artifact attestation, P91 remote assignment schema gate, P92 public privacy artifact attestation, P93 remote assignment artifact attestation, P94 local artifact mode coherence, P96 runtime completion blocker convergence, P105 remote assignment fill plan, P106 remote assignment fill plan artifact attestation, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, P119 remote operator readiness packet, P120 remote operator return intake, P68 runtime preview compose, `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `remote-assignment-env-apply`, `remote-assignment-env-dry-run`, `github-runtime-variable-boundary`, `runtime-placeholder-sentinel`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, `github-pages` artifacts. | P85 blocker ledger is the source of truth for commercial release open gaps; public live runtime, remote service assignments, real payment provider, legal/privacy and production rollback owners remain unresolved. |
 
 ## Required Evidence Artifacts
 
@@ -55,6 +55,7 @@ The release chain must continue to produce:
 - `remote-assignment-fill-plan`
 - `remote-assignment-strict-run-package`
 - `remote-operator-readiness-packet`
+- `remote-operator-return-intake`
 - `reference-privacy`
 - `public-projection-privacy`
 - `local-live-runtime-visual-qa`
@@ -997,6 +998,27 @@ Command: `npm run check:remote-operator-readiness-packet`.
 Current decision is that P119 is a shareable operator handoff packet. It
 reduces handoff ambiguity but intentionally preserves remote runtime blockers
 until real remote services and live cutover gates pass.
+
+## P120 Remote Operator Return Intake
+
+`scripts/check-remote-operator-return-intake.mjs` validates the evidence that
+comes back after the P119 handoff: P75 assignment intake, P117 env dry-run, P113
+image drift, P85 blocker ledger, P78 activation control and P23 live readiness.
+
+Command: `npm run check:remote-operator-return-intake`.
+
+- Contract: `P120_REMOTE_OPERATOR_RETURN_INTAKE`.
+- It emits JSON and Markdown artifacts named `remote-operator-return-intake`.
+- `scripts/check-remote-operator-return-intake-artifact.mjs` validates local or
+  current-run return-intake content with
+  `CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_REQUIRED=true`.
+- Boundary flags prove it does not write local assignment state, create
+  services, set GitHub variables, store provider secrets, promote live runtime
+  or treat fixtures as production readiness.
+
+Current decision is that P120 is an operator return-state gate. It reduces
+handoff-return ambiguity but intentionally preserves remote runtime blockers
+until assignment, health, live trace, cutover and activation gates pass.
 
 ## P90 Remote Runtime Blocker Artifact Attestation
 

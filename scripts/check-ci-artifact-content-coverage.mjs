@@ -150,6 +150,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for safe operator handoff, blocker preservation and no-secret boundaries.',
   },
   {
+    name: 'remote-operator-return-intake',
+    kind: 'download_content_gate',
+    producer: 'check:remote-operator-return-intake',
+    verifier: 'check:remote-operator-return-intake-artifact',
+    contract: 'P120_REMOTE_OPERATOR_RETURN_INTAKE',
+    uploadStep: 'Upload remote operator return intake',
+    uploadPath: 'artifacts/runtime/remote-operator-return-intake-*.json',
+    workflowStep: 'Check remote operator return intake artifact content',
+    reason: 'Downloaded from the same Pages run and checked for operator return state, strict activation commands and no-write boundaries.',
+  },
+  {
     name: 'runtime-image-local-smoke',
     kind: 'download_content_gate',
     producer: 'check:runtime-image-local-smoke',
@@ -251,7 +262,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 11, 'P107 expects eleven artifacts with downloaded content gates')
+assert(downloadAttested.length === 12, 'P107 expects twelve artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

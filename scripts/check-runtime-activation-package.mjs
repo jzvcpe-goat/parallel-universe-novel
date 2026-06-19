@@ -50,6 +50,7 @@ const requiredFiles = [
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md',
   'docs/backend/P119_REMOTE_OPERATOR_READINESS_PACKET.md',
+  'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -82,6 +83,8 @@ const requiredFiles = [
   'scripts/check-remote-assignment-strict-run-package-artifact.mjs',
   'scripts/check-remote-operator-readiness-packet.mjs',
   'scripts/check-remote-operator-readiness-packet-artifact.mjs',
+  'scripts/check-remote-operator-return-intake.mjs',
+  'scripts/check-remote-operator-return-intake-artifact.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
   'scripts/check-remote-assignment-local-boundary.mjs',
   'scripts/check-github-runtime-variable-boundary.mjs',
@@ -127,6 +130,7 @@ const p116 = read('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md')
 const p117 = read('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md')
 const p118 = read('docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md')
 const p119 = read('docs/backend/P119_REMOTE_OPERATOR_READINESS_PACKET.md')
+const p120 = read('docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -230,6 +234,14 @@ assert(
 assert(
   packageJson.scripts['check:remote-operator-readiness-packet-artifact'] === 'node scripts/check-remote-operator-readiness-packet-artifact.mjs',
   'package.json must expose check:remote-operator-readiness-packet-artifact',
+)
+assert(
+  packageJson.scripts['check:remote-operator-return-intake'] === 'node scripts/check-remote-operator-return-intake.mjs',
+  'package.json must expose check:remote-operator-return-intake',
+)
+assert(
+  packageJson.scripts['check:remote-operator-return-intake-artifact'] === 'node scripts/check-remote-operator-return-intake-artifact.mjs',
+  'package.json must expose check:remote-operator-return-intake-artifact',
 )
 assert(
   packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
@@ -697,6 +709,18 @@ assert(
   'P119 operator readiness packet must define safe operator handoff and no-write boundaries',
 )
 assert(
+  p120.includes('P120 Remote Operator Return Intake')
+    && p120.includes('check:remote-operator-return-intake')
+    && p120.includes('check:remote-operator-return-intake-artifact')
+    && p120.includes('remote-operator-return-intake')
+    && p120.includes('does not create remote services')
+    && p120.includes('does not write')
+    && p120.includes('P119')
+    && p120.includes('P75')
+    && p120.includes('P117'),
+  'P120 operator return intake must define safe return-state validation and no-write boundaries',
+)
+assert(
   hostProfiles.includes('docker-compatible-two-service-paas')
     && hostProfiles.includes('fastapi_business_sovereign_agent_runtime_orchestrates')
     && hostProfiles.includes('provider_secret_store_only')
@@ -863,6 +887,7 @@ assert(
     && workflow.includes('Upload remote assignment execution pack')
     && workflow.includes('Upload remote assignment fixture gate')
     && workflow.includes('Upload remote operator readiness packet')
+    && workflow.includes('Upload remote operator return intake')
     && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('artifacts/runtime/live-runtime-readiness-*.json')
     && workflow.includes('artifacts/runtime/live-rollback-rehearsal-*.json')
@@ -877,9 +902,12 @@ assert(
     && workflow.includes('npm run check:remote-assignment-handoff-artifact')
     && workflow.includes('CHECK_REMOTE_OPERATOR_READINESS_PACKET_ARTIFACT_REQUIRED: true')
     && workflow.includes('npm run check:remote-operator-readiness-packet-artifact')
+    && workflow.includes('CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('npm run check:remote-operator-return-intake-artifact')
     && workflow.includes('artifacts/runtime/remote-assignment-execution-pack-*.json')
     && workflow.includes('artifacts/runtime/remote-assignment-fixture-gate-*.json')
     && workflow.includes('artifacts/runtime/remote-operator-readiness-packet-*.json')
+    && workflow.includes('artifacts/runtime/remote-operator-return-intake-*.json')
     && workflow.includes('artifacts/runtime/reference-privacy-*.json')
     && workflow.includes('actions: read')
     && workflow.includes('GH_TOKEN: ${{ github.token }}')

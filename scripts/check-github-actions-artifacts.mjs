@@ -26,6 +26,7 @@ if (checkCurrentRun) {
     'remote-assignment-fill-plan',
     'remote-assignment-strict-run-package',
     'remote-operator-readiness-packet',
+    'remote-operator-return-intake',
     'runtime-image-local-smoke',
     'reference-privacy',
     'public-projection-privacy',

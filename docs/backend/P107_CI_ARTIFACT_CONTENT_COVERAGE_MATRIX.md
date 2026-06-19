@@ -43,6 +43,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `remote-assignment-fill-plan` | `download_content_gate` | `check:remote-assignment-fill-plan` | `check:remote-assignment-fill-plan-artifact` | `P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION` |
 | `remote-assignment-strict-run-package` | `download_content_gate` | `check:remote-assignment-strict-run-package` | `check:remote-assignment-strict-run-package-artifact` | `P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE` |
 | `remote-operator-readiness-packet` | `download_content_gate` | `check:remote-operator-readiness-packet` | `check:remote-operator-readiness-packet-artifact` | `P119_REMOTE_OPERATOR_READINESS_PACKET` |
+| `remote-operator-return-intake` | `download_content_gate` | `check:remote-operator-return-intake` | `check:remote-operator-return-intake-artifact` | `P120_REMOTE_OPERATOR_RETURN_INTAKE` |
 | `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `reference-privacy` | `download_content_gate` | `scan:reference-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |

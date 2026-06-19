@@ -225,6 +225,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote operator return intake
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-operator-return-intake
+          path: |
+            artifacts/runtime/remote-operator-return-intake-*.json
+            artifacts/runtime/remote-operator-return-intake-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload runtime image local smoke
         if: always()
         uses: actions/upload-artifact@v7
@@ -332,6 +343,13 @@ jobs:
           CHECK_REMOTE_OPERATOR_READINESS_PACKET_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-operator-readiness-packet-artifact
+
+      - name: Check remote operator return intake artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-operator-return-intake-artifact
 
       - name: Check runtime image local smoke artifact content
         env:

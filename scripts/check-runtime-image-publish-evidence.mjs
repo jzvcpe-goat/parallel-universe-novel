@@ -123,13 +123,34 @@ const apiRef = `ghcr.io/jzvcpe-goat/parallel-universe-novel-api:${headSha}`
 const agentRef = `ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:${headSha}`
 const apiLatest = 'ghcr.io/jzvcpe-goat/parallel-universe-novel-api:runtime-latest'
 const agentLatest = 'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime:runtime-latest'
+const apiRepository = 'ghcr.io/jzvcpe-goat/parallel-universe-novel-api'
+const agentRepository = 'ghcr.io/jzvcpe-goat/parallel-universe-novel-agent-runtime'
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function hasRepositoryDigest(repository, tag) {
+  const digestPattern = new RegExp(`${escapeRegExp(tag)}: digest: sha256:[a-f0-9]+`, 'i')
+  let inRepositoryPush = false
+  for (const line of log.split(/\r?\n/)) {
+    if (line.includes('The push refers to repository [')) {
+      inRepositoryPush = line.includes(`[${repository}]`)
+      continue
+    }
+    if (inRepositoryPush && digestPattern.test(line)) return true
+  }
+  return false
+}
 
 assert(log.includes(apiRef), `workflow log missing API image ref ${apiRef}`)
 assert(log.includes(agentRef), `workflow log missing Agent Runtime image ref ${agentRef}`)
 assert(log.includes(apiLatest), `workflow log missing API runtime-latest ref ${apiLatest}`)
 assert(log.includes(agentLatest), `workflow log missing Agent Runtime runtime-latest ref ${agentLatest}`)
-assert(/Push API image[\s\S]*runtime-latest: digest: sha256:[a-f0-9]+/i.test(log), 'workflow log missing API digest')
-assert(/Push Agent Runtime image[\s\S]*runtime-latest: digest: sha256:[a-f0-9]+/i.test(log), 'workflow log missing Agent Runtime digest')
+assert(hasRepositoryDigest(apiRepository, headSha), 'workflow log missing API commit digest')
+assert(hasRepositoryDigest(apiRepository, 'runtime-latest'), 'workflow log missing API runtime-latest digest')
+assert(hasRepositoryDigest(agentRepository, headSha), 'workflow log missing Agent Runtime commit digest')
+assert(hasRepositoryDigest(agentRepository, 'runtime-latest'), 'workflow log missing Agent Runtime runtime-latest digest')
 
 finish({
   status: 'passed',

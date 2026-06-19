@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, and P119 remote operator readiness packet. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, P117 remote assignment env dry-run gate, P118 remote assignment strict-run package, P119 remote operator readiness packet, and P120 remote operator return intake. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -584,3 +584,21 @@ evidence and activation evidence into one operator-safe handoff packet:
   `profile.id` or `kernel.id`.
 - The remaining live-runtime blocker set is unchanged; P119 only proves that
   the operator handoff packet is complete and safe to share.
+
+## P120 Remote Operator Return Intake Refresh
+
+P120 turns the operator return evidence into one no-write intake check:
+
+- P45 commercial-release evidence now includes
+  `check:remote-operator-return-intake` and
+  `check:remote-operator-return-intake-artifact`.
+- Pages workflow uploads `remote-operator-return-intake` and validates the
+  current-run artifact content after P119.
+- Root `npm run test` runs P120 after P119 and before P114 local image smoke.
+- P107 counts the intake as a `download_content_gate`.
+- The generated intake is redacted and cannot expose service ids, origins,
+  provider tokens, prompt plumbing, private research material, `sourceRefs`,
+  `profile.id` or `kernel.id`.
+- The remaining live-runtime blocker set is unchanged; P120 only proves whether
+  the operator return is still waiting for assignment, waiting for health, or
+  ready for strict activation gates.
