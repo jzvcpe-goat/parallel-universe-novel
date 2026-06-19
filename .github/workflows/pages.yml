@@ -236,6 +236,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload operator assignment evidence intake
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: operator-assignment-evidence-intake
+          path: |
+            artifacts/runtime/operator-assignment-evidence-intake-*.json
+            artifacts/runtime/operator-assignment-evidence-intake-*.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload runtime image local smoke
         if: always()
         uses: actions/upload-artifact@v7
@@ -350,6 +361,13 @@ jobs:
           CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-operator-return-intake-artifact
+
+      - name: Check operator assignment evidence intake artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:operator-assignment-evidence-intake-artifact
 
       - name: Check runtime image local smoke artifact content
         env:

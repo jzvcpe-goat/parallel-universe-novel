@@ -214,6 +214,14 @@ assert(
   'Pages workflow must upload the remote operator return intake artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload operator assignment evidence intake')
+    && workflow.includes('operator-assignment-evidence-intake')
+    && workflow.includes('artifacts/runtime/operator-assignment-evidence-intake-*.json')
+    && workflow.includes('artifacts/runtime/operator-assignment-evidence-intake-*.md')
+    && workflow.indexOf('Upload operator assignment evidence intake') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the operator assignment evidence intake artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload runtime image local smoke')
     && workflow.includes('runtime-image-local-smoke')
     && workflow.includes('artifacts/runtime/runtime-image-local-smoke-*.json')
@@ -307,12 +315,20 @@ assert(
   'Pages workflow must verify remote operator return intake artifact content after the readiness packet artifact content gate',
 )
 assert(
+  workflow.includes('Check operator assignment evidence intake artifact content')
+    && workflow.includes('CHECK_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:operator-assignment-evidence-intake-artifact')
+    && workflow.indexOf('Check operator assignment evidence intake artifact content') > workflow.indexOf('Check remote operator return intake artifact content'),
+  'Pages workflow must verify operator assignment evidence intake artifact content after the operator return intake artifact content gate',
+)
+assert(
   workflow.includes('Check runtime image local smoke artifact content')
     && workflow.includes('CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:runtime-image-local-smoke-artifact')
-    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote operator return intake artifact content'),
-  'Pages workflow must verify runtime image local smoke artifact content after the operator return intake artifact content gate',
+    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check operator assignment evidence intake artifact content'),
+  'Pages workflow must verify runtime image local smoke artifact content after the operator assignment evidence intake artifact content gate',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
@@ -385,6 +401,14 @@ assert(
 assert(
   packageJson.scripts['check:remote-operator-return-intake-artifact'] === 'node scripts/check-remote-operator-return-intake-artifact.mjs',
   'package.json must expose check:remote-operator-return-intake-artifact',
+)
+assert(
+  packageJson.scripts['check:operator-assignment-evidence-intake'] === 'node scripts/check-operator-assignment-evidence-intake.mjs',
+  'package.json must expose check:operator-assignment-evidence-intake',
+)
+assert(
+  packageJson.scripts['check:operator-assignment-evidence-intake-artifact'] === 'node scripts/check-operator-assignment-evidence-intake-artifact.mjs',
+  'package.json must expose check:operator-assignment-evidence-intake-artifact',
 )
 assert(
   packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
@@ -467,6 +491,14 @@ assert(
   'npm run test must include check:remote-operator-return-intake-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:operator-assignment-evidence-intake'),
+  'npm run test must include check:operator-assignment-evidence-intake',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:operator-assignment-evidence-intake-artifact'),
+  'npm run test must include check:operator-assignment-evidence-intake-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-local-smoke-artifact'),
   'npm run test must include check:runtime-image-local-smoke-artifact',
 )
@@ -507,6 +539,8 @@ assert(
     && p16Doc.includes('check:remote-operator-readiness-packet-artifact')
     && p16Doc.includes('remote-operator-return-intake')
     && p16Doc.includes('check:remote-operator-return-intake-artifact')
+    && p16Doc.includes('operator-assignment-evidence-intake')
+    && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('check:ci-artifact-content-coverage')
@@ -539,6 +573,7 @@ assert(
     && p43Doc.includes('check:remote-assignment-strict-run-package-artifact')
     && p43Doc.includes('check:remote-operator-readiness-packet-artifact')
     && p43Doc.includes('check:remote-operator-return-intake-artifact')
+    && p43Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
@@ -551,6 +586,7 @@ assert(
     && p43Doc.includes('remote-assignment-strict-run-package')
     && p43Doc.includes('remote-operator-readiness-packet')
     && p43Doc.includes('remote-operator-return-intake')
+    && p43Doc.includes('operator-assignment-evidence-intake')
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
@@ -569,6 +605,8 @@ assert(
     && p107Doc.includes('P119_REMOTE_OPERATOR_READINESS_PACKET')
     && p107Doc.includes('remote-operator-return-intake')
     && p107Doc.includes('P120_REMOTE_OPERATOR_RETURN_INTAKE')
+    && p107Doc.includes('operator-assignment-evidence-intake')
+    && p107Doc.includes('P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION')
     && p107Doc.includes('runtime-image-local-smoke')
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
@@ -637,6 +675,8 @@ console.log(JSON.stringify({
   remoteOperatorReadinessPacketContent: 'check:remote-operator-readiness-packet-artifact',
   remoteOperatorReturnIntake: 'remote-operator-return-intake',
   remoteOperatorReturnIntakeContent: 'check:remote-operator-return-intake-artifact',
+  operatorAssignmentEvidenceIntake: 'operator-assignment-evidence-intake',
+  operatorAssignmentEvidenceIntakeContent: 'check:operator-assignment-evidence-intake-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',

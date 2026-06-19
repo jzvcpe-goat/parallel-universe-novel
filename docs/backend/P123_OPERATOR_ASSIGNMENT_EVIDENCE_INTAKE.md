@@ -99,6 +99,8 @@ After the assignment evidence is complete, P121 should stop selecting
 7. P123 emits JSON and Markdown handoff artifacts.
 8. P123 artifacts remain redacted and contain no secrets, prompt plumbing,
    private title material, runtime identifiers or candidate prose.
+9. P124 downloads and validates the uploaded P123 artifact content in the same
+   Pages run before the artifact can be used as operator handoff evidence.
 
 ## Failure Modes
 
@@ -113,3 +115,6 @@ After the assignment evidence is complete, P121 should stop selecting
 - If the ignored local assignment is absent in CI, P123 stays green only when
   P75, P113 and P120 all agree that the next action is operator assignment
   evidence intake rather than strict activation.
+- If Pages uploads the P123 packet but P124 cannot validate the downloaded
+  JSON/Markdown content, the release gate fails before deployment evidence is
+  accepted.

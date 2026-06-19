@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P124 Assignment Evidence Artifact Attestation
+
+Public Projection Privacy Audit 和 Backward Consistency Sweep 通过以后，不能只说
+“隐私链绿了”。这轮又暴露了一个 release-chain 经验：P123 已经生成
+`operator-assignment-evidence-intake`，但如果 Pages workflow 不上传、P43/P107 不认识、
+root test 不做内容 attestation，它仍然只是本地日志，不是上线证据。
+
+新的工程标准：
+
+1. 新增任何 Pages release artifact，都必须同时完成 upload step、current-run
+   metadata gate、download/content attestation gate、P107 content coverage matrix、
+   P16/P43 handoff 文档和 root `npm run test` 链路。
+2. P124 专门验证 `operator-assignment-evidence-intake` 的 JSON/Markdown 内容：head
+   sha、P121 selected goal、P75/P117/P120/P123 evidence、8 个 operator evidence key、
+   blocked stages 和公开边界都必须一致。
+3. P43 不能只写 artifact 名字；必须列出对应 `check:*artifact` 命令。否则脚本和
+   文档会再次漂移。
+4. 本地 ignored `remote-assignment.local.json` 可以被准备脚本刷新镜像 tag，但不能
+   进入 Git，也不能被 fixture 证据替代。
+
+验证命令：
+
+```bash
+npm run check:public-projection-privacy
+npm run check:backward-consistency-sweep
+npm run check:operator-assignment-evidence-intake-artifact
+npm run check:ci-artifact-content-coverage
+npm run test
+```
+
 ## 2026-06-19 P123 Operator Assignment Evidence Intake
 
 P122 把 fixture 证据隔离之后，loop 的下一步不能直接跳到 remote health。当前真实

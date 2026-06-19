@@ -161,6 +161,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for operator return state, strict activation commands and no-write boundaries.',
   },
   {
+    name: 'operator-assignment-evidence-intake',
+    kind: 'download_content_gate',
+    producer: 'check:operator-assignment-evidence-intake',
+    verifier: 'check:operator-assignment-evidence-intake-artifact',
+    contract: 'P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION',
+    uploadStep: 'Upload operator assignment evidence intake',
+    uploadPath: 'artifacts/runtime/operator-assignment-evidence-intake-*.json',
+    workflowStep: 'Check operator assignment evidence intake artifact content',
+    reason: 'Downloaded from the same Pages run and checked for non-secret operator evidence requirements, missing/incomplete assignment state and no-write boundaries.',
+  },
+  {
     name: 'runtime-image-local-smoke',
     kind: 'download_content_gate',
     producer: 'check:runtime-image-local-smoke',
@@ -262,7 +273,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 12, 'P107 expects twelve artifacts with downloaded content gates')
+assert(downloadAttested.length === 13, 'P107 expects thirteen artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
