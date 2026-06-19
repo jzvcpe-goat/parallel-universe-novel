@@ -35,7 +35,9 @@ from the no-secret fixture path.
 When the selected goal is `operator-assignment-evidence-intake`, P122 is
 followed by P123, which packages the exact non-secret operator assignment
 evidence required before the loop can move to remote health. P124 then validates
-the uploaded P123 artifact content in the same Pages run.
+the uploaded P123 artifact content in the same Pages run. P125 then validates
+the P117 env dry-run validator with a positive strict fixture and negative
+fixtures before real operator evidence is applied.
 
 ## Command
 
@@ -95,7 +97,7 @@ Completion criteria for that goal:
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123 and P124 before dependency audit.
+   then P122, P123, P124 and P125 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current evidence, not hardcoded wishful
    thinking.

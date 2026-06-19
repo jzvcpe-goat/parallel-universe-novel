@@ -208,8 +208,8 @@ assert(
   'package.json must expose check:loop-next-goal-ledger',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run audit:dependencies'),
-  'root npm run test must run P121 after CI artifact coverage, then P122, P123 and P124 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run audit:dependencies'),
+  'root npm run test must run P121 after CI artifact coverage, then P122, P123, P124 and P125 before dependency audit',
 )
 
 for (const file of [

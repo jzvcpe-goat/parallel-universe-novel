@@ -70,6 +70,10 @@ non-secret evidence, current blockers and next commands. It must not expose
 private title material, internal runtime identifiers, prompt plumbing,
 candidate prose, token values, provider payloads or database URLs.
 
+P125 is the validation fixture for the next step in this handoff: P117 must
+accept a complete safe operator env fixture, reject unsafe negative fixtures
+and keep outputs redacted before real operator evidence is applied.
+
 ## Next Command Sequence
 
 ```bash
@@ -87,7 +91,7 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124 and P125 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -101,6 +105,8 @@ After the assignment evidence is complete, P121 should stop selecting
    private title material, runtime identifiers or candidate prose.
 9. P124 downloads and validates the uploaded P123 artifact content in the same
    Pages run before the artifact can be used as operator handoff evidence.
+10. P125 validates the P117 operator env validator with positive and negative
+    fixtures before the operator handoff can be treated as mechanically ready.
 
 ## Failure Modes
 

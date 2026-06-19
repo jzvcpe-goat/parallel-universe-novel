@@ -135,8 +135,8 @@ assert(
   'package.json must expose check:operator-assignment-evidence-intake',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run audit:dependencies'),
-  'root test must run P123/P124 after P121/P122 and before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run audit:dependencies'),
+  'root test must run P123/P124/P125 after P121/P122 and before dependency audit',
 )
 
 for (const file of [

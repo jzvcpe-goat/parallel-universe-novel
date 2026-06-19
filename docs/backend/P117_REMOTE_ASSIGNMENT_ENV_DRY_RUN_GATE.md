@@ -18,6 +18,9 @@ operator can validate field completeness, placeholder rejection, remote HTTPS
 origin shape, secret-store confirmation flags and artifact redaction before any
 local file changes.
 
+P125 adds a positive strict fixture and negative fixture set around this gate so
+the validator itself is proven before real operator service evidence arrives.
+
 ## Commands
 
 CI/root-test mode with no operator environment values:
@@ -141,3 +144,5 @@ secret values, prompts, candidate text, raw state or reference-vault material.
    ready for P116 apply.
 9. The artifact does not expose service ids, origins, secrets, provider prompt
    plumbing, reference-work material, `sourceRefs`, `profile.id` or `kernel.id`.
+10. P125 runs a positive strict fixture and unsafe negative fixtures against
+    P117 without writing `remote-assignment.local.json`.
