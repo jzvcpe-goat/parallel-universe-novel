@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P111 Representative Work Encryption Completion Gate
+
+P17/P18/P80/P83 已经把代表作品名从 kernel、constraints、runtime registry、
+public refs、GitHub Pages build 和 artifact 中移出，并用 encrypted vault 与
+匿名 `rwref_*` 保留团队内部可追溯性。但“已经加密”不能只靠分散脚本来推断，
+否则下一轮 loop engineering 很容易又问一遍同一个问题。
+
+新的工程标准：
+
+1. 代表作品名完成态必须由一个聚合 gate 证明：
+   `check:reference-work-encryption-completion`。
+2. `GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 和
+   `genre-runtime-rules.v1.json` 只能出现匿名 `rwref_*`，不能出现书名号、
+   `workTitle`、`authorName` 或 source evidence 字段。
+3. `reference-work-public-refs.json` 只能暴露 `{ "id": "rwref_0000" }`；
+   `reference-work-vault.enc.json` 只能暴露 AES-256-GCM 密文字段和计数。
+4. 本地/team key 可用于泄漏扫描，但所有 artifact 仍必须 redacted，不得写入
+   title、author、decrypted mapping、key value、provider prompt。
+5. P111 必须进入 root `npm run test`，作为“代表作品名任何非团队成员不可见”的
+   完成态门禁。
+6. P111 通过后，下一轮 goal 应转向远程 live runtime assignment 和 runtime
+   health evidence，而不是继续叠加同类隐私门禁。
+
+验证命令：
+
+```bash
+npm run check:reference-work-encryption-completion
+npm run test
+```
+
 ## 2026-06-18 P110 Runtime Placeholder Sentinel Guard
 
 P87 会生成 operator 可复制的 assignment 模板，里面故意使用 `FILL_*`
