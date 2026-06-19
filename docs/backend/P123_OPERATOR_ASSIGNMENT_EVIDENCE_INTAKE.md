@@ -8,9 +8,9 @@ Date: 2026-06-19
 ## Purpose
 
 P121 selects `operator-assignment-evidence-intake` when P120 proves that the
-real ignored operator assignment is still incomplete. P122 then proves that the
-loop was not fooled by the assignment fixture. P123 turns that state into a
-safe, machine-checkable operator intake packet.
+real ignored operator assignment is still missing or incomplete. P122 then
+proves that the loop was not fooled by the assignment fixture. P123 turns that
+state into a safe, machine-checkable operator intake packet.
 
 P123 does not deploy anything. It does not write
 `deploy/runtime-production/remote-assignment.local.json`, does not create
@@ -91,8 +91,10 @@ After the assignment evidence is complete, P121 should stop selecting
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
-5. P123 verifies local assignment image drift is clear before asking the
-   operator for evidence.
+5. P123 verifies local assignment image drift is clear when the ignored local
+   assignment exists; in CI/public checkout where the ignored assignment is
+   absent, P123 verifies the absence is consistently reported by P75, P113 and
+   P120.
 6. P123 verifies local assignment files remain untracked.
 7. P123 emits JSON and Markdown handoff artifacts.
 8. P123 artifacts remain redacted and contain no secrets, prompt plumbing,
@@ -108,3 +110,6 @@ After the assignment evidence is complete, P121 should stop selecting
   assignment intake, P123 fails and forces the loop ledger to be refreshed.
 - If P113 detects image drift, P123 fails and points back to
   `REMOTE_ASSIGNMENT_DRAFT_FORCE=true npm run prepare:remote-assignment-local`.
+- If the ignored local assignment is absent in CI, P123 stays green only when
+  P75, P113 and P120 all agree that the next action is operator assignment
+  evidence intake rather than strict activation.

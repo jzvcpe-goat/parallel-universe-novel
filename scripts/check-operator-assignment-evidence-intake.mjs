@@ -219,11 +219,28 @@ assert(p121.payload.selectedGoal?.id === 'operator-assignment-evidence-intake', 
 assert(p122.payload.selectedNextGoal === 'operator-assignment-evidence-intake', 'P122 must confirm operator-assignment-evidence-intake')
 assert(p120.payload.decision === 'operator_return_waiting_for_assignment', 'P123 requires P120 to still be waiting for operator assignment evidence')
 assert(p120.payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
-assert(p75.payload.decision === 'remote_assignment_incomplete', 'P75 must still show incomplete local assignment before P123')
+const assignmentDecision = String(p75.payload.decision || '')
+const assignmentFilePresent = Boolean(
+  p75.payload.assignmentFilePresent
+    ?? p75.payload.localAssignmentFilePresent
+    ?? p120.payload.assignmentFilePresent
+    ?? (assignmentDecision !== 'remote_assignment_missing'),
+)
+assert(
+  ['remote_assignment_missing', 'remote_assignment_incomplete'].includes(assignmentDecision),
+  'P75 must still show missing or incomplete local assignment before P123',
+)
 assert(p75.payload.assignmentPath === targetAssignmentPath, 'P75 must use the ignored local assignment path')
 assert(p117.payload.decision === 'operator_env_not_supplied' || p117.payload.readyForApply === false, 'P117 must not report ready-to-apply operator env while P121 selects assignment intake')
-assert(p113.payload.status === 'passed', 'P113 image drift gate must pass before P123')
-assert(p113.payload.imageDriftDetected === false, 'P123 requires current local assignment images before operator evidence intake')
+assert(p113.payload.status === 'passed' || p113.payload.status === 'passed_waiting_for_local_assignment', 'P113 image drift gate must pass or wait for local assignment before P123')
+assert(p113.payload.imageDriftDetected === false, 'P123 requires no local assignment image drift before operator evidence intake')
+if (assignmentFilePresent) {
+  assert(p113.payload.decision === 'remote_assignment_images_current', 'P123 requires current local assignment images when the local assignment file exists')
+} else {
+  assert(p120.payload.assignmentFilePresent === false, 'P120 must agree the real local assignment file is missing')
+  assert(p113.payload.localAssignmentFilePresent === false, 'P113 must agree the local assignment file is missing')
+  assert(p113.payload.decision === 'remote_assignment_local_absent', 'P113 must treat missing local assignment as waiting, not image drift')
+}
 assert(p108.payload.trackedLocalAssignments?.length === 0, 'local assignment files must stay untracked')
 assert(p105.payload.decision === 'remote_assignment_fill_plan_ready', 'P105 fill plan must be ready')
 
@@ -294,6 +311,8 @@ const packet = {
   headSha,
   selectedGoal: 'operator-assignment-evidence-intake',
   targetAssignmentPath,
+  assignmentDecision,
+  assignmentFilePresent,
   requiredOperatorEvidence,
   blockedStages: Array.isArray(p120.payload.blockedStages) ? p120.payload.blockedStages : [],
   nextCommands,

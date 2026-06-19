@@ -636,6 +636,30 @@ npm run check:backward-consistency-sweep
 npm run test
 ```
 
+## 2026-06-19 P123 CI Assignment Absence Boundary
+
+P123 初版在本地通过，但 Pages CI 暴露出一个边界错配：`remote-assignment.local.json`
+是被 `.gitignore` 保护的 operator 本地文件，CI 和公开仓库正常情况下不会携带它。
+因此 P123 不能只接受 `remote_assignment_incomplete`，还必须接受
+`remote_assignment_missing`，否则会把正确的隐私边界误判成失败。
+
+新的工程标准：
+
+1. P123 的目标是收集非 secret 的 operator assignment evidence，不是强制 CI
+   拥有本地 ignored assignment。
+2. 当本地 assignment 存在时，P123 必须要求 P113 确认镜像没有漂移。
+3. 当本地 assignment 缺席时，P123 必须要求 P75、P113、P120 同时报告缺席或等待
+   assignment，而不是把缺席误报为 strict activation readiness。
+4. 这个修正不能改动 P4、public projection privacy 或 backward consistency 的规则主体；
+   它只修复上线证据链里 operator-local 文件的 CI 口径。
+
+验证命令：
+
+```bash
+npm run check:operator-assignment-evidence-intake
+npm run test
+```
+
 ## 2026-06-18 Public Projection Privacy Audit
 
 本轮把 P4 冻结为架构边界协议，而不是继续使用“优化 P4”这种会无限扩张的任务名。后续涉及约束、内核、运行时、隐私或质量刹车的 PR，必须先声明自己改变的是 `Document-Core Boundary`、`Runtime Registry Boundary`、`Reference Work Privacy Boundary`、`Public Projection Boundary`、`Deprecated Case Logic Guard` 或 `Quality Brake Mapping` 中的哪一个边界。
