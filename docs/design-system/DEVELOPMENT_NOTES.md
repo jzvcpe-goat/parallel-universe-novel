@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P113 Remote Assignment Image Drift Gate
+
+P112 可以生成本地 ignored assignment 草稿，但 Git 不会追踪这个文件。推送新
+commit 并发布新 GHCR image 之后，operator 本机仍可能保留上一版 image refs。
+P75/P79 只检查 image repository shape，不应该承担“当前 commit 镜像一致性”
+的职责。
+
+新的工程标准：
+
+1. `check:remote-assignment-image-drift` 进入 root `npm run test`。
+2. CI 或 release 环境没有 `remote-assignment.local.json` 时，P113 只记录
+   `remote_assignment_local_absent`，不阻塞静态预览发布。
+3. source workspace 无 git head 时，P113 只能以 `source_workspace_no_git`
+   模式证明 wiring，不伪造当前镜像。
+4. release repo 中只要本地 assignment 存在，`services.api.image` 和
+   `services.agent.image` 必须分别等于当前 P72 image evidence 的 API / Agent
+   Runtime image refs。
+5. 发现 drift 后，用
+   `REMOTE_ASSIGNMENT_DRAFT_FORCE=true npm run prepare:remote-assignment-local`
+   刷新草稿；不能手动复制旧 image。
+6. P113 artifact 可以包含公开 GHCR image refs，但不得包含 secrets、raw state、
+   provider prompt plumbing、`sourceRefs`、`profile.id`、`kernel.id`、代表作品名
+   或 reference vault material。
+
+验证命令：
+
+```bash
+npm run check:runtime-image-publish-evidence
+npm run check:remote-assignment-image-drift
+```
+
 ## 2026-06-19 P112 Remote Assignment Local Draft Preparation
 
 P111 证明代表作品名已经进入 encrypted vault / anonymous refs 的完成态后，
@@ -36,6 +67,7 @@ ref。这个人工步骤容易把旧镜像、fixture 或占位符当成生产证
 ```bash
 npm run check:remote-assignment-draft-prep
 npm run prepare:remote-assignment-local
+npm run check:remote-assignment-image-drift
 REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-runtime-assignment-intake
 REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-assignment-execution-pack
 npm run check:remote-assignment-local-boundary

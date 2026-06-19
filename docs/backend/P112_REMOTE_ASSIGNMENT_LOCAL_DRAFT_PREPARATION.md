@@ -71,7 +71,9 @@ the release repository or an explicit `RUNTIME_IMAGE_HEAD_SHA`.
    `REMOTE_ASSIGNMENT_DRAFT_FORCE=true` is set.
 6. Generated drafts pass schema shape but remain `remote_assignment_incomplete`
    because `FILL_*` placeholders and false secret-store flags are still blocked.
-7. Generated drafts contain no database URL, Tool Bridge token, model key,
+7. `npm run check:remote-assignment-image-drift` fails if the ignored local
+   assignment points at images from an older commit.
+8. Generated drafts contain no database URL, Tool Bridge token, model key,
    provider API token, private key, system prompt, raw state or reference vault
    material.
 
