@@ -41,6 +41,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `remote-assignment-fixture-gate` | `download_content_gate` | `check:remote-assignment-fixture` | `check:remote-assignment-artifacts` | `P93_REMOTE_ASSIGNMENT_ARTIFACT_ATTESTATION` |
 | `remote-runtime-blockers` | `download_content_gate` | `check:remote-runtime-blockers` | `check:remote-runtime-blockers-artifact` | `P90_REMOTE_RUNTIME_BLOCKER_ARTIFACT_ATTESTATION` |
 | `remote-assignment-fill-plan` | `download_content_gate` | `check:remote-assignment-fill-plan` | `check:remote-assignment-fill-plan-artifact` | `P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION` |
+| `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `reference-privacy` | `download_content_gate` | `scan:reference-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `local-live-runtime-visual-qa` | `visual_human_evidence` | `qa:live-runtime-local` | `qa:live-runtime-local` | P15 |
@@ -50,7 +51,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all fourteen Pages artifacts.
+- P43 metadata coverage still includes all fifteen Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.
@@ -69,7 +70,7 @@ database URLs, provider keys or prompt payloads.
 ## Acceptance
 
 - `package.json` exposes `check:ci-artifact-content-coverage`.
-- Root `npm run test` runs P107 after P106.
+- Root `npm run test` runs P107 after P115.
 - `check:pages-live-release-gate` confirms P107 is wired into package scripts,
   root test and release docs.
 - P43 remains the metadata gate, while P107 explains which content gate or

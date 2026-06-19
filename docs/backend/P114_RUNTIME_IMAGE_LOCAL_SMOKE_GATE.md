@@ -85,4 +85,6 @@ reference works or reference-vault material.
 3. Strict mode fails when the current GHCR images cannot be pulled or run.
 4. Root `npm run test` includes P114 without making static preview CI depend on
    live registry availability.
-5. P114 is synced to the source workspace and documented in development notes.
+5. P115 uploads and content-checks the P114 artifact as
+   `runtime-image-local-smoke` in the Pages evidence chain.
+6. P114 is synced to the source workspace and documented in development notes.

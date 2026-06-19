@@ -203,6 +203,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload runtime image local smoke
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: runtime-image-local-smoke
+          path: artifacts/runtime/runtime-image-local-smoke-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
@@ -287,6 +296,13 @@ jobs:
           CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:remote-assignment-fill-plan-artifact
+
+      - name: Check runtime image local smoke artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:runtime-image-local-smoke-artifact
 
   deploy:
     needs: build

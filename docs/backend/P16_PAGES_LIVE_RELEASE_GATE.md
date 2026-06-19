@@ -77,6 +77,7 @@ fi
 # After P93 assignment artifact content gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
 # After P89 handoff content gate: CHECK_REMOTE_RUNTIME_BLOCKERS_ARTIFACT_REQUIRED=true npm run check:remote-runtime-blockers-artifact
 # After P90 blocker content gate: CHECK_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_REQUIRED=true npm run check:remote-assignment-fill-plan-artifact
+# After P106 fill-plan content gate: CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED=true npm run check:runtime-image-local-smoke-artifact
 # Root release gate: npm run check:ci-artifact-content-coverage
 # Root local-boundary gate: npm run check:remote-assignment-local-boundary
 # Root repo-variable boundary gate: npm run check:github-runtime-variable-boundary
@@ -87,13 +88,15 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `runtime-image-local-smoke`, `reference-privacy`, `public-projection-privacy`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
   privacy and cross-gate consistency checks.
 - The `remote-assignment-fill-plan` artifact content passes P106 current-head,
   privacy and operator-boundary checks.
+- The `runtime-image-local-smoke` artifact content passes P115 current-image,
+  privacy and smoke-result-shape checks.
 - P107 proves every Pages artifact is owned by a downloaded content gate,
   pre-upload generator gate, built bundle privacy scan or visual evidence path.
 - P108 proves the ignored `remote-assignment.local.json` boundary stays local,
@@ -140,29 +143,35 @@ This proves:
 17. Every Pages run must upload `remote-assignment-fill-plan` so the deployment
     owner sees one current, operator-safe field checklist and strict validation
     sequence before touching the ignored local assignment file.
-18. Every Pages run must run `check:remote-assignment-handoff-artifact` after
+18. Every Pages run must upload `runtime-image-local-smoke` so the release owner
+    can inspect whether the current GHCR images were locally smoke-tested,
+    skipped for a declared non-strict reason, or run successfully.
+19. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-19. Every Pages run must run `check:public-privacy-artifacts` after P43 so
+20. Every Pages run must run `check:public-privacy-artifacts` after P43 so
     privacy artifact content is validated, not only its presence.
-20. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
+21. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
     assignment schema, execution pack and fixture artifacts are content-checked.
-21. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+22. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
     so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
-22. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
+23. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
     P90 so the fill plan is current, privacy-safe and still preserves live
     runtime blockers before deploy.
-23. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
+24. Every Pages run must run `check:runtime-image-local-smoke-artifact` after
+    P106 so the current-image local-smoke artifact is validated, not only
+    uploaded.
+25. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
     Pages artifact is only uploaded without an explicit verification owner.
-24. Root `npm run test` must run `check:remote-assignment-local-boundary` so
+26. Root `npm run test` must run `check:remote-assignment-local-boundary` so
     ignored local assignment state cannot be committed or replaced by fixture data.
-25. Root `npm run test` must run `check:github-runtime-variable-boundary` so
+27. Root `npm run test` must run `check:github-runtime-variable-boundary` so
     GitHub repository variables cannot contain database URLs, Tool Bridge token
     values, model keys, private keys, provider API tokens or unknown runtime
     variables.
-26. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
+28. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
     placeholders cannot be mistaken for remote runtime evidence.
-27. Live mode fails if browser submission cannot create a candidate draft.
-28. Live mode never enables local fallback.
+29. Live mode fails if browser submission cannot create a candidate draft.
+30. Live mode never enables local fallback.
 
 ## Operational Rule
 

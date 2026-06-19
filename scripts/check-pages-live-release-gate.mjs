@@ -190,6 +190,13 @@ assert(
   'Pages workflow must upload the remote assignment fill plan artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload runtime image local smoke')
+    && workflow.includes('runtime-image-local-smoke')
+    && workflow.includes('artifacts/runtime/runtime-image-local-smoke-*.json')
+    && workflow.indexOf('Upload runtime image local smoke') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the runtime image local smoke artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -252,6 +259,14 @@ assert(
   'Pages workflow must verify remote assignment fill plan artifact content after the blocker artifact content gate',
 )
 assert(
+  workflow.includes('Check runtime image local smoke artifact content')
+    && workflow.includes('CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:runtime-image-local-smoke-artifact')
+    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check remote assignment fill plan artifact content'),
+  'Pages workflow must verify runtime image local smoke artifact content after the fill-plan artifact content gate',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -298,6 +313,10 @@ assert(
 assert(
   packageJson.scripts['check:remote-assignment-fill-plan-artifact'] === 'node scripts/check-remote-assignment-fill-plan-artifact.mjs',
   'package.json must expose check:remote-assignment-fill-plan-artifact',
+)
+assert(
+  packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
+  'package.json must expose check:runtime-image-local-smoke-artifact',
 )
 assert(
   packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
@@ -352,6 +371,10 @@ assert(
   'npm run test must include check:remote-assignment-fill-plan-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:runtime-image-local-smoke-artifact'),
+  'npm run test must include check:runtime-image-local-smoke-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
   'npm run test must include check:ci-artifact-content-coverage',
 )
@@ -382,6 +405,8 @@ assert(
     && p16Doc.includes('check:remote-runtime-blockers-artifact')
     && p16Doc.includes('remote-assignment-fill-plan')
     && p16Doc.includes('check:remote-assignment-fill-plan-artifact')
+    && p16Doc.includes('runtime-image-local-smoke')
+    && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('check:ci-artifact-content-coverage')
     && p16Doc.includes('check:remote-assignment-local-boundary')
     && p16Doc.includes('check:github-runtime-variable-boundary')
@@ -409,6 +434,7 @@ assert(
     && p43Doc.includes('check:remote-assignment-artifacts')
     && p43Doc.includes('check:remote-runtime-blockers-artifact')
     && p43Doc.includes('check:remote-assignment-fill-plan-artifact')
+    && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
     && p43Doc.includes('P92')
@@ -417,6 +443,7 @@ assert(
     && p43Doc.includes('remote-assignment-fixture-gate')
     && p43Doc.includes('remote-runtime-blockers')
     && p43Doc.includes('remote-assignment-fill-plan')
+    && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('local-live-runtime-visual-qa')
@@ -428,6 +455,8 @@ assert(
   p107Doc.includes('P107 CI Artifact Content Coverage Matrix')
     && p107Doc.includes('runtime-readiness-ledger')
     && p107Doc.includes('remote-assignment-fill-plan')
+    && p107Doc.includes('runtime-image-local-smoke')
+    && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
     && p107Doc.includes('public-projection-privacy')
     && p107Doc.includes('local-live-runtime-visual-qa')
@@ -488,6 +517,8 @@ console.log(JSON.stringify({
   remoteRuntimeBlockersContent: 'check:remote-runtime-blockers-artifact',
   remoteAssignmentFillPlan: 'remote-assignment-fill-plan',
   remoteAssignmentFillPlanContent: 'check:remote-assignment-fill-plan-artifact',
+  runtimeImageLocalSmoke: 'runtime-image-local-smoke',
+  runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',
   githubRuntimeVariableBoundary: 'check:github-runtime-variable-boundary',
   runtimePlaceholderSentinel: 'check:runtime-placeholder-sentinel',

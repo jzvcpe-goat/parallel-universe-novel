@@ -128,6 +128,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for fill areas, validation sequence and operator boundary.',
   },
   {
+    name: 'runtime-image-local-smoke',
+    kind: 'download_content_gate',
+    producer: 'check:runtime-image-local-smoke',
+    verifier: 'check:runtime-image-local-smoke-artifact',
+    contract: 'P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION',
+    uploadStep: 'Upload runtime image local smoke',
+    uploadPath: 'artifacts/runtime/runtime-image-local-smoke-*.json',
+    workflowStep: 'Check runtime image local smoke artifact content',
+    reason: 'Downloaded from the same Pages run and checked for current-image, privacy-safe execution evidence.',
+  },
+  {
     name: 'reference-privacy',
     kind: 'download_content_gate',
     producer: 'scan:reference-privacy',
@@ -218,7 +229,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 8, 'P107 expects eight artifacts with downloaded content gates')
+assert(downloadAttested.length === 9, 'P107 expects nine artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

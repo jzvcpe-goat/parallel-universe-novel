@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P115 Runtime Image Smoke Artifact Attestation
+
+P114 让当前 GHCR API / Agent Runtime 镜像可以被本地 smoke，但如果 CI 只把
+结果留在日志里，release owner 仍然不能下载和复核证据。P115 把这个结果接入
+Pages artifact 证据链。
+
+新的工程标准：
+
+1. Pages 必须上传 `runtime-image-local-smoke` artifact。
+2. `check:runtime-image-local-smoke-artifact` 进入 root `npm run test`，并在
+   CI 当前 run 中下载同名 artifact 做内容校验。
+3. P115 允许 P114 在非严格模式下记录 `docker_daemon_unavailable`、
+   `images_not_local` 或 `container_registry_unavailable`，但必须把原因写清楚。
+4. P115 只验证 P114 的公开摘要：当前 commit、公开 GHCR image refs、health
+   summary、候选正文长度、追问数量和 Tool Bridge accepted 标记。
+5. P115 artifact attestation 必须避免使用 `runtime-image-local-smoke-*` 前缀，
+   防止 verifier report 被错误上传成被验证的 smoke 结果。
+6. P107、P43、P16 必须同时认识这个 artifact；任何一个没更新都说明证据链漂移。
+
+验证命令：
+
+```bash
+npm run check:runtime-image-local-smoke
+npm run check:runtime-image-local-smoke-artifact
+npm run check:ci-artifact-content-coverage
+```
+
 ## 2026-06-19 P114 Runtime Image Local Smoke Gate
 
 P68 strict compose 在本机运行时暴露出一个真实但旁路的问题：`docker compose

@@ -24,6 +24,7 @@ if (checkCurrentRun) {
     'remote-assignment-fixture-gate',
     'remote-runtime-blockers',
     'remote-assignment-fill-plan',
+    'runtime-image-local-smoke',
     'reference-privacy',
     'public-projection-privacy',
   )
