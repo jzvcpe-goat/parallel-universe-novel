@@ -8,17 +8,21 @@ const artifactDir = join(root, 'artifacts/runtime')
 const required = process.env.REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY === 'true'
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 
-const requiredEnvKeys = [
+const assignmentEnvKeys = [
   'REMOTE_OPERATOR_OWNER',
   'REMOTE_OPERATOR_PROVIDER',
   'REMOTE_API_SERVICE_ID',
   'REMOTE_AGENT_SERVICE_ID',
   'REMOTE_API_ORIGIN',
   'REMOTE_AGENT_ORIGIN',
+]
+
+const secretConfirmationEnvKeys = [
   'REMOTE_API_SECRETS_CONFIGURED',
   'REMOTE_AGENT_SECRETS_CONFIGURED',
 ]
 
+const requiredEnvKeys = [...assignmentEnvKeys, ...secretConfirmationEnvKeys]
 const optionalEnvKeys = ['REMOTE_RUNTIME_ENVIRONMENT']
 
 function read(rel) {
@@ -204,14 +208,28 @@ function assertWiring() {
 }
 
 function envSummary() {
-  const providedRequired = requiredEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
+  const providedAssignment = assignmentEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
+  const providedSecretConfirmations = secretConfirmationEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
   const providedOptional = optionalEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
-  const missingRequired = requiredEnvKeys.filter(key => !providedRequired.includes(key))
-  return { providedRequired, providedOptional, missingRequired }
+  const missingAssignment = assignmentEnvKeys.filter(key => !providedAssignment.includes(key))
+  const trueSecretConfirmations = secretConfirmationEnvKeys.filter(key => String(process.env[key] || '').trim() === 'true')
+  const operatorIntentPresent =
+    providedAssignment.length > 0
+    || providedOptional.length > 0
+    || trueSecretConfirmations.length > 0
+  return {
+    providedRequired: [...providedAssignment, ...providedSecretConfirmations],
+    providedAssignment,
+    providedSecretConfirmations,
+    providedOptional,
+    missingRequired: [...missingAssignment, ...secretConfirmationEnvKeys.filter(key => !providedSecretConfirmations.includes(key))],
+    missingAssignment,
+    operatorIntentPresent,
+  }
 }
 
 function validateOperatorEnv(summary) {
-  if (summary.providedRequired.length === 0 && summary.providedOptional.length === 0) {
+  if (!summary.operatorIntentPresent) {
     return {
       mode: 'waiting_for_operator_env',
       decision: 'operator_env_not_supplied',
@@ -224,7 +242,7 @@ function validateOperatorEnv(summary) {
     }
   }
 
-  assert(summary.missingRequired.length === 0, `partial operator env supplied; missing: ${summary.missingRequired.join(', ')}`)
+  assert(summary.missingAssignment.length === 0, `partial operator env supplied; missing: ${summary.missingAssignment.join(', ')}`)
 
   const owner = validateTextValue('REMOTE_OPERATOR_OWNER', process.env.REMOTE_OPERATOR_OWNER)
   const provider = validateTextValue('REMOTE_OPERATOR_PROVIDER', process.env.REMOTE_OPERATOR_PROVIDER)
@@ -242,8 +260,8 @@ function validateOperatorEnv(summary) {
     const hits = forbiddenValueMatches(value)
     assert(hits.length === 0, `${key} looks like secret or private material: ${hits.join(', ')}`)
   }
-  const apiSecrets = parseBool(process.env.REMOTE_API_SECRETS_CONFIGURED, 'REMOTE_API_SECRETS_CONFIGURED')
-  const agentSecrets = parseBool(process.env.REMOTE_AGENT_SECRETS_CONFIGURED, 'REMOTE_AGENT_SECRETS_CONFIGURED')
+  const apiSecrets = parseBool(process.env.REMOTE_API_SECRETS_CONFIGURED || 'false', 'REMOTE_API_SECRETS_CONFIGURED')
+  const agentSecrets = parseBool(process.env.REMOTE_AGENT_SECRETS_CONFIGURED || 'false', 'REMOTE_AGENT_SECRETS_CONFIGURED')
   const strictReady = apiSecrets && agentSecrets
 
   return {

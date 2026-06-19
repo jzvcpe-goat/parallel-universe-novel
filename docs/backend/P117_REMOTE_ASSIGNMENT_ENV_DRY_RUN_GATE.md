@@ -26,6 +26,12 @@ CI/root-test mode with no operator environment values:
 npm run check:remote-assignment-env-dry-run
 ```
 
+GitHub Pages CI may inject `REMOTE_API_SECRETS_CONFIGURED=false` and
+`REMOTE_AGENT_SECRETS_CONFIGURED=false` as public readiness flags. Those `false`
+flags alone do not count as operator assignment input, so CI still passes as
+`operator_env_not_supplied`. A `true` confirmation flag or any service/origin
+field does enter operator-env validation and must be complete.
+
 Strict operator preflight after exporting non-secret values:
 
 ```bash
@@ -111,7 +117,8 @@ secret values, prompts, candidate text, raw state or reference-vault material.
 ## Decisions
 
 - `operator_env_not_supplied`: CI/root-test mode; no operator env values were
-  provided, so the gate passes without pretending assignment is ready.
+  provided, or only CI default `false` secret-store flags were present, so the
+  gate passes without pretending assignment is ready.
 - `operator_env_waiting_for_secret_store_confirmation`: field shapes are valid,
   but one or both provider secret-store confirmations are `false`.
 - `operator_env_ready_for_p116_apply`: all required non-secret env values are
@@ -125,10 +132,12 @@ secret values, prompts, candidate text, raw state or reference-vault material.
 3. The gate writes only a redacted artifact and never writes
    `remote-assignment.local.json`.
 4. With no operator env, the gate passes as `operator_env_not_supplied`.
-5. With partial operator env, the gate fails before P116 can write anything.
-6. With full operator env and false secret-store confirmations, the gate passes
+5. With only CI default `false` secret-store flags, the gate still passes as
+   `operator_env_not_supplied`.
+6. With partial operator env, the gate fails before P116 can write anything.
+7. With full operator env and false secret-store confirmations, the gate passes
    only as follow-up-required unless strict ready mode is requested.
-7. With full operator env and true secret-store confirmations, the gate reports
+8. With full operator env and true secret-store confirmations, the gate reports
    ready for P116 apply.
-8. The artifact does not expose service ids, origins, secrets, provider prompt
+9. The artifact does not expose service ids, origins, secrets, provider prompt
    plumbing, reference-work material, `sourceRefs`, `profile.id` or `kernel.id`.

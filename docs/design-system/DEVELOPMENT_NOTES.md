@@ -7,7 +7,10 @@ P116 能把 operator 提供的非 secret `REMOTE_*` 环境变量写入 ignored
 dry-run：
 
 1. `check:remote-assignment-env-dry-run` 在无 operator env 的 CI/root test 中通过
-   `operator_env_not_supplied`，不伪装远端 assignment ready。
+   `operator_env_not_supplied`，不伪装远端 assignment ready。CI 自动注入的
+   `REMOTE_API_SECRETS_CONFIGURED=false` 和
+   `REMOTE_AGENT_SECRETS_CONFIGURED=false` 只是默认状态位，不能触发 partial
+   operator-env 失败；`true` 状态位或任何 service/origin 字段才进入完整性校验。
 2. operator 提供 env 时，dry-run 先检查完整性、placeholder、remote HTTPS origin、
    secret-store confirmation 和 secret-looking material。
 3. dry-run artifact 只能写 redacted 证据，不能包含 service id、origin、provider
