@@ -31,6 +31,8 @@ reference-work-vault.key
 **/reference-work-vault.key
 deploy/runtime-production/remote-assignment.local.json
 deploy/runtime-production/remote-assignment.*.local.json
+deploy/runtime-production/remote-assignment.env.local
+deploy/runtime-production/remote-assignment.*.env.local
 
 # Local harness/generated artifacts
 artifacts/

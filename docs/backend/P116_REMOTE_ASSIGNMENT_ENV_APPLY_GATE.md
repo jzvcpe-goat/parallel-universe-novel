@@ -22,6 +22,11 @@ P126 validates the P116 write path through a temporary fixture target. It uses
 `REMOTE_RUNTIME_ASSIGNMENT_FILE` to prove safe synthetic inputs can be applied
 without writing the production ignored assignment file.
 
+P128 provides the tracked local env template for real operator evidence:
+`deploy/runtime-production/remote-assignment.env.example`. Operators should
+copy it to the ignored `deploy/runtime-production/remote-assignment.env.local`,
+fill only non-secret evidence, run P117, then run this apply command.
+
 This gate does not create remote services, write GitHub repository variables,
 store provider secrets, mark health checks ready, or enable public live runtime.
 It only writes the local assignment file after explicit confirmation.
@@ -37,6 +42,17 @@ npm run check:remote-assignment-env-apply
 No-write operator input dry run:
 
 ```bash
+npm run check:remote-assignment-env-dry-run
+```
+
+Local template preparation:
+
+```bash
+cp deploy/runtime-production/remote-assignment.env.example \
+  deploy/runtime-production/remote-assignment.env.local
+set -a
+. ./deploy/runtime-production/remote-assignment.env.local
+set +a
 npm run check:remote-assignment-env-dry-run
 ```
 
@@ -143,3 +159,5 @@ to `remote_assignment_pending_health`. It should only reach
 9. The redacted P116 artifact does not expose operator service ids or origins.
 10. P126 proves the apply path with a temporary fixture target and leaves the
     production ignored assignment unchanged.
+11. P128 proves the operator env template stays non-secret, copyable and
+    ignored before real values are applied.

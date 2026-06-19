@@ -46,7 +46,9 @@ It also runs negative fixture cases:
 - secret-like service id.
 
 Finally, it runs a follow-up-required fixture where the field shapes are valid
-but one provider secret-store confirmation is still `false`.
+but one provider secret-store confirmation is still `false`. P128 follows with
+the local env template gate so the real operator handoff uses the same accepted
+key shape.
 
 ## Public Boundary
 
@@ -60,7 +62,7 @@ outputs.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-validation-fixture`.
-2. Root `npm run test` runs P125 after P124, then P126 before dependency audit.
+2. Root `npm run test` runs P125 after P124, then P126 and P128 before dependency audit.
 3. Positive strict fixture returns `operator_env_ready_for_p116_apply`.
 4. Follow-up fixture with a false secret-store confirmation does not become
    ready for apply.
@@ -79,4 +81,6 @@ external operator task.
 
 Without P126, P117 and P116 could still drift: the validator might accept a
 shape that the apply helper cannot write, or the apply helper might leak fields
-the validator kept redacted. P126 closes that apply fixture gap.
+the validator kept redacted. P126 closes that apply fixture gap. Without P128,
+the real operator could still lack a safe local template for supplying those
+same fields.

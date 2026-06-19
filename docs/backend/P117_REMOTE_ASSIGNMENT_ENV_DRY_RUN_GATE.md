@@ -20,6 +20,8 @@ local file changes.
 
 P125 adds a positive strict fixture and negative fixture set around this gate so
 the validator itself is proven before real operator service evidence arrives.
+P128 adds the tracked local env template that operators copy before supplying
+real evidence to this dry-run gate.
 
 ## Commands
 
@@ -38,6 +40,13 @@ field does enter operator-env validation and must be complete.
 Strict operator preflight after exporting non-secret values:
 
 ```bash
+cp deploy/runtime-production/remote-assignment.env.example \
+  deploy/runtime-production/remote-assignment.env.local
+# Fill the ignored local env file before loading it.
+set -a
+. ./deploy/runtime-production/remote-assignment.env.local
+set +a
+
 REMOTE_OPERATOR_OWNER=<owner-id> \
 REMOTE_OPERATOR_PROVIDER=<provider-name> \
 REMOTE_RUNTIME_ENVIRONMENT=production \
@@ -146,3 +155,5 @@ secret values, prompts, candidate text, raw state or reference-vault material.
    plumbing, reference-work material, `sourceRefs`, `profile.id` or `kernel.id`.
 10. P125 runs a positive strict fixture and unsafe negative fixtures against
     P117 without writing `remote-assignment.local.json`.
+11. P128 validates the copyable env template and ignored local env target used
+    before real operator values are supplied.

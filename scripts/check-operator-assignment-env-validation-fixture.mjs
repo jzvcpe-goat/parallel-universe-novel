@@ -120,8 +120,8 @@ assert(
   'package.json must expose check:operator-assignment-env-validation-fixture',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run audit:dependencies'),
-  'root test must run P125 after P124, then P126 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run audit:dependencies'),
+  'root test must run P125 after P124, then P126 and P128 before dependency audit',
 )
 
 for (const file of [

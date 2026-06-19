@@ -208,14 +208,15 @@ assert(
   'package.json must expose check:loop-next-goal-ledger',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run audit:dependencies'),
-  'root npm run test must run P121 after CI artifact coverage, then P122, P123, P124, P125 and P126 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run audit:dependencies'),
+  'root npm run test must run P121 after CI artifact coverage, then P122, P123, P124, P125, P126 and P128 before dependency audit',
 )
 
 for (const file of [
   'docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md',
   'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
+  'docs/backend/P128_OPERATOR_ASSIGNMENT_ENV_TEMPLATE_GATE.md',
   'docs/backend/P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION.md',
   'docs/product/rules/REFERENCE_WORK_PRIVACY.md',
 ]) {
@@ -229,6 +230,7 @@ for (const term of [
   'remote-health-evidence-intake',
   'operator-assignment-evidence-intake',
   'P123',
+  'P128',
   'does not create services',
   'does not write',
 ]) {

@@ -16,6 +16,10 @@ P126 does not write `deploy/runtime-production/remote-assignment.local.json`.
 It does not create remote services, does not set GitHub variables, does not
 store provider secrets and does not enable live runtime.
 
+P128 follows this fixture gate with the real operator handoff template. P126
+proves the write path; P128 proves the tracked env template and ignored local
+copy are safe before real values enter P117/P116.
+
 ## Command
 
 ```bash
@@ -64,6 +68,8 @@ or kernel ids.
 7. P126 removes the temporary fixture target after validation.
 8. P126 writes a redacted artifact:
    `artifacts/runtime/operator-assignment-env-apply-fixture-*.json`.
+9. P128 runs after P126 in root test and verifies the local env template before
+   dependency audit.
 
 ## Why This Exists
 
