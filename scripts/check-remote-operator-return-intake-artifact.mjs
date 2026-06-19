@@ -164,6 +164,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.containsCandidateText === false, 'P120 packet must not contain candidate text')
   assert(payload.sourceEvidence?.operatorReadinessPacket?.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET' || expectedHeadSha === 'source-workspace-no-git', 'P120 must cite P119 operator packet')
   assert(payload.sourceEvidence?.assignmentIntake?.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE', 'P120 must cite P75 assignment intake')
+  assert(payload.sourceEvidence?.assignmentIntake?.assignmentPath === targetAssignmentPath, 'P120 must cite local assignment path, not fixture assignment path')
   assert(payload.sourceEvidence?.envDryRun?.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE', 'P120 must cite P117 env dry-run')
   assert(payload.sourceEvidence?.blockerLedger?.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'P120 must cite P85 blocker ledger')
   assert(payload.sourceEvidence?.activationControl?.gate === 'P78_REMOTE_RUNTIME_ACTIVATION_CONTROL', 'P120 must cite P78 activation control')

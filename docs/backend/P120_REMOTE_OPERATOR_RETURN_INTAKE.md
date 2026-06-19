@@ -20,6 +20,11 @@ runtime, and does not treat fixture evidence as production readiness.
 In short: P120 does not create remote services and does not write
 `deploy/runtime-production/remote-assignment.local.json`.
 
+P120 must read P75 assignment evidence only when
+`assignmentPath=deploy/runtime-production/remote-assignment.local.json`.
+P81 fixture evidence may be newer, but it exists only to prove fixture safety
+and must not decide the operator return state.
+
 ## Commands
 
 ```bash
@@ -108,6 +113,8 @@ npm run check:runtime-completion-blocker-convergence
   without a handoff packet.
 - Missing P75/P117 evidence means P120 fails; operator return state cannot be
   interpreted without assignment intake and env dry-run proof.
+- A newer fixture P75 artifact must be ignored; P120 must choose the P75
+  artifact for the ignored local operator assignment.
 - Missing remote health keeps P120 in waiting state; it must not promote live
   runtime.
 - Any private field leakage fails artifact validation.

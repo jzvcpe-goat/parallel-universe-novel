@@ -28,6 +28,10 @@ P121 does not create services, does not write
 variables, does not store credentials, does not promote live runtime, and does
 not edit rule/kernel content.
 
+P121 is immediately followed by P122, which checks that the P120 evidence used
+to select the next goal came from the ignored local operator assignment and not
+from the no-secret fixture path.
+
 ## Command
 
 ```bash
@@ -67,6 +71,10 @@ When P120 reports `operator_return_waiting_for_health`, P121 must select:
 
 `remote-health-evidence-intake`
 
+When P120 reports `operator_return_waiting_for_assignment`, P121 must select:
+
+`operator-assignment-evidence-intake`
+
 Completion criteria for that goal:
 
 1. operator-filled assignment evidence exists outside Git-tracked files;
@@ -81,7 +89,8 @@ Completion criteria for that goal:
 ## Acceptance
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
-2. Root `npm run test` runs P121 after P120 and CI artifact content coverage.
+2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
+   then P122 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current evidence, not hardcoded wishful
    thinking.

@@ -88,6 +88,7 @@ function summarizeArtifact(item) {
     file: relative(root, item.file),
     gate: item.payload.gate || null,
     status: item.payload.status || null,
+    assignmentPath: item.payload.assignmentPath || null,
     decision: item.payload.decision
       || item.payload.executionDecision
       || item.payload.provisioningDecision
@@ -187,7 +188,12 @@ const p119 = latestArtifact(
   'current P119 operator readiness packet',
   { optional: sourceWorkspaceNoGit },
 )
-const p75 = latestArtifact('remote-runtime-assignment-intake-', payload => payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE', 'latest P75 assignment intake')
+const p75 = latestArtifact(
+  'remote-runtime-assignment-intake-',
+  payload => payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
+    && payload.assignmentPath === targetAssignmentPath,
+  'latest P75 assignment intake for local operator assignment',
+)
 const p117 = latestArtifact('remote-assignment-env-dry-run-', payload => payload.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE', 'latest P117 env dry-run')
 const p113 = latestArtifact('remote-assignment-image-drift-', payload => payload.gate === 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE', 'latest P113 image drift', { optional: true })
 const p85 = latestArtifact('remote-runtime-blockers-', payload => payload.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'latest P85 blocker ledger')

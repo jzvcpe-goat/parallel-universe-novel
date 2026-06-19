@@ -1,5 +1,28 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P122 Fixture Evidence Isolation
+
+P121 暴露了一个长链路里很容易被忽略的问题：root test 中 P81 会生成
+`remote-assignment.fixture.json` 的 P75 证据，而且这个 fixture artifact 可能比
+真实 `remote-assignment.local.json` 的 P75 证据更新。如果 P120 只读取“最新 P75”，
+就会把 fixture 的 `remote_assignment_pending_health` 当成 operator return 状态，
+从而让 P121 错误地选择 `remote-health-evidence-intake`。
+
+这轮修正了证据选择边界：
+
+1. P120 只读取 `assignmentPath=deploy/runtime-production/remote-assignment.local.json`
+   的 P75 artifact。
+2. P120 输出的 `sourceEvidence.assignmentIntake` 必须带上 `assignmentPath`，让后续
+   gate 可以审计它到底读了哪份 assignment。
+3. P120 artifact checker 同样要求 assignment path 是 ignored local file。
+4. P122 新增 `check:operator-return-fixture-isolation`，验证 P120/P121 没有被 fixture
+   artifact 带偏。
+5. 如果 local assignment 仍未填完，下一步 goal 应回到
+   `operator-assignment-evidence-intake`，而不是误跳到 remote health。
+
+经验原则：fixture 只能证明“不会误上线”，不能作为上线进度证据。所有 loop goal
+路由都必须引用真实 operator assignment 的证据路径。
+
 ## 2026-06-19 P121 Next Goal Ledger
 
 P120 之后，如果继续靠口头判断“下一步做什么”，很容易又回到重复开发：
