@@ -217,7 +217,13 @@ const apiImage = fillPlan.payload.currentImages?.api || imageEvidence.payload.im
 const agentImage = fillPlan.payload.currentImages?.agent || imageEvidence.payload.images?.find(item => item.includes('/parallel-universe-novel-agent-runtime:'))
 assert(apiImage, 'P118 could not resolve API image')
 assert(agentImage, 'P118 could not resolve Agent Runtime image')
-assert(imageDrift.payload.decision === 'remote_assignment_images_current' || sourceWorkspaceNoGit, 'P118 requires current remote assignment image drift evidence')
+assert(
+  imageDrift.payload.decision === 'remote_assignment_images_current'
+    || imageDrift.payload.decision === 'remote_assignment_local_absent'
+    || sourceWorkspaceNoGit,
+  'P118 requires current remote assignment image drift or explicit local-assignment-absent evidence',
+)
+assert(imageDrift.payload.imageDriftDetected === false || sourceWorkspaceNoGit, 'P118 requires no remote assignment image drift')
 assert(fillPlan.payload.decision === 'remote_assignment_fill_plan_ready', 'P118 requires P105 fill-plan readiness')
 assert(fillPlanAttestation.payload.gate === 'P106_REMOTE_ASSIGNMENT_FILL_PLAN_ARTIFACT_ATTESTATION', 'P118 requires P106 fill-plan attestation')
 assert(envApply.payload.writesLocalAssignment === false, 'P118 requires P116 check mode without writes')
@@ -293,7 +299,7 @@ const artifact = {
     fillPlanAttestation: evidenceSummary(fillPlanAttestation, ['expectedHeadSha']),
     envApply: evidenceSummary(envApply, ['mode', 'writesLocalAssignment']),
     envDryRun: evidenceSummary(envDryRun, ['currentHead', 'writesLocalAssignment', 'readyForApply']),
-    imageDrift: evidenceSummary(imageDrift, ['currentHead', 'imageDriftDetected']),
+    imageDrift: evidenceSummary(imageDrift, ['currentHead', 'imageDriftDetected', 'localAssignmentFilePresent']),
     assignmentIntake: evidenceSummary(assignmentIntake),
     executionPack: evidenceSummary(executionPack),
     originExecution: evidenceSummary(originExecution),
