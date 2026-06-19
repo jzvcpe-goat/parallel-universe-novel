@@ -73,6 +73,8 @@ candidate prose, token values, provider payloads or database URLs.
 P125 is the validation fixture for the next step in this handoff: P117 must
 accept a complete safe operator env fixture, reject unsafe negative fixtures
 and keep outputs redacted before real operator evidence is applied.
+P126 is the apply fixture after that: P116 must write only a temporary fixture
+target with safe inputs and leave the production ignored assignment unchanged.
 
 ## Next Command Sequence
 
@@ -91,7 +93,7 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, then P124 and P125 before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124, P125 and P126 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -107,6 +109,8 @@ After the assignment evidence is complete, P121 should stop selecting
    Pages run before the artifact can be used as operator handoff evidence.
 10. P125 validates the P117 operator env validator with positive and negative
     fixtures before the operator handoff can be treated as mechanically ready.
+11. P126 validates the P116 apply helper with a temporary fixture target before
+    real operator evidence is written.
 
 ## Failure Modes
 

@@ -18,6 +18,10 @@ It validates the same non-secret environment values without writing the local
 assignment file, so bad origins, placeholders, partial input and accidental
 secret-looking values are caught before P116 changes ignored state.
 
+P126 validates the P116 write path through a temporary fixture target. It uses
+`REMOTE_RUNTIME_ASSIGNMENT_FILE` to prove safe synthetic inputs can be applied
+without writing the production ignored assignment file.
+
 This gate does not create remote services, write GitHub repository variables,
 store provider secrets, mark health checks ready, or enable public live runtime.
 It only writes the local assignment file after explicit confirmation.
@@ -137,3 +141,5 @@ to `remote_assignment_pending_health`. It should only reach
 7. Apply mode refreshes image refs from current P72 runtime image evidence.
 8. Apply mode rejects secrets, placeholders and non-remote origins.
 9. The redacted P116 artifact does not expose operator service ids or origins.
+10. P126 proves the apply path with a temporary fixture target and leaves the
+    production ignored assignment unchanged.

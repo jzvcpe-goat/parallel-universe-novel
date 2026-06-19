@@ -19,6 +19,8 @@ not promote live runtime and does not change the selected next goal.
 P125 follows P124 in the root test chain. It validates the local P117 operator
 env dry-run path with safe synthetic inputs and unsafe negative inputs; it is
 not a Pages artifact gate and does not replace real operator evidence.
+P126 follows P125 and validates the local P116 apply path through a temporary
+fixture target; it is also not a Pages artifact gate.
 
 ## Command
 
@@ -68,7 +70,7 @@ P124 verifies that the uploaded P123 packet:
 
 ## Release Chain
 
-- Root `npm run test` runs P124 after P123, then P125 before dependency audit.
+- Root `npm run test` runs P124 after P123, then P125 and P126 before dependency audit.
 - Pages uploads `operator-assignment-evidence-intake` after root runtime checks.
 - Pages runs P124 content validation after P120 return-intake content validation
   and before P115 runtime-image local smoke content validation.
@@ -78,7 +80,7 @@ P124 verifies that the uploaded P123 packet:
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake-artifact`.
-2. Root `npm run test` runs P124 after P123 and P125 immediately after P124.
+2. Root `npm run test` runs P124 after P123, then P125 and P126 immediately after P124.
 3. Pages uploads the P123 JSON and Markdown packet.
 4. Pages validates the current-run uploaded packet with
    `CHECK_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ARTIFACT_REQUIRED=true`.

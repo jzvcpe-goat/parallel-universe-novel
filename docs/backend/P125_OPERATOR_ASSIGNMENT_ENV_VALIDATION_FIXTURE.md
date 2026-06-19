@@ -17,6 +17,10 @@ P125 does not deploy anything. It does not write
 services, does not set GitHub variables, does not store provider secrets, and
 does not promote live runtime.
 
+P126 follows this gate with an apply fixture. P125 proves the no-write P117
+validator; P126 proves the explicit-write P116 helper against a temporary
+fixture target.
+
 ## Command
 
 ```bash
@@ -56,7 +60,7 @@ outputs.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-validation-fixture`.
-2. Root `npm run test` runs P125 after P124 and before dependency audit.
+2. Root `npm run test` runs P125 after P124, then P126 before dependency audit.
 3. Positive strict fixture returns `operator_env_ready_for_p116_apply`.
 4. Follow-up fixture with a false secret-store confirmation does not become
    ready for apply.
@@ -72,3 +76,7 @@ discover that P117 rejects valid-looking service evidence, leaks an origin in
 an artifact, or silently accepts a placeholder. P125 keeps that failure local,
 safe and repeatable while the actual remote service assignment remains an
 external operator task.
+
+Without P126, P117 and P116 could still drift: the validator might accept a
+shape that the apply helper cannot write, or the apply helper might leak fields
+the validator kept redacted. P126 closes that apply fixture gap.

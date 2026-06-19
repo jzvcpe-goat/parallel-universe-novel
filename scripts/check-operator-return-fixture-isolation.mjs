@@ -94,8 +94,8 @@ assert(
   'package.json must expose check:operator-return-fixture-isolation',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run audit:dependencies'),
-  'root test must run P122 after P121, then P123/P124/P125, before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run audit:dependencies'),
+  'root test must run P122 after P121, then P123/P124/P125/P126, before dependency audit',
 )
 
 for (const file of [
