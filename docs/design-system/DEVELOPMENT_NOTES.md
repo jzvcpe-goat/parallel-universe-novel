@@ -1,5 +1,23 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P121 Next Goal Ledger
+
+P120 之后，如果继续靠口头判断“下一步做什么”，很容易又回到重复开发：
+再做一个前端、再做一套规则、再做一个和已有 gate 重叠的部署脚本。P121 把
+下一步目标选择本身变成机器可验证 artifact：
+
+1. `check:loop-next-goal-ledger` 读取 P4、public projection privacy、
+   backward consistency、reference privacy、P85 blocker ledger、P119/P120
+   operator evidence 和 runtime completion refresh，再输出下一步 goal。
+2. 当前证据显示 P120 处于 `operator_return_waiting_for_health` 时，下一步只能是
+   `remote-health-evidence-intake`，不能跳到 live promotion，也不能重新做规则或
+   前端。
+3. Ledger 必须列出 non-goals：不合并外部前端、不重写 P4 文档外规则、不创建远端
+   服务、不写 ignored assignment、不设置 GitHub runtime variables、不用 fixture
+   证据宣称 live ready。
+4. 这种 gate 的价值不是新增产品能力，而是防止 loop engineering 在长链路里漂移。
+   后续每次完成一个 P gate，都应让下一步由证据 ledger 指向最强未完成断点。
+
 ## 2026-06-19 P120 Operator Return Intake
 
 P119 解决的是“把什么交给部署 owner”，但部署 owner 回填之后仍需要一个单一
