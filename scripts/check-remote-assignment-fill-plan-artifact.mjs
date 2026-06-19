@@ -183,6 +183,7 @@ function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) 
   assert(Array.isArray(payload.validationSequence) && payload.validationSequence.length >= 8, 'fill-plan validation sequence is too short')
   for (const command of [
     'check:remote-assignment-schema',
+    'check:remote-assignment-env-dry-run',
     'check:remote-runtime-assignment-intake',
     'check:remote-assignment-execution-pack',
     'check:remote-origin-execution',

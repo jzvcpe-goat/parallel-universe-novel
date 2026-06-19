@@ -93,6 +93,10 @@ npm run check:remote-runtime-assignment-intake
 Preferred non-secret apply path after `remote-assignment.local.json` exists:
 
 ```bash
+npm run check:remote-assignment-env-dry-run
+```
+
+```bash
 REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
 REMOTE_OPERATOR_OWNER=<owner-id> \
 REMOTE_OPERATOR_PROVIDER=<provider-name> \
@@ -406,7 +410,7 @@ repository variables.
 12. Run `npm run check:remote-origin-operator-pack` and hand the generated artifact to the deployment owner.
 13. Deploy FastAPI with `NARRATIVEOS_DEPLOY_ENV=production`, `NARRATIVEOS_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`, and `NARRATIVEOS_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`.
 14. Deploy Agent Runtime with `NARRATIVEOS_DEPLOY_ENV=production`, `NODE_ENV=production`, `MASTRA_TOOL_BRIDGE_BASE_URL=https://<api-host>`, `MASTRA_TOOL_BRIDGE_TOKEN=<shared-tool-bridge-secret>`, and `MASTRA_ALLOWED_ORIGINS=https://jzvcpe-goat.github.io`.
-15. Fill `deploy/runtime-production/remote-assignment.local.json`.
+15. Fill `deploy/runtime-production/remote-assignment.local.json`, or dry-run the non-secret env path with `npm run check:remote-assignment-env-dry-run` before `npm run apply:remote-assignment-env`.
 16. Generate the execution pack with `npm run check:remote-assignment-execution-pack`.
 17. Run `REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake`.
 18. Export `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`, `REMOTE_API_ORIGIN`, `REMOTE_AGENT_ORIGIN`, `REMOTE_API_SECRETS_CONFIGURED=true`, and `REMOTE_AGENT_SECRETS_CONFIGURED=true`.

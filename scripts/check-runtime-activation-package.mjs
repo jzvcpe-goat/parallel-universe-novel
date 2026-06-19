@@ -46,6 +46,8 @@ const requiredFiles = [
   'docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md',
   'docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md',
   'docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md',
+  'docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md',
+  'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md',
   'deploy/runtime-production/host-profiles.json',
   'deploy/runtime-production/service-manifest.json',
@@ -78,6 +80,7 @@ const requiredFiles = [
   'scripts/check-remote-assignment-local-boundary.mjs',
   'scripts/check-github-runtime-variable-boundary.mjs',
   'scripts/check-runtime-placeholder-sentinel.mjs',
+  'scripts/check-remote-assignment-env-dry-run.mjs',
   'scripts/check-public-privacy-artifacts.mjs',
   'scripts/check-remote-assignment-artifacts.mjs',
 ]
@@ -114,6 +117,8 @@ const p107 = read('docs/backend/P107_CI_ARTIFACT_CONTENT_COVERAGE_MATRIX.md')
 const p108 = read('docs/backend/P108_REMOTE_ASSIGNMENT_LOCAL_BOUNDARY_GUARD.md')
 const p109 = read('docs/backend/P109_GITHUB_RUNTIME_VARIABLE_BOUNDARY_GUARD.md')
 const p110 = read('docs/backend/P110_RUNTIME_PLACEHOLDER_SENTINEL_GUARD.md')
+const p116 = read('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md')
+const p117 = read('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md')
 const p99 = read('docs/backend/P99_RELEASE_WORKFLOW_ORDERING_GATE.md')
 const hostProfiles = read('deploy/runtime-production/host-profiles.json')
 const serviceManifest = read('deploy/runtime-production/service-manifest.json')
@@ -219,6 +224,18 @@ assert(
   'package.json must expose check:runtime-placeholder-sentinel',
 )
 assert(
+  packageJson.scripts['check:remote-assignment-env-dry-run'] === 'node scripts/check-remote-assignment-env-dry-run.mjs',
+  'package.json must expose check:remote-assignment-env-dry-run',
+)
+assert(
+  packageJson.scripts['apply:remote-assignment-env'] === 'node scripts/apply-remote-assignment-env.mjs',
+  'package.json must expose apply:remote-assignment-env',
+)
+assert(
+  packageJson.scripts['check:remote-assignment-env-apply'] === 'node scripts/apply-remote-assignment-env.mjs --check',
+  'package.json must expose check:remote-assignment-env-apply',
+)
+assert(
   packageJson.scripts['check:public-privacy-artifacts'] === 'node scripts/check-public-privacy-artifacts.mjs',
   'package.json must expose check:public-privacy-artifacts',
 )
@@ -313,6 +330,14 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-placeholder-sentinel'),
   'npm run test must include check:runtime-placeholder-sentinel',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-env-dry-run'),
+  'npm run test must include check:remote-assignment-env-dry-run',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-assignment-env-apply'),
+  'npm run test must include check:remote-assignment-env-apply',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:public-privacy-artifacts'),
@@ -603,6 +628,20 @@ assert(
     && p110.includes('remote_assignment_incomplete')
     && p110.includes('assignment_execution_incomplete'),
   'P110 runtime placeholder sentinel guard must define placeholder rejection boundaries',
+)
+assert(
+  p116.includes('P116 Remote Assignment Env Apply Gate')
+    && p116.includes('check:remote-assignment-env-apply')
+    && p116.includes('apply:remote-assignment-env')
+    && p116.includes('check:remote-assignment-env-dry-run'),
+  'P116 remote assignment env apply gate must define explicit apply and dry-run ordering',
+)
+assert(
+  p117.includes('P117 Remote Assignment Env Dry-Run Gate')
+    && p117.includes('check:remote-assignment-env-dry-run')
+    && p117.includes('operator_env_not_supplied')
+    && p117.includes('does not write'),
+  'P117 remote assignment env dry-run gate must define no-write operator preflight boundaries',
 )
 assert(
   hostProfiles.includes('docker-compatible-two-service-paas')

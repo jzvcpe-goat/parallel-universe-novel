@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, and P116 remote assignment env apply gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
+Refresh the P45 completion audit after P49, P51, the later P98 canon promotion gate, P99 release workflow ordering, P100 Agent Eval publish decision boundary, P101 learned eval optional dependency boundary, P103 learned eval promotion workflow gate, P104 learned eval strict suite readiness, P105/P106 remote assignment fill-plan gates, P107 CI artifact content coverage matrix, P108 remote assignment local boundary guard, P109 GitHub runtime variable boundary guard, P110 runtime placeholder sentinel guard, P116 remote assignment env apply gate, and P117 remote assignment env dry-run gate. The matrix must not keep stale gaps after new proof exists, and it must not overclaim production readiness.
 
 ## Updates
 
@@ -529,3 +529,21 @@ P116 protects the operator assignment fill step after P112/P75/P108/P110:
 - The remaining live-runtime blocker set is unchanged; P116 only makes the
   ignored local assignment application safer before the existing P75/P73/P66/P23
   strict gates run.
+
+## P117 Remote Assignment Env Dry-Run Gate Refresh
+
+P117 protects the P116 apply step with a no-write preflight:
+
+- P45 commercial-release evidence now includes
+  `check:remote-assignment-env-dry-run`.
+- Root `npm run test` runs P117 after P116 check mode and before P113 image
+  drift.
+- With no operator env it emits `operator_env_not_supplied`, which is expected
+  in CI.
+- With operator env it rejects partial input, placeholders, invalid origins and
+  secret-looking material before P116 writes ignored local assignment state.
+- The generated `remote-assignment-env-dry-run` artifact is redacted and cannot
+  expose service ids, origins, provider tokens, prompt plumbing, reference-work
+  material, `sourceRefs`, `profile.id` or `kernel.id`.
+- The remaining live-runtime blocker set is unchanged; P117 only proves that a
+  future P116 apply attempt is safe enough to make the local ignored write.

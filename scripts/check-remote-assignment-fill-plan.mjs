@@ -252,6 +252,7 @@ const fillPlan = [
 
 const validationSequence = [
   'npm run check:remote-assignment-schema',
+  'npm run check:remote-assignment-env-dry-run',
   'REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake',
   'REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json REQUIRE_REMOTE_ASSIGNMENT_EXECUTION_READY=true npm run check:remote-assignment-execution-pack',
   'REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution',
@@ -344,6 +345,7 @@ assert(!existsSync(join(root, targetAssignmentPath)) || statSync(join(root, targ
 assert(artifact.currentImages.api.includes('parallel-universe-novel-api:'), 'P105 API image ref mismatch')
 assert(artifact.currentImages.agent.includes('parallel-universe-novel-agent-runtime:'), 'P105 Agent image ref mismatch')
 for (const command of [
+  'check:remote-assignment-env-dry-run',
   'check:remote-runtime-assignment-intake',
   'check:remote-assignment-execution-pack',
   'check:remote-origin-execution',

@@ -13,6 +13,11 @@ manual step: instead of hand-editing JSON, the operator can apply a controlled
 set of non-secret `REMOTE_*` environment variables into the ignored assignment
 file.
 
+P117 should be run before the apply command when operator values are available.
+It validates the same non-secret environment values without writing the local
+assignment file, so bad origins, placeholders, partial input and accidental
+secret-looking values are caught before P116 changes ignored state.
+
 This gate does not create remote services, write GitHub repository variables,
 store provider secrets, mark health checks ready, or enable public live runtime.
 It only writes the local assignment file after explicit confirmation.
@@ -23,6 +28,12 @@ Read-only wiring check for CI and root test:
 
 ```bash
 npm run check:remote-assignment-env-apply
+```
+
+No-write operator input dry run:
+
+```bash
+npm run check:remote-assignment-env-dry-run
 ```
 
 Apply operator-provided non-secret values:

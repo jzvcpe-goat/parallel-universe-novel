@@ -1,5 +1,21 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P117 Operator Dry-Run Before Apply
+
+P116 能把 operator 提供的非 secret `REMOTE_*` 环境变量写入 ignored
+`remote-assignment.local.json`。但只要有写入动作，就必须先提供 no-write
+dry-run：
+
+1. `check:remote-assignment-env-dry-run` 在无 operator env 的 CI/root test 中通过
+   `operator_env_not_supplied`，不伪装远端 assignment ready。
+2. operator 提供 env 时，dry-run 先检查完整性、placeholder、remote HTTPS origin、
+   secret-store confirmation 和 secret-looking material。
+3. dry-run artifact 只能写 redacted 证据，不能包含 service id、origin、provider
+   token、prompt plumbing、reference vault、`sourceRefs`、`profile.id` 或
+   `kernel.id`。
+4. 之后所有会修改 ignored/local/operator state 的 helper 都要遵守同样原则：
+   先 no-write preflight，再显式确认 apply。
+
 ## 2026-06-19 P106 Current-Run Artifact Context
 
 P116 提交后，本地已经刷新了 ignored

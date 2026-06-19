@@ -54,6 +54,10 @@ npm run check:remote-runtime-assignment-intake
 Optional env-based apply helper:
 
 ```bash
+npm run check:remote-assignment-env-dry-run
+```
+
+```bash
 REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
 REMOTE_OPERATOR_OWNER=<owner-id> \
 REMOTE_OPERATOR_PROVIDER=<provider-name> \
@@ -152,6 +156,11 @@ P116 `apply:remote-assignment-env` is only a safer way to fill this same ignored
 local assignment file from non-secret operator environment variables. It must
 not accept secret values, and it does not replace P75 readiness checks.
 
+P117 `check:remote-assignment-env-dry-run` is the no-write preflight for the
+same non-secret environment variables. It catches partial env sets, placeholder
+values, invalid origins and secret-looking material before P116 writes ignored
+local state.
+
 ## Acceptance
 
 - `.gitignore` ignores `deploy/runtime-production/remote-assignment.local.json`.
@@ -161,10 +170,12 @@ not accept secret values, and it does not replace P75 readiness checks.
 - `package.json` exposes `check:remote-runtime-assignment-intake`.
 - `package.json` exposes `apply:remote-assignment-env`.
 - `package.json` exposes `check:remote-assignment-env-apply`.
+- `package.json` exposes `check:remote-assignment-env-dry-run`.
 - `package.json` exposes `check:remote-assignment-local-boundary`.
 - `package.json` exposes `check:runtime-placeholder-sentinel`.
 - Root `npm run test` includes `check:remote-runtime-assignment-intake`.
 - Root `npm run test` includes `check:remote-assignment-env-apply`.
+- Root `npm run test` includes `check:remote-assignment-env-dry-run`.
 - Root `npm run test` includes `check:remote-assignment-local-boundary`.
 - Root `npm run test` includes `check:runtime-placeholder-sentinel`.
 - Missing assignment files produce `remote_assignment_missing` without blocking normal CI.
