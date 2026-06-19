@@ -70,7 +70,7 @@ P124 verifies that the uploaded P123 packet:
 
 ## Release Chain
 
-- Root `npm run test` runs P124 after P123, then P125, P126 and P128 before dependency audit.
+- Root `npm run test` runs P124 after P123, then P125, P126, P128 and P129 before dependency audit.
 - Pages uploads `operator-assignment-evidence-intake` after root runtime checks.
 - Pages runs P124 content validation after P120 return-intake content validation
   and before P115 runtime-image local smoke content validation.

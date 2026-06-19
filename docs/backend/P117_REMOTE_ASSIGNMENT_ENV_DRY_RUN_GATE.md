@@ -22,6 +22,9 @@ P125 adds a positive strict fixture and negative fixture set around this gate so
 the validator itself is proven before real operator service evidence arrives.
 P128 adds the tracked local env template that operators copy before supplying
 real evidence to this dry-run gate.
+P129 lets this gate load that ignored local env file with
+`REMOTE_ASSIGNMENT_ENV_FILE`, without requiring the operator to source values
+into the shell and without exposing values in artifacts.
 
 ## Commands
 
@@ -42,20 +45,9 @@ Strict operator preflight after exporting non-secret values:
 ```bash
 cp deploy/runtime-production/remote-assignment.env.example \
   deploy/runtime-production/remote-assignment.env.local
-# Fill the ignored local env file before loading it.
-set -a
-. ./deploy/runtime-production/remote-assignment.env.local
-set +a
+# Fill the ignored local env file before running the preflight.
 
-REMOTE_OPERATOR_OWNER=<owner-id> \
-REMOTE_OPERATOR_PROVIDER=<provider-name> \
-REMOTE_RUNTIME_ENVIRONMENT=production \
-REMOTE_API_SERVICE_ID=<provider-api-service-id> \
-REMOTE_AGENT_SERVICE_ID=<provider-agent-service-id> \
-REMOTE_API_ORIGIN=https://<api-host> \
-REMOTE_AGENT_ORIGIN=https://<agent-host> \
-REMOTE_API_SECRETS_CONFIGURED=true \
-REMOTE_AGENT_SECRETS_CONFIGURED=true \
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true \
 npm run check:remote-assignment-env-dry-run
 ```
@@ -63,6 +55,7 @@ npm run check:remote-assignment-env-dry-run
 When the dry run is ready, the next write step remains P116:
 
 ```bash
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env
 ```
 
@@ -83,9 +76,18 @@ Optional non-secret input:
 
 - `REMOTE_RUNTIME_ENVIRONMENT`
 
+Optional local loader path:
+
+- `REMOTE_ASSIGNMENT_ENV_FILE`
+
 `REMOTE_API_SECRETS_CONFIGURED` and `REMOTE_AGENT_SECRETS_CONFIGURED` are
 boolean confirmations that the hosting provider secret store has already been
 configured. They are not secret values.
+
+`REMOTE_ASSIGNMENT_ENV_FILE` must point to an ignored
+`deploy/runtime-production/*.env.local` file. The tracked
+`remote-assignment.env.example` template, unsupported keys and unignored paths
+are rejected.
 
 ## Rejected Inputs
 
@@ -121,6 +123,7 @@ The artifact may include:
 - missing env key names;
 - boolean origin-shape checks;
 - provider secret-store confirmation booleans;
+- whether an ignored env file was loaded;
 - the next safe command.
 
 The artifact must not include actual service ids, origins, provider tokens,
@@ -157,3 +160,5 @@ secret values, prompts, candidate text, raw state or reference-vault material.
     P117 without writing `remote-assignment.local.json`.
 11. P128 validates the copyable env template and ignored local env target used
     before real operator values are supplied.
+12. P129 proves P117 can load ignored env files directly while rejecting
+    tracked templates, unsupported keys and unignored paths.

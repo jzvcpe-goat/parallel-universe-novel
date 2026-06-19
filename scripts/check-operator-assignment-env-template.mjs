@@ -110,8 +110,11 @@ for (const file of [
   'docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md',
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md',
+  'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'scripts/check-remote-assignment-env-dry-run.mjs',
   'scripts/apply-remote-assignment-env.mjs',
+  'scripts/check-operator-assignment-env-file-loader.mjs',
+  'scripts/operator-assignment-env-file.mjs',
 ]) {
   assert(existsSync(join(root, file)), `missing P128 prerequisite: ${file}`)
 }
@@ -123,8 +126,8 @@ assert(
   'package.json must expose check:operator-assignment-env-template',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run audit:dependencies'),
-  'root test must run P128 after P126 and before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
+  'root test must run P128 after P126, then P129 before dependency audit',
 )
 
 const gitignore = read('.gitignore')
@@ -144,6 +147,7 @@ assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', ['P12
 assertIncludes('docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md', ['P128'])
 assertIncludes('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md', ['P128'])
 assertIncludes('docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md', ['P128'])
+assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P129', 'REMOTE_ASSIGNMENT_ENV_FILE'])
 
 const templateText = read(templateRel)
 const entries = parseEnvTemplate(templateText)

@@ -18,7 +18,8 @@ store provider secrets and does not enable live runtime.
 
 P128 follows this fixture gate with the real operator handoff template. P126
 proves the write path; P128 proves the tracked env template and ignored local
-copy are safe before real values enter P117/P116.
+copy are safe before real values enter P117/P116. P129 then proves the same
+ignored local env copy can be loaded directly by P117/P116.
 
 ## Command
 
@@ -60,7 +61,7 @@ or kernel ids.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-apply-fixture`.
-2. Root `npm run test` runs P126 after P125 and before dependency audit.
+2. Root `npm run test` runs P126 after P125, then P128 and P129 before dependency audit.
 3. P126 uses the existing P116 apply helper; it does not duplicate apply logic.
 4. P126 proves a safe positive fixture can write a temporary assignment target.
 5. P126 proves unsafe negative fixtures fail without modifying that target.
@@ -70,6 +71,8 @@ or kernel ids.
    `artifacts/runtime/operator-assignment-env-apply-fixture-*.json`.
 9. P128 runs after P126 in root test and verifies the local env template before
    dependency audit.
+10. P129 runs after P128 and verifies explicit ignored env-file loading before
+    dependency audit.
 
 ## Why This Exists
 

@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P129 Operator Assignment Env File Loader
+
+P128 解决了“operator 有一个安全模板可填”的问题，但如果 P117 dry-run 和 P116 apply
+仍然依赖手工 `source`，交接链还是会有 shell state 漂移：dry-run 用了一个环境，
+apply 可能用了另一个环境。P129 把本地 ignored env 文件变成显式输入，P117/P116 都通过
+`REMOTE_ASSIGNMENT_ENV_FILE` 加载同一份文件。
+
+新的工程标准：
+
+1. operator handoff 的推荐路径是：copy `.env.example` -> 填写 ignored
+   `.env.local` -> `REMOTE_ASSIGNMENT_ENV_FILE=... npm run check:remote-assignment-env-dry-run`
+   -> `REMOTE_ASSIGNMENT_ENV_FILE=... REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`。
+2. loader 只接受 `deploy/runtime-production/*.env.local`，且必须被 Git ignore；
+   tracked `.env.example`、未知 key 和未忽略路径都必须被拒绝。
+3. P117/P116 artifacts 只允许记录文件路径、key 名和 count，不允许输出 env 值、
+   service id、origin、provider secret、prompt plumbing 或 reference material。
+4. `check:operator-assignment-env-file-loader` 必须在 root `npm run test` 中位于
+   P128 之后、dependency audit 之前。
+5. 不要再把“手动 source env 文件”作为主 SOP；它只能作为本地调试知识，不能进入
+   operator-facing handoff。
+
+验证命令：
+
+```bash
+npm run check:operator-assignment-env-file-loader
+npm run test
+```
+
 ## 2026-06-19 P128 Operator Assignment Env Template Gate
 
 P123-P126 已经证明了 operator assignment 的证据包、artifact attestation、

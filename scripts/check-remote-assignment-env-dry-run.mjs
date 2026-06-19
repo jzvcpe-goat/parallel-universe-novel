@@ -2,6 +2,11 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import {
+  OPERATOR_ASSIGNMENT_ENV_FILE_KEY,
+  loadOperatorAssignmentEnvFile,
+  redactedOperatorEnvFileSummary,
+} from './operator-assignment-env-file.mjs'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
@@ -170,6 +175,7 @@ function assertWiring() {
     '.gitignore',
     'deploy/runtime-production/remote-assignment.schema.json',
     'deploy/runtime-production/remote-assignment.example.json',
+    'scripts/operator-assignment-env-file.mjs',
     'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
     'docs/backend/P105_REMOTE_ASSIGNMENT_FILL_PLAN_GATE.md',
     'docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md',
@@ -198,6 +204,7 @@ function assertWiring() {
     'P117 Remote Assignment Env Dry-Run Gate',
     'check:remote-assignment-env-dry-run',
     'does not write',
+    'REMOTE_ASSIGNMENT_ENV_FILE',
     'REMOTE_API_ORIGIN',
     'REMOTE_AGENT_ORIGIN',
   ])
@@ -207,10 +214,10 @@ function assertWiring() {
   ])
 }
 
-function envSummary() {
-  const providedAssignment = assignmentEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
-  const providedSecretConfirmations = secretConfirmationEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
-  const providedOptional = optionalEnvKeys.filter(key => process.env[key] != null && String(process.env[key]).trim() !== '')
+function envSummary(env) {
+  const providedAssignment = assignmentEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
+  const providedSecretConfirmations = secretConfirmationEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
+  const providedOptional = optionalEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const missingAssignment = assignmentEnvKeys.filter(key => !providedAssignment.includes(key))
   const trueSecretConfirmations = secretConfirmationEnvKeys.filter(key => String(process.env[key] || '').trim() === 'true')
   const operatorIntentPresent =
@@ -228,7 +235,7 @@ function envSummary() {
   }
 }
 
-function validateOperatorEnv(summary) {
+function validateOperatorEnv(summary, env) {
   if (!summary.operatorIntentPresent) {
     return {
       mode: 'waiting_for_operator_env',
@@ -244,15 +251,15 @@ function validateOperatorEnv(summary) {
 
   assert(summary.missingAssignment.length === 0, `partial operator env supplied; missing: ${summary.missingAssignment.join(', ')}`)
 
-  const owner = validateTextValue('REMOTE_OPERATOR_OWNER', process.env.REMOTE_OPERATOR_OWNER)
-  const provider = validateTextValue('REMOTE_OPERATOR_PROVIDER', process.env.REMOTE_OPERATOR_PROVIDER)
-  const environment = String(process.env.REMOTE_RUNTIME_ENVIRONMENT || 'preview-or-production').trim()
+  const owner = validateTextValue('REMOTE_OPERATOR_OWNER', env.REMOTE_OPERATOR_OWNER)
+  const provider = validateTextValue('REMOTE_OPERATOR_PROVIDER', env.REMOTE_OPERATOR_PROVIDER)
+  const environment = String(env.REMOTE_RUNTIME_ENVIRONMENT || 'preview-or-production').trim()
   assert(environment.length > 0 && !isPlaceholder(environment), 'REMOTE_RUNTIME_ENVIRONMENT must not be empty or placeholder')
   assert(forbiddenValueMatches(environment).length === 0, 'REMOTE_RUNTIME_ENVIRONMENT looks like secret or private material')
-  validateTextValue('REMOTE_API_SERVICE_ID', process.env.REMOTE_API_SERVICE_ID)
-  validateTextValue('REMOTE_AGENT_SERVICE_ID', process.env.REMOTE_AGENT_SERVICE_ID)
-  const apiOrigin = normalizeOrigin(process.env.REMOTE_API_ORIGIN)
-  const agentOrigin = normalizeOrigin(process.env.REMOTE_AGENT_ORIGIN)
+  validateTextValue('REMOTE_API_SERVICE_ID', env.REMOTE_API_SERVICE_ID)
+  validateTextValue('REMOTE_AGENT_SERVICE_ID', env.REMOTE_AGENT_SERVICE_ID)
+  const apiOrigin = normalizeOrigin(env.REMOTE_API_ORIGIN)
+  const agentOrigin = normalizeOrigin(env.REMOTE_AGENT_ORIGIN)
   assert(isRemoteHttpsOrigin(apiOrigin), 'REMOTE_API_ORIGIN must be a remote HTTPS origin without path, query, hash, localhost, .invalid or placeholders')
   assert(isRemoteHttpsOrigin(agentOrigin), 'REMOTE_AGENT_ORIGIN must be a remote HTTPS origin without path, query, hash, localhost, .invalid or placeholders')
   assert(apiOrigin !== agentOrigin, 'REMOTE_API_ORIGIN and REMOTE_AGENT_ORIGIN must be separate service origins')
@@ -260,8 +267,8 @@ function validateOperatorEnv(summary) {
     const hits = forbiddenValueMatches(value)
     assert(hits.length === 0, `${key} looks like secret or private material: ${hits.join(', ')}`)
   }
-  const apiSecrets = parseBool(process.env.REMOTE_API_SECRETS_CONFIGURED || 'false', 'REMOTE_API_SECRETS_CONFIGURED')
-  const agentSecrets = parseBool(process.env.REMOTE_AGENT_SECRETS_CONFIGURED || 'false', 'REMOTE_AGENT_SECRETS_CONFIGURED')
+  const apiSecrets = parseBool(env.REMOTE_API_SECRETS_CONFIGURED || 'false', 'REMOTE_API_SECRETS_CONFIGURED')
+  const agentSecrets = parseBool(env.REMOTE_AGENT_SECRETS_CONFIGURED || 'false', 'REMOTE_AGENT_SECRETS_CONFIGURED')
   const strictReady = apiSecrets && agentSecrets
 
   return {
@@ -319,8 +326,12 @@ function writeArtifact(payload) {
 assertWiring()
 
 const head = currentHead()
-const summary = envSummary()
-const validation = validateOperatorEnv(summary)
+const envFile = loadOperatorAssignmentEnvFile({
+  root,
+  allowedKeys: [...requiredEnvKeys, ...optionalEnvKeys],
+})
+const summary = envSummary(envFile.effectiveEnv)
+const validation = validateOperatorEnv(summary, envFile.effectiveEnv)
 const images = currentImages(head)
 const targetPath = 'deploy/runtime-production/remote-assignment.local.json'
 
@@ -338,6 +349,7 @@ const artifact = {
   currentHead: head,
   imageEvidence: images.imageEvidence,
   targetPath,
+  operatorEnvFile: redactedOperatorEnvFileSummary(envFile),
   writesLocalAssignment: false,
   createsRemoteServices: false,
   setsGitHubVariables: false,
@@ -359,18 +371,26 @@ const artifact = {
   },
   p116ApplyPreflight: {
     readyForApply: validation.strictReady,
-    applyCommand: 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+    applyCommand: envFile.loaded
+      ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
+      : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
   },
   nextCommands: validation.strictReady
     ? [
-        'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+        envFile.loaded
+          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
+          : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
         'npm run check:remote-runtime-assignment-intake',
         'REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake',
       ]
     : [
         'Fill all required REMOTE_* environment variables outside Git.',
-        'npm run check:remote-assignment-env-dry-run',
-        'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+        envFile.loaded
+          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} npm run check:remote-assignment-env-dry-run`
+          : 'npm run check:remote-assignment-env-dry-run',
+        envFile.loaded
+          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
+          : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
       ],
 }
 
@@ -388,6 +408,7 @@ console.log(JSON.stringify({
   currentHead: artifact.currentHead,
   writesLocalAssignment: false,
   readyForApply: validation.strictReady,
+  operatorEnvFileLoaded: envFile.loaded,
   missingRequiredKeys: summary.missingRequired,
   artifactPath: relative(root, artifactPath),
 }, null, 2))

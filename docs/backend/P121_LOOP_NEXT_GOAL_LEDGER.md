@@ -41,7 +41,8 @@ fixtures before real operator evidence is applied. P126 then validates the P116
 apply helper with a temporary fixture target so the write path is also proved
 without touching the production ignored assignment. P128 then validates the
 copyable local-only env template used by the deployment operator before real
-operator values are supplied.
+operator values are supplied. P129 then validates explicit ignored env-file
+loading for P117/P116 so the operator does not have to manually source values.
 
 ## Command
 
@@ -101,7 +102,7 @@ Completion criteria for that goal:
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P125, P126 and P128 before dependency audit.
+   then P122, P123, P124, P125, P126, P128 and P129 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current evidence, not hardcoded wishful
    thinking.

@@ -27,6 +27,12 @@ P128 provides the tracked local env template for real operator evidence:
 copy it to the ignored `deploy/runtime-production/remote-assignment.env.local`,
 fill only non-secret evidence, run P117, then run this apply command.
 
+P129 allows P116 to read that ignored local env file directly through
+`REMOTE_ASSIGNMENT_ENV_FILE`, so operators no longer have to export or source
+the values manually. The loader only accepts ignored
+`deploy/runtime-production/*.env.local` files and never records the values in
+artifacts.
+
 This gate does not create remote services, write GitHub repository variables,
 store provider secrets, mark health checks ready, or enable public live runtime.
 It only writes the local assignment file after explicit confirmation.
@@ -50,10 +56,16 @@ Local template preparation:
 ```bash
 cp deploy/runtime-production/remote-assignment.env.example \
   deploy/runtime-production/remote-assignment.env.local
-set -a
-. ./deploy/runtime-production/remote-assignment.env.local
-set +a
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 npm run check:remote-assignment-env-dry-run
+```
+
+Apply from the ignored local env file:
+
+```bash
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
+npm run apply:remote-assignment-env
 ```
 
 Apply operator-provided non-secret values:
@@ -93,10 +105,15 @@ P116 accepts only these environment variables as assignment evidence:
 - `REMOTE_AGENT_ORIGIN`
 - `REMOTE_API_SECRETS_CONFIGURED`
 - `REMOTE_AGENT_SECRETS_CONFIGURED`
+- `REMOTE_ASSIGNMENT_ENV_FILE`
 
 `REMOTE_API_SECRETS_CONFIGURED` and `REMOTE_AGENT_SECRETS_CONFIGURED` are
 boolean confirmations that the hosting provider secret store has already been
 configured. They are not secret values.
+
+`REMOTE_ASSIGNMENT_ENV_FILE` is a loader path, not assignment evidence. It must
+point to an ignored `deploy/runtime-production/*.env.local` file. The tracked
+`.env.example` template is rejected as input.
 
 ## Rejected Inputs
 
@@ -161,3 +178,5 @@ to `remote_assignment_pending_health`. It should only reach
     production ignored assignment unchanged.
 11. P128 proves the operator env template stays non-secret, copyable and
     ignored before real values are applied.
+12. P129 proves P116 can load the ignored local env file directly, rejects
+    tracked templates or unsupported keys, and keeps artifacts value-redacted.

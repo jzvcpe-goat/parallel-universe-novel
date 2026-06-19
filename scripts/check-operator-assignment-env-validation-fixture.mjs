@@ -120,14 +120,15 @@ assert(
   'package.json must expose check:operator-assignment-env-validation-fixture',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run audit:dependencies'),
-  'root test must run P125 after P124, then P126 and P128 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run audit:dependencies'),
+  'root test must run P125 after P124, then P126, P128 and P129 before dependency audit',
 )
 
 for (const file of [
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
   'docs/backend/P125_OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE.md',
+  'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'scripts/check-remote-assignment-env-dry-run.mjs',
 ]) {
   assert(existsSync(join(root, file)), `missing P125 prerequisite: ${file}`)
@@ -139,6 +140,7 @@ assertIncludes('docs/backend/P125_OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE.md'
   'does not write',
   'positive strict fixture',
   'negative fixture',
+  'P129',
 ])
 assertIncludes('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md', [
   'P125',

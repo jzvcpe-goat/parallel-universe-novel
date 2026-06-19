@@ -2,6 +2,10 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
+import {
+  loadOperatorAssignmentEnvFile,
+  redactedOperatorEnvFileSummary,
+} from './operator-assignment-env-file.mjs'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
@@ -141,18 +145,23 @@ function validateTextValue(key, value) {
 }
 
 function readOperatorEnv() {
-  const missing = Object.keys(envSpec).filter(key => process.env[key] == null || String(process.env[key]).trim() === '')
+  const envFile = loadOperatorAssignmentEnvFile({
+    root,
+    allowedKeys: [...Object.keys(envSpec), 'REMOTE_RUNTIME_ENVIRONMENT'],
+  })
+  const effectiveEnv = envFile.effectiveEnv
+  const missing = Object.keys(envSpec).filter(key => effectiveEnv[key] == null || String(effectiveEnv[key]).trim() === '')
   assert(missing.length === 0, `missing operator env vars: ${missing.join(', ')}`)
-  const owner = validateTextValue('REMOTE_OPERATOR_OWNER', process.env.REMOTE_OPERATOR_OWNER)
-  const provider = validateTextValue('REMOTE_OPERATOR_PROVIDER', process.env.REMOTE_OPERATOR_PROVIDER)
-  const environment = String(process.env.REMOTE_RUNTIME_ENVIRONMENT || 'preview-or-production').trim()
+  const owner = validateTextValue('REMOTE_OPERATOR_OWNER', effectiveEnv.REMOTE_OPERATOR_OWNER)
+  const provider = validateTextValue('REMOTE_OPERATOR_PROVIDER', effectiveEnv.REMOTE_OPERATOR_PROVIDER)
+  const environment = String(effectiveEnv.REMOTE_RUNTIME_ENVIRONMENT || 'preview-or-production').trim()
   assert(environment.length > 0 && !isPlaceholder(environment), 'REMOTE_RUNTIME_ENVIRONMENT must not be empty or placeholder')
   assert(forbiddenValueMatches(environment).length === 0, 'REMOTE_RUNTIME_ENVIRONMENT looks like secret or private material')
 
-  const apiServiceId = validateTextValue('REMOTE_API_SERVICE_ID', process.env.REMOTE_API_SERVICE_ID)
-  const agentServiceId = validateTextValue('REMOTE_AGENT_SERVICE_ID', process.env.REMOTE_AGENT_SERVICE_ID)
-  const apiOrigin = normalizeOrigin(process.env.REMOTE_API_ORIGIN)
-  const agentOrigin = normalizeOrigin(process.env.REMOTE_AGENT_ORIGIN)
+  const apiServiceId = validateTextValue('REMOTE_API_SERVICE_ID', effectiveEnv.REMOTE_API_SERVICE_ID)
+  const agentServiceId = validateTextValue('REMOTE_AGENT_SERVICE_ID', effectiveEnv.REMOTE_AGENT_SERVICE_ID)
+  const apiOrigin = normalizeOrigin(effectiveEnv.REMOTE_API_ORIGIN)
+  const agentOrigin = normalizeOrigin(effectiveEnv.REMOTE_AGENT_ORIGIN)
   assert(isRemoteHttpsOrigin(apiOrigin), 'REMOTE_API_ORIGIN must be a remote HTTPS origin without path, query, hash, localhost, .invalid or placeholders')
   assert(isRemoteHttpsOrigin(agentOrigin), 'REMOTE_AGENT_ORIGIN must be a remote HTTPS origin without path, query, hash, localhost, .invalid or placeholders')
   assert(apiOrigin !== agentOrigin, 'REMOTE_API_ORIGIN and REMOTE_AGENT_ORIGIN must be separate service origins')
@@ -169,8 +178,9 @@ function readOperatorEnv() {
     agentServiceId,
     apiOrigin,
     agentOrigin,
-    apiProviderSecretsConfigured: parseBool(process.env.REMOTE_API_SECRETS_CONFIGURED, 'REMOTE_API_SECRETS_CONFIGURED'),
-    agentProviderSecretsConfigured: parseBool(process.env.REMOTE_AGENT_SECRETS_CONFIGURED, 'REMOTE_AGENT_SECRETS_CONFIGURED'),
+    apiProviderSecretsConfigured: parseBool(effectiveEnv.REMOTE_API_SECRETS_CONFIGURED, 'REMOTE_API_SECRETS_CONFIGURED'),
+    agentProviderSecretsConfigured: parseBool(effectiveEnv.REMOTE_AGENT_SECRETS_CONFIGURED, 'REMOTE_AGENT_SECRETS_CONFIGURED'),
+    operatorEnvFile: redactedOperatorEnvFileSummary(envFile),
   }
 }
 
@@ -205,6 +215,7 @@ function assertWiring() {
     '.gitignore',
     'deploy/runtime-production/service-manifest.json',
     'deploy/runtime-production/remote-assignment.schema.json',
+    'scripts/operator-assignment-env-file.mjs',
     'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
     'docs/backend/P112_REMOTE_ASSIGNMENT_LOCAL_DRAFT_PREPARATION.md',
     'docs/backend/P116_REMOTE_ASSIGNMENT_ENV_APPLY_GATE.md',
@@ -228,6 +239,7 @@ function assertWiring() {
       'apply:remote-assignment-env',
       'check:remote-assignment-env-apply',
       'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true',
+      'REMOTE_ASSIGNMENT_ENV_FILE',
       'REMOTE_API_ORIGIN',
       'REMOTE_AGENT_ORIGIN',
       'provider secret store',
@@ -395,6 +407,7 @@ const artifactPayload = {
   targetPath: targetRel,
   currentHead: images.head,
   imageEvidence: relative(root, images.evidence.file),
+  operatorEnvFile: inputs.operatorEnvFile,
   writesLocalAssignment: true,
   appliedFields: {
     operatorOwner: true,

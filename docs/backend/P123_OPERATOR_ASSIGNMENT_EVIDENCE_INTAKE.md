@@ -77,15 +77,20 @@ P126 is the apply fixture after that: P116 must write only a temporary fixture
 target with safe inputs and leave the production ignored assignment unchanged.
 P128 follows with the copyable env template that the operator can fill locally
 before running P117 and P116 against real non-secret assignment evidence.
+P129 then proves P117 and P116 can load that ignored local env file directly
+through `REMOTE_ASSIGNMENT_ENV_FILE`, without manual shell sourcing.
 
 ## Next Command Sequence
 
 ```bash
 cp deploy/runtime-production/remote-assignment.env.example \
   deploy/runtime-production/remote-assignment.env.local
-# Fill the ignored local env file, then load it in the current shell.
+# Fill the ignored local env file.
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 npm run check:remote-assignment-env-dry-run
-REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
+npm run apply:remote-assignment-env
 npm run check:remote-runtime-assignment-intake
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
@@ -98,7 +103,7 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126 and P128 before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126, P128 and P129 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -118,6 +123,8 @@ After the assignment evidence is complete, P121 should stop selecting
     real operator evidence is written.
 12. P128 validates the tracked local env template and ignored local env target
     before a deployment operator fills real values.
+13. P129 validates explicit ignored env-file loading for P117/P116 and rejects
+    tracked templates, unsupported keys and unignored paths.
 
 ## Failure Modes
 

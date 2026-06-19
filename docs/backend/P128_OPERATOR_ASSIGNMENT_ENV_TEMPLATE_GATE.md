@@ -19,6 +19,9 @@ P128 does not deploy anything. It does not write
 remote services, does not set GitHub variables, does not store provider
 credentials and does not promote public live runtime.
 
+P129 follows this gate by proving P117 and P116 can load the ignored local env
+copy directly through `REMOTE_ASSIGNMENT_ENV_FILE`.
+
 ## Files
 
 Tracked template:
@@ -44,12 +47,11 @@ cp deploy/runtime-production/remote-assignment.env.example \
   deploy/runtime-production/remote-assignment.env.local
 
 # Fill only non-secret evidence in the local file.
-set -a
-. ./deploy/runtime-production/remote-assignment.env.local
-set +a
-
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
 npm run check:remote-assignment-env-dry-run
-REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env
+REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
+REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
+npm run apply:remote-assignment-env
 npm run check:remote-runtime-assignment-intake
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
@@ -85,6 +87,8 @@ npm run check:operator-assignment-env-template
    `artifacts/runtime/operator-assignment-env-template-*.json`.
 6. The artifact does not expose service ids, origins, provider credentials,
    prompt plumbing, raw state, private title material or rule identifiers.
+7. P129 proves the ignored env file can be loaded by P117/P116 without manual
+   shell sourcing and without leaking values.
 
 ## Why This Exists
 
