@@ -1,5 +1,37 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P114 Runtime Image Local Smoke Gate
+
+P68 strict compose 在本机运行时暴露出一个真实但旁路的问题：`docker compose
+--build` 会重新访问 Docker Hub 的 `python:3.11-slim` 和 `node:22-alpine`
+metadata；网络 EOF 会让本地重建失败，但这不等于刚由 GitHub Actions 发布到
+GHCR 的当前 API / Agent Runtime 镜像不可运行。
+
+新的工程标准：
+
+1. 上线前除了 P72 “镜像已发布”和 P113 “assignment 指向当前镜像”之外，还要
+   有 P114 “当前 GHCR 镜像可本地运行”的 smoke gate。
+2. `check:runtime-image-local-smoke` 进入 root `npm run test`，默认只做 wiring
+   和 opportunistic smoke：Docker 不可用、镜像不在本地或 registry 不可用时记录
+   明确 skip reason，不阻塞静态 Pages 预览。
+3. 真正上线前必须跑严格模式：
+   `REQUIRE_RUNTIME_IMAGE_LOCAL_SMOKE=true RUNTIME_IMAGE_LOCAL_SMOKE_PULL=true npm run check:runtime-image-local-smoke`。
+4. 严格模式运行的是当前 P72 evidence 中的 GHCR image refs，不重新 build
+   Dockerfile。
+5. smoke 必须证明 API `/health`、Agent `/health` 和一次
+   `/v1/workflows/socratic-create` Tool Bridge 链路。
+6. P114 artifact 只能保存公开 image refs、health summary、候选正文长度和追问数量；
+   不保存 token、candidate body、raw runtime state、provider prompt plumbing、
+   `sourceRefs`、`profile.id`、`kernel.id` 或 reference vault material。
+
+验证命令：
+
+```bash
+npm run check:runtime-image-publish-evidence
+npm run check:runtime-image-local-smoke
+REQUIRE_RUNTIME_IMAGE_LOCAL_SMOKE=true RUNTIME_IMAGE_LOCAL_SMOKE_PULL=true npm run check:runtime-image-local-smoke
+```
+
 ## 2026-06-19 P113 Remote Assignment Image Drift Gate
 
 P112 可以生成本地 ignored assignment 草稿，但 Git 不会追踪这个文件。推送新
