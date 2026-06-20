@@ -184,6 +184,16 @@ assert(followupOutput.status === 'passed_with_operator_env_followup_required', '
 assert(followupOutput.readyForApply === false, 'false secret confirmation must not be ready for apply')
 assertNoLeak(followup.stdout, 'follow-up stdout')
 
+const ciFalseOnlyDefaults = runDryRun({
+  REMOTE_API_SECRETS_CONFIGURED: 'false',
+  REMOTE_AGENT_SECRETS_CONFIGURED: 'false',
+})
+assert(ciFalseOnlyDefaults.status === 0, `CI false-only defaults should not be treated as partial env: ${ciFalseOnlyDefaults.stderr || ciFalseOnlyDefaults.stdout}`)
+const ciFalseOnlyOutput = JSON.parse(ciFalseOnlyDefaults.stdout)
+assert(ciFalseOnlyOutput.status === 'passed_waiting_for_operator_env', 'CI false-only defaults must remain waiting for operator env')
+assert(ciFalseOnlyOutput.readyForApply === false, 'CI false-only defaults must not be ready for apply')
+assertNoLeak(ciFalseOnlyDefaults.stdout, 'CI false-only stdout')
+
 const negativeCases = [
   {
     id: 'partial-env',
@@ -245,6 +255,10 @@ const artifact = {
   followupFixture: {
     status: followupOutput.status,
     readyForApply: followupOutput.readyForApply,
+  },
+  ciFalseOnlyDefaultFixture: {
+    status: ciFalseOnlyOutput.status,
+    readyForApply: ciFalseOnlyOutput.readyForApply,
   },
   negativeFixtures: negativeCases.map(item => ({
     id: item.id,

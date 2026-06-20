@@ -42,6 +42,11 @@ const edgeOnlySecretConfirmationEnvKeys = [
   'REMOTE_API_SECRETS_CONFIGURED',
   'REMOTE_AGENT_SECRETS_CONFIGURED',
 ]
+const secretConfirmationEnvKeySet = new Set([
+  ...fullRemoteSecretConfirmationEnvKeys,
+  ...edgeOnlySecretConfirmationEnvKeys,
+  'REMOTE_FRONTEND_SECRETS_CONFIGURED',
+])
 
 const legacyRequiredEnvKeys = [...fullRemoteAssignmentEnvKeys, ...fullRemoteSecretConfirmationEnvKeys]
 const optionalEnvKeys = [
@@ -274,7 +279,11 @@ function envSummary(env) {
   const providedOptional = optionalEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const missingAssignment = assignmentEnvKeys.filter(key => !providedAssignment.includes(key))
   const missingSecretConfirmations = secretConfirmationEnvKeys.filter(key => !providedSecretConfirmations.includes(key))
-  const operatorIntentPresent = providedKnown.length > 0
+  const operatorIntentPresent = allKnownKeys.some(key => {
+    const value = String(env[key] ?? '').trim()
+    if (!value) return false
+    return !(secretConfirmationEnvKeySet.has(key) && value === 'false')
+  })
   return {
     runtimeMode: mode,
     requiredEnvKeys,
