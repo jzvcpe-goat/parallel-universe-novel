@@ -14,12 +14,19 @@ reserved origins do not count as production readiness. That fixture can create
 a newer P75 artifact with `remote_assignment_pending_health`. P120 must not
 read that newer fixture artifact when judging the real operator return.
 
-The source of truth for P120 is always:
+The source of truth for P120 is the current production assignment path set:
 
-`deploy/runtime-production/remote-assignment.local.json`
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+deploy/runtime-production/generated/remote-assignment.contract.json
+deploy/runtime-production/remote-assignment.local.json
+```
 
-P122 verifies that P120 selects the P75 artifact for that local ignored file,
-then verifies P121 routes the next goal from that real local assignment state.
+The first two paths are the P138/P140 edge-only path. The legacy
+`remote-assignment.local.json` path remains valid only when the operator
+explicitly chooses full-remote deployment. P122 verifies that P120 selects one
+of those production paths and never the fixture assignment, then verifies P121
+routes the next goal from that real assignment state.
 If that real state still needs operator assignment evidence, P123 must run next
 and emit the safe operator intake packet, then P124 must validate that packet
 after Pages uploads it. P125 then validates that the P117 operator env dry-run
@@ -51,7 +58,7 @@ npm run check:operator-assignment-current-head-coherence
 
 P122 reads the latest evidence from:
 
-- P75 remote assignment intake for `remote-assignment.local.json`
+- P75 remote assignment intake for the current production assignment path set
 - P75 fixture assignment intake for `remote-assignment.fixture.json`
 - P120 remote operator return intake
 - P121 loop next goal ledger
@@ -72,8 +79,10 @@ ids, kernel ids or raw runtime state.
 1. `package.json` exposes `check:operator-return-fixture-isolation`.
 2. Root `npm run test` runs P122 after P121, then P123, P124, P125, P126,
    P128, P129, P130, P131, P132 and P133, before dependency audit.
-3. P120 filters P75 assignment evidence by `remote-assignment.local.json`.
-4. P120 packet cites the local assignment path in `sourceEvidence.assignmentIntake`.
+3. P120 filters P75 assignment evidence by the current production assignment
+   path set.
+4. P120 packet cites the selected production assignment path in
+   `sourceEvidence.assignmentIntake`.
 5. If P120 reports `operator_return_waiting_for_assignment`, P121 must select
    `operator-assignment-evidence-intake`.
 6. If P120 reports `operator_return_waiting_for_health`, P121 must select
@@ -85,8 +94,8 @@ ids, kernel ids or raw runtime state.
 
 ## Failure Modes
 
-- Missing current local P75 evidence means P122 fails; P120 cannot be trusted
-  without local assignment evidence.
+- Missing current production P75 evidence means P122 fails; P120 cannot be
+  trusted without assignment evidence.
 - Missing current-head P120/P121 evidence means P122 fails; the loop ledger
   cannot be audited without both gates.
 - P120 selecting a fixture assignment path fails immediately.

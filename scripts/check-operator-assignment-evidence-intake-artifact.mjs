@@ -135,6 +135,11 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   const commandText = Array.isArray(payload.nextCommands) ? payload.nextCommands.join('\n') : ''
   const privateMatches = scanNoPrivateText(JSON.stringify(payload))
   const markdownPrivateMatches = scanNoPrivateText(markdownText)
+  const acceptedAssignmentPaths = new Set([
+    targetAssignmentPath,
+    preferredAssignmentPath,
+    generatedContractPath,
+  ])
 
   assert(payload.version === 1, 'P123 packet version must be 1')
   assert(payload.gate === 'P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE', 'P123 packet gate mismatch')
@@ -194,7 +199,10 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   ]) {
     assert(payload.sourceEvidence?.[key]?.gate === gate, `P123 must cite ${gate}`)
   }
-  assert(payload.sourceEvidence?.assignmentIntake?.assignmentPath === targetAssignmentPath, 'P123 must cite local assignment path, not fixture assignment path')
+  assert(
+    acceptedAssignmentPaths.has(payload.sourceEvidence?.assignmentIntake?.assignmentPath),
+    'P123 must cite a current production assignment path, not fixture assignment path',
+  )
   for (const flag of ['writesLocalAssignment', 'createsRemoteServices', 'setsGitHubVariables', 'storesProviderSecrets', 'promotesLiveRuntime', 'treatsFixtureAsReady']) {
     assert(payload.boundary?.[flag] === false, `P123 packet must keep boundary.${flag}=false`)
   }

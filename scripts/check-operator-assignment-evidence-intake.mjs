@@ -57,6 +57,15 @@ function summarize(item) {
   }
 }
 
+function isCurrentAssignmentIntake(payload) {
+  return payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
+    && [
+      targetAssignmentPath,
+      preferredAssignmentPath,
+      generatedContractPath,
+    ].includes(payload.assignmentPath)
+}
+
 function scanNoPrivateTerms(value) {
   const text = typeof value === 'string' ? value : JSON.stringify(value)
   const forbidden = [
@@ -305,9 +314,8 @@ const p117 = latestArtifact(
 )
 const p75 = latestArtifact(
   'remote-runtime-assignment-intake-',
-  payload => payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
-    && payload.assignmentPath === targetAssignmentPath,
-  'local P75 assignment intake',
+  isCurrentAssignmentIntake,
+  'current P75 assignment intake',
 )
 const p113 = latestArtifact(
   'remote-assignment-image-drift-',
@@ -341,9 +349,11 @@ assert(
 )
 assert(p120.payload.decision === 'operator_return_waiting_for_assignment', 'P123 requires P120 to still be waiting for operator assignment evidence')
 assert(p120.payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
+assert(p120.payload.preferredAssignmentPath === preferredAssignmentPath, 'P120 preferred assignment path mismatch')
 const assignmentDecision = String(p75.payload.decision || '')
 const assignmentFilePresent = Boolean(
   p75.payload.assignmentFilePresent
+    ?? p75.payload.legacyAssignmentFilePresent
     ?? p75.payload.localAssignmentFilePresent
     ?? p120.payload.assignmentFilePresent
     ?? (assignmentDecision !== 'remote_assignment_missing'),
@@ -352,7 +362,11 @@ assert(
   ['remote_assignment_missing', 'remote_assignment_incomplete'].includes(assignmentDecision),
   'P75 must still show missing or incomplete local assignment before P123',
 )
-assert(p75.payload.assignmentPath === targetAssignmentPath, 'P75 must use the ignored local assignment path')
+assert(isCurrentAssignmentIntake(p75.payload), 'P75 must use the current ignored local assignment, edge-only intent, or generated contract path')
+if (p75.payload.runtimeMode === 'edge-only') {
+  const agentBlockers = p75.payload.blockedStages.filter(stage => /^agent-|^remote-agent-|agent-/.test(stage) && stage !== 'remote-agent-not-required')
+  assert(agentBlockers.length === 0, `edge-only P75 must not require remote Agent blockers: ${agentBlockers.join(', ')}`)
+}
 assert(p117.payload.decision === 'operator_env_not_supplied' || p117.payload.readyForApply === false, 'P117 must not report ready-to-apply operator env while P121 selects assignment intake')
 assert(p113.payload.status === 'passed' || p113.payload.status === 'passed_waiting_for_local_assignment', 'P113 image drift gate must pass or wait for local assignment before P123')
 assert(p113.payload.imageDriftDetected === false, 'P123 requires no local assignment image drift before operator evidence intake')

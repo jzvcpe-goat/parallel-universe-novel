@@ -32,16 +32,21 @@ The committed contract fixture is:
 deploy/runtime-production/remote-assignment.fixture.json
 ```
 
-P138 adds a higher-level compiler path for topology-aware deployment evidence:
+P138/P140 add a higher-level compiler path for topology-aware deployment
+evidence:
 
 ```text
 deploy/runtime-production/runtime-assignment.intent.local.json
 deploy/runtime-production/generated/remote-assignment.contract.json
 ```
 
-When `runtime_mode=edge-only`, the generated contract is the preferred P75
-input. In that topology, remote Agent absence is expected evidence, not a
-missing service id.
+When `runtime_mode=edge-only`, P75 prefers the generated contract; if the
+contract is not compiled yet, it reads the ignored runtime intent directly and
+projects the remaining blockers from that source. In that topology, remote Agent
+absence is expected evidence, not a missing service id. The legacy
+`remote-assignment.local.json` full-remote draft is used only when the operator
+explicitly passes `REMOTE_RUNTIME_ASSIGNMENT_FILE` or when no edge-only intent
+exists.
 
 The fixture uses reserved `.invalid` origins. It is only for validating the
 assignment shape and P79 command generation. It must produce
@@ -97,8 +102,13 @@ npm run check:remote-runtime-assignment-intake
 ## Decisions
 
 - `remote_assignment_missing`: no local assignment file exists yet.
-- `remote_assignment_incomplete`: assignment file exists, but service ids, origins, image refs, or provider-secret-store confirmations are missing.
-- `remote_assignment_pending_health`: assignment fields are present, but one or both remote `/health` checks are not ready.
+- `remote_assignment_incomplete`: assignment evidence exists, but required
+  service ids, origins, image refs or configuration confirmations are missing.
+  In edge-only mode this means frontend/data API evidence, not remote Agent
+  evidence.
+- `remote_assignment_pending_health`: assignment fields are present, but the
+  required health proof is not ready. In edge-only mode this is the managed data
+  API health probe; the remote Agent health check is not required.
 - `remote_assignment_ready`: service ids, origins, image refs, provider-secret-store confirmations and health checks are ready.
 
 For a P138 `edge-only` contract, `remote_assignment_ready` means the frontend

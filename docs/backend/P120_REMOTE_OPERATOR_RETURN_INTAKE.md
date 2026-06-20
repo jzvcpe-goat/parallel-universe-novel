@@ -20,10 +20,20 @@ runtime, and does not treat fixture evidence as production readiness.
 In short: P120 does not create remote services and does not write
 `deploy/runtime-production/remote-assignment.local.json`.
 
-P120 must read P75 assignment evidence only when
-`assignmentPath=deploy/runtime-production/remote-assignment.local.json`.
+P120 must read P75 assignment evidence only from the current production path:
+the P138 edge-only intent/compiled contract, or the legacy local assignment when
+the operator explicitly chooses full remote deployment.
+
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+deploy/runtime-production/generated/remote-assignment.contract.json
+deploy/runtime-production/remote-assignment.local.json
+```
+
 P81 fixture evidence may be newer, but it exists only to prove fixture safety
-and must not decide the operator return state.
+and must not decide the operator return state. In the default edge-only path,
+remote Agent service id, origin, secret-store confirmation and health evidence
+are not valid blockers.
 
 ## Commands
 
@@ -114,7 +124,8 @@ npm run check:runtime-completion-blocker-convergence
 - Missing P75/P117 evidence means P120 fails; operator return state cannot be
   interpreted without assignment intake and env dry-run proof.
 - A newer fixture P75 artifact must be ignored; P120 must choose the P75
-  artifact for the ignored local operator assignment.
+  artifact for the current P138 edge-only intent/contract or, only when
+  explicitly selected, the ignored legacy local operator assignment.
 - Missing remote health keeps P120 in waiting state; it must not promote live
   runtime.
 - Any private field leakage fails artifact validation.

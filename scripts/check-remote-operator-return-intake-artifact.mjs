@@ -21,6 +21,8 @@ const checkCurrentRun = process.env.CHECK_CURRENT_GITHUB_RUN_ARTIFACTS === 'true
 const source = process.env.CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_SOURCE || (checkCurrentRun ? 'github' : 'local')
 const artifactName = 'remote-operator-return-intake'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
+const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -129,6 +131,11 @@ function scanNoPrivateText(text) {
 }
 
 function validatePacket(payload, markdownText, expectedHeadSha) {
+  const acceptedAssignmentPaths = new Set([
+    targetAssignmentPath,
+    preferredAssignmentPath,
+    generatedContractPath,
+  ])
   const allowedStatuses = [
     'passed_waiting_for_operator_return',
     'passed_waiting_for_remote_health',
@@ -153,6 +160,8 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(allowedDecisions.includes(payload.decision), `P120 packet decision mismatch: ${payload.decision}`)
   assert(payload.publicReleaseBlocking === false, 'P120 packet must not block static public release')
   assert(payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
+  assert(payload.preferredAssignmentPath === preferredAssignmentPath, 'P120 preferred assignment path mismatch')
+  assert(payload.generatedContractPath === generatedContractPath, 'P120 generated contract path mismatch')
   for (const flag of ['writesLocalAssignment', 'createsRemoteServices', 'setsGitHubVariables', 'storesProviderSecrets', 'promotesLiveRuntime', 'treatsFixtureAsReady']) {
     assert(payload.boundary?.[flag] === false, `P120 packet must keep boundary.${flag}=false`)
   }
@@ -164,7 +173,10 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.containsCandidateText === false, 'P120 packet must not contain candidate text')
   assert(payload.sourceEvidence?.operatorReadinessPacket?.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET' || expectedHeadSha === 'source-workspace-no-git', 'P120 must cite P119 operator packet')
   assert(payload.sourceEvidence?.assignmentIntake?.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE', 'P120 must cite P75 assignment intake')
-  assert(payload.sourceEvidence?.assignmentIntake?.assignmentPath === targetAssignmentPath, 'P120 must cite local assignment path, not fixture assignment path')
+  assert(
+    acceptedAssignmentPaths.has(payload.sourceEvidence?.assignmentIntake?.assignmentPath),
+    'P120 must cite a current production assignment path, not fixture assignment path',
+  )
   assert(payload.sourceEvidence?.envDryRun?.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE', 'P120 must cite P117 env dry-run')
   assert(payload.sourceEvidence?.blockerLedger?.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'P120 must cite P85 blocker ledger')
   assert(payload.sourceEvidence?.activationControl?.gate === 'P78_REMOTE_RUNTIME_ACTIVATION_CONTROL', 'P120 must cite P78 activation control')
@@ -186,6 +198,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(markdownPrivateMatches.length === 0, `P120 Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)
   assert(markdownText.includes('P120 Remote Operator Return Intake'), 'P120 Markdown must have title')
   assert(markdownText.includes(targetAssignmentPath), 'P120 Markdown must include target assignment path')
+  assert(markdownText.includes(preferredAssignmentPath), 'P120 Markdown must include preferred assignment path')
 
   return {
     blockedStages: Array.isArray(payload.blockedStages) ? payload.blockedStages : [],
@@ -278,6 +291,9 @@ try {
       decision: payload.decision,
       status: payload.status,
       targetAssignmentPath: payload.targetAssignmentPath,
+      preferredAssignmentPath: payload.preferredAssignmentPath,
+      generatedContractPath: payload.generatedContractPath,
+      assignmentSource: payload.assignmentSource,
       assignmentDecision: payload.assignmentDecision,
       blockedStages: validation.blockedStages,
       commandCount: validation.commandCount,

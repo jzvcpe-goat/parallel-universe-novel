@@ -5217,3 +5217,25 @@ P138 让 edge-only 成为当前上线拓扑后，P123 不能再把 legacy
    `agent-service-id/origin/provider-secrets-ready/health-ready` 这类旧阻塞项。
 5. 经验：不要只改 required evidence 表。handoff 里的 blocking stages 同样会指导
    人行动，必须和 runtime topology 保持一致。
+
+## 2026-06-20 P141 Edge-Only Assignment Intake Convergence
+
+P140 能自动准备 edge-only intent 后，眼前问题变成“旧 full-remote local draft
+仍然存在于 operator 机器上”。如果 P75/P120/P122/P123 继续优先读取
+`remote-assignment.local.json`，loop 会再次要求远端 Agent service id、origin、
+secret-store 和 health，和 0 元托管方案相矛盾。
+
+本轮原则：
+
+1. P75 输入优先级固定为 compiled contract -> runtime intent -> legacy local
+   assignment。只有显式传 `REMOTE_RUNTIME_ASSIGNMENT_FILE` 或不存在 edge-only
+   intent 时，才走旧 full-remote local assignment。
+2. edge-only 的 P75 blocker 只允许落在 frontend/data API/config/health 证据上；
+   远端 Agent 缺席是边界证据，不是缺口。
+3. P120/P122/P123/P124 接受“当前 production assignment path set”：
+   `runtime-assignment.intent.local.json`、generated contract 或显式 legacy local
+   assignment，同时继续拒绝 fixture path。
+4. P122 的职责从“只认 local JSON”调整为“防 fixture 污染”。它不能把 fixture
+   artifact 当 operator return，也不能把 legacy draft 误认为当前 edge-only source。
+5. 经验：升级部署拓扑时，不能只改最上层 goal ledger。所有读取旧 artifact 的
+   predicate 都要同步，否则旧证据会在下游 gate 回流成错误断点。

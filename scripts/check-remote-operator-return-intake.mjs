@@ -7,6 +7,8 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts', 'runtime')
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
+const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function read(rel) {
   return readFileSync(join(root, rel), 'utf8')
@@ -98,6 +100,15 @@ function summarizeArtifact(item) {
   }
 }
 
+function isCurrentAssignmentIntake(payload) {
+  return payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
+    && [
+      targetAssignmentPath,
+      preferredAssignmentPath,
+      generatedContractPath,
+    ].includes(payload.assignmentPath)
+}
+
 function renderMarkdown(packet) {
   const evidenceRows = Object.entries(packet.sourceEvidence).map(([key, value]) => (
     `| ${key} | ${value?.gate || 'n/a'} | ${value?.status || 'n/a'} | ${value?.decision || 'n/a'} | \`${value?.file || 'n/a'}\` |`
@@ -116,6 +127,10 @@ Repository: \`${packet.repository}\`
 Head: \`${packet.headSha}\`
 
 Target local file: \`${packet.targetAssignmentPath}\`
+
+Preferred edge-only intent: \`${packet.preferredAssignmentPath}\`
+
+Assignment source: \`${packet.assignmentSource}\`
 
 ## Preserved Blockers
 
@@ -172,6 +187,7 @@ assertIncludes('docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md', [
   'check:remote-operator-return-intake',
   'check:remote-operator-return-intake-artifact',
   targetAssignmentPath,
+  preferredAssignmentPath,
   'does not create remote services',
 ])
 assertIncludes('.github/workflows/pages.yml', [
@@ -190,9 +206,8 @@ const p119 = latestArtifact(
 )
 const p75 = latestArtifact(
   'remote-runtime-assignment-intake-',
-  payload => payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
-    && payload.assignmentPath === targetAssignmentPath,
-  'latest P75 assignment intake for local operator assignment',
+  isCurrentAssignmentIntake,
+  'latest P75 assignment intake for current operator assignment path',
 )
 const p117 = latestArtifact('remote-assignment-env-dry-run-', payload => payload.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE', 'latest P117 env dry-run')
 const p113 = latestArtifact('remote-assignment-image-drift-', payload => payload.gate === 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE', 'latest P113 image drift', { optional: true })
@@ -217,7 +232,8 @@ const p117Decision = p117.payload.decision
 const p85Blockers = Array.isArray(p85.payload.blockedStages) ? p85.payload.blockedStages : []
 const p75Blockers = Array.isArray(p75.payload.blockedStages) ? p75.payload.blockedStages : []
 const p78Blockers = Array.isArray(p78.payload.blockedStages) ? p78.payload.blockedStages : []
-const assignmentFilePresent = p75Decision !== 'remote_assignment_missing'
+const assignmentFilePresent = Boolean(p75.payload.assignmentFilePresent)
+const assignmentEvidencePresent = Boolean(p75.payload.assignmentEvidencePresent ?? (p75Decision !== 'remote_assignment_missing'))
 const healthPending = p75Decision === 'remote_assignment_pending_health'
 const assignmentReady = p75Decision === 'remote_assignment_ready'
 
@@ -260,7 +276,11 @@ const packet = {
   decision,
   publicReleaseBlocking: false,
   targetAssignmentPath,
+  preferredAssignmentPath,
+  generatedContractPath,
+  assignmentSource: p75.payload.assignmentSource || 'legacy-full-remote-assignment',
   assignmentFilePresent,
+  assignmentEvidencePresent,
   assignmentDecision: p75Decision,
   envDryRunDecision: p117Decision,
   imageDriftDecision: p113?.payload?.decision || null,

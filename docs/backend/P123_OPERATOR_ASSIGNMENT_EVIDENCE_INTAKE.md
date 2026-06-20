@@ -80,7 +80,8 @@ P123 reads the latest current-head evidence from:
 - P122 operator-return fixture isolation
 - P120 remote operator return intake
 - P117 remote assignment env dry-run
-- P75 remote assignment intake for `remote-assignment.local.json`
+- P75 remote assignment intake for the current edge-only intent/contract or the
+  explicitly selected legacy local assignment
 - P113 remote assignment image drift
 - P108 remote assignment local boundary
 - P105 remote assignment fill plan
