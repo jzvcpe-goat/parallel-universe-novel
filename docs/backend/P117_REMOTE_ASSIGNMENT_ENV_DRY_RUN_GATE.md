@@ -26,12 +26,29 @@ P129 lets this gate load that ignored local env file with
 `REMOTE_ASSIGNMENT_ENV_FILE`, without requiring the operator to source values
 into the shell and without exposing values in artifacts.
 
+After P138/P140, the current primary unblock is `edge-only`. When no operator
+env values are supplied and the ignored P138 intent is present, P117 projects
+the missing keys for the edge-only compiler path instead of the legacy
+full-remote API + Agent Runtime path. That means `REMOTE_AGENT_SERVICE_ID`,
+`REMOTE_AGENT_ORIGIN` and `REMOTE_AGENT_SECRETS_CONFIGURED=true` are not
+reported as current missing evidence unless the operator explicitly supplies a
+full-remote env flow.
+
 ## Commands
 
 CI/root-test mode with no operator environment values:
 
 ```bash
 npm run check:remote-assignment-env-dry-run
+```
+
+In the current edge-only launch path, this no-env mode points back to:
+
+```bash
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
+npm run remote-assignment:prepare
+npm run check:remote-runtime-assignment-intake
+npm run remote-health:check
 ```
 
 GitHub Pages CI may inject `REMOTE_API_SECRETS_CONFIGURED=false` and
@@ -61,7 +78,22 @@ REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env
 
 ## Accepted Inputs
 
-Required non-secret inputs:
+Current edge-only required non-secret inputs:
+
+- `REMOTE_RUNTIME_MODE=edge-only`
+- `REMOTE_OPERATOR_OWNER`
+- `REMOTE_OPERATOR_PROVIDER`
+- `REMOTE_API_SERVICE_ID`
+- `REMOTE_API_ORIGIN`
+- `REMOTE_AGENT_REMOTE_REQUIRED=false`
+- `REMOTE_AI_GENERATION_CLOUD_RUNTIME=false`
+- `REMOTE_READER_CAN_TRIGGER_AI=false`
+- `REMOTE_API_SECRETS_CONFIGURED`
+
+`REMOTE_AGENT_SECRETS_CONFIGURED` is not required for edge-only assignment. If
+it is supplied, it must stay `false`.
+
+Legacy full-remote required non-secret inputs:
 
 - `REMOTE_OPERATOR_OWNER`
 - `REMOTE_OPERATOR_PROVIDER`
@@ -121,6 +153,8 @@ The artifact may include:
 - current P72 evidence path;
 - whether required fields were supplied;
 - missing env key names;
+- runtime mode source: explicit operator env, ignored P138 intent, generated
+  contract or legacy default;
 - boolean origin-shape checks;
 - provider secret-store confirmation booleans;
 - whether an ignored env file was loaded;
@@ -133,7 +167,9 @@ secret values, prompts, candidate text, raw state or reference-vault material.
 
 - `operator_env_not_supplied`: CI/root-test mode; no operator env values were
   provided, or only CI default `false` secret-store flags were present, so the
-  gate passes without pretending assignment is ready.
+  gate passes without pretending assignment is ready. With an ignored P138
+  edge-only intent present, this decision reports edge-only missing keys and
+  next commands, not legacy remote Agent fields.
 - `operator_env_waiting_for_secret_store_confirmation`: field shapes are valid,
   but one or both provider secret-store confirmations are `false`.
 - `operator_env_ready_for_p116_apply`: all required non-secret env values are
@@ -162,3 +198,6 @@ secret values, prompts, candidate text, raw state or reference-vault material.
     before real operator values are supplied.
 12. P129 proves P117 can load ignored env files directly while rejecting
     tracked templates, unsupported keys and unignored paths.
+13. With no operator env and a P138 edge-only intent, P117 must not list
+    `REMOTE_AGENT_SERVICE_ID`, `REMOTE_AGENT_ORIGIN` or
+    `REMOTE_AGENT_SECRETS_CONFIGURED=true` as current missing evidence.

@@ -12,6 +12,9 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
 const required = process.env.REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY === 'true'
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
+const runtimeAssignmentIntentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const runtimeAssignmentIntentExamplePath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
+const generatedRuntimeAssignmentContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 const fullRemoteAssignmentEnvKeys = [
   'REMOTE_OPERATOR_OWNER',
@@ -40,7 +43,6 @@ const fullRemoteSecretConfirmationEnvKeys = [
 
 const edgeOnlySecretConfirmationEnvKeys = [
   'REMOTE_API_SECRETS_CONFIGURED',
-  'REMOTE_AGENT_SECRETS_CONFIGURED',
 ]
 const secretConfirmationEnvKeySet = new Set([
   ...fullRemoteSecretConfirmationEnvKeys,
@@ -184,6 +186,23 @@ function runtimeMode(env) {
   return mode
 }
 
+function localRuntimeModeHint() {
+  for (const rel of [runtimeAssignmentIntentPath, generatedRuntimeAssignmentContractPath, runtimeAssignmentIntentExamplePath]) {
+    const path = join(root, rel)
+    if (!existsSync(path)) continue
+    try {
+      const payload = JSON.parse(readFileSync(path, 'utf8'))
+      const mode = String(payload.runtime_mode || payload.runtimeMode || payload.assignment?.runtimeMode || '').trim()
+      if (['edge-only', 'hybrid', 'full-remote'].includes(mode)) {
+        return { runtimeMode: mode, source: rel }
+      }
+    } catch {
+      // Ignore malformed local hints here; the compiler/intake gates own their validation.
+    }
+  }
+  return null
+}
+
 function scanNoPrivateTerms(payload) {
   const text = JSON.stringify(payload)
   const forbidden = [
@@ -265,27 +284,36 @@ function assertWiring() {
 	}
 
 function envSummary(env) {
-  const mode = runtimeMode(env)
+  const explicitMode = runtimeMode(env)
+  const explicitRuntimeModeSupplied = String(env.REMOTE_RUNTIME_MODE || '').trim() !== ''
+  const allKnownKeys = Array.from(new Set([...legacyRequiredEnvKeys, ...edgeOnlyAssignmentEnvKeys, ...edgeOnlySecretConfirmationEnvKeys, ...optionalEnvKeys]))
+  const operatorIntentPresent = allKnownKeys.some(key => {
+    const value = String(env[key] ?? '').trim()
+    if (!value) return false
+    return !(secretConfirmationEnvKeySet.has(key) && value === 'false')
+  })
+  const localHint = !operatorIntentPresent && !explicitRuntimeModeSupplied ? localRuntimeModeHint() : null
+  const mode = localHint?.runtimeMode || explicitMode
+  const runtimeModeSource = explicitRuntimeModeSupplied
+    ? 'operator-env'
+    : localHint
+      ? localHint.source
+      : 'default-full-remote'
   const isEdgeOnly = mode === 'edge-only'
   const assignmentEnvKeys = isEdgeOnly ? edgeOnlyAssignmentEnvKeys : fullRemoteAssignmentEnvKeys
   const secretConfirmationEnvKeys = isEdgeOnly ? edgeOnlySecretConfirmationEnvKeys : fullRemoteSecretConfirmationEnvKeys
   const requiredEnvKeys = isEdgeOnly
     ? [...edgeOnlyAssignmentEnvKeys, ...edgeOnlySecretConfirmationEnvKeys]
     : legacyRequiredEnvKeys
-  const allKnownKeys = Array.from(new Set([...legacyRequiredEnvKeys, ...edgeOnlyAssignmentEnvKeys, ...edgeOnlySecretConfirmationEnvKeys, ...optionalEnvKeys]))
   const providedKnown = allKnownKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const providedAssignment = assignmentEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const providedSecretConfirmations = secretConfirmationEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const providedOptional = optionalEnvKeys.filter(key => env[key] != null && String(env[key]).trim() !== '')
   const missingAssignment = assignmentEnvKeys.filter(key => !providedAssignment.includes(key))
   const missingSecretConfirmations = secretConfirmationEnvKeys.filter(key => !providedSecretConfirmations.includes(key))
-  const operatorIntentPresent = allKnownKeys.some(key => {
-    const value = String(env[key] ?? '').trim()
-    if (!value) return false
-    return !(secretConfirmationEnvKeySet.has(key) && value === 'false')
-  })
   return {
     runtimeMode: mode,
+    runtimeModeSource,
     requiredEnvKeys,
     providedRequired: [...providedAssignment, ...providedSecretConfirmations],
     providedAssignment,
@@ -471,6 +499,7 @@ const artifact = {
   missingRequiredKeys: summary.missingRequired,
   originShape: validation.originShape,
   runtimeMode: validation.runtimeMode || summary.runtimeMode,
+  runtimeModeSource: summary.runtimeModeSource,
   providerSecretConfirmations: validation.providerSecretConfirmations,
   redaction: {
     serviceIdsIncluded: false,
@@ -503,15 +532,22 @@ const artifact = {
           'npm run check:remote-runtime-assignment-intake',
           'REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake',
         ]
-    : [
-        'Fill all required REMOTE_* environment variables outside Git.',
-        envFile.loaded
-          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} npm run check:remote-assignment-env-dry-run`
-          : 'npm run check:remote-assignment-env-dry-run',
-        envFile.loaded
-          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
-          : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
-      ],
+    : validation.mode === 'waiting_for_operator_env' && summary.runtimeMode === 'edge-only'
+      ? [
+          'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
+          'npm run remote-assignment:prepare',
+          'npm run check:remote-runtime-assignment-intake',
+          'npm run remote-health:check',
+        ]
+      : [
+          'Fill all required REMOTE_* environment variables outside Git.',
+          envFile.loaded
+            ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} npm run check:remote-assignment-env-dry-run`
+            : 'npm run check:remote-assignment-env-dry-run',
+          envFile.loaded
+            ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
+            : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+        ],
 }
 
 const privateHits = scanNoPrivateTerms(artifact)
@@ -530,6 +566,8 @@ console.log(JSON.stringify({
   readyForApply: validation.strictReady && summary.runtimeMode !== 'edge-only',
   readyForRuntimeContract: validation.strictReady && summary.runtimeMode === 'edge-only',
   operatorEnvFileLoaded: envFile.loaded,
+  runtimeMode: artifact.runtimeMode,
+  runtimeModeSource: artifact.runtimeModeSource,
   missingRequiredKeys: summary.missingRequired,
   artifactPath: relative(root, artifactPath),
 }, null, 2))

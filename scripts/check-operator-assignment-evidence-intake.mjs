@@ -368,6 +368,22 @@ if (p75.payload.runtimeMode === 'edge-only') {
   assert(agentBlockers.length === 0, `edge-only P75 must not require remote Agent blockers: ${agentBlockers.join(', ')}`)
 }
 assert(p117.payload.decision === 'operator_env_not_supplied' || p117.payload.readyForApply === false, 'P117 must not report ready-to-apply operator env while P121 selects assignment intake')
+if (p117.payload.runtimeMode === 'edge-only') {
+  const p117AgentMissing = (p117.payload.missingRequiredKeys || []).filter(key => [
+    'REMOTE_AGENT_SERVICE_ID',
+    'REMOTE_AGENT_ORIGIN',
+    'REMOTE_AGENT_SECRETS_CONFIGURED',
+  ].includes(key))
+  assert(p117AgentMissing.length === 0, `edge-only P117 must not require remote Agent env keys: ${p117AgentMissing.join(', ')}`)
+  assert(
+    p117.payload.providerSecretConfirmations?.agent === false,
+    'edge-only P117 must keep remote Agent secret-store confirmation false',
+  )
+  assert(
+    (p117.payload.nextCommands || []).includes('npm run remote-assignment:prepare'),
+    'edge-only P117 waiting state must point at the P138 compiler command',
+  )
+}
 assert(p113.payload.status === 'passed' || p113.payload.status === 'passed_waiting_for_local_assignment', 'P113 image drift gate must pass or wait for local assignment before P123')
 assert(p113.payload.imageDriftDetected === false, 'P123 requires no local assignment image drift before operator evidence intake')
 if (assignmentFilePresent) {

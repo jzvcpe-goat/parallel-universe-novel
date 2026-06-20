@@ -164,6 +164,10 @@ After the assignment evidence is complete, P121 should stop selecting
     health must not appear as current blockers.
 19. P123 must publish the P140 preparation command before the compiler command,
     so operators do not have to copy the intent example by hand.
+20. P123 verifies the current waiting P117 no-env artifact follows the same
+    edge-only projection: `REMOTE_AGENT_SERVICE_ID`, `REMOTE_AGENT_ORIGIN` and
+    `REMOTE_AGENT_SECRETS_CONFIGURED` must not reappear as current missing
+    evidence.
 
 ## Failure Modes
 

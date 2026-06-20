@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P141 P117 Edge-Only No-Env Projection
+
+升级到 P138/P140 edge-only assignment 之后，默认 dry-run 不能再把远端 Agent
+Runtime 当作当前缺口。P117 的 no-env 等待态现在会读取 ignored
+`runtime-assignment.intent.local.json`、generated contract，或 tracked
+`runtime-assignment.intent.example.json` 中的 `runtime_mode=edge-only`，并把缺口投影到
+P138 compiler 路径。
+
+新的工程规则：
+
+1. 没有任何 operator env 时，P117 报告 `operator_env_not_supplied`，但缺口列表必须
+   跟当前 edge-only 拓扑一致。
+2. `REMOTE_AGENT_SERVICE_ID`、`REMOTE_AGENT_ORIGIN` 和
+   `REMOTE_AGENT_SECRETS_CONFIGURED` 不能作为 edge-only 当前缺口出现。
+3. P117 waiting artifact 的 next commands 必须指向
+   `prepare:runtime-assignment-intent` -> `remote-assignment:prepare` ->
+   `check:remote-runtime-assignment-intake` -> `remote-health:check`。
+4. P125/P126/P128/P129 仍保留 legacy full-remote fixture 和 env-file loader
+   兼容性；只要 operator 显式提供 full-remote env，它们的行为不能被 edge-only
+   默认值污染。
+5. P123 要验证当前 P117 waiting artifact 没有把远端 Agent 字段回流成当前缺口。
+
+验证命令：
+
+```bash
+npm run check:remote-assignment-env-dry-run
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-env-validation-fixture
+```
+
 ## 2026-06-20 P140 Runtime Assignment Intent Preparation
 
 P139/P123 之后的真实断点不是再做一套远端 Agent，而是把 P138 edge-only
