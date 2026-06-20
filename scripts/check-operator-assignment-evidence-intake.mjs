@@ -436,7 +436,7 @@ const requiredOperatorEvidence = [
 ]
 
 const nextCommands = [
-  'cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json',
+  'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
   'npm run remote-health:check',

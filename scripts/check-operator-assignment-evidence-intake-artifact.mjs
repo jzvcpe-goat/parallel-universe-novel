@@ -203,7 +203,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.exposesProviderPlumbing === false, 'P123 packet must not expose provider plumbing')
   assert(payload.boundary?.containsCandidateText === false, 'P123 packet must not contain candidate text')
   for (const fragment of [
-    'runtime-assignment.intent.example.json',
+    'prepare:runtime-assignment-intent',
     'remote-assignment:prepare',
     'check:remote-runtime-assignment-intake',
     'remote-health:check',

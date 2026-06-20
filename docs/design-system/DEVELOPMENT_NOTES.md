@@ -1,5 +1,31 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P140 Runtime Assignment Intent Preparation
+
+P139/P123 之后的真实断点不是再做一套远端 Agent，而是把 P138 edge-only
+assignment 的输入方式继续收敛：仓库已经知道当前 GitHub Pages 前端、repo service id
+和 edge-only Agent 边界，operator 不应该再手动复制 example 后猜所有字段。
+
+新的工程规则：
+
+1. 新入口是
+   `RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`
+   -> `npm run remote-assignment:prepare`。
+2. `prepare:runtime-assignment-intent` 只写 ignored
+   `deploy/runtime-production/runtime-assignment.intent.local.json`，不写 tracked
+   文件、不设置 GitHub variables、不创建远程服务、不存储 secrets。
+3. 自动准备的内容只包括 GitHub Pages frontend、operator 默认 provider 和
+   edge-only Agent absence：`remote_required=false`,
+   `ai_generation_cloud_runtime=false`, `reader_can_trigger_ai=false`。
+4. 仍然需要人/外部系统提供的证据只有 data API/Supabase：project ref、HTTPS origin、
+   publishable/RLS configured=true，以及 `health_probe` 通过
+   `npm run remote-health:check`。
+5. P121/P123/P130 必须统一发布 P140 -> P138 命令序列。旧的
+   `cp runtime-assignment.intent.example.json ...` 只能作为历史背景，不得再作为当前
+   unblock 的主命令。
+6. `check:runtime-assignment-intent-prep` 必须进入 root test，并且只使用 fixture
+   inference，不写本地 intent，不读取真实 Supabase key。
+
 ## 2026-06-20 P138 Edge-Only Operator Assignment Loop
 
 这轮修正的核心经验：当上线拓扑升级为 `edge-only` 后，下一步 goal 和
@@ -10,10 +36,13 @@ operator handoff 不能继续沿用旧的 full-remote API + Agent Runtime env/ap
 
 1. `operator-assignment-evidence-intake` 的主路是 P138 runtime assignment
    intent compiler。
-2. 操作者先复制并填写忽略文件：
+2. 操作者先运行 P140 准备忽略文件：
+   `RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`，
+   再补 data API/Supabase evidence 到：
    `deploy/runtime-production/runtime-assignment.intent.local.json`。
 3. 主命令必须是：
-   `npm run remote-assignment:prepare`
+   `RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`
+   -> `npm run remote-assignment:prepare`
    -> `npm run check:remote-runtime-assignment-intake`
    -> `npm run remote-health:check`
    -> `npm run check:remote-operator-return-intake`

@@ -32,8 +32,8 @@ npm run check:operator-assignment-evidence-intake
 
 ## Required Operator Evidence
 
-The deployment operator must provide these values through the ignored P138
-intent file:
+P140 prepares the current frontend and edge-only Agent boundary in the ignored
+P138 intent file:
 
 ```text
 deploy/runtime-production/runtime-assignment.intent.local.json
@@ -62,6 +62,11 @@ explicitly chooses a full remote API plus Agent Runtime deployment.
 | `REMOTE_AGENT_REMOTE_REQUIRED` | Remote Agent Runtime requirement | Exactly `false` for edge-only launch |
 | `REMOTE_AI_GENERATION_CLOUD_RUNTIME` | Cloud AI generation runtime | Exactly `false` for edge-only launch |
 | `REMOTE_READER_CAN_TRIGGER_AI` | Reader-triggered cloud AI generation | Exactly `false` for edge-only launch |
+
+The frontend rows are auto-prepared from the current GitHub Pages repository
+unless the operator explicitly overrides them. The real external evidence still
+comes from the managed data API rows: project ref, HTTPS origin,
+publishable/RLS readiness and `health_probe`.
 
 Secret values themselves never belong in the assignment file, artifacts,
 Markdown handoff, GitHub Pages variables, logs, or CI output. Only boolean
@@ -106,7 +111,7 @@ current-head P119/P120/P121/P123/P130/P131 evidence.
 ## Next Command Sequence
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
@@ -156,6 +161,8 @@ After the assignment evidence is complete, P121 should stop selecting
     the P138 intent/health boundary, not from the legacy full-remote assignment
     draft. Missing remote Agent service id, origin, secret-store confirmation or
     health must not appear as current blockers.
+19. P123 must publish the P140 preparation command before the compiler command,
+    so operators do not have to copy the intent example by hand.
 
 ## Failure Modes
 

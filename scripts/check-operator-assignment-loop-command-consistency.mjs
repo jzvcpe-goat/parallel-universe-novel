@@ -5,11 +5,8 @@ import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
-const intentExampleRel = 'deploy/runtime-production/runtime-assignment.intent.example.json'
-const intentLocalRel = 'deploy/runtime-production/runtime-assignment.intent.local.json'
-
 const expectedAssignmentCommands = [
-  `cp ${intentExampleRel} ${intentLocalRel}`,
+  'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
   'npm run remote-health:check',
@@ -169,7 +166,7 @@ assertIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', [
   'P130',
 ])
 assertCommandSurfaceIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', expectedAssignmentCommands)
-assertCommandSurfaceIncludes('docs/backend/P138_REMOTE_ASSIGNMENT_COMPILER_V3.md', expectedAssignmentCommands.slice(1, 3))
+assertCommandSurfaceIncludes('docs/backend/P138_REMOTE_ASSIGNMENT_COMPILER_V3.md', expectedAssignmentCommands.slice(0, 3))
 assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', ['P130', 'P138', 'edge-only'])
 assertCommandSurfaceIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', expectedAssignmentCommands)
 assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P130', 'legacy full-remote'])

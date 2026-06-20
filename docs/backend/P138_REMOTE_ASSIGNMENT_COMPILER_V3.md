@@ -32,6 +32,7 @@ remote Agent service is not a missing field. It is explicit boundary evidence.
 Compile all local artifacts:
 
 ```bash
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
@@ -56,6 +57,12 @@ npm run remote-health:check
 ```
 
 ## Generated Local Artifacts
+
+P140 prepares the ignored local intent before the compiler runs:
+
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+```
 
 All generated artifacts live under ignored local state:
 
@@ -111,8 +118,12 @@ repo, or browser bundle.
 ## Acceptance
 
 - `.gitignore` ignores the local intent and generated artifacts.
+- `package.json` exposes `prepare:runtime-assignment-intent` and
+  `check:runtime-assignment-intent-prep`.
 - `package.json` exposes the compiler, validator, legacy-env, evidence,
   ledger-patch, health-check, prepare, and compiler-check scripts.
+- Root `npm run test` includes `check:runtime-assignment-intent-prep` before
+  `check:runtime-assignment-compiler`.
 - Root `npm run test` includes `check:runtime-assignment-compiler`.
 - `check:remote-assignment-env-dry-run` is mode-aware.
 - `check:remote-runtime-assignment-intake` can accept an edge-only generated

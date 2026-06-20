@@ -13,7 +13,7 @@ reader frontend and managed data API are cloud-hosted; AI writing/generation
 stays on the user-owned edge device.
 
 P130 makes sure that the loop router and operator intake packet both publish
-that same P138 command sequence. This prevents an older legacy apply flag,
+that same P140 -> P138 command sequence. This prevents an older legacy apply flag,
 tracked template path, or full-remote Agent Runtime command from reappearing as
 the primary next-goal artifact. P128/P129 still cover the legacy full-remote
 env/apply path, but that path is fallback compatibility only.
@@ -28,10 +28,14 @@ evidence.
 ## Required Command Sequence
 
 When P121 selects `operator-assignment-evidence-intake`, the public handoff
-sequence must be the edge-only compiler sequence:
+sequence must prepare the ignored intent first, then run the edge-only compiler:
+
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+```
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
@@ -81,15 +85,16 @@ npm run check:operator-assignment-current-head-coherence
 1. `package.json` exposes `check:operator-assignment-loop-command-consistency`.
 2. Root `npm run test` runs P130 after P129, then P131, P132 and P133 before dependency audit.
 3. P121 generated artifacts include `remote-assignment:prepare`.
-4. P121 generated artifacts include `remote-health:check`.
-5. P121 and P123 docs/scripts use the same edge-only command sequence.
-6. The old apply-env flag command is absent from P118/P121/P123/P129 docs and
+4. P121 generated artifacts include `prepare:runtime-assignment-intent`.
+5. P121 generated artifacts include `remote-health:check`.
+6. P121 and P123 docs/scripts use the same edge-only command sequence.
+7. The old apply-env flag command is absent from P118/P121/P123/P129 docs and
    relevant checker scripts as a primary command.
-7. P130 artifact remains redacted and contains no service ids, origins,
+8. P130 artifact remains redacted and contains no service ids, origins,
    provider credentials, prompt plumbing, private reference material, profile
    ids, kernel ids or `sourceRefs`.
-8. P131 validates the uploaded P130 artifact content in the current Pages run.
-9. P132 validates that P130 points at current-head P119 and P121 artifacts.
+9. P131 validates the uploaded P130 artifact content in the current Pages run.
+10. P132 validates that P130 points at current-head P119 and P121 artifacts.
 
 ## Failure Modes
 

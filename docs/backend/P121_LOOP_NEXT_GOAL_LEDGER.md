@@ -104,7 +104,7 @@ When P120 reports `operator_return_waiting_for_assignment`, P121 must select:
 
 Completion criteria for that goal:
 
-1. operator-filled P138 intent exists outside Git-tracked files at
+1. P140 prepares the P138 intent outside Git-tracked files at
    `deploy/runtime-production/runtime-assignment.intent.local.json`;
 2. `npm run remote-assignment:prepare` compiles the ignored local intent into
    generated contract, legacy env, handoff evidence, ledger patch and remote
@@ -117,9 +117,10 @@ Completion criteria for that goal:
    evidence;
 6. `npm run check:loop-next-goal-ledger` stops selecting assignment intake
    after complete edge-only evidence is present;
-7. frontend and managed data API HTTPS origins are present;
-8. frontend public configuration and managed data API publishable/RLS
-   configuration are confirmed;
+7. frontend HTTPS origin is inferred from the current GitHub Pages repository
+   unless explicitly overridden;
+8. managed data API service id, HTTPS origin, publishable/RLS configuration and
+   `health_probe` evidence are confirmed by the operator;
 9. remote Agent Runtime absence is explicit: AI generation stays on the
    user-owned edge device and the reader cannot trigger cloud AI generation;
 10. P75 can reach `remote_assignment_ready` for the `edge-only` contract;
@@ -130,7 +131,7 @@ Completion criteria for that goal:
 Current edge-only command sequence:
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
