@@ -4,20 +4,20 @@
   "environment": "production",
   "runtime_mode": "edge-only",
   "operator": {
-    "owner": "<deployment-owner>",
-    "provider": "vercel-supabase-managed"
+    "owner": "jzvcpe-goat",
+    "provider": "github-pages-supabase-managed"
   },
   "frontend": {
-    "provider": "vercel",
-    "service_id": "<vercel-project-id>",
-    "origin": "https://<your-vercel-project>.vercel.app",
+    "provider": "github-pages",
+    "service_id": "jzvcpe-goat/parallel-universe-novel",
+    "origin": "https://jzvcpe-goat.github.io",
     "secrets_configured": true
   },
   "data_api": {
     "provider": "supabase",
     "service_id": "<supabase-project-ref>",
     "origin": "https://<supabase-project-ref>.supabase.co",
-    "secrets_configured": true,
+    "secrets_configured": false,
     "public_key_model": "publishable-or-legacy-anon-with-rls"
   },
   "agent": {
@@ -27,7 +27,7 @@
     "reader_can_trigger_ai": false
   },
   "health": {
-    "frontend_url": "https://<your-vercel-project>.vercel.app",
+    "frontend_url": "https://jzvcpe-goat.github.io/parallel-universe-novel/",
     "data_probe_table": "health_probe",
     "data_probe_id": "reader"
   }

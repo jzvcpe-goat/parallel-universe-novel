@@ -43,11 +43,12 @@ surface. GitHub repository variables must not contain database URLs, Tool Bridge
 token values, model keys, private keys, provider API tokens, system prompts, raw
 state, or reference-vault contents.
 
-For the current `edge-only` topology, P76 must prefer the P75 runtime intent or
-generated edge-only contract over later fixture artifacts. When P75 proves
-`runtimeMode=edge-only`, remote Agent origin, service id and secret-store
-attestation are not current blockers. Only the managed Data API / public runtime
-evidence remains.
+For the current `edge-only` topology, P76 must prefer the P75 runtime intent,
+committed public edge-only example, or generated edge-only contract over later
+fixture artifacts. The committed example is a clean-checkout projection
+baseline, not operator evidence. When P75 proves `runtimeMode=edge-only`, remote
+Agent origin, service id and secret-store attestation are not current blockers.
+Only the managed Data API / public runtime evidence remains.
 
 ## Decisions
 

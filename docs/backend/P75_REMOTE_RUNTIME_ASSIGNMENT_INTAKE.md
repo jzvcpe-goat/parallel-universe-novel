@@ -37,16 +37,20 @@ evidence:
 
 ```text
 deploy/runtime-production/runtime-assignment.intent.local.json
+deploy/runtime-production/runtime-assignment.intent.example.json
 deploy/runtime-production/generated/remote-assignment.contract.json
 ```
 
 When `runtime_mode=edge-only`, P75 prefers the generated contract; if the
-contract is not compiled yet, it reads the ignored runtime intent directly and
-projects the remaining blockers from that source. In that topology, remote Agent
-absence is expected evidence, not a missing service id. The legacy
-`remote-assignment.local.json` full-remote draft is used only when the operator
-explicitly passes `REMOTE_RUNTIME_ASSIGNMENT_FILE` or when no edge-only intent
-exists.
+contract is not compiled yet, it reads the ignored runtime intent directly. In
+CI or a clean checkout where no ignored operator file exists, it falls back to
+the committed `runtime-assignment.intent.example.json` as the public edge-only
+projection baseline. That example must keep Data API/Supabase evidence blocked
+until the operator supplies real values through `.local` or a generated
+contract. In that topology, remote Agent absence is expected evidence, not a
+missing service id. The legacy `remote-assignment.local.json` full-remote draft
+is used only when the operator explicitly passes
+`REMOTE_RUNTIME_ASSIGNMENT_FILE` or when no edge-only intent source exists.
 
 The fixture uses reserved `.invalid` origins. It is only for validating the
 assignment shape and P79 command generation. It must produce

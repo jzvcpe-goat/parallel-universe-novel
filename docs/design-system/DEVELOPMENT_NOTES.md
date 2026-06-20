@@ -5316,8 +5316,9 @@ Agent service、origin、secret-store 和 health。
 
 本轮原则：
 
-1. P76 读取 P75 时优先选择 `runtime-assignment.intent.local.json` 或 generated
-   contract 的 edge-only artifact；只有没有 edge-only 证据时才回退 legacy local。
+1. P76 读取 P75 时优先选择 `runtime-assignment.intent.local.json`、tracked
+   `runtime-assignment.intent.example.json` 或 generated contract 的 edge-only
+   artifact；只有没有 edge-only 证据时才回退 legacy local。
 2. P85 的 current blocker ledger 同样优先读取 edge-only assignment evidence；
    `remote-assignment.local.json` 和 fixture 只保留 full-remote 兼容作用。
 3. P85 仍可以引用 P73/P66/P23/P65 的旧 artifact，但当前公开 blocker 必须投影为
@@ -5328,6 +5329,11 @@ Agent service、origin、secret-store 和 health。
    remote Agent blocker 回流，同时不破坏旧 release gate 顺序断言。
 5. 经验：升级方案不是删掉旧路径，而是明确“当前路径”和“兼容路径”的读取优先级。
    任何使用 latest artifact 的 gate 都要有 topology-aware predicate。
+
+6. CI clean checkout 不会带 ignored `.local` 或 generated contract，因此 P75 必须
+   能从 tracked `runtime-assignment.intent.example.json` 生成 edge-only 公共投影。
+   这个 example 不能宣称 Data API/Supabase evidence ready；它只负责防止当前
+   blocker 回落到 full-remote Agent 路径。
 
 验证命令：
 

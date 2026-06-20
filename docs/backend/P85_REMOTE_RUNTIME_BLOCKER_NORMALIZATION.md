@@ -31,6 +31,7 @@ before writing the blocker ledger.
 
 P143 hardens the current edge-only projection. When P75 selects
 `deploy/runtime-production/runtime-assignment.intent.local.json` or
+`deploy/runtime-production/runtime-assignment.intent.example.json` or
 `deploy/runtime-production/generated/remote-assignment.contract.json` with
 `runtimeMode=edge-only`, P85 must select that assignment evidence before legacy
 local draft or fixture artifacts. The current ledger may still point at P73,
@@ -64,9 +65,11 @@ real launch blockers. It treats `deploy/runtime-production/remote-assignment.fix
 only as the P81 fixture contract: a ready fixture execution pack proves command
 generation, but it must never mark the real remote service assignment ready.
 
-For the current edge-only launch path, P85 reads the P75 runtime intent or
-generated edge-only contract first. The legacy local assignment remains a
-fallback for full-remote compatibility only.
+For the current edge-only launch path, P85 reads the P75 runtime intent,
+committed public edge-only example, or generated edge-only contract first. The
+committed example is a clean-checkout projection baseline, not operator
+evidence. The legacy local assignment remains a fallback for full-remote
+compatibility only.
 
 ## Normalized Stages
 

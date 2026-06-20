@@ -8,6 +8,7 @@ const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-nov
 const defaultAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const assignmentPath = process.env.REMOTE_RUNTIME_ASSIGNMENT_FILE || defaultAssignmentPath
 const intentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const intentExamplePath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 const explicitAssignmentPath = Boolean(process.env.REMOTE_RUNTIME_ASSIGNMENT_FILE)
 
@@ -275,13 +276,13 @@ function buildContractArtifact(contract) {
   }
 }
 
-function buildIntentArtifact(intent) {
+function buildIntentArtifact(intent, sourcePath = intentPath, source = 'runtime-assignment-intent') {
   const isEdgeOnly = intent.runtime_mode === 'edge-only'
   const healthReady = edgeOnlyHealthReady()
   const dataOrigin = normalizeOrigin(intent.data_api?.origin)
   const frontendOrigin = normalizeOrigin(intent.frontend?.origin)
   const stages = [
-    stage('runtime-assignment-intent-present', true, intentPath, 'Runtime assignment intent was read.'),
+    stage('runtime-assignment-intent-present', true, sourcePath, 'Runtime assignment intent was read.'),
     stage('runtime-assignment-intent-version', intent.schema_version === 1, String(intent.schema_version), 'Use runtime assignment intent schema_version=1.'),
     stage('runtime-mode', isEdgeOnly, String(intent.runtime_mode), 'Current launch topology must use edge-only.'),
     stage('operator-owner', Boolean(intent.operator?.owner) && !isPlaceholder(intent.operator.owner), intent.operator?.owner ? 'provided' : 'missing', 'Fill operator.owner in runtime assignment intent.'),
@@ -307,8 +308,8 @@ function buildIntentArtifact(intent) {
     gate: 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE',
     generatedAt: new Date().toISOString(),
     repository: repo,
-    assignmentPath: intentPath,
-    assignmentSource: 'runtime-assignment-intent',
+    assignmentPath: sourcePath,
+    assignmentSource: source,
     preferredAssignmentPath: intentPath,
     legacyAssignmentPath: defaultAssignmentPath,
     runtimeMode: intent.runtime_mode,
@@ -447,6 +448,7 @@ const requiredFiles = [
   '.gitignore',
   'deploy/runtime-production/remote-assignment.example.json',
   'deploy/runtime-production/service-manifest.json',
+  'deploy/runtime-production/runtime-assignment.intent.example.json',
   'docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md',
   'docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md',
   'docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md',
@@ -475,6 +477,7 @@ assertContains('docs/backend/P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE.md', [
   'P75 Remote Runtime Assignment Intake',
   'remote-assignment.example.json',
   'remote-assignment.local.json',
+  'runtime-assignment.intent.example.json',
   'check:remote-runtime-assignment-intake',
   'remote_assignment_missing',
   'remote_assignment_incomplete',
@@ -492,12 +495,15 @@ assertContains('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md', [
 
 const serviceManifest = readJson('deploy/runtime-production/service-manifest.json')
 const contract = explicitAssignmentPath ? null : maybeReadJson(generatedContractPath)
-const intent = explicitAssignmentPath || contract ? null : maybeReadJson(intentPath)
+const localIntent = explicitAssignmentPath || contract ? null : maybeReadJson(intentPath)
+const exampleIntent = explicitAssignmentPath || contract || localIntent ? null : maybeReadJson(intentExamplePath)
 const assignment = maybeReadJson(assignmentPath)
 const artifact = contract
   ? buildContractArtifact(contract)
-  : intent
-  ? buildIntentArtifact(intent)
+  : localIntent
+  ? buildIntentArtifact(localIntent, intentPath, 'runtime-assignment-intent')
+  : exampleIntent
+  ? buildIntentArtifact(exampleIntent, intentExamplePath, 'runtime-assignment-intent-example')
   : assignment
   ? await buildAssignmentArtifact({ assignment, serviceManifest })
   : buildMissingArtifact()

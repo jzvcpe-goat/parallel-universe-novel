@@ -43,6 +43,7 @@ function stageById(payload, id) {
 
 const edgeOnlyAssignmentPaths = new Set([
   'deploy/runtime-production/runtime-assignment.intent.local.json',
+  'deploy/runtime-production/runtime-assignment.intent.example.json',
   'deploy/runtime-production/generated/remote-assignment.contract.json',
 ])
 

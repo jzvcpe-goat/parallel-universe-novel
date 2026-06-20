@@ -25,8 +25,8 @@ npm run check:edge-only-current-blocker-projection
 
 ## What It Checks
 
-1. The selected P75 assignment intake is the edge-only runtime intent or
-   generated edge-only contract.
+1. The selected P75 assignment intake is the edge-only runtime intent, the
+   committed public edge-only example, or a generated edge-only contract.
 2. P76 no longer reports remote Agent blocked stages when current P75 proves
    edge-only topology.
 3. P85 selects the current edge-only assignment evidence, not a fixture or
@@ -63,3 +63,6 @@ override the current P142 edge-only blocker projection.
   projection.
 - P143 passes while P142 is still incomplete, as long as the remaining blockers
   are Data API / public runtime evidence blockers.
+- In CI, P143 may use `runtime-assignment.intent.example.json` as the clean
+  checkout baseline. That example is not operator evidence; it only prevents the
+  current projection from falling back to legacy full-remote Agent blockers.

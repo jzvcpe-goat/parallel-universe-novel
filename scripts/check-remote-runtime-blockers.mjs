@@ -252,6 +252,7 @@ const localAssignmentPath = 'deploy/runtime-production/remote-assignment.local.j
 const fixtureAssignmentPath = 'deploy/runtime-production/remote-assignment.fixture.json'
 const edgeOnlyAssignmentPaths = new Set([
   'deploy/runtime-production/runtime-assignment.intent.local.json',
+  'deploy/runtime-production/runtime-assignment.intent.example.json',
   'deploy/runtime-production/generated/remote-assignment.contract.json',
 ])
 const isLocalAssignment = payload => payload?.assignmentPath === localAssignmentPath
