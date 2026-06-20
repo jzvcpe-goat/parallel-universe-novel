@@ -112,6 +112,7 @@ for (const file of [
   'docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
+  'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
   'scripts/check-remote-assignment-env-dry-run.mjs',
   'scripts/apply-remote-assignment-env.mjs',
   'scripts/check-operator-assignment-env-file-loader.mjs',
@@ -127,8 +128,8 @@ assert(
   'package.json must expose check:operator-assignment-env-template',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
-  'root test must run P128 after P126, then P129 and P130 before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
+  'root test must run P128 after P126, then P129, P130 and P131 before dependency audit',
 )
 
 const gitignore = read('.gitignore')

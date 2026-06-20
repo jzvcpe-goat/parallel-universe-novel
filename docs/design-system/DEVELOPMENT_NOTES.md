@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P131 Operator Assignment Command Consistency Artifact Attestation
+
+P130 证明了 operator assignment 的命令链在 P121/P123/P129 和 handoff 包之间一致，
+但如果 Pages workflow 没有上传这份证据，CI 绿灯仍然只停留在日志层。P131 把
+`operator-assignment-loop-command-consistency` 变成当前 run 必须上传、下载并验证内容的
+artifact gate。
+
+新的工程标准：
+
+1. 任何新增 release proof 只要会生成 artifact，就必须同时有上传步骤、内容 gate、
+   P16/P43/P107 文档矩阵和 root test wiring。
+2. P130 生成 command-consistency JSON；P131 只负责验证已上传 JSON 的 gate/status、
+   checked goal、artifact pointers 和 no-write/no-deploy boundaries。
+3. Pages workflow 必须在 P124 assignment-intake content gate 之后运行 P131，再进入
+   runtime image local-smoke artifact gate。
+4. `check:operator-assignment-loop-command-consistency-artifact` 必须进入 root
+   `npm run test`，并紧跟 P130。
+5. P131 artifact/attestation 不能输出 service id、origin、provider secret、prompt
+   plumbing、profile/kernel ids、`sourceRefs` 或 private reference material。
+
+验证命令：
+
+```bash
+npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+npm run check:ci-artifact-content-coverage
+npm run test
+```
+
 ## 2026-06-19 P130 Operator Assignment Loop Command Consistency
 
 P129 让 P117/P116 都能显式读取同一份 ignored env 文件，但 P121 loop ledger、

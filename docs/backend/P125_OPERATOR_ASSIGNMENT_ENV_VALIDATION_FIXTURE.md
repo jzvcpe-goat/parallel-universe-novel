@@ -63,7 +63,8 @@ outputs.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-validation-fixture`.
-2. Root `npm run test` runs P125 after P124, then P126, P128, P129 and P130 before dependency audit.
+2. Root `npm run test` runs P125 after P124, then P126, P128, P129, P130
+   and P131 before dependency audit.
 3. Positive strict fixture returns `operator_env_ready_for_p116_apply`.
 4. Follow-up fixture with a false secret-store confirmation does not become
    ready for apply.

@@ -63,10 +63,17 @@ The same normalized commands must appear in:
 npm run check:operator-assignment-loop-command-consistency
 ```
 
+P131 then validates that the P130 JSON proof is uploaded by Pages and
+download-checked as current-run release evidence:
+
+```bash
+npm run check:operator-assignment-loop-command-consistency-artifact
+```
+
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-loop-command-consistency`.
-2. Root `npm run test` runs P130 after P129 and before dependency audit.
+2. Root `npm run test` runs P130 after P129, then P131 before dependency audit.
 3. P121 generated artifacts include the env-file strict dry-run command.
 4. P121 generated artifacts include the env-file apply command with
    `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true`.
@@ -77,6 +84,7 @@ npm run check:operator-assignment-loop-command-consistency
 7. P130 artifact remains redacted and contains no service ids, origins,
    provider credentials, prompt plumbing, private reference material, profile
    ids, kernel ids or `sourceRefs`.
+8. P131 validates the uploaded P130 artifact content in the current Pages run.
 
 ## Failure Modes
 

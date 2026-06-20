@@ -106,7 +106,8 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126, P128, P129 and P130 before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126,
+   P128, P129, P130 and P131 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.

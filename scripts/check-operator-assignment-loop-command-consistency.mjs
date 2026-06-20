@@ -101,8 +101,12 @@ assert(
   'package.json must expose check:operator-assignment-loop-command-consistency',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run audit:dependencies'),
-  'root test must run P130 after P129 and before dependency audit',
+  packageJson.scripts['check:operator-assignment-loop-command-consistency-artifact'] === 'node scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
+  'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
+)
+assert(
+  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
+  'root test must run P130 after P129, then P131 before dependency audit',
 )
 
 for (const file of [
@@ -111,6 +115,8 @@ for (const file of [
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
+  'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
+  'scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
   'scripts/check-remote-assignment-strict-run-package.mjs',
   'scripts/check-remote-operator-readiness-packet.mjs',
   'docs/design-system/DEVELOPMENT_NOTES.md',
@@ -125,12 +131,20 @@ for (const file of [
 assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md', [
   'P130 Operator Assignment Loop Command Consistency',
   'check:operator-assignment-loop-command-consistency',
+  'check:operator-assignment-loop-command-consistency-artifact',
   'P121',
   'P123',
   'P129',
+  'P131',
   'REMOTE_ASSIGNMENT_ENV_FILE',
   'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true',
   'REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true',
+])
+assertIncludes('docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md', [
+  'P131 Operator Assignment Command Consistency Artifact Attestation',
+  'check:operator-assignment-loop-command-consistency-artifact',
+  'operator-assignment-loop-command-consistency',
+  'P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY',
 ])
 assertIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', [
   'P130',

@@ -28,6 +28,7 @@ if (checkCurrentRun) {
     'remote-operator-readiness-packet',
     'remote-operator-return-intake',
     'operator-assignment-evidence-intake',
+    'operator-assignment-loop-command-consistency',
     'runtime-image-local-smoke',
     'reference-privacy',
     'public-projection-privacy',

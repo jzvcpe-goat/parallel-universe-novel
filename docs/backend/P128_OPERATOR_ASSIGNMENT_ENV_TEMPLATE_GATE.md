@@ -81,7 +81,7 @@ npm run check:operator-assignment-env-template
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-template`.
-2. Root `npm run test` runs P128 after P126, then P129 and P130 before dependency audit.
+2. Root `npm run test` runs P128 after P126, then P129, P130 and P131 before dependency audit.
 3. The tracked `.env.example` contains exactly the accepted assignment env
    keys and no concrete operator values.
 4. The local `.env.local` target is ignored by Git.

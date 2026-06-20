@@ -45,6 +45,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `remote-operator-readiness-packet` | `download_content_gate` | `check:remote-operator-readiness-packet` | `check:remote-operator-readiness-packet-artifact` | `P119_REMOTE_OPERATOR_READINESS_PACKET` |
 | `remote-operator-return-intake` | `download_content_gate` | `check:remote-operator-return-intake` | `check:remote-operator-return-intake-artifact` | `P120_REMOTE_OPERATOR_RETURN_INTAKE` |
 | `operator-assignment-evidence-intake` | `download_content_gate` | `check:operator-assignment-evidence-intake` | `check:operator-assignment-evidence-intake-artifact` | `P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION` |
+| `operator-assignment-loop-command-consistency` | `download_content_gate` | `check:operator-assignment-loop-command-consistency` | `check:operator-assignment-loop-command-consistency-artifact` | `P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION` |
 | `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `reference-privacy` | `download_content_gate` | `scan:reference-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
@@ -57,7 +58,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all twenty-one Pages artifacts.
+- P43 metadata coverage still includes all twenty-two Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.
