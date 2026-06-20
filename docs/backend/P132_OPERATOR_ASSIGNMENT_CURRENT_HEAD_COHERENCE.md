@@ -11,7 +11,7 @@ P132 closes the loop gap where a new release head can publish current runtime
 images while the operator-assignment loop still reads older P119/P120/P121
 evidence. It verifies that the selected goal
 `operator-assignment-evidence-intake` is backed by the same current head across
-runtime image evidence, local assignment image drift, operator handoff,
+runtime image evidence, local assignment image-drift state, operator handoff,
 operator return, loop ledger, operator assignment intake, command consistency
 and command-consistency artifact attestation.
 
@@ -53,8 +53,10 @@ artifacts/runtime/operator-assignment-current-head-coherence-*.json
 P132 verifies that:
 
 1. P72 runtime image evidence uses the current head.
-2. P113 image drift evidence says the local assignment images match the current
-   head.
+2. P113 image-drift evidence is current-head coherent in one of two legal
+   states: local assignment images match the current head, or the local
+   operator assignment file is absent and the loop is still waiting for
+   operator assignment evidence.
 3. P119 remote operator readiness packet uses the current head.
 4. P120 remote operator return intake uses the current head.
 5. P121 loop next-goal ledger selects `operator-assignment-evidence-intake`

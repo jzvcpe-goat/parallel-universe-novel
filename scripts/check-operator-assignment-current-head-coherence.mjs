@@ -157,6 +157,16 @@ function validateCoherence(payload, expectedHeadSha) {
   assert(payload.currentImages?.agent?.endsWith(`:${expectedHeadSha}`), 'P132 Agent image must use current head')
   assert(payload.evidence?.runtimeImages?.headSha === expectedHeadSha, 'P132 runtime image evidence head mismatch')
   assert(payload.evidence?.imageDrift?.currentHead === expectedHeadSha, 'P132 image drift currentHead mismatch')
+  assert(
+    ['remote_assignment_images_current', 'remote_assignment_local_absent'].includes(payload.evidence?.imageDrift?.decision),
+    'P132 image drift decision must be current or waiting for local assignment',
+  )
+  if (payload.evidence?.imageDrift?.decision === 'remote_assignment_local_absent') {
+    assert(payload.assignmentState?.localAssignmentFilePresent === false, 'P132 waiting mode requires missing local assignment')
+    assert(payload.evidence?.operatorReturnIntake?.decision === 'operator_return_waiting_for_assignment', 'P132 waiting mode requires P120 waiting decision')
+    assert(payload.evidence?.operatorReturnIntake?.assignmentFilePresent === false, 'P132 waiting mode requires P120 missing assignment file')
+    assert(payload.evidence?.operatorAssignmentIntake?.assignmentFilePresent === false, 'P132 waiting mode requires P123 missing assignment file')
+  }
   assert(payload.evidence?.operatorReadinessPacket?.headSha === expectedHeadSha, 'P132 P119 head mismatch')
   assert(payload.evidence?.operatorReturnIntake?.headSha === expectedHeadSha, 'P132 P120 head mismatch')
   assert(payload.evidence?.operatorAssignmentIntake?.headSha === expectedHeadSha, 'P132 P123 head mismatch')
@@ -231,13 +241,20 @@ function buildLocalCoherence() {
   )
   const imageDrift = latestArtifact(
     'remote-assignment-image-drift-',
-    payload => payload.currentHead === headSha && payload.decision === 'remote_assignment_images_current',
+    payload => payload.currentHead === headSha
+      && ['remote_assignment_images_current', 'remote_assignment_local_absent'].includes(payload.decision)
+      && payload.imageDriftDetected === false,
     'current P113 image drift evidence',
   )
   const p119 = latestArtifact(
     'remote-operator-readiness-packet-',
     payload => payload.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET' && payload.headSha === headSha,
     'current P119 operator readiness packet',
+  )
+  const actualLocalAssignmentFilePresent = existsSync(join(root, targetAssignmentPath))
+  assert(
+    imageDrift.payload.localAssignmentFilePresent === actualLocalAssignmentFilePresent,
+    'P132 requires P113 local assignment file presence to match current workspace state',
   )
   const p120 = latestArtifact(
     'remote-operator-return-intake-',
@@ -300,6 +317,7 @@ function buildLocalCoherence() {
         file: rel(imageDrift.file),
         currentHead: imageDrift.payload.currentHead,
         decision: imageDrift.payload.decision,
+        localAssignmentFilePresent: imageDrift.payload.localAssignmentFilePresent,
       },
       operatorReadinessPacket: {
         file: rel(p119.file),
@@ -310,6 +328,7 @@ function buildLocalCoherence() {
         file: rel(p120.file),
         headSha: p120.payload.headSha,
         decision: p120.payload.decision,
+        assignmentFilePresent: p120.payload.assignmentFilePresent,
       },
       loopNextGoalLedger: {
         file: rel(p121.file),
@@ -319,6 +338,7 @@ function buildLocalCoherence() {
         file: rel(p123.file),
         headSha: p123.payload.headSha,
         selectedGoal: p123.payload.selectedGoal,
+        assignmentFilePresent: p123.payload.assignmentFilePresent,
       },
       commandConsistency: {
         file: rel(p130.file),
@@ -339,6 +359,12 @@ function buildLocalCoherence() {
       promotesLiveRuntime: false,
       emitsProviderPromptPlumbing: false,
       emitsPrivateTitleMaterial: false,
+    },
+    assignmentState: {
+      localAssignmentFilePresent: actualLocalAssignmentFilePresent,
+      mode: imageDrift.payload.decision === 'remote_assignment_local_absent'
+        ? 'waiting_for_operator_assignment'
+        : 'assignment_images_current',
     },
   }
   validateCoherence(payload, headSha)
