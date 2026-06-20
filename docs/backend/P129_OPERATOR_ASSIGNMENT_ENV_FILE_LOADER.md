@@ -29,8 +29,14 @@ the production ignored assignment during fixture tests, does not create remote
 services, does not set GitHub variables, does not store provider secrets and
 does not promote live runtime.
 
-P130 follows this gate and verifies that P121, P123 and this document all use
-the same env-file command sequence. The legacy apply-env flag is not a valid
+After P138, P129 is a legacy full-remote compatibility gate. The current
+edge-only production unblock uses the runtime assignment intent compiler:
+`deploy/runtime-production/runtime-assignment.intent.local.json` plus
+`npm run remote-assignment:prepare`. P129 remains in root test so an explicitly
+chosen full-remote fallback can still be validated without shell-state drift.
+
+P130 follows this gate and verifies that P121 and P123 use the same P138
+edge-only command sequence. The legacy apply-env flag is not a valid primary
 operator command. P132 follows P131 and verifies the resulting operator
 assignment evidence chain still points at the current release head.
 

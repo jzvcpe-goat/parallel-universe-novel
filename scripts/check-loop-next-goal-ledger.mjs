@@ -97,24 +97,35 @@ function selectNextGoal({ p120, p85, completion }) {
   if (decision === 'operator_return_waiting_for_assignment') {
     return {
       id: 'operator-assignment-evidence-intake',
-      title: 'Collect operator assignment evidence',
-      reason: 'P120 says the operator return is still waiting for complete non-secret assignment evidence.',
+      title: 'Compile edge-only runtime assignment evidence',
+      reason: 'P120 says the operator return is still waiting for assignment evidence. P138 makes edge-only the current unblock: cloud hosts the reader/data surfaces while AI generation stays on the user-owned edge device.',
       requiredHumanInputs: [
-        'deployment owner',
-        'hosting provider',
-        'API service id',
-        'Agent Runtime service id',
-        'API HTTPS origin',
-        'Agent Runtime HTTPS origin',
-        'provider-side secret-store confirmation',
+        'deployment owner or accountable team',
+        'frontend hosting provider',
+        'frontend service id',
+        'frontend HTTPS origin',
+        'managed data API service id or project ref',
+        'managed data API HTTPS origin',
+        'frontend provider configuration confirmation',
+        'managed data API publishable/RLS configuration confirmation',
+        'explicit confirmation that remote Agent Runtime is not required for edge-only launch',
       ],
       acceptanceGates: [
-        'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
-        'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+        'cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json',
+        'npm run remote-assignment:prepare',
         'npm run check:remote-runtime-assignment-intake',
+        'npm run remote-health:check',
         'npm run check:remote-operator-return-intake',
         'npm run check:loop-next-goal-ledger',
       ],
+      fallbackCompatibility: {
+        id: 'legacy-full-remote-env-apply',
+        commands: [
+          'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
+          'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+        ],
+        boundary: 'Use only if the operator explicitly chooses a full-remote API plus Agent Runtime deployment.',
+      },
     }
   }
 

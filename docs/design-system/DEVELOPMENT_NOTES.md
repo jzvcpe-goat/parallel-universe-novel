@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P138 Edge-Only Operator Assignment Loop
+
+这轮修正的核心经验：当上线拓扑升级为 `edge-only` 后，下一步 goal 和
+operator handoff 不能继续沿用旧的 full-remote API + Agent Runtime env/apply
+路径。旧路径可以保留为兼容测试，但不能成为当前默认 SOP。
+
+新的工程规则：
+
+1. `operator-assignment-evidence-intake` 的主路是 P138 runtime assignment
+   intent compiler。
+2. 操作者先复制并填写忽略文件：
+   `deploy/runtime-production/runtime-assignment.intent.local.json`。
+3. 主命令必须是：
+   `npm run remote-assignment:prepare`
+   -> `npm run check:remote-runtime-assignment-intake`
+   -> `npm run remote-health:check`
+   -> `npm run check:remote-operator-return-intake`
+   -> `npm run check:loop-next-goal-ledger`。
+4. `REMOTE_AGENT_SERVICE_ID`、`REMOTE_AGENT_ORIGIN` 和
+   `REMOTE_AGENT_SECRETS_CONFIGURED=true` 不能被 P123 当作 edge-only 必填项。
+   对 edge-only 来说，远端 Agent Runtime 缺席是明确边界，不是缺口。
+5. `apply:remote-assignment-env`、P128、P129 只属于 legacy full-remote
+   fallback；它们留在 root test 中验证兼容路径安全，但不能覆盖 P121/P123
+   的当前 selected goal。
+6. P130 Operator Assignment Loop Command Consistency 必须检查 P121/P123 的
+   P138 edge-only 主路，而不是把 legacy env-file flow 重新升级成默认路径。
+
 ## 2026-06-20 P137 Loop Next Goal Local Rehydration
 
 P136 推送后，Pages 和 artifact 内容校验都绿了，但本地单独运行

@@ -19,6 +19,13 @@ P128 does not deploy anything. It does not write
 remote services, does not set GitHub variables, does not store provider
 credentials and does not promote public live runtime.
 
+After P138, P128 is a legacy full-remote compatibility gate. The current
+edge-only production unblock uses
+`deploy/runtime-production/runtime-assignment.intent.local.json` and
+`npm run remote-assignment:prepare`. P128 stays in the root chain only to keep
+the older full-remote env/apply path safe when an operator explicitly chooses
+that topology.
+
 P129 follows this gate by proving P117 and P116 can load the ignored local env
 copy directly through `REMOTE_ASSIGNMENT_ENV_FILE`. P130 follows P129 by
 verifying P121/P123/P129 command consistency. P132 follows P131 by proving the

@@ -16,6 +16,9 @@ and the guardrails that prevent duplicate work.
 The intent is to keep the loop honest after a gate passes:
 
 - if public privacy or P4 consistency regresses, repair that first;
+- if operator return evidence is still waiting for assignment, the next goal is
+  the P138 edge-only runtime assignment compiler intake, not the older
+  full-remote Agent Runtime env-apply path;
 - if operator return evidence is still waiting for remote health, the next goal
   is remote health evidence intake;
 - if remote health and assignment are ready, the next goal is strict activation
@@ -34,23 +37,16 @@ from the no-secret fixture path.
 
 When the selected goal is `operator-assignment-evidence-intake`, P122 is
 followed by P123, which packages the exact non-secret operator assignment
-evidence required before the loop can move to remote health. P124 then validates
-the uploaded P123 artifact content in the same Pages run. P125 then validates
-the P117 env dry-run validator with a positive strict fixture and negative
-fixtures before real operator evidence is applied. P126 then validates the P116
-apply helper with a temporary fixture target so the write path is also proved
-without touching the production ignored assignment. P128 then validates the
-copyable local-only env template used by the deployment operator before real
-operator values are supplied. P129 then validates explicit ignored env-file
-loading for P117/P116 so the operator does not have to manually source values.
-P130 then verifies that P121, P123 and P129 all publish the same env-file
-operator command sequence, and that the legacy apply flag cannot return. P131
-then validates the uploaded P130 artifact content in the same Pages run. P132
-then verifies that P119, P120, P121, P123, P130 and P131 all point at the same
-current head. P133 then exercises the env-file assignment transition with a
-temporary assignment target, proving the loop can move from operator assignment
-evidence to remote health evidence without writing production assignment state
-before dependency audit.
+evidence required by the P138 `edge-only` runtime assignment compiler. P124
+then validates the uploaded P123 artifact content in the same Pages run. P128
+and P129 remain as legacy full-remote env/apply compatibility gates; they are
+not the current edge-only unblock. P130 then verifies that P121 and P123 publish
+the same P138 compiler command sequence and that the legacy apply flag cannot
+return as the primary route. P131 then validates the uploaded P130 artifact
+content in the same Pages run. P132 then verifies that P119, P120, P121, P123,
+P130 and P131 all point at the same current head. P133 still keeps the legacy
+transition fixture covered so older full-remote workflows remain mechanically
+safe, but it is not allowed to override the P138 edge-only selected goal.
 
 ## Command
 
@@ -108,19 +104,39 @@ When P120 reports `operator_return_waiting_for_assignment`, P121 must select:
 
 Completion criteria for that goal:
 
-1. operator-filled assignment evidence exists outside Git-tracked files;
-2. `REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run` passes;
-3. `REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env` writes only the ignored local assignment;
-4. `npm run check:remote-runtime-assignment-intake` reports the assignment shape is no longer missing;
-5. `npm run check:remote-operator-return-intake` moves the loop toward health evidence;
-6. `npm run check:loop-next-goal-ledger` stops selecting assignment intake after complete evidence is present;
-7. API and Agent Runtime HTTPS origins are present;
-8. provider-side secret-store confirmations are true;
-9. both `/health` endpoints are reachable;
-10. P75 can reach `remote_assignment_ready`;
-11. P73/P66/P23/P65/P76/P78 strict gates can be run without relying on fixtures;
+1. operator-filled P138 intent exists outside Git-tracked files at
+   `deploy/runtime-production/runtime-assignment.intent.local.json`;
+2. `npm run remote-assignment:prepare` compiles the ignored local intent into
+   generated contract, legacy env, handoff evidence, ledger patch and remote
+   health request artifacts;
+3. `npm run check:remote-runtime-assignment-intake` accepts the generated
+   `edge-only` contract without requiring a fake Agent Runtime service;
+4. `npm run remote-health:check` verifies the reader/data edge contract rather
+   than a full remote AI generation service;
+5. `npm run check:remote-operator-return-intake` moves the loop toward health
+   evidence;
+6. `npm run check:loop-next-goal-ledger` stops selecting assignment intake
+   after complete edge-only evidence is present;
+7. frontend and managed data API HTTPS origins are present;
+8. frontend public configuration and managed data API publishable/RLS
+   configuration are confirmed;
+9. remote Agent Runtime absence is explicit: AI generation stays on the
+   user-owned edge device and the reader cannot trigger cloud AI generation;
+10. P75 can reach `remote_assignment_ready` for the `edge-only` contract;
+11. P73/P66/P23/P65/P76/P78 strict gates can run without relying on fixtures;
 12. public Pages remains privacy-clean and no internal model or rule identifiers
    leak to Reader or Creator UI.
+
+Current edge-only command sequence:
+
+```bash
+cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json
+npm run remote-assignment:prepare
+npm run check:remote-runtime-assignment-intake
+npm run remote-health:check
+npm run check:remote-operator-return-intake
+npm run check:loop-next-goal-ledger
+```
 
 ## Acceptance
 

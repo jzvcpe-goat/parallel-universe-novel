@@ -21,6 +21,8 @@ const checkCurrentRun = process.env.CHECK_CURRENT_GITHUB_RUN_ARTIFACTS === 'true
 const source = process.env.CHECK_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ARTIFACT_SOURCE || (checkCurrentRun ? 'github' : 'local')
 const artifactName = 'operator-assignment-evidence-intake'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
+const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -139,21 +141,34 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.headSha === expectedHeadSha, `P123 packet headSha must match expected head ${expectedHeadSha}`)
   assert(payload.status === 'passed_waiting_for_operator_assignment_evidence', 'P123 packet status mismatch')
   assert(payload.selectedGoal === 'operator-assignment-evidence-intake', 'P123 selected goal mismatch')
-  assert(payload.targetAssignmentPath === targetAssignmentPath, 'P123 target assignment path mismatch')
+  assert(payload.runtimeTopology === 'edge-only-preferred', 'P123 runtime topology must prefer edge-only')
+  assert(payload.preferredAssignmentPath === preferredAssignmentPath, 'P123 preferred assignment path mismatch')
+  assert(payload.generatedContractPath === generatedContractPath, 'P123 generated contract path mismatch')
+  assert(payload.legacyTargetAssignmentPath === targetAssignmentPath, 'P123 legacy full-remote assignment path mismatch')
   assert(['remote_assignment_missing', 'remote_assignment_incomplete'].includes(payload.assignmentDecision), 'P123 assignment decision must be missing or incomplete')
   assert(typeof payload.assignmentFilePresent === 'boolean', 'P123 must record assignmentFilePresent as boolean')
-  assert(Array.isArray(payload.requiredOperatorEvidence) && payload.requiredOperatorEvidence.length === 8, 'P123 must list exactly eight operator evidence inputs')
+  assert(Array.isArray(payload.requiredOperatorEvidence) && payload.requiredOperatorEvidence.length === 11, 'P123 must list exactly eleven edge-only operator evidence inputs')
   for (const env of [
-    'REMOTE_OPERATOR_OWNER',
-    'REMOTE_OPERATOR_PROVIDER',
-    'REMOTE_API_SERVICE_ID',
-    'REMOTE_AGENT_SERVICE_ID',
-    'REMOTE_API_ORIGIN',
-    'REMOTE_AGENT_ORIGIN',
-    'REMOTE_API_SECRETS_CONFIGURED',
-    'REMOTE_AGENT_SECRETS_CONFIGURED',
+    'OPERATOR_OWNER',
+    'FRONTEND_PROVIDER',
+    'FRONTEND_SERVICE_ID',
+    'FRONTEND_ORIGIN',
+    'DATA_API_SERVICE_ID',
+    'DATA_API_ORIGIN',
+    'FRONTEND_CONFIGURED',
+    'DATA_API_CONFIGURED',
+    'REMOTE_AGENT_REMOTE_REQUIRED',
+    'REMOTE_AI_GENERATION_CLOUD_RUNTIME',
+    'REMOTE_READER_CAN_TRIGGER_AI',
   ]) {
     assert(requiredEnv.has(env), `P123 missing required operator evidence ${env}`)
+  }
+  for (const env of [
+    'REMOTE_AGENT_SERVICE_ID',
+    'REMOTE_AGENT_ORIGIN',
+    'REMOTE_AGENT_SECRETS_CONFIGURED',
+  ]) {
+    assert(!requiredEnv.has(env), `P123 edge-only evidence must not require ${env}`)
   }
   for (const item of payload.requiredOperatorEvidence) {
     assert(item.publicSafe === true, `P123 operator evidence ${item.env} must be public-safe metadata`)
@@ -180,22 +195,26 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.exposesProviderPlumbing === false, 'P123 packet must not expose provider plumbing')
   assert(payload.boundary?.containsCandidateText === false, 'P123 packet must not contain candidate text')
   for (const fragment of [
-    'check:remote-assignment-env-dry-run',
-    'apply:remote-assignment-env',
+    'runtime-assignment.intent.example.json',
+    'remote-assignment:prepare',
     'check:remote-runtime-assignment-intake',
+    'remote-health:check',
     'check:remote-operator-return-intake',
     'check:loop-next-goal-ledger',
   ]) {
     assert(commandText.includes(fragment), `P123 next command sequence must include ${fragment}`)
   }
+  assert(!commandText.includes('apply:remote-assignment-env'), 'P123 primary next command sequence must not use legacy full-remote apply')
   assert(privateMatches.length === 0, `P123 packet leaked private terms: ${privateMatches.join(', ')}`)
   assert(markdownPrivateMatches.length === 0, `P123 Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)
   assert(markdownText.includes('P123 Operator Assignment Evidence Intake'), 'P123 Markdown must have title')
-  assert(markdownText.includes(targetAssignmentPath), 'P123 Markdown must include target assignment path')
+  assert(markdownText.includes(preferredAssignmentPath), 'P123 Markdown must include preferred assignment path')
+  assert(markdownText.includes('edge-only-preferred'), 'P123 Markdown must include runtime topology')
 
   return {
     blockedStages: Array.isArray(payload.blockedStages) ? payload.blockedStages : [],
     requiredOperatorEvidenceCount: payload.requiredOperatorEvidence.length,
+    runtimeTopology: payload.runtimeTopology,
     assignmentDecision: payload.assignmentDecision,
     assignmentFilePresent: payload.assignmentFilePresent,
   }
@@ -285,7 +304,10 @@ try {
       path: source === 'github' ? artifactName : relative(root, packetPath),
       status: payload.status,
       selectedGoal: payload.selectedGoal,
-      targetAssignmentPath: payload.targetAssignmentPath,
+      runtimeTopology: payload.runtimeTopology,
+      preferredAssignmentPath: payload.preferredAssignmentPath,
+      generatedContractPath: payload.generatedContractPath,
+      legacyTargetAssignmentPath: payload.legacyTargetAssignmentPath,
       ...validation,
     },
     publicReleaseBlocking: false,
@@ -306,6 +328,7 @@ try {
     runId,
     assignmentDecision: validation.assignmentDecision,
     assignmentFilePresent: validation.assignmentFilePresent,
+    runtimeTopology: validation.runtimeTopology,
     requiredOperatorEvidenceCount: validation.requiredOperatorEvidenceCount,
     blockedStageCount: validation.blockedStages.length,
     artifactPath: relative(root, artifactPath),

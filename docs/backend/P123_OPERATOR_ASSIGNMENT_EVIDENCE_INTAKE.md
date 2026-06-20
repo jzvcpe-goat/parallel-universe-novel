@@ -12,6 +12,12 @@ real ignored operator assignment is still missing or incomplete. P122 then
 proves that the loop was not fooled by the assignment fixture. P123 turns that
 state into a safe, machine-checkable operator intake packet.
 
+The current production unblock follows P138: `edge-only` assignment. Cloud only
+hosts the reader frontend and managed data API. AI writing/generation stays on
+the user-owned edge device, and the public reader cannot trigger cloud AI. P123
+therefore must not ask the operator to invent a remote Agent Runtime service id,
+Agent origin, or Agent secret-store confirmation.
+
 P123 does not deploy anything. It does not write
 `deploy/runtime-production/remote-assignment.local.json`, does not create
 remote services, does not set GitHub variables, does not store provider
@@ -26,24 +32,40 @@ npm run check:operator-assignment-evidence-intake
 
 ## Required Operator Evidence
 
-The deployment operator must provide these values through environment variables
-or an equivalent local-only handoff before `apply:remote-assignment-env` is
-allowed to write the ignored assignment file.
+The deployment operator must provide these values through the ignored P138
+intent file:
 
-| Env key | Meaning | Rule |
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+```
+
+The generated contract is:
+
+```text
+deploy/runtime-production/generated/remote-assignment.contract.json
+```
+
+The old `deploy/runtime-production/remote-assignment.local.json` env/apply path
+is now a legacy full-remote fallback only. It is valid only if the operator
+explicitly chooses a full remote API plus Agent Runtime deployment.
+
+| Evidence key | Meaning | Rule |
 | --- | --- | --- |
-| `REMOTE_OPERATOR_OWNER` | Deployment owner or accountable team | Non-empty, no whitespace, not a placeholder |
-| `REMOTE_OPERATOR_PROVIDER` | Hosting provider name | Non-empty, no whitespace, not a placeholder |
-| `REMOTE_API_SERVICE_ID` | FastAPI provider service id | Non-empty provider id, not a secret |
-| `REMOTE_AGENT_SERVICE_ID` | Agent Runtime provider service id | Non-empty provider id, not a secret |
-| `REMOTE_API_ORIGIN` | FastAPI HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
-| `REMOTE_AGENT_ORIGIN` | Agent Runtime HTTPS origin | Remote HTTPS origin, distinct from API origin |
-| `REMOTE_API_SECRETS_CONFIGURED` | API provider-side secret-store confirmation | Exactly `true` only after provider-side secrets exist |
-| `REMOTE_AGENT_SECRETS_CONFIGURED` | Agent provider-side secret-store confirmation | Exactly `true` only after provider-side secrets exist |
+| `OPERATOR_OWNER` | Deployment owner or accountable team | Non-empty, no whitespace, not a placeholder |
+| `FRONTEND_PROVIDER` | Frontend hosting provider | Non-empty, no whitespace, not a placeholder |
+| `FRONTEND_SERVICE_ID` | Frontend service id | Non-empty hosted site id, not a secret |
+| `FRONTEND_ORIGIN` | Frontend HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
+| `DATA_API_SERVICE_ID` | Managed data API service id or project ref | Non-empty managed data service id, not a secret |
+| `DATA_API_ORIGIN` | Managed data API HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
+| `FRONTEND_CONFIGURED` | Frontend public configuration confirmation | Exactly `true` after public config exists |
+| `DATA_API_CONFIGURED` | Managed data API publishable/RLS configuration confirmation | Exactly `true` after publishable key and read/write policy are configured |
+| `REMOTE_AGENT_REMOTE_REQUIRED` | Remote Agent Runtime requirement | Exactly `false` for edge-only launch |
+| `REMOTE_AI_GENERATION_CLOUD_RUNTIME` | Cloud AI generation runtime | Exactly `false` for edge-only launch |
+| `REMOTE_READER_CAN_TRIGGER_AI` | Reader-triggered cloud AI generation | Exactly `false` for edge-only launch |
 
 Secret values themselves never belong in the assignment file, artifacts,
 Markdown handoff, GitHub Pages variables, logs, or CI output. Only boolean
-provider-side confirmation is accepted.
+configuration confirmation is accepted.
 
 ## Inputs
 
@@ -70,33 +92,24 @@ non-secret evidence, current blockers and next commands. It must not expose
 private title material, internal runtime identifiers, prompt plumbing,
 candidate prose, token values, provider payloads or database URLs.
 
-P125 is the validation fixture for the next step in this handoff: P117 must
-accept a complete safe operator env fixture, reject unsafe negative fixtures
-and keep outputs redacted before real operator evidence is applied.
-P126 is the apply fixture after that: P116 must write only a temporary fixture
-target with safe inputs and leave the production ignored assignment unchanged.
-P128 follows with the copyable env template that the operator can fill locally
-before running P117 and P116 against real non-secret assignment evidence.
-P129 then proves P117 and P116 can load that ignored local env file directly
-through `REMOTE_ASSIGNMENT_ENV_FILE`, without manual shell sourcing.
-P130 then verifies that P121, P123 and P129 all publish this same env-file
-handoff sequence, so stale apply commands cannot re-enter the loop artifact.
+P125 is still the validation fixture for the legacy full-remote P117 env
+validator, and P126 is still the apply fixture for the legacy full-remote P116
+write helper. P125/P126/P128/P129 remain as compatibility gates for the older
+P117/P116 env/apply flow. They stay in root test so the historical path is
+still safe, but they must not override the P138 edge-only selected goal.
+P130 verifies that P121 and P123 publish the same P138 compiler sequence, so
+stale apply commands cannot re-enter the primary loop artifact. P131 validates
+the uploaded P130 proof, and P132 verifies current-head coherence.
 P132 then verifies the selected assignment-intake loop is backed by the same
 current-head P119/P120/P121/P123/P130/P131 evidence.
 
 ## Next Command Sequence
 
 ```bash
-cp deploy/runtime-production/remote-assignment.env.example \
-  deploy/runtime-production/remote-assignment.env.local
-# Fill the ignored local env file.
-REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
-REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true \
-npm run check:remote-assignment-env-dry-run
-REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local \
-REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true \
-npm run apply:remote-assignment-env
+cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json
+npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
+npm run remote-health:check
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
@@ -128,16 +141,15 @@ After the assignment evidence is complete, P121 should stop selecting
    private title material, runtime identifiers or candidate prose.
 11. P124 downloads and validates the uploaded P123 artifact content in the same
    Pages run before the artifact can be used as operator handoff evidence.
-12. P125 validates the P117 operator env validator with positive and negative
-    fixtures before the operator handoff can be treated as mechanically ready.
-13. P126 validates the P116 apply helper with a temporary fixture target before
-    real operator evidence is written.
-14. P128 validates the tracked local env template and ignored local env target
-    before a deployment operator fills real values.
-15. P129 validates explicit ignored env-file loading for P117/P116 and rejects
-    tracked templates, unsupported keys and unignored paths.
-16. P130 validates that P121/P123/P129 all expose the env-file strict dry-run
-    and `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true` apply sequence.
+12. P123 records `runtimeTopology=edge-only-preferred`.
+13. P123 requires the frontend/data API evidence and the explicit remote Agent
+    absence boundary.
+14. P123 does not require `REMOTE_AGENT_SERVICE_ID`, `REMOTE_AGENT_ORIGIN` or
+    `REMOTE_AGENT_SECRETS_CONFIGURED=true`.
+15. P128/P129 continue to validate the legacy full-remote env/apply path without
+    becoming the selected edge-only unblock.
+16. P130 validates that P121/P123 expose the P138
+    `remote-assignment:prepare` sequence.
 17. P132 validates that the assignment-intake evidence chain uses current-head
     P119/P120/P121/P123/P130/P131 artifacts.
 

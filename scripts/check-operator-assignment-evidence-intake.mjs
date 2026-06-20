@@ -6,6 +6,8 @@ import { join, relative, resolve } from 'node:path'
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts', 'runtime')
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
+const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function read(rel) {
   return readFileSync(join(root, rel), 'utf8')
@@ -102,11 +104,17 @@ Selected goal: \`${packet.selectedGoal}\`
 
 Head: \`${packet.headSha}\`
 
-Target local file: \`${packet.targetAssignmentPath}\`
+Runtime topology: \`${packet.runtimeTopology}\`
+
+Preferred local intent: \`${packet.preferredAssignmentPath}\`
+
+Generated contract: \`${packet.generatedContractPath}\`
+
+Legacy full-remote assignment file: \`${packet.legacyTargetAssignmentPath}\`
 
 ## Required Operator Evidence
 
-| Env key | Meaning | Public-safe | Validation |
+| Evidence key | Meaning | Public-safe | Validation |
 | --- | --- | --- | --- |
 ${inputRows.join('\n')}
 
@@ -161,10 +169,10 @@ for (const file of [
 assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
   'P123 Operator Assignment Evidence Intake',
   'check:operator-assignment-evidence-intake',
-  targetAssignmentPath,
-  'REMOTE_OPERATOR_OWNER',
-  'REMOTE_API_ORIGIN',
-  'P129',
+  preferredAssignmentPath,
+  'edge-only',
+  'remote-assignment:prepare',
+  'P138',
   'P130',
   'P131',
   'P132',
@@ -271,59 +279,78 @@ assert(p105.payload.decision === 'remote_assignment_fill_plan_ready', 'P105 fill
 
 const requiredOperatorEvidence = [
   {
-    env: 'REMOTE_OPERATOR_OWNER',
+    env: 'OPERATOR_OWNER',
     label: 'deployment owner or accountable team',
     publicSafe: true,
     validation: 'non-empty, no whitespace, not placeholder',
   },
   {
-    env: 'REMOTE_OPERATOR_PROVIDER',
-    label: 'hosting provider name',
+    env: 'FRONTEND_PROVIDER',
+    label: 'frontend hosting provider',
     publicSafe: true,
     validation: 'non-empty, no whitespace, not placeholder',
   },
   {
-    env: 'REMOTE_API_SERVICE_ID',
-    label: 'FastAPI provider service id',
+    env: 'FRONTEND_SERVICE_ID',
+    label: 'frontend service id',
     publicSafe: true,
-    validation: 'non-empty provider id, not a secret',
+    validation: 'non-empty hosted site id, not a secret',
   },
   {
-    env: 'REMOTE_AGENT_SERVICE_ID',
-    label: 'Agent Runtime provider service id',
-    publicSafe: true,
-    validation: 'non-empty provider id, not a secret',
-  },
-  {
-    env: 'REMOTE_API_ORIGIN',
-    label: 'FastAPI HTTPS origin',
+    env: 'FRONTEND_ORIGIN',
+    label: 'frontend HTTPS origin',
     publicSafe: true,
     validation: 'remote https origin, no path, no localhost, no placeholder',
   },
   {
-    env: 'REMOTE_AGENT_ORIGIN',
-    label: 'Agent Runtime HTTPS origin',
+    env: 'DATA_API_SERVICE_ID',
+    label: 'managed data API service id or project ref',
     publicSafe: true,
-    validation: 'remote https origin, distinct from API origin',
+    validation: 'non-empty managed data service id, not a secret',
   },
   {
-    env: 'REMOTE_API_SECRETS_CONFIGURED',
-    label: 'FastAPI provider-side secret-store confirmation',
+    env: 'DATA_API_ORIGIN',
+    label: 'managed data API HTTPS origin',
     publicSafe: true,
-    validation: 'exactly true after provider-side secrets exist',
+    validation: 'remote https origin, no path, no localhost, no placeholder',
   },
   {
-    env: 'REMOTE_AGENT_SECRETS_CONFIGURED',
-    label: 'Agent Runtime provider-side secret-store confirmation',
+    env: 'FRONTEND_CONFIGURED',
+    label: 'frontend public configuration confirmation',
     publicSafe: true,
-    validation: 'exactly true after provider-side secrets exist',
+    validation: 'exactly true after frontend public config exists',
+  },
+  {
+    env: 'DATA_API_CONFIGURED',
+    label: 'managed data API publishable/RLS configuration confirmation',
+    publicSafe: true,
+    validation: 'exactly true after publishable key and read/write policy are configured',
+  },
+  {
+    env: 'REMOTE_AGENT_REMOTE_REQUIRED',
+    label: 'remote Agent Runtime requirement',
+    publicSafe: true,
+    validation: 'exactly false for edge-only launch',
+  },
+  {
+    env: 'REMOTE_AI_GENERATION_CLOUD_RUNTIME',
+    label: 'cloud AI generation runtime',
+    publicSafe: true,
+    validation: 'exactly false for edge-only launch',
+  },
+  {
+    env: 'REMOTE_READER_CAN_TRIGGER_AI',
+    label: 'reader-triggered cloud AI generation',
+    publicSafe: true,
+    validation: 'exactly false for edge-only launch',
   },
 ]
 
 const nextCommands = [
-  'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
-  'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+  'cp deploy/runtime-production/runtime-assignment.intent.example.json deploy/runtime-production/runtime-assignment.intent.local.json',
+  'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
+  'npm run remote-health:check',
   'npm run check:remote-operator-return-intake',
   'npm run check:loop-next-goal-ledger',
 ]
@@ -335,10 +362,22 @@ const packet = {
   generatedAt: new Date().toISOString(),
   headSha,
   selectedGoal: 'operator-assignment-evidence-intake',
+  runtimeTopology: 'edge-only-preferred',
+  preferredAssignmentPath,
+  generatedContractPath,
+  legacyTargetAssignmentPath: targetAssignmentPath,
   targetAssignmentPath,
   assignmentDecision,
   assignmentFilePresent,
   requiredOperatorEvidence,
+  legacyFullRemoteFallback: {
+    targetAssignmentPath,
+    acceptedOnlyWhen: 'operator explicitly chooses full-remote API plus Agent Runtime deployment',
+    commands: [
+      'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run',
+      'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
+    ],
+  },
   blockedStages: Array.isArray(p120.payload.blockedStages) ? p120.payload.blockedStages : [],
   nextCommands,
   sourceEvidence: {

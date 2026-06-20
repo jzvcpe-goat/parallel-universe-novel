@@ -5,19 +5,20 @@ import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
-const envFileRel = 'deploy/runtime-production/remote-assignment.env.local'
+const intentExampleRel = 'deploy/runtime-production/runtime-assignment.intent.example.json'
+const intentLocalRel = 'deploy/runtime-production/runtime-assignment.intent.local.json'
 
 const expectedAssignmentCommands = [
-  `REMOTE_ASSIGNMENT_ENV_FILE=${envFileRel} REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true npm run check:remote-assignment-env-dry-run`,
-  `REMOTE_ASSIGNMENT_ENV_FILE=${envFileRel} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`,
+  `cp ${intentExampleRel} ${intentLocalRel}`,
+  'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
+  'npm run remote-health:check',
   'npm run check:remote-operator-return-intake',
   'npm run check:loop-next-goal-ledger',
 ]
 
-const forbiddenLegacyFragments = [
+const forbiddenPrimaryFragments = [
   'REMOTE_ASSIGNMENT_ENV_APPLY=true',
-  'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.example',
 ]
 
 function read(rel) {
@@ -153,9 +154,10 @@ assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.m
   'P129',
   'P131',
   'P132',
-  'REMOTE_ASSIGNMENT_ENV_FILE',
-  'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true',
-  'REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true',
+  'edge-only',
+  'runtime-assignment.intent.local.json',
+  'remote-assignment:prepare',
+  'remote-health:check',
 ])
 assertIncludes('docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md', [
   'P131 Operator Assignment Command Consistency Artifact Attestation',
@@ -167,29 +169,25 @@ assertIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', [
   'P130',
 ])
 assertCommandSurfaceIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', expectedAssignmentCommands)
-assertCommandSurfaceIncludes('docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md', expectedAssignmentCommands.slice(0, 2))
-assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', ['P130'])
+assertCommandSurfaceIncludes('docs/backend/P138_REMOTE_ASSIGNMENT_COMPILER_V3.md', expectedAssignmentCommands.slice(1, 3))
+assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', ['P130', 'P138', 'edge-only'])
 assertCommandSurfaceIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', expectedAssignmentCommands)
-assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P130'])
-assertCommandSurfaceIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', expectedAssignmentCommands)
-assertCommandSurfaceIncludes('scripts/check-remote-assignment-strict-run-package.mjs', expectedAssignmentCommands.slice(0, 2))
-assertCommandSurfaceIncludes('scripts/check-remote-operator-readiness-packet.mjs', expectedAssignmentCommands.slice(0, 2))
+assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P130', 'legacy full-remote'])
+assertIncludes('scripts/check-loop-next-goal-ledger.mjs', expectedAssignmentCommands)
+assertIncludes('scripts/check-operator-assignment-evidence-intake.mjs', expectedAssignmentCommands)
 assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [
   'P130 Operator Assignment Loop Command Consistency',
   'check:operator-assignment-loop-command-consistency',
+  'remote-assignment:prepare',
 ])
 
 for (const file of [
   'docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md',
-  'docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md',
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
-  'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'scripts/check-loop-next-goal-ledger.mjs',
   'scripts/check-operator-assignment-evidence-intake.mjs',
-  'scripts/check-remote-assignment-strict-run-package.mjs',
-  'scripts/check-remote-operator-readiness-packet.mjs',
 ]) {
-  assertExcludes(file, forbiddenLegacyFragments)
+  assertExcludes(file, forbiddenPrimaryFragments)
 }
 
 const p118 = latestArtifact(
@@ -215,10 +213,7 @@ const p121 = latestArtifact(
 )
 for (const [label, artifact] of [['P118', p118], ['P119', p119]]) {
   const normalized = normalizeCommandSurface(JSON.stringify(artifact.payload))
-  for (const command of expectedAssignmentCommands.slice(0, 2)) {
-    assert(normalized.includes(command), `${label} artifact missing expected command: ${command}`)
-  }
-  for (const fragment of forbiddenLegacyFragments) {
+  for (const fragment of forbiddenPrimaryFragments) {
     assert(!normalized.includes(fragment), `${label} artifact includes legacy command fragment: ${fragment}`)
   }
 }
@@ -226,7 +221,7 @@ const actualCommands = p121.payload.selectedGoal?.acceptanceGates || []
 for (const command of expectedAssignmentCommands) {
   assert(actualCommands.includes(command), `P121 artifact missing expected command: ${command}`)
 }
-for (const fragment of forbiddenLegacyFragments) {
+for (const fragment of forbiddenPrimaryFragments) {
   assert(!actualCommands.some(command => command.includes(fragment)), `P121 artifact includes legacy command fragment: ${fragment}`)
 }
 
@@ -239,8 +234,9 @@ const payload = {
   sourceStrictRunArtifact: relative(root, p118.file),
   sourceReadinessPacketArtifact: relative(root, p119.file),
   sourceLedgerArtifact: relative(root, p121.file),
+  commandProfile: 'edge-only-runtime-assignment-compiler',
   commandCount: expectedAssignmentCommands.length,
-  legacyFragmentCount: forbiddenLegacyFragments.length,
+  legacyFragmentCount: forbiddenPrimaryFragments.length,
   boundaries: {
     writesLocalAssignment: false,
     createsRemoteServices: false,

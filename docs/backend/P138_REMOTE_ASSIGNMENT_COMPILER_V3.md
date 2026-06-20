@@ -33,6 +33,8 @@ Compile all local artifacts:
 
 ```bash
 npm run remote-assignment:prepare
+npm run check:remote-runtime-assignment-intake
+npm run remote-health:check
 ```
 
 Run the no-write compiler gate:
