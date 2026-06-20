@@ -5239,3 +5239,40 @@ secret-store 和 health，和 0 元托管方案相矛盾。
    artifact 当 operator return，也不能把 legacy draft 误认为当前 edge-only source。
 5. 经验：升级部署拓扑时，不能只改最上层 goal ledger。所有读取旧 artifact 的
    predicate 都要同步，否则旧证据会在下游 gate 回流成错误断点。
+
+## 2026-06-20 P142 Edge-Only Data API Evidence Intake
+
+P141 之后，当前下一步 goal 不是继续抽象架构，而是补真实 data API / Supabase
+证据。P75 已经收敛到四个 edge-only blocker：
+`data-api-service-id`、`data-api-origin`、`data-api-secrets-ready`、
+`data-api-health-ready`。
+
+本轮原则：
+
+1. P142 只收 data API/Supabase 的服务 id、HTTPS origin、publishable/RLS 配置
+   确认和 `health_probe` 健康证据。
+2. AI 生成仍然留在用户自己的 edge device；不要为了过 gate 创建云端 Agent Runtime。
+3. `remote-health:check` 使用本地 env 里的 publishable/anon key，不把 key 写入 Git、
+   Pages artifact 或 docs。
+4. 完成 P142 后，`check:loop-next-goal-ledger` 应停止选择
+   `operator-assignment-evidence-intake`，转向 health 或 strict activation 证明。
+5. P122 -> P123 -> P124 -> P130 -> P131 -> P132 必须顺序执行。P123 依赖最新
+   P122 artifact，并行执行会读到 stale fixture-isolation 证据。
+6. kernel / constraints 的代表作品名已经进入 AES-256-GCM vault；公开 docs、
+   runtime registry、public refs、artifacts、git history 和 build output 只允许
+   匿名 `rwref_*`，不允许明文作品名、作者名或映射关系。
+
+验证命令：
+
+```bash
+npm run check:kernel-constraint-reference-encryption
+npm run check:reference-work-encryption-completion
+npm run scan:reference-privacy
+npm run prepare:loop-next-goal-local
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-evidence-intake-artifact
+npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+npm run check:operator-assignment-current-head-coherence
+```
