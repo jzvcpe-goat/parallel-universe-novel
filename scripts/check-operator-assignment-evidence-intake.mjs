@@ -135,8 +135,8 @@ assert(
   'package.json must expose check:operator-assignment-evidence-intake',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
-  'root test must run P123/P124/P125/P126/P128/P129/P130/P131 after P121/P122 and before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
+  'root test must run P123/P124/P125/P126/P128/P129/P130/P131/P132 after P121/P122 and before dependency audit',
 )
 
 for (const file of [
@@ -147,6 +147,7 @@ for (const file of [
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',
   'docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md',
   'docs/backend/P120_REMOTE_OPERATOR_RETURN_INTAKE.md',
   'scripts/check-loop-next-goal-ledger.mjs',
@@ -166,6 +167,7 @@ assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
   'P129',
   'P130',
   'P131',
+  'P132',
   'does not write',
 ])
 assertIncludes('docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md', [
@@ -208,8 +210,9 @@ const p75 = latestArtifact(
 )
 const p113 = latestArtifact(
   'remote-assignment-image-drift-',
-  payload => payload.gate === 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE',
-  'P113 image drift',
+  payload => payload.gate === 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE'
+    && (payload.currentHead === headSha || sourceWorkspaceNoGit),
+  'current P113 image drift',
 )
 const p108 = latestArtifact(
   'remote-assignment-local-boundary-',
@@ -223,6 +226,8 @@ const p105 = latestArtifact(
 )
 
 assert(p121.payload.selectedGoal?.id === 'operator-assignment-evidence-intake', 'P123 only runs when P121 selects operator-assignment-evidence-intake')
+assert(p121.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file), 'P123 requires P121 to reference the current P120 operator return intake')
+assert(p121.payload.sourceEvidence?.imageDrift?.file === relative(root, p113.file), 'P123 requires P121 to reference the current P113 image drift evidence')
 assert(p122.payload.selectedNextGoal === 'operator-assignment-evidence-intake', 'P122 must confirm operator-assignment-evidence-intake')
 assert(p120.payload.decision === 'operator_return_waiting_for_assignment', 'P123 requires P120 to still be waiting for operator assignment evidence')
 assert(p120.payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')

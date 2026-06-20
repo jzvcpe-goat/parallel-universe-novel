@@ -229,6 +229,13 @@ assert(
   'Pages workflow must upload the operator assignment command consistency artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload operator assignment current-head coherence')
+    && workflow.includes('operator-assignment-current-head-coherence')
+    && workflow.includes('artifacts/runtime/operator-assignment-current-head-coherence-*.json')
+    && workflow.indexOf('Upload operator assignment current-head coherence') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the operator assignment current-head coherence artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload runtime image local smoke')
     && workflow.includes('runtime-image-local-smoke')
     && workflow.includes('artifacts/runtime/runtime-image-local-smoke-*.json')
@@ -346,12 +353,20 @@ assert(
   'Pages workflow must verify operator assignment command consistency artifact content after the operator assignment evidence intake artifact content gate',
 )
 assert(
+  workflow.includes('Check operator assignment current-head coherence artifact content')
+    && workflow.includes('CHECK_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:operator-assignment-current-head-coherence')
+    && workflow.indexOf('Check operator assignment current-head coherence artifact content') > workflow.indexOf('Check operator assignment command consistency artifact content'),
+  'Pages workflow must verify operator assignment current-head coherence artifact content after the command consistency artifact content gate',
+)
+assert(
   workflow.includes('Check runtime image local smoke artifact content')
     && workflow.includes('CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:runtime-image-local-smoke-artifact')
-    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check operator assignment command consistency artifact content'),
-  'Pages workflow must verify runtime image local smoke artifact content after the operator assignment command consistency artifact content gate',
+    && workflow.indexOf('Check runtime image local smoke artifact content') > workflow.indexOf('Check operator assignment current-head coherence artifact content'),
+  'Pages workflow must verify runtime image local smoke artifact content after the operator assignment current-head coherence artifact content gate',
 )
 assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
@@ -444,6 +459,10 @@ assert(
 assert(
   packageJson.scripts['check:operator-assignment-loop-command-consistency-artifact'] === 'node scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
   'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
+)
+assert(
+  packageJson.scripts['check:operator-assignment-current-head-coherence'] === 'node scripts/check-operator-assignment-current-head-coherence.mjs',
+  'package.json must expose check:operator-assignment-current-head-coherence',
 )
 assert(
   packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
@@ -546,6 +565,10 @@ assert(
   'npm run test must include check:operator-assignment-loop-command-consistency-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:operator-assignment-current-head-coherence'),
+  'npm run test must include check:operator-assignment-current-head-coherence',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:runtime-image-local-smoke-artifact'),
   'npm run test must include check:runtime-image-local-smoke-artifact',
 )
@@ -590,6 +613,8 @@ assert(
     && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p16Doc.includes('operator-assignment-loop-command-consistency')
     && p16Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
+    && p16Doc.includes('operator-assignment-current-head-coherence')
+    && p16Doc.includes('check:operator-assignment-current-head-coherence')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('reference-work-encryption-completion')
@@ -626,6 +651,7 @@ assert(
     && p43Doc.includes('check:remote-operator-return-intake-artifact')
     && p43Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p43Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
+    && p43Doc.includes('check:operator-assignment-current-head-coherence')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
@@ -640,6 +666,7 @@ assert(
     && p43Doc.includes('remote-operator-return-intake')
     && p43Doc.includes('operator-assignment-evidence-intake')
     && p43Doc.includes('operator-assignment-loop-command-consistency')
+    && p43Doc.includes('operator-assignment-current-head-coherence')
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
@@ -664,6 +691,8 @@ assert(
     && p107Doc.includes('P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION')
     && p107Doc.includes('operator-assignment-loop-command-consistency')
     && p107Doc.includes('P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION')
+    && p107Doc.includes('operator-assignment-current-head-coherence')
+    && p107Doc.includes('P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE')
     && p107Doc.includes('runtime-image-local-smoke')
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
@@ -740,6 +769,8 @@ console.log(JSON.stringify({
   operatorAssignmentEvidenceIntakeContent: 'check:operator-assignment-evidence-intake-artifact',
   operatorAssignmentCommandConsistency: 'operator-assignment-loop-command-consistency',
   operatorAssignmentCommandConsistencyContent: 'check:operator-assignment-loop-command-consistency-artifact',
+  operatorAssignmentCurrentHeadCoherence: 'operator-assignment-current-head-coherence',
+  operatorAssignmentCurrentHeadCoherenceContent: 'check:operator-assignment-current-head-coherence',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',

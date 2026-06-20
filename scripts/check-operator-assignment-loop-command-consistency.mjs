@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
@@ -29,6 +30,19 @@ function readJson(rel) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function currentHead() {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 8000,
+    }).trim()
+  } catch {
+    return 'source-workspace-no-git'
+  }
 }
 
 function assertIncludes(file, terms) {
@@ -105,8 +119,8 @@ assert(
   'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
-  'root test must run P130 after P129, then P131 before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
+  'root test must run P130 after P129, then P131 and P132 before dependency audit',
 )
 
 for (const file of [
@@ -116,7 +130,9 @@ for (const file of [
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',
   'scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
+  'scripts/check-operator-assignment-current-head-coherence.mjs',
   'scripts/check-remote-assignment-strict-run-package.mjs',
   'scripts/check-remote-operator-readiness-packet.mjs',
   'docs/design-system/DEVELOPMENT_NOTES.md',
@@ -136,6 +152,7 @@ assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.m
   'P123',
   'P129',
   'P131',
+  'P132',
   'REMOTE_ASSIGNMENT_ENV_FILE',
   'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true',
   'REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY=true',
@@ -180,15 +197,21 @@ const p118 = latestArtifact(
   payload => payload.gate === 'P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE',
   'P118 strict-run package',
 )
+const headSha = currentHead()
+const sourceWorkspaceNoGit = headSha === 'source-workspace-no-git'
 const p119 = latestArtifact(
   'remote-operator-readiness-packet-',
-  payload => payload.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET',
-  'P119 operator readiness packet',
+  payload => payload.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET'
+    && (payload.headSha === headSha || sourceWorkspaceNoGit),
+  'current P119 operator readiness packet',
 )
 const p121 = latestArtifact(
   'loop-next-goal-ledger-',
-  payload => payload.gate === 'P121_LOOP_NEXT_GOAL_LEDGER' && payload.selectedGoal?.id === 'operator-assignment-evidence-intake',
-  'P121 operator-assignment ledger',
+  payload => payload.gate === 'P121_LOOP_NEXT_GOAL_LEDGER'
+    && payload.selectedGoal?.id === 'operator-assignment-evidence-intake'
+    && (payload.headSha === headSha || sourceWorkspaceNoGit)
+    && payload.sourceEvidence?.operatorReadinessPacket?.file === relative(root, p119.file),
+  'current P121 operator-assignment ledger',
 )
 for (const [label, artifact] of [['P118', p118], ['P119', p119]]) {
   const normalized = normalizeCommandSurface(JSON.stringify(artifact.payload))

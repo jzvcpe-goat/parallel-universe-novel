@@ -45,7 +45,9 @@ operator values are supplied. P129 then validates explicit ignored env-file
 loading for P117/P116 so the operator does not have to manually source values.
 P130 then verifies that P121, P123 and P129 all publish the same env-file
 operator command sequence, and that the legacy apply flag cannot return. P131
-then validates the uploaded P130 artifact content in the same Pages run.
+then validates the uploaded P130 artifact content in the same Pages run. P132
+then verifies that P119, P120, P121, P123, P130 and P131 all point at the same
+current head before dependency audit.
 
 ## Command
 
@@ -65,6 +67,7 @@ P121 reads the latest local evidence from:
 - P85 remote runtime blocker ledger
 - P119 remote operator readiness packet
 - P120 remote operator return intake
+- P113 remote assignment image drift for the current head
 - runtime completion refresh
 
 ## Output
@@ -110,10 +113,11 @@ Completion criteria for that goal:
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P125, P126, P128, P129, P130 and P131 before dependency audit.
+   then P122, P123, P124, P125, P126, P128, P129, P130, P131 and P132 before
+   dependency audit.
 3. P121 emits JSON and Markdown artifacts.
-4. P121 selects the next goal from current evidence, not hardcoded wishful
-   thinking.
+4. P121 selects the next goal from current-head P119/P120/P113 evidence, not
+   hardcoded wishful thinking or stale operator packets.
 5. P121 preserves no-duplicate-work guardrails: do not merge another frontend,
    do not rewrite P4 constraints, do not vendor an alternate agent framework,
    do not create remote services from CI, and do not promote live runtime.

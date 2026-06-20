@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
@@ -15,6 +16,19 @@ function readJson(rel) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function currentHead() {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 8000,
+    }).trim()
+  } catch {
+    return 'source-workspace-no-git'
+  }
 }
 
 function latestArtifact(prefix, predicate = null, label = prefix) {
@@ -40,6 +54,9 @@ function summarize(item) {
       || item.payload.traceDecision
       || item.payload.provisioningDecision
       || null,
+    headSha: item.payload.headSha || null,
+    currentHead: item.payload.currentHead || null,
+    targetAssignmentPath: item.payload.targetAssignmentPath || null,
   }
 }
 
@@ -210,8 +227,8 @@ assert(
   'package.json must expose check:loop-next-goal-ledger',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
-  'root npm run test must run P121 after CI artifact coverage, then P122, P123, P124, P125, P126, P128, P129, P130 and P131 before dependency audit',
+  String(packageJson.scripts.test || '').includes('npm run check:ci-artifact-content-coverage && npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
+  'root npm run test must run P121 after CI artifact coverage, then P122, P123, P124, P125, P126, P128, P129, P130, P131 and P132 before dependency audit',
 )
 
 for (const file of [
@@ -222,6 +239,7 @@ for (const file of [
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',
   'docs/backend/P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION.md',
   'docs/product/rules/REFERENCE_WORK_PRIVACY.md',
 ]) {
@@ -239,23 +257,38 @@ for (const term of [
   'P129',
   'P130',
   'P131',
+  'P132',
   'does not create services',
   'does not write',
 ]) {
   assert(p121Doc.includes(term), `P121 doc must include ${term}`)
 }
 
+const headSha = currentHead()
+const sourceWorkspaceNoGit = headSha === 'source-workspace-no-git'
 const p4Core = latestArtifact('p4-document-core-', payload => payload.status === 'passed', 'P4 document core')
 const p4Deprecated = latestArtifact('p4-deprecated-case-logic-', payload => payload.status === 'passed', 'P4 deprecated case logic')
 const publicProjection = latestArtifact('public-projection-privacy-', payload => payload.status === 'passed', 'public projection privacy')
 const backwardConsistency = latestArtifact('backward-consistency-sweep-', payload => payload.status === 'passed', 'backward consistency sweep')
 const referencePrivacy = latestArtifact('reference-privacy-', payload => payload.status === 'passed', 'reference privacy')
 const p85 = latestArtifact('remote-runtime-blockers-', payload => payload.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'P85 blocker ledger')
-const p119 = latestArtifact('remote-operator-readiness-packet-', payload => payload.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET', 'P119 operator packet')
+const imageDrift = latestArtifact(
+  'remote-assignment-image-drift-',
+  payload => payload.gate === 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE'
+    && (sourceWorkspaceNoGit || payload.currentHead === headSha),
+  'current P113 image drift',
+)
+const p119 = latestArtifact(
+  'remote-operator-readiness-packet-',
+  payload => payload.gate === 'P119_REMOTE_OPERATOR_READINESS_PACKET'
+    && (sourceWorkspaceNoGit || payload.headSha === headSha),
+  'current P119 operator packet',
+)
 const p120 = latestArtifact(
   'remote-operator-return-intake-',
-  payload => payload.gate === 'P120_REMOTE_OPERATOR_RETURN_INTAKE',
-  'P120 operator return intake',
+  payload => payload.gate === 'P120_REMOTE_OPERATOR_RETURN_INTAKE'
+    && (sourceWorkspaceNoGit || payload.headSha === headSha),
+  'current P120 operator return intake',
 )
 const completion = latestArtifact('runtime-completion-refresh-', payload => payload.status === 'passed', 'runtime completion refresh')
 
@@ -277,6 +310,7 @@ const ledger = {
   status: 'passed',
   generatedAt: new Date().toISOString(),
   decision: 'next_goal_selected',
+  headSha,
   selectedGoal,
   nonGoals,
   guardrails: {
@@ -295,6 +329,7 @@ const ledger = {
     backwardConsistencySweep: summarize(backwardConsistency),
     referencePrivacy: summarize(referencePrivacy),
     remoteRuntimeBlockers: summarize(p85),
+    imageDrift: summarize(imageDrift),
     operatorReadinessPacket: summarize(p119),
     operatorReturnIntake: summarize(p120),
     runtimeCompletionRefresh: summarize(completion),

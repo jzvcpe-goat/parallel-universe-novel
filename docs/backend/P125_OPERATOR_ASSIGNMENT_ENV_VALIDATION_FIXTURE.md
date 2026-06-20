@@ -49,7 +49,8 @@ Finally, it runs a follow-up-required fixture where the field shapes are valid
 but one provider secret-store confirmation is still `false`. P128 follows with
 the local env template gate so the real operator handoff uses the same accepted
 key shape. P129 follows by proving the ignored local env copy can be loaded
-directly by P117 and P116.
+directly by P117 and P116. P132 later validates that the assignment-evidence
+chain after P131 still belongs to the same current head.
 
 ## Public Boundary
 
@@ -63,8 +64,8 @@ outputs.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-validation-fixture`.
-2. Root `npm run test` runs P125 after P124, then P126, P128, P129, P130
-   and P131 before dependency audit.
+2. Root `npm run test` runs P125 after P124, then P126, P128, P129, P130,
+   P131 and P132 before dependency audit.
 3. Positive strict fixture returns `operator_env_ready_for_p116_apply`.
 4. Follow-up fixture with a false secret-store confirmation does not become
    ready for apply.
@@ -90,3 +91,5 @@ Without P129, the operator would still need to manually source the ignored env
 file, leaving a shell-state mismatch between P117 and P116.
 Without P130, the loop ledger could still reintroduce a stale command after the
 loader itself was correct.
+Without P132, the command-consistency artifact could still point at an older
+operator-evidence chain after a new release head has been published.

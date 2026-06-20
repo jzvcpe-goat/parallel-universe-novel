@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-19 P132 Operator Assignment Current-Head Coherence
+
+P131 让 P130 command-consistency 证明进入了 Pages artifact，但还留下一个更细的
+断点：新 release head 发布后，如果只重新跑 P121，ledger 可能看起来是新的，却引用
+旧 head 的 P119/P120 operator evidence。这样会让“下一步继续收 operator evidence”
+这个结论本身正确，但证据链对不上当前镜像。
+
+新的工程规则：
+
+1. P121 生成 loop ledger 时必须读取当前 git head，并只接受当前 head 的 P119/P120
+   以及当前 P113 image drift evidence。
+2. P123 在包装 assignment intake 时，必须确认 P121 指向同一份当前 P120 和 P113。
+3. P130 生成 command-consistency artifact 时，必须确认 P119/P121 都来自当前 head。
+4. P132 在 P131 之后运行，统一验证 P72/P113/P119/P120/P121/P123/P130/P131 是否
+   指向同一个 current head。
+5. Pages workflow 必须上传并下载验证 `operator-assignment-current-head-coherence`；
+   它不能只是本地手动检查。
+6. P132 仍然不写 `remote-assignment.local.json`，不创建远程服务，不设置 GitHub
+   variables，不存储 provider secrets，也不 promote live runtime。
+
+验证命令：
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+npm run check:operator-assignment-current-head-coherence
+npm run test
+```
+
 ## 2026-06-19 P131 Operator Assignment Command Consistency Artifact Attestation
 
 P130 证明了 operator assignment 的命令链在 P121/P123/P129 和 handoff 包之间一致，

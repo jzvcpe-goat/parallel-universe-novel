@@ -22,7 +22,9 @@ reappearing in the next-goal artifact.
 P130 does not deploy anything. It does not write
 `deploy/runtime-production/remote-assignment.local.json`, does not create
 remote services, does not set GitHub variables, does not store provider
-credentials and does not promote live runtime.
+credentials and does not promote live runtime. P132 follows P131 by verifying
+that this P130 artifact points at current-head P119 readiness and P121 ledger
+evidence.
 
 ## Required Command Sequence
 
@@ -70,10 +72,16 @@ download-checked as current-run release evidence:
 npm run check:operator-assignment-loop-command-consistency-artifact
 ```
 
+P132 then validates current-head coherence:
+
+```bash
+npm run check:operator-assignment-current-head-coherence
+```
+
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-loop-command-consistency`.
-2. Root `npm run test` runs P130 after P129, then P131 before dependency audit.
+2. Root `npm run test` runs P130 after P129, then P131 and P132 before dependency audit.
 3. P121 generated artifacts include the env-file strict dry-run command.
 4. P121 generated artifacts include the env-file apply command with
    `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true`.
@@ -85,6 +93,7 @@ npm run check:operator-assignment-loop-command-consistency-artifact
    provider credentials, prompt plumbing, private reference material, profile
    ids, kernel ids or `sourceRefs`.
 8. P131 validates the uploaded P130 artifact content in the current Pages run.
+9. P132 validates that P130 points at current-head P119 and P121 artifacts.
 
 ## Failure Modes
 

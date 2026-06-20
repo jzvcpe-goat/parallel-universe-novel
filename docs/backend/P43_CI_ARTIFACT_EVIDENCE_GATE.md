@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下二十二类可下载证据：
+把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下二十三类可下载证据：
 
 - `runtime-readiness-ledger`
 - `live-cutover-attestation`
@@ -21,6 +21,7 @@ Date: 2026-06-17
 - `remote-operator-return-intake`
 - `operator-assignment-evidence-intake`
 - `operator-assignment-loop-command-consistency`
+- `operator-assignment-current-head-coherence`
 - `runtime-image-local-smoke`
 - `reference-privacy`
 - `public-projection-privacy`
@@ -37,7 +38,7 @@ Date: 2026-06-17
 npm run check:github-actions-artifacts
 ```
 
-检查当前 CI run。CI 当前 run 必须包含二十二类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`remote-assignment-fill-plan`、`remote-assignment-strict-run-package`、`remote-operator-readiness-packet`、`remote-operator-return-intake`、`operator-assignment-evidence-intake`、`operator-assignment-loop-command-consistency`、`runtime-image-local-smoke`、`reference-privacy`、`public-projection-privacy`、`reference-work-encryption-completion` 和 `representative-work-custody`：
+检查当前 CI run。CI 当前 run 必须包含二十三类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`remote-assignment-fill-plan`、`remote-assignment-strict-run-package`、`remote-operator-readiness-packet`、`remote-operator-return-intake`、`operator-assignment-evidence-intake`、`operator-assignment-loop-command-consistency`、`operator-assignment-current-head-coherence`、`runtime-image-local-smoke`、`reference-privacy`、`public-projection-privacy`、`reference-work-encryption-completion` 和 `representative-work-custody`：
 
 ```bash
 CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
@@ -60,6 +61,7 @@ P43 只证明 artifact 元数据存在。`reference-privacy`、
 `remote-operator-return-intake` 的 JSON/Markdown 内容由 P120 再下载核验，
 `operator-assignment-evidence-intake` 的 JSON/Markdown 内容由 P124 再下载核验，
 `operator-assignment-loop-command-consistency` 的 JSON 内容由 P131 再下载核验，
+`operator-assignment-current-head-coherence` 的 JSON 内容由 P132 再下载核验，
 `runtime-image-local-smoke` 的 JSON 内容由 P115 再下载核验：
 
 ```bash
@@ -103,6 +105,10 @@ CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED=true \
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:operator-assignment-loop-command-consistency-artifact
 
+CHECK_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE_REQUIRED=true \
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+npm run check:operator-assignment-current-head-coherence
+
 CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED=true \
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
 npm run check:runtime-image-local-smoke-artifact
@@ -133,6 +139,7 @@ npm run check:ci-artifact-content-coverage
 - `remote-operator-return-intake` exists and is non-empty.
 - `operator-assignment-evidence-intake` exists and is non-empty.
 - `operator-assignment-loop-command-consistency` exists and is non-empty.
+- `operator-assignment-current-head-coherence` exists and is non-empty.
 - `runtime-image-local-smoke` exists and is non-empty.
 - `reference-privacy` exists and is non-empty.
 - `public-projection-privacy` exists and is non-empty.
@@ -146,7 +153,7 @@ npm run check:ci-artifact-content-coverage
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, and `representative-work-custody`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P115 is the content attestation gate for `runtime-image-local-smoke`; P91 owns the assignment schema generator. P107 does not download additional artifact payloads; it verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, and `representative-work-custody`; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P132 is the content attestation gate for `operator-assignment-current-head-coherence`; P115 is the content attestation gate for `runtime-image-local-smoke`; P91 owns the assignment schema generator. P107 does not download additional artifact payloads; it verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
 
 ## Workflow Placement
 
@@ -168,12 +175,13 @@ This gate only checks artifact metadata: artifact names, sizes, expiration state
 14. `Upload remote operator return intake`
 15. `Upload operator assignment evidence intake`
 16. `Upload operator assignment command consistency`
-17. `Upload runtime image local smoke`
-18. `Upload reference privacy evidence`
-19. `Upload public projection privacy evidence`
-20. `Upload reference work encryption completion evidence`
-21. `Upload representative work custody evidence`
-22. `Upload artifact`
+17. `Upload operator assignment current-head coherence`
+18. `Upload runtime image local smoke`
+19. `Upload reference privacy evidence`
+20. `Upload public projection privacy evidence`
+21. `Upload reference work encryption completion evidence`
+22. `Upload representative work custody evidence`
+23. `Upload artifact`
 
 That placement proves the same run that will deploy Pages also produced the required evidence package.
 
@@ -181,7 +189,7 @@ That placement proves the same run that will deploy Pages also produced the requ
 
 1. `package.json` exposes `check:github-actions-artifacts`.
 2. `scripts/check-github-actions-artifacts.mjs` checks the latest successful run by default.
-3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `runtime-image-local-smoke`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion` and `representative-work-custody`.
+3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `runtime-image-local-smoke`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion` and `representative-work-custody`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.
 6. Pages workflow runs P92, P93, P89 and P90 after P43 so public privacy
@@ -201,7 +209,10 @@ That placement proves the same run that will deploy Pages also produced the requ
 12. Pages workflow runs P131 after P124 so
    `operator-assignment-loop-command-consistency` content is validated
    separately from artifact metadata.
-13. Pages workflow runs P115 after P131 so `runtime-image-local-smoke` content
+13. Pages workflow runs P132 after P131 so
+   `operator-assignment-current-head-coherence` content is validated separately
+   from artifact metadata.
+14. Pages workflow runs P115 after P132 so `runtime-image-local-smoke` content
    is validated separately from artifact metadata.
 13. Root `npm run test` runs P107 so the full artifact set always has an
    explicit content-coverage classification.

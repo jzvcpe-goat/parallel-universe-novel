@@ -256,6 +256,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload operator assignment current-head coherence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: operator-assignment-current-head-coherence
+          path: artifacts/runtime/operator-assignment-current-head-coherence-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload runtime image local smoke
         if: always()
         uses: actions/upload-artifact@v7
@@ -404,6 +413,13 @@ jobs:
           CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:operator-assignment-loop-command-consistency-artifact
+
+      - name: Check operator assignment current-head coherence artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:operator-assignment-current-head-coherence
 
       - name: Check runtime image local smoke artifact content
         env:

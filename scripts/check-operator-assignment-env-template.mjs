@@ -113,6 +113,7 @@ for (const file of [
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',
   'docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md',
+  'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',
   'scripts/check-remote-assignment-env-dry-run.mjs',
   'scripts/apply-remote-assignment-env.mjs',
   'scripts/check-operator-assignment-env-file-loader.mjs',
@@ -128,8 +129,8 @@ assert(
   'package.json must expose check:operator-assignment-env-template',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run audit:dependencies'),
-  'root test must run P128 after P126, then P129, P130 and P131 before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
+  'root test must run P128 after P126, then P129, P130, P131 and P132 before dependency audit',
 )
 
 const gitignore = read('.gitignore')
@@ -151,6 +152,7 @@ assertIncludes('docs/backend/P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE.md', ['P128
 assertIncludes('docs/backend/P126_OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE.md', ['P128'])
 assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P129', 'REMOTE_ASSIGNMENT_ENV_FILE'])
 assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md', ['P130', 'REMOTE_ASSIGNMENT_ENV_FILE'])
+assertIncludes('docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md', ['P132', 'check:operator-assignment-current-head-coherence'])
 
 const templateText = read(templateRel)
 const entries = parseEnvTemplate(templateText)

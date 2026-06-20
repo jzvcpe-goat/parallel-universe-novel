@@ -81,6 +81,8 @@ P129 then proves P117 and P116 can load that ignored local env file directly
 through `REMOTE_ASSIGNMENT_ENV_FILE`, without manual shell sourcing.
 P130 then verifies that P121, P123 and P129 all publish this same env-file
 handoff sequence, so stale apply commands cannot re-enter the loop artifact.
+P132 then verifies the selected assignment-intake loop is backed by the same
+current-head P119/P120/P121/P123/P130/P131 evidence.
 
 ## Next Command Sequence
 
@@ -107,7 +109,7 @@ After the assignment evidence is complete, P121 should stop selecting
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
 2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126,
-   P128, P129, P130 and P131 before dependency audit.
+   P128, P129, P130, P131 and P132 before dependency audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -131,6 +133,8 @@ After the assignment evidence is complete, P121 should stop selecting
     tracked templates, unsupported keys and unignored paths.
 14. P130 validates that P121/P123/P129 all expose the env-file strict dry-run
     and `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true` apply sequence.
+15. P132 validates that the assignment-intake evidence chain uses current-head
+    P119/P120/P121/P123/P130/P131 artifacts.
 
 ## Failure Modes
 

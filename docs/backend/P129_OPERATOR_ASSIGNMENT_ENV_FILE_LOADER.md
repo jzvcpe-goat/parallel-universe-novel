@@ -31,7 +31,8 @@ does not promote live runtime.
 
 P130 follows this gate and verifies that P121, P123 and this document all use
 the same env-file command sequence. The legacy apply-env flag is not a valid
-operator command.
+operator command. P132 follows P131 and verifies the resulting operator
+assignment evidence chain still points at the current release head.
 
 ## Loader Rule
 
@@ -76,7 +77,7 @@ npm run check:operator-assignment-env-file-loader
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-file-loader`.
-2. Root `npm run test` runs P129 after P128, then P130 and P131 before dependency audit.
+2. Root `npm run test` runs P129 after P128, then P130, P131 and P132 before dependency audit.
 3. P117 can load a safe ignored `.env.local` fixture through
    `REMOTE_ASSIGNMENT_ENV_FILE` and report ready for P116 apply.
 4. P116 can load the same ignored `.env.local` fixture and write only a
@@ -89,6 +90,7 @@ npm run check:operator-assignment-env-file-loader
    origins, provider credentials, prompt plumbing or private reference material.
 10. P130 verifies the post-P129 loop command sequence and rejects legacy apply
     command drift.
+11. P132 verifies current-head coherence after the P130/P131 evidence pair.
 
 ## Public Boundary
 

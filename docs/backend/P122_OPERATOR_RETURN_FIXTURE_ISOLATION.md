@@ -28,7 +28,9 @@ inputs before real operator values arrive. P126 then validates P116 apply-path
 behavior against a temporary fixture target. P128 then validates the local env
 template that operators copy before entering real values. P129 then validates
 the explicit ignored env-file loader used by P117 and P116. P130 then validates
-the loop command sequence built on top of that loader.
+the loop command sequence built on top of that loader. P131 validates the
+uploaded P130 artifact content, and P132 proves P119/P120/P121/P123/P130/P131
+all belong to the same current head.
 
 ## Command
 
@@ -41,6 +43,8 @@ npm run check:operator-assignment-env-apply-fixture
 npm run check:operator-assignment-env-template
 npm run check:operator-assignment-env-file-loader
 npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+npm run check:operator-assignment-current-head-coherence
 ```
 
 ## Inputs
@@ -67,7 +71,7 @@ ids, kernel ids or raw runtime state.
 
 1. `package.json` exposes `check:operator-return-fixture-isolation`.
 2. Root `npm run test` runs P122 after P121, then P123, P124, P125, P126,
-   P128, P129, P130 and P131, before dependency audit.
+   P128, P129, P130, P131 and P132, before dependency audit.
 3. P120 filters P75 assignment evidence by `remote-assignment.local.json`.
 4. P120 packet cites the local assignment path in `sourceEvidence.assignmentIntake`.
 5. If P120 reports `operator_return_waiting_for_assignment`, P121 must select
@@ -83,7 +87,7 @@ ids, kernel ids or raw runtime state.
 
 - Missing current local P75 evidence means P122 fails; P120 cannot be trusted
   without local assignment evidence.
-- Missing P120/P121 evidence means P122 fails; the loop ledger cannot be
-  audited without both gates.
+- Missing current-head P120/P121 evidence means P122 fails; the loop ledger
+  cannot be audited without both gates.
 - P120 selecting a fixture assignment path fails immediately.
 - P121 selecting a goal that contradicts P120 fails immediately.

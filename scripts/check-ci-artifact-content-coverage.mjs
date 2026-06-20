@@ -183,6 +183,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked so P130 command-consistency proof is retained and privacy-safe.',
   },
   {
+    name: 'operator-assignment-current-head-coherence',
+    kind: 'download_content_gate',
+    producer: 'check:operator-assignment-current-head-coherence',
+    verifier: 'check:operator-assignment-current-head-coherence',
+    contract: 'P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE',
+    uploadStep: 'Upload operator assignment current-head coherence',
+    uploadPath: 'artifacts/runtime/operator-assignment-current-head-coherence-*.json',
+    workflowStep: 'Check operator assignment current-head coherence artifact content',
+    reason: 'Downloaded from the same Pages run and checked so P119/P120/P121/P123/P130/P131 evidence all matches the current release head.',
+  },
+  {
     name: 'runtime-image-local-smoke',
     kind: 'download_content_gate',
     producer: 'check:runtime-image-local-smoke',
@@ -306,7 +317,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 16, 'P107 expects sixteen artifacts with downloaded content gates')
+assert(downloadAttested.length === 17, 'P107 expects seventeen artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

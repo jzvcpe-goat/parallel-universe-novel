@@ -17,7 +17,9 @@ artifact.
 
 P131 does not write `remote-assignment.local.json`, does not create remote
 services, does not set GitHub variables, does not store provider secrets, does
-not promote live runtime and does not change the selected next goal.
+not promote live runtime and does not change the selected next goal. P132 then
+verifies that P131 attests the current P130 artifact and that P130 points at the
+current-head P119/P121 evidence.
 
 ## Command
 
@@ -74,10 +76,13 @@ P131 verifies that the uploaded P130 artifact:
 ## Release Chain
 
 - Root `npm run test` runs P131 after P130 and before dependency audit.
+- Root `npm run test` runs P132 after P131 and before dependency audit.
 - Pages uploads `operator-assignment-loop-command-consistency` after root
   runtime checks.
 - Pages runs P131 content validation after P124 assignment-intake content
   validation and before P115 runtime-image local-smoke content validation.
+- Pages runs P132 content validation after P131 and before P115 runtime-image
+  local-smoke content validation.
 - P107 counts `operator-assignment-loop-command-consistency` as a
   `download_content_gate`.
 
@@ -85,7 +90,7 @@ P131 verifies that the uploaded P130 artifact:
 
 1. `package.json` exposes
    `check:operator-assignment-loop-command-consistency-artifact`.
-2. Root `npm run test` runs P131 after P130 before dependency audit.
+2. Root `npm run test` runs P131 after P130 and P132 after P131 before dependency audit.
 3. Pages uploads the P130 JSON artifact.
 4. Pages validates the current-run uploaded P130 artifact with
    `CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED=true`.
