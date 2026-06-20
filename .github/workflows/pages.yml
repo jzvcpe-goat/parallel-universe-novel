@@ -283,6 +283,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload zero-cost reader edge sync
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zero-cost-reader-edge-sync
+          path: artifacts/runtime/zero-cost-reader-edge-sync-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
@@ -443,6 +452,13 @@ jobs:
           CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:runtime-image-local-smoke-artifact
+
+      - name: Check zero-cost reader edge sync artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:zero-cost-reader-edge-sync-artifact
 
   deploy:
     needs: build

@@ -250,6 +250,13 @@ assert(
   'Pages workflow must upload the runtime image local smoke artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload zero-cost reader edge sync')
+    && workflow.includes('zero-cost-reader-edge-sync')
+    && workflow.includes('artifacts/runtime/zero-cost-reader-edge-sync-*.json')
+    && workflow.indexOf('Upload zero-cost reader edge sync') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the zero-cost Reader edge sync artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -384,6 +391,14 @@ assert(
   'Pages workflow must verify runtime image local smoke artifact content after the operator assignment transition fixture artifact content gate',
 )
 assert(
+  workflow.includes('Check zero-cost reader edge sync artifact content')
+    && workflow.includes('CHECK_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:zero-cost-reader-edge-sync-artifact')
+    && workflow.indexOf('Check zero-cost reader edge sync artifact content') > workflow.indexOf('Check runtime image local smoke artifact content'),
+  'Pages workflow must verify zero-cost Reader edge sync artifact content after the runtime image local smoke artifact content gate',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -490,6 +505,10 @@ assert(
 assert(
   packageJson.scripts['check:runtime-image-local-smoke-artifact'] === 'node scripts/check-runtime-image-local-smoke-artifact.mjs',
   'package.json must expose check:runtime-image-local-smoke-artifact',
+)
+assert(
+  packageJson.scripts['check:zero-cost-reader-edge-sync-artifact'] === 'node scripts/check-zero-cost-reader-edge-sync-artifact.mjs',
+  'package.json must expose check:zero-cost-reader-edge-sync-artifact',
 )
 assert(
   packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
@@ -601,6 +620,10 @@ assert(
   'npm run test must include check:runtime-image-local-smoke-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:zero-cost-reader-edge-sync-artifact'),
+  'npm run test must include check:zero-cost-reader-edge-sync-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
   'npm run test must include check:ci-artifact-content-coverage',
 )
@@ -647,6 +670,8 @@ assert(
     && p16Doc.includes('check:operator-assignment-transition-fixture-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
+    && p16Doc.includes('zero-cost-reader-edge-sync')
+    && p16Doc.includes('check:zero-cost-reader-edge-sync-artifact')
     && p16Doc.includes('reference-work-encryption-completion')
     && p16Doc.includes('representative-work-custody')
     && p16Doc.includes('check:ci-artifact-content-coverage')
@@ -684,6 +709,7 @@ assert(
     && p43Doc.includes('check:operator-assignment-current-head-coherence')
     && p43Doc.includes('check:operator-assignment-transition-fixture-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
+    && p43Doc.includes('check:zero-cost-reader-edge-sync-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
     && p43Doc.includes('P92')
@@ -700,6 +726,7 @@ assert(
     && p43Doc.includes('operator-assignment-current-head-coherence')
     && p43Doc.includes('operator-assignment-transition-fixture')
     && p43Doc.includes('runtime-image-local-smoke')
+    && p43Doc.includes('zero-cost-reader-edge-sync')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('reference-work-encryption-completion')
@@ -729,6 +756,8 @@ assert(
     && p107Doc.includes('P133_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE_ATTESTATION')
     && p107Doc.includes('runtime-image-local-smoke')
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
+    && p107Doc.includes('zero-cost-reader-edge-sync')
+    && p107Doc.includes('P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
     && p107Doc.includes('public-projection-privacy')
     && p107Doc.includes('reference-work-encryption-completion')
@@ -809,6 +838,8 @@ console.log(JSON.stringify({
   operatorAssignmentTransitionFixtureContent: 'check:operator-assignment-transition-fixture-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
+  zeroCostReaderEdgeSync: 'zero-cost-reader-edge-sync',
+  zeroCostReaderEdgeSyncContent: 'check:zero-cost-reader-edge-sync-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',
   githubRuntimeVariableBoundary: 'check:github-runtime-variable-boundary',
   runtimePlaceholderSentinel: 'check:runtime-placeholder-sentinel',

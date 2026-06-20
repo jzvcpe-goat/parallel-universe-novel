@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P136 Zero-Cost Reader Edge Sync Artifact Attestation
+
+P135 证明了 0 元 Reader 云端边界，但如果只存在于 root test 日志里，发布后缺少
+可下载证据。P136 把它升级为 Pages run artifact，并增加 current-run 内容校验。
+
+新的工程规则：
+
+1. 每次 Pages 发布都必须上传 `zero-cost-reader-edge-sync` artifact。
+2. 该 artifact 必须在同一个 run 内下载验证，确认云端 AI runtime、云端 AI key、
+   读者触发生成路径都不存在。
+3. P43、P107、P16 三处 artifact 矩阵必须同步更新；不能只改 workflow。
+4. P136 artifact 只保留边界状态和扫描计数，不输出 Supabase secret、writer password、
+   provider key、system prompt、sourceRefs 或 reference vault 信息。
+5. P136 artifact 校验必须继承 P134/P135 的三个实操点：GitHub Actions 保活本身
+   需要月度人工触发或维护提交，`.env.local.sync` 需要可信密码管理器/加密备份，
+   `novels_history` 只能提供手动 SQL 恢复材料。
+
+验证命令：
+
+```bash
+npm run check:zero-cost-reader-edge-sync
+npm run check:zero-cost-reader-edge-sync-artifact
+npm run check:ci-artifact-content-coverage
+```
+
 ## 2026-06-20 P135 Zero-Cost Reader Edge Sync Gate
 
 P134 只是把“0 元全托管阅读端”的边界讲清楚；P135 把这条边界变成 root test

@@ -32,6 +32,7 @@ if (checkCurrentRun) {
     'operator-assignment-current-head-coherence',
     'operator-assignment-transition-fixture',
     'runtime-image-local-smoke',
+    'zero-cost-reader-edge-sync',
     'reference-privacy',
     'public-projection-privacy',
     'reference-work-encryption-completion',

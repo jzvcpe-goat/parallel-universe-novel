@@ -117,9 +117,10 @@ const packageJson = readJson('package.json')
 const workflowFile = '.github/workflows/keep-supabase-alive.yml'
 const p134 = 'docs/backend/P134_ZERO_COST_READER_EDGE_SYNC_RUNBOOK.md'
 const p135 = 'docs/backend/P135_ZERO_COST_READER_EDGE_SYNC_GATE.md'
+const p136 = 'docs/backend/P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION.md'
 const gitignore = '.gitignore'
 
-for (const file of [workflowFile, p134, p135, gitignore]) {
+for (const file of [workflowFile, p134, p135, p136, gitignore]) {
   assert(existsSync(join(root, file)), `missing zero-cost Reader edge sync file: ${file}`)
 }
 
@@ -157,6 +158,10 @@ assertIncludes(p134, [
   'cloud_ai_runtime: absent',
   'reader_can_trigger_ai: false',
   'best-effort guard',
+  'roughly 60',
+  'trusted password manager',
+  'Supabase Dashboard',
+  'Manual recovery query',
   'not one-click rollback',
   'P135 Zero-Cost Reader Edge Sync Gate',
 ])
@@ -166,6 +171,14 @@ assertIncludes(p135, [
   'health_probe',
   'SUPABASE_PUBLISHABLE_KEY',
   'not a one-click rollback',
+  'monthly release checks',
+])
+assertIncludes(p136, [
+  'zero-cost-reader-edge-sync',
+  'current-run mode',
+  'manual workflow keep-alive',
+  'sync env backup',
+  'manual recovery SQL',
 ])
 
 const publicScan = scanPublicFiles()
@@ -190,6 +203,9 @@ const artifact = {
     backupsIgnored: true,
     p134RunbookAligned: true,
     p135GateDocumented: true,
+    operationalKeepAliveNeedsKeepAlive: true,
+    syncEnvSinglePointFailureDocumented: true,
+    historyManualRecoverySqlDocumented: true,
     publicCloudAiRoutesAbsent: true,
   },
   publicBoundary: {

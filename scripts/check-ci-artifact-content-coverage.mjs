@@ -216,6 +216,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for current-image, privacy-safe execution evidence.',
   },
   {
+    name: 'zero-cost-reader-edge-sync',
+    kind: 'download_content_gate',
+    producer: 'check:zero-cost-reader-edge-sync',
+    verifier: 'check:zero-cost-reader-edge-sync-artifact',
+    contract: 'P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION',
+    uploadStep: 'Upload zero-cost reader edge sync',
+    uploadPath: 'artifacts/runtime/zero-cost-reader-edge-sync-*.json',
+    workflowStep: 'Check zero-cost reader edge sync artifact content',
+    reason: 'Downloaded from the same Pages run and checked for zero-cost Reader cloud boundary, local sync boundary and no cloud AI writer path.',
+  },
+  {
     name: 'reference-privacy',
     kind: 'download_content_gate',
     producer: 'scan:reference-privacy',
@@ -328,7 +339,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 18, 'P107 expects eighteen artifacts with downloaded content gates')
+assert(downloadAttested.length === 19, 'P107 expects nineteen artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

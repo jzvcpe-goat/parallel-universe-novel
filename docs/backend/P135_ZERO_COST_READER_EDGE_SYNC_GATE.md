@@ -44,8 +44,14 @@ boundary cannot silently drift.
 ## Acceptance
 
 - `npm run check:zero-cost-reader-edge-sync` passes locally and in CI.
+- P136 Zero-Cost Reader Edge Sync Artifact Attestation validates the uploaded
+  Pages artifact in current-run mode.
 - The generated `zero-cost-reader-edge-sync` artifact contains only redacted
   boundary status, not secrets.
 - The keep-alive workflow remains best-effort; monthly release checks should
   still run it manually or keep the repository active with an intentional
   maintenance commit.
+- The runbook records that `.env.local.sync` is a local single point of
+  failure and needs an encrypted/password-manager backup outside the repo.
+- The runbook records that `novels_history` recovery is manual SQL plus an
+  explicit content copy, not an automatic rollback button.
