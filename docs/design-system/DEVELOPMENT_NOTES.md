@@ -1,5 +1,28 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P137 Loop Next Goal Local Rehydration
+
+P136 推送后，Pages 和 artifact 内容校验都绿了，但本地单独运行
+`check:loop-next-goal-ledger` 会因为当前 release head 已变而拒绝旧 P113/P119/P120
+证据。这不是 P121 的 bug；P121 必须拒绝 stale evidence。真正缺的是一个显式的
+本地 rehydrate 命令。
+
+新的工程规则：
+
+1. 不降低 P121/P132 current-head coherence 的严格性。
+2. 新增 `prepare:loop-next-goal-local`，本地按顺序刷新 P4/privacy/runtime image、
+   ignored assignment draft、P113/P119/P120/P107/P121。
+3. 该命令可能刷新 `deploy/runtime-production/remote-assignment.local.json`，所以不能
+   进入 root `npm run test` 或普通 CI。
+4. 如果这个 helper 之后 P121 仍失败，才说明下一目标证据链真的不一致。
+
+验证命令：
+
+```bash
+npm run prepare:loop-next-goal-local
+npm run check:loop-next-goal-ledger
+```
+
 ## 2026-06-20 P136 Zero-Cost Reader Edge Sync Artifact Attestation
 
 P135 证明了 0 元 Reader 云端边界，但如果只存在于 root test 日志里，发布后缺少

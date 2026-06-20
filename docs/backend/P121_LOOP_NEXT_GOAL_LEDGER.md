@@ -58,6 +58,16 @@ before dependency audit.
 npm run check:loop-next-goal-ledger
 ```
 
+If a new release head was just committed and local artifacts still point at an
+older head, refresh the local loop evidence first:
+
+```bash
+npm run prepare:loop-next-goal-local
+```
+
+That helper may refresh the ignored local assignment draft, so it is local-only
+and not part of root `npm run test`.
+
 ## Inputs
 
 P121 reads the latest local evidence from:

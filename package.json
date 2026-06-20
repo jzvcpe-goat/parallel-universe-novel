@@ -103,6 +103,7 @@
     "check:remote-assignment-env-apply": "node scripts/apply-remote-assignment-env.mjs --check",
     "check:remote-assignment-env-dry-run": "node scripts/check-remote-assignment-env-dry-run.mjs",
     "prepare:remote-assignment-local": "node scripts/prepare-remote-assignment-local.mjs",
+    "prepare:loop-next-goal-local": "node scripts/prepare-loop-next-goal-local.mjs",
     "check:remote-assignment-draft-prep": "node scripts/prepare-remote-assignment-local.mjs --check",
     "check:remote-assignment-image-drift": "node scripts/check-remote-assignment-image-drift.mjs",
     "check:remote-assignment-strict-run-package": "node scripts/check-remote-assignment-strict-run-package.mjs",
