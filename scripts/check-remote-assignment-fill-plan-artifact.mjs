@@ -142,6 +142,9 @@ function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) 
   const blockedStages = Array.isArray(payload.upstreamEvidence?.blockerLedger?.blockedStages)
     ? payload.upstreamEvidence.blockerLedger.blockedStages
     : []
+  const runtimeAssignmentEvidence = payload.upstreamEvidence?.blockerLedger?.runtimeAssignment || {}
+  const currentEdgeOnlyProjection = runtimeAssignmentEvidence.runtimeMode === 'edge-only'
+    && runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true
   const fillPlanIds = new Set((payload.fillPlan || []).map(item => item.id))
   const validationText = Array.isArray(payload.validationSequence) ? payload.validationSequence.join('\n') : ''
   const sourceWorkspaceNoGit = expectedHeadSha === 'source-workspace-no-git'
@@ -199,6 +202,9 @@ function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) 
   if (localAssignmentExists === true) {
     assert(!blockedStages.includes('remote-assignment-file-present'), 'fill-plan must clear only the file-present blocker when a local assignment draft exists')
     assert(blockedStages.includes('remote-assignment-health-ready'), 'fill-plan must preserve assignment health blocker until operator input is complete')
+  } else if (localAssignmentExists === false && currentEdgeOnlyProjection) {
+    assert(!blockedStages.includes('remote-assignment-file-present'), 'fill-plan must not reintroduce file-present blocker for tracked edge-only projection evidence')
+    assert(blockedStages.includes('remote-assignment-health-ready'), 'fill-plan must preserve edge-only Data API health blocker until operator input is complete')
   } else if (localAssignmentExists === false) {
     assert(blockedStages.includes('remote-assignment-file-present'), 'fill-plan must preserve the remote assignment file blocker until operator input exists')
   } else {

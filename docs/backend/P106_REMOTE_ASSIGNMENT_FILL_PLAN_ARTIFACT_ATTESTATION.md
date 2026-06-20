@@ -43,6 +43,10 @@ The gate validates:
   become ready while `remote-assignment-health-ready` stays blocked; for a
   downloaded GitHub artifact, the artifact's own blocked stages are authoritative
   for whether CI had a local assignment draft;
+- for the current `edge-only` clean-checkout path, the P105 artifact may prove
+  that P85 selected `runtime-assignment.intent.example.json` or another
+  edge-only current projection. In that case `remote-assignment-file-present`
+  must stay ready while Data API / assignment health blockers remain visible;
 - boundary booleans proving the artifact does not write local assignment state,
   create services, set GitHub variables, promote live runtime or treat fixtures
   as production readiness.

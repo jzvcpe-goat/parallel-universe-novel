@@ -198,6 +198,7 @@ const normalizedBlockedStages = Array.isArray(blockerLedger.payload.blockedStage
         .filter(stage => stage?.status === 'blocked')
         .map(stage => stage.id)
     : []
+const runtimeAssignmentEvidence = blockerLedger.payload.sourceEvidence?.runtimeAssignment || {}
 
 const fillPlan = [
   servicePlan({
@@ -301,6 +302,11 @@ const artifact = {
       status: blockerLedger.payload.status || null,
       decision: blockerLedger.payload.decision || null,
       blockedStages: normalizedBlockedStages,
+      runtimeAssignment: {
+        runtimeMode: runtimeAssignmentEvidence.runtimeMode || null,
+        assignmentPath: runtimeAssignmentEvidence.assignmentPath || null,
+        selectedEdgeOnlyCurrentPath: runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true,
+      },
       predicateMatched: blockerLedger.predicateMatched,
     },
     blockerAttestation: {
@@ -333,9 +339,14 @@ const artifact = {
 assert(fillPlan.length >= 6, 'P105 fill plan must cover ownership, services, origin, Pages variables and activation')
 assert(validationSequence.length >= 8, 'P105 validation sequence must cover all strict runtime assignment gates')
 const localAssignmentExists = existsSync(join(root, targetAssignmentPath))
+const currentEdgeOnlyProjection = runtimeAssignmentEvidence.runtimeMode === 'edge-only'
+  && runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true
 if (localAssignmentExists) {
   assert(!normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must clear only the file-present blocker when a local assignment draft exists')
   assert(normalizedBlockedStages.includes('remote-assignment-health-ready'), 'P105 must preserve assignment health blocker until operator input is complete')
+} else if (currentEdgeOnlyProjection) {
+  assert(!normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must not reintroduce file-present blocker for tracked edge-only projection evidence')
+  assert(normalizedBlockedStages.includes('remote-assignment-health-ready'), 'P105 must preserve edge-only Data API health blocker until operator input is complete')
 } else {
   assert(normalizedBlockedStages.includes('remote-assignment-file-present'), 'P105 must preserve the remote assignment file blocker until operator input exists')
 }

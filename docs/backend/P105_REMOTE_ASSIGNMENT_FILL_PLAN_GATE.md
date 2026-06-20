@@ -98,3 +98,11 @@ REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers
   runtime ready. If a P112 local draft exists, only
   `remote-assignment-file-present` may become ready; assignment health, origin,
   live readiness, live trace, cutover and activation blockers must remain.
+- In a clean checkout for the current `edge-only` topology, P85 may use the
+  committed `runtime-assignment.intent.example.json` as projection evidence. In
+  that case `remote-assignment-file-present` is not a current blocker, but the
+  Data API / health / activation blockers must remain visible until operator
+  evidence exists.
+- P105 records the selected runtime assignment projection metadata in
+  `upstreamEvidence.blockerLedger.runtimeAssignment` so P106 can validate the
+  same clean-checkout edge-only boundary from the emitted artifact alone.
