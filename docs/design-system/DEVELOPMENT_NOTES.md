@@ -5142,3 +5142,28 @@ goal 点名的是 kernel 和 constraints 本体。这里不能只依赖全仓隐
    `check:public-privacy-artifacts` 必须下载校验其 content，而不只是检查存在。
 5. 经验：法律风险边界要按“最容易被手改的文件”建立专用 gate。全仓扫描是安全网，
    专用 gate 才是团队日常编辑时最早响的警报。
+
+## 2026-06-20 Loop Evidence Refresh After P139
+
+P139 通过后不能马上认为 loop 已经完成。完整 root test 仍可能被本地 ignored
+evidence 卡住：`deploy/runtime-production/remote-assignment.local.json` 不进 Git，
+但如果它引用旧 runtime image SHA，`check:remote-assignment-image-drift` 会正确
+阻断 release gate。
+
+本轮原则：
+
+1. 代表作品隐私完成态必须同时看 P80/P92/P111/P127/P139：有团队 vault key 时，
+   `scan:reference-privacy` 要解密 vault 后扫描当前文件和 Git history；公开
+   artifact 只能保留 redacted 统计和 false redaction flags。
+2. Kernel / constraints 的完成态由 `check:kernel-constraint-reference-encryption`
+   证明：`GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 和
+   `genre-runtime-rules.v1.json` 只允许匿名 `rwref_*`，不允许明文标题、作者、
+   source evidence label 或映射。
+3. 如果 root test 失败在 P113 image drift，先确认
+   `remote-assignment.local.json` 是否为 ignored local draft。若只是旧 SHA，
+   使用 `REMOTE_ASSIGNMENT_DRAFT_FORCE=true npm run prepare:remote-assignment-local`
+   刷新本地草稿，再跑 `npm run check:remote-assignment-image-drift`。
+4. P113 的修复不应改产品代码，也不应提交 ignored local assignment。它只是把本地
+   operator 证据草稿对齐到当前 head，避免本地状态污染 loop 判断。
+5. 当前下一步 goal 仍是 `operator-assignment-evidence-intake`：按 P138 edge-only
+   路径补齐前端托管、数据 API、RLS/配置确认和“远端 Agent 不需要”的运营证据。
