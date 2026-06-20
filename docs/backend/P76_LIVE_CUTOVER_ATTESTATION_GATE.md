@@ -43,6 +43,12 @@ surface. GitHub repository variables must not contain database URLs, Tool Bridge
 token values, model keys, private keys, provider API tokens, system prompts, raw
 state, or reference-vault contents.
 
+For the current `edge-only` topology, P76 must prefer the P75 runtime intent or
+generated edge-only contract over later fixture artifacts. When P75 proves
+`runtimeMode=edge-only`, remote Agent origin, service id and secret-store
+attestation are not current blockers. Only the managed Data API / public runtime
+evidence remains.
+
 ## Decisions
 
 - `live_cutover_disabled`: public runtime mode is not `live`; this is the safe default.
@@ -94,6 +100,8 @@ No provider secret value is exposed to the frontend build.
   before public browser QA.
 - Default disabled mode produces `live_cutover_disabled` without blocking static preview deploys.
 - Strict mode fails until service assignment, P73, P66, and P23 are ready.
+- In edge-only mode, current P76 artifacts do not include remote Agent blocked
+  stages; P143 verifies this projection after P85.
 - Generated artifacts do not contain provider secrets, database URLs, model keys,
   system prompts, raw state, or private reference mappings.
 - After P76, run `npm run check:live-rollback-rehearsal` so the same release

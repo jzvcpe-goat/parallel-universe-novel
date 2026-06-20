@@ -66,8 +66,31 @@ function latest(prefix, predicate = null, label = prefix, options = {}) {
   }
 }
 
+function latestOptional(prefix, predicate) {
+  if (!existsSync(artifactDir)) return null
+  const files = readdirSync(artifactDir)
+    .filter(name => name.startsWith(prefix) && name.endsWith('.json'))
+    .sort()
+  for (const filename of files.toReversed()) {
+    const payload = JSON.parse(readFileSync(join(artifactDir, filename), 'utf8'))
+    if (!predicate || predicate(payload)) {
+      return {
+        filename,
+        path: join(artifactDir, filename),
+        payload,
+        predicateMatched: true,
+      }
+    }
+  }
+  return null
+}
+
 function array(value) {
   return Array.isArray(value) ? value : []
+}
+
+function isRemoteAgentBlocker(id) {
+  return /(^|-)agent(-|$)|remote-agent/i.test(String(id || ''))
 }
 
 function simpleBlockedIds(value) {
@@ -78,6 +101,13 @@ function simpleBlockedIds(value) {
       return 'unknown'
     })
     .filter(Boolean)
+}
+
+function currentBlockedIds(value, runtimeMode) {
+  const ids = simpleBlockedIds(value)
+  return runtimeMode === 'edge-only'
+    ? ids.filter(id => !isRemoteAgentBlocker(id))
+    : ids
 }
 
 function readinessBlockedIds(payload) {
@@ -220,8 +250,14 @@ assertContains('.github/workflows/pages.yml', [
 
 const localAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const fixtureAssignmentPath = 'deploy/runtime-production/remote-assignment.fixture.json'
+const edgeOnlyAssignmentPaths = new Set([
+  'deploy/runtime-production/runtime-assignment.intent.local.json',
+  'deploy/runtime-production/generated/remote-assignment.contract.json',
+])
 const isLocalAssignment = payload => payload?.assignmentPath === localAssignmentPath
 const isFixtureAssignment = payload => payload?.assignmentPath === fixtureAssignmentPath
+const isEdgeOnlyAssignment = payload => payload?.runtimeMode === 'edge-only'
+  && edgeOnlyAssignmentPaths.has(payload?.assignmentPath)
 const headSha = currentHead()
 const matchesCurrentHead = payload => payload?.headSha === headSha
 const imageEvidenceArtifact = latest(
@@ -239,6 +275,11 @@ const handoffArtifactEvidence = latest(
   `remote-handoff-artifact-attestation for ${handoffArtifactHeadTarget}`,
   { allowFallback: true },
 )
+const edgeOnlyAssignmentIntake = latestOptional('remote-runtime-assignment-intake-', isEdgeOnlyAssignment)
+const localAssignmentIntake = latestOptional('remote-runtime-assignment-intake-', isLocalAssignment)
+const selectedAssignmentIntake = edgeOnlyAssignmentIntake
+  || localAssignmentIntake
+  || latest('remote-runtime-assignment-intake-', null, 'remote-runtime-assignment-intake')
 
 const evidence = {
   readiness: latest('live-runtime-readiness-'),
@@ -246,7 +287,7 @@ const evidence = {
   originProvisioning: latest('remote-origin-provisioning-'),
   originExecution: latest('remote-origin-execution-'),
   imageEvidence: imageEvidenceArtifact,
-  assignmentIntake: latest('remote-runtime-assignment-intake-', isLocalAssignment, 'remote-runtime-assignment-intake local assignment'),
+  assignmentIntake: selectedAssignmentIntake,
   assignmentPack: latest('remote-assignment-execution-pack-', isLocalAssignment, 'remote-assignment-execution-pack local assignment'),
   cutover: latest('live-cutover-attestation-'),
   rollback: latest('live-rollback-rehearsal-'),
@@ -275,6 +316,8 @@ const fixtureAssignmentIntake = evidence.fixtureAssignmentIntake.payload
 const fixtureAssignmentPack = evidence.fixtureAssignmentPack.payload
 const referencePrivacy = evidence.referencePrivacy.payload
 const publicProjectionPrivacy = evidence.publicProjectionPrivacy.payload
+const assignmentRuntimeMode = assignmentIntake.runtimeMode === 'edge-only' ? 'edge-only' : 'full-remote'
+const currentAssignmentIsEdgeOnly = assignmentRuntimeMode === 'edge-only'
 const handoffArtifactPassed = (
   handoffArtifact.status === 'passed'
   || handoffArtifact.handoff?.decision === 'assignment_handoff_ready_for_operator'
@@ -305,16 +348,30 @@ const stages = [
     label: 'Remote service assignment exists',
     owner: 'deployment operator',
     gate: 'P75/P79 assignment file',
-    ready: assignmentIntake.decision !== 'remote_assignment_missing'
-      && assignmentPack.decision !== 'assignment_execution_waiting_for_assignment',
-    currentDecision: `${assignmentIntake.decision || 'unknown'} / ${assignmentPack.decision || 'unknown'}`,
-    blocked: [
-      ...simpleBlockedIds(assignmentIntake.blockedStages),
-      ...simpleBlockedIds(assignmentPack.blockedStages),
-    ],
-    requiredInputs: ['deploy/runtime-production/remote-assignment.local.json with non-secret service evidence'],
-    nextAction: 'Copy the assignment example to the ignored local assignment file and fill service ids, origins, image refs and secret-store confirmation flags.',
-    strictCommand: 'REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-assignment-execution-pack',
+    ready: currentAssignmentIsEdgeOnly
+      ? assignmentIntake.decision !== 'remote_assignment_missing'
+      : assignmentIntake.decision !== 'remote_assignment_missing'
+        && assignmentPack.decision !== 'assignment_execution_waiting_for_assignment',
+    currentDecision: currentAssignmentIsEdgeOnly
+      ? `${assignmentIntake.decision || 'unknown'} / edge-only-runtime-intent`
+      : `${assignmentIntake.decision || 'unknown'} / ${assignmentPack.decision || 'unknown'}`,
+    blocked: currentAssignmentIsEdgeOnly
+      ? (assignmentIntake.decision === 'remote_assignment_missing'
+          ? currentBlockedIds(assignmentIntake.blockedStages, assignmentRuntimeMode)
+          : [])
+      : [
+          ...currentBlockedIds(assignmentIntake.blockedStages, assignmentRuntimeMode),
+          ...currentBlockedIds(assignmentPack.blockedStages, assignmentRuntimeMode),
+        ],
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['edge-only runtime assignment intent/contract generated by P140/P138']
+      : ['deploy/runtime-production/remote-assignment.local.json with non-secret service evidence'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Run P140/P138 to regenerate the edge-only runtime assignment intent/contract before filling Data API evidence.'
+      : 'Copy the assignment example to the ignored local assignment file and fill service ids, origins, image refs and secret-store confirmation flags.',
+    strictCommand: currentAssignmentIsEdgeOnly
+      ? 'npm run check:runtime-assignment-intent-prep && npm run remote-assignment:prepare && npm run check:remote-runtime-assignment-intake'
+      : 'REMOTE_RUNTIME_ASSIGNMENT_FILE=deploy/runtime-production/remote-assignment.local.json npm run check:remote-assignment-execution-pack',
   }),
   stage({
     id: 'remote-assignment-health-ready',
@@ -323,9 +380,13 @@ const stages = [
     gate: 'P75 / check:remote-runtime-assignment-intake',
     ready: assignmentIntake.decision === 'remote_assignment_ready',
     currentDecision: assignmentIntake.decision,
-    blocked: simpleBlockedIds(assignmentIntake.blockedStages),
-    requiredInputs: ['remote API /health ready', 'remote Agent /health ready', 'provider-secret-store flags attested'],
-    nextAction: 'Make both remote /health endpoints pass and rerun P75 strict with the assignment file.',
+    blocked: currentBlockedIds(assignmentIntake.blockedStages, assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['data API service id', 'data API HTTPS origin', 'publishable/RLS configuration attestation', 'data API health proof']
+      : ['remote API /health ready', 'remote Agent /health ready', 'provider-secret-store flags attested'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Fill the edge-only runtime assignment intent with Data API/Supabase evidence, rerun P140/P138/P75, then run P142 intake gates.'
+      : 'Make both remote /health endpoints pass and rerun P75 strict with the assignment file.',
     strictCommand: 'REQUIRE_REMOTE_ASSIGNMENT_READY=true npm run check:remote-runtime-assignment-intake',
   }),
   stage({
@@ -335,9 +396,13 @@ const stages = [
     gate: 'P73 / check:remote-origin-execution',
     ready: originExecution.executionDecision === 'remote_origin_execution_ready',
     currentDecision: originExecution.executionDecision,
-    blocked: simpleBlockedIds(originExecution.blockedStages),
-    requiredInputs: ['service ids', 'HTTPS origins', 'provider-secret-store flags', 'health checks'],
-    nextAction: 'Provision the remote API and Agent services, configure provider secret stores, and expose healthy HTTPS origins.',
+    blocked: currentBlockedIds(originExecution.blockedStages, assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['managed data API service id', 'managed data API HTTPS origin', 'data API health check']
+      : ['service ids', 'HTTPS origins', 'provider-secret-store flags', 'health checks'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Provision or identify the managed Data API/Supabase surface and prove its HTTPS health; do not create a remote Agent service for edge-only.'
+      : 'Provision the remote API and Agent services, configure provider secret stores, and expose healthy HTTPS origins.',
     strictCommand: 'REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution',
   }),
   stage({
@@ -347,9 +412,13 @@ const stages = [
     gate: 'P66 / check:remote-origin-provisioning',
     ready: originProvisioning.provisioningDecision === 'ready_for_public_live_runtime',
     currentDecision: originProvisioning.provisioningDecision,
-    blocked: simpleBlockedIds(originProvisioning.blockedStages),
-    requiredInputs: ['VITE_API_ORIGIN', 'VITE_AGENT_RUNTIME_BASE_URL', 'VITE_PUBLIC_RUNTIME_MODE=live'],
-    nextAction: 'Set non-secret live runtime variables only after both origins are healthy.',
+    blocked: currentBlockedIds(originProvisioning.blockedStages, assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['VITE_API_ORIGIN', 'VITE_PUBLIC_RUNTIME_MODE=live after data API health proof']
+      : ['VITE_API_ORIGIN', 'VITE_AGENT_RUNTIME_BASE_URL', 'VITE_PUBLIC_RUNTIME_MODE=live'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Set the public API origin only after the managed Data API is healthy; keep remote Agent origin absent for edge-only.'
+      : 'Set non-secret live runtime variables only after both origins are healthy.',
     strictCommand: 'REQUIRE_REMOTE_ORIGIN_PROVISIONED=true npm run check:remote-origin-provisioning',
   }),
   stage({
@@ -359,9 +428,13 @@ const stages = [
     gate: 'P23 / audit:live-runtime-readiness',
     ready: readiness.status === 'ready',
     currentDecision: readiness.status,
-    blocked: readinessBlockedIds(readiness),
-    requiredInputs: ['live mode', 'API origin', 'Agent origin', 'remote health', 'Creator workflow preflight'],
-    nextAction: 'Clear every blocked check in the live readiness ledger before enabling public live runtime.',
+    blocked: currentBlockedIds(readinessBlockedIds(readiness), assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['live mode', 'API origin', 'data API health', 'Creator local/edge workflow preflight']
+      : ['live mode', 'API origin', 'Agent origin', 'remote health', 'Creator workflow preflight'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Clear Data API and public runtime readiness checks without adding remote Agent runtime variables.'
+      : 'Clear every blocked check in the live readiness ledger before enabling public live runtime.',
     strictCommand: 'REQUIRE_LIVE_RUNTIME_READY=true npm run audit:live-runtime-readiness',
   }),
   stage({
@@ -371,9 +444,13 @@ const stages = [
     gate: 'P65 / check:remote-live-runtime-trace',
     ready: remoteTrace.traceDecision === 'remote_live_trace_ready',
     currentDecision: remoteTrace.traceDecision,
-    blocked: simpleBlockedIds(remoteTrace.blockedChecks),
-    requiredInputs: ['remote Creator preflight returns public candidate', 'Reader trace remains non-internal'],
-    nextAction: 'Run the remote Creator seed-to-candidate path through the Agent Runtime and Tool Bridge until public projection passes.',
+    blocked: currentBlockedIds(remoteTrace.blockedChecks, assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['Reader/Data API public trace', 'local/edge Creator generation boundary remains private']
+      : ['remote Creator preflight returns public candidate', 'Reader trace remains non-internal'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Prove the public Reader/Data API trace while keeping AI generation on the user-owned edge device.'
+      : 'Run the remote Creator seed-to-candidate path through the Agent Runtime and Tool Bridge until public projection passes.',
     strictCommand: 'REQUIRE_REMOTE_LIVE_TRACE_READY=true npm run check:remote-live-runtime-trace',
   }),
   stage({
@@ -383,9 +460,13 @@ const stages = [
     gate: 'P76 / check:live-cutover-attestation',
     ready: cutover.decision === 'live_cutover_attested',
     currentDecision: cutover.decision,
-    blocked: simpleBlockedIds(cutover.blockedStages),
-    requiredInputs: ['assignment attestation', 'origin execution', 'origin provisioning', 'readiness ledger'],
-    nextAction: 'Attest service ids and secret-store flags, then rerun P76 strict after P73/P66/P23 are ready.',
+    blocked: currentBlockedIds(cutover.blockedStages, assignmentRuntimeMode),
+    requiredInputs: currentAssignmentIsEdgeOnly
+      ? ['edge-only assignment attestation', 'Data API origin execution', 'readiness ledger']
+      : ['assignment attestation', 'origin execution', 'origin provisioning', 'readiness ledger'],
+    nextAction: currentAssignmentIsEdgeOnly
+      ? 'Attest Data API evidence, then rerun P76 strict after P73/P66/P23 are edge-only clean.'
+      : 'Attest service ids and secret-store flags, then rerun P76 strict after P73/P66/P23 are ready.',
     strictCommand: 'REQUIRE_LIVE_CUTOVER_ATTESTED=true npm run check:live-cutover-attestation',
   }),
   stage({
@@ -481,6 +562,13 @@ const artifact = {
   stages,
   evidence: Object.entries(evidence).map(([name, item]) => ({ name, file: item.filename })),
   sourceEvidence: {
+    runtimeAssignment: {
+      runtimeMode: assignmentRuntimeMode,
+      assignmentPath: assignmentIntake.assignmentPath || null,
+      decision: assignmentIntake.decision || null,
+      selectedFile: evidence.assignmentIntake.filename,
+      selectedEdgeOnlyCurrentPath: currentAssignmentIsEdgeOnly,
+    },
     imagePublishEvidence: {
       status: imageEvidence.status,
       headSha: imageEvidence.headSha || null,

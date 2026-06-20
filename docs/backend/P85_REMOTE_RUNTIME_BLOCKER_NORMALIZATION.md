@@ -29,6 +29,14 @@ evidence, treats stale image evidence as a blocked `runtime-images-published`
 stage, and pairs P89 handoff evidence with the selected P72 image evidence head
 before writing the blocker ledger.
 
+P143 hardens the current edge-only projection. When P75 selects
+`deploy/runtime-production/runtime-assignment.intent.local.json` or
+`deploy/runtime-production/generated/remote-assignment.contract.json` with
+`runtimeMode=edge-only`, P85 must select that assignment evidence before legacy
+local draft or fixture artifacts. The current ledger may still point at P73,
+P66, P23 and P65, but their blocker ids and required inputs must be projected as
+Data API / public runtime evidence instead of remote Agent service evidence.
+
 ## Command
 
 ```bash
@@ -55,6 +63,10 @@ P85 reads `deploy/runtime-production/remote-assignment.local.json` evidence for
 real launch blockers. It treats `deploy/runtime-production/remote-assignment.fixture.json`
 only as the P81 fixture contract: a ready fixture execution pack proves command
 generation, but it must never mark the real remote service assignment ready.
+
+For the current edge-only launch path, P85 reads the P75 runtime intent or
+generated edge-only contract first. The legacy local assignment remains a
+fallback for full-remote compatibility only.
 
 ## Normalized Stages
 
@@ -130,6 +142,9 @@ P85 artifacts must not include:
   gate, not a blocker override.
 - `check:remote-runtime-blockers-artifact` validates the P85 artifact content
   after P89 without requiring remote assignment to be complete.
+- `check:edge-only-current-blocker-projection` validates that P85's current
+  edge-only ledger does not reintroduce remote Agent blocker ids or
+  `REMOTE_AGENT_*` requirements.
 - P85 blocks stale P72 image evidence with
   `runtime-image-evidence-current-head` instead of treating it as ready.
 - P85 pairs P89 handoff content with the selected P72 image evidence head before

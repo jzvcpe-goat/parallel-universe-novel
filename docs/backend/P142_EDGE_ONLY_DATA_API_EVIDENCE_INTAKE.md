@@ -53,6 +53,7 @@ npm run check:operator-assignment-evidence-intake-artifact
 npm run check:operator-assignment-loop-command-consistency
 npm run check:operator-assignment-loop-command-consistency-artifact
 npm run check:operator-assignment-current-head-coherence
+npm run check:edge-only-current-blocker-projection
 ```
 
 P123 depends on the latest P122 artifact. Running these gates in parallel can
@@ -78,6 +79,9 @@ P142 is complete only when all of the following are true:
 7. P122/P123/P124/P130/P131/P132 all pass on the same current head.
 8. Public projection privacy, reference privacy and kernel/constraint reference
    encryption gates remain green.
+9. `check:edge-only-current-blocker-projection` proves P76/P85 did not
+   reintroduce remote Agent service, origin, secret-store or health requirements
+   into the current edge-only blocker ledger.
 
 ## Non-Goals
 

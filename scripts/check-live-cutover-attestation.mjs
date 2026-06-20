@@ -84,18 +84,22 @@ function envOrRepo(name, repoValues) {
   return String(process.env[name] || repoValues[name] || '').trim()
 }
 
-function latestArtifact(prefix) {
+function latestArtifact(prefix, predicate = null) {
   if (!existsSync(artifactDir)) return null
   const files = readdirSync(artifactDir)
     .filter(name => name.startsWith(prefix) && name.endsWith('.json'))
     .sort()
   if (files.length === 0) return null
-  const path = join(artifactDir, files[files.length - 1])
-  try {
-    return { path, payload: JSON.parse(readFileSync(path, 'utf8')) }
-  } catch {
-    return { path, payload: null }
+  for (const filename of files.toReversed()) {
+    const path = join(artifactDir, filename)
+    try {
+      const payload = JSON.parse(readFileSync(path, 'utf8'))
+      if (!predicate || predicate(payload)) return { path, payload }
+    } catch {
+      if (!predicate) return { path, payload: null }
+    }
   }
+  return null
 }
 
 function stage(id, passed, detail, nextAction) {
@@ -187,13 +191,23 @@ const agentServiceId = envOrRepo('REMOTE_AGENT_SERVICE_ID', repoVariables.values
 const apiSecretsReady = boolValue(envOrRepo('REMOTE_API_SECRETS_CONFIGURED', repoVariables.values))
 const agentSecretsReady = boolValue(envOrRepo('REMOTE_AGENT_SECRETS_CONFIGURED', repoVariables.values))
 
-const p75 = latestArtifact('remote-runtime-assignment-intake-')
+const edgeOnlyAssignmentPaths = new Set([
+  'deploy/runtime-production/runtime-assignment.intent.local.json',
+  'deploy/runtime-production/generated/remote-assignment.contract.json',
+])
+const localAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
+const isEdgeOnlyAssignment = payload => payload?.runtimeMode === 'edge-only'
+  && edgeOnlyAssignmentPaths.has(payload?.assignmentPath)
+const isLocalAssignment = payload => payload?.assignmentPath === localAssignmentPath
+const p75 = latestArtifact('remote-runtime-assignment-intake-', isEdgeOnlyAssignment)
+  || latestArtifact('remote-runtime-assignment-intake-', isLocalAssignment)
+  || latestArtifact('remote-runtime-assignment-intake-')
 const p73 = latestArtifact('remote-origin-execution-')
 const p66 = latestArtifact('remote-origin-provisioning-')
 const p23 = latestArtifact('live-runtime-readiness-')
 
 const localAssignmentReady = p75?.payload?.decision === 'remote_assignment_ready'
-const edgeOnlyAssignmentReady = localAssignmentReady && p75?.payload?.runtimeMode === 'edge-only'
+const edgeOnlyAssignmentTopology = p75?.payload?.runtimeMode === 'edge-only'
 const envRuntimeMode = envOrRepo('REMOTE_RUNTIME_MODE', repoVariables.values)
 const variableEdgeOnly = envRuntimeMode === 'edge-only'
 const variableAssignmentReady = variableEdgeOnly
@@ -212,7 +226,7 @@ const assignmentSource = localAssignmentReady
   : variableAssignmentReady
     ? 'ci_repository_variable_attestation'
     : 'unattested'
-const remoteAgentRequired = !(edgeOnlyAssignmentReady || variableEdgeOnly)
+const remoteAgentRequired = !(edgeOnlyAssignmentTopology || variableEdgeOnly)
 
 const p73Ready = p73?.payload?.executionDecision === 'remote_origin_execution_ready'
   || p73?.payload?.status === 'ready'

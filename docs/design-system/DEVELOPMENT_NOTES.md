@@ -5306,3 +5306,37 @@ npm run check:operator-assignment-loop-command-consistency
 npm run check:operator-assignment-loop-command-consistency-artifact
 npm run check:operator-assignment-current-head-coherence
 ```
+
+## 2026-06-20 P143 Edge-Only Current Blocker Projection
+
+P142 的执行链还剩一个容易反复踩的坑：root test 会在 P75 后继续生成 fixture、
+legacy local draft、P79/P81/P91 这些 full-remote 兼容 artifact。如果 P76/P85
+只按时间戳读取“最新 artifact”，旧 fixture 就会回流成当前拓扑，重新要求 remote
+Agent service、origin、secret-store 和 health。
+
+本轮原则：
+
+1. P76 读取 P75 时优先选择 `runtime-assignment.intent.local.json` 或 generated
+   contract 的 edge-only artifact；只有没有 edge-only 证据时才回退 legacy local。
+2. P85 的 current blocker ledger 同样优先读取 edge-only assignment evidence；
+   `remote-assignment.local.json` 和 fixture 只保留 full-remote 兼容作用。
+3. P85 仍可以引用 P73/P66/P23/P65 的旧 artifact，但当前公开 blocker 必须投影为
+   Data API / public runtime evidence，不能把 `agent-origin`、`agent-health` 或
+   `REMOTE_AGENT_*` 放进当前缺口。
+4. 新增 P143：`check:edge-only-current-blocker-projection`。它在 P85/P90/P96
+   和已有 P105/P106 fill-plan pair 后运行，专门断言当前 P76/P85 没有
+   remote Agent blocker 回流，同时不破坏旧 release gate 顺序断言。
+5. 经验：升级方案不是删掉旧路径，而是明确“当前路径”和“兼容路径”的读取优先级。
+   任何使用 latest artifact 的 gate 都要有 topology-aware predicate。
+
+验证命令：
+
+```bash
+npm run check:live-cutover-attestation
+npm run check:remote-runtime-blockers
+npm run check:remote-runtime-blockers-artifact
+npm run check:runtime-completion-blocker-convergence
+npm run check:remote-assignment-fill-plan
+npm run check:remote-assignment-fill-plan-artifact
+npm run check:edge-only-current-blocker-projection
+```
