@@ -190,8 +190,8 @@ function assertStaticWiring() {
     'package.json must expose check:operator-assignment-current-head-coherence',
   )
   assert(
-    rootTest.includes('npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
-    'root test must run P132 after P131 and before dependency audit',
+    rootTest.includes('npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run check:operator-assignment-transition-fixture && npm run check:operator-assignment-transition-fixture-artifact && npm run audit:dependencies'),
+    'root test must run P132 after P131, then P133 before dependency audit',
   )
   for (const file of [
     'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',

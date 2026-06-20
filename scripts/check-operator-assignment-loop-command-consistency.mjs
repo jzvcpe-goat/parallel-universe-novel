@@ -119,8 +119,8 @@ assert(
   'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
 )
 assert(
-  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run audit:dependencies'),
-  'root test must run P130 after P129, then P131 and P132 before dependency audit',
+  rootTest.includes('npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run check:operator-assignment-transition-fixture && npm run check:operator-assignment-transition-fixture-artifact && npm run audit:dependencies'),
+  'root test must run P130 after P129, then P131, P132 and P133 before dependency audit',
 )
 
 for (const file of [

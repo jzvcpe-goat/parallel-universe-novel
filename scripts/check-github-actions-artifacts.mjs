@@ -30,6 +30,7 @@ if (checkCurrentRun) {
     'operator-assignment-evidence-intake',
     'operator-assignment-loop-command-consistency',
     'operator-assignment-current-head-coherence',
+    'operator-assignment-transition-fixture',
     'runtime-image-local-smoke',
     'reference-privacy',
     'public-projection-privacy',

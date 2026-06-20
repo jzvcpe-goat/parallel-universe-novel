@@ -63,7 +63,7 @@ or kernel ids.
 
 1. `package.json` exposes `check:operator-assignment-env-apply-fixture`.
 2. Root `npm run test` runs P126 after P125, then P128, P129, P130, P131 and
-   P132 before dependency audit.
+   P132 and P133 before dependency audit.
 3. P126 uses the existing P116 apply helper; it does not duplicate apply logic.
 4. P126 proves a safe positive fixture can write a temporary assignment target.
 5. P126 proves unsafe negative fixtures fail without modifying that target.

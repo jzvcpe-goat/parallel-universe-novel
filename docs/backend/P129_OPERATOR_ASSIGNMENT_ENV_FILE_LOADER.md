@@ -77,7 +77,7 @@ npm run check:operator-assignment-env-file-loader
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-env-file-loader`.
-2. Root `npm run test` runs P129 after P128, then P130, P131 and P132 before dependency audit.
+2. Root `npm run test` runs P129 after P128, then P130, P131, P132 and P133 before dependency audit.
 3. P117 can load a safe ignored `.env.local` fixture through
    `REMOTE_ASSIGNMENT_ENV_FILE` and report ready for P116 apply.
 4. P116 can load the same ignored `.env.local` fixture and write only a

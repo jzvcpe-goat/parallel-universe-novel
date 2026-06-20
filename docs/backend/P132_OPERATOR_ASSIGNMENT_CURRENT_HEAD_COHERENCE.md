@@ -75,12 +75,12 @@ P132 verifies that:
 
 ## Release Chain
 
-- Root `npm run test` runs P132 after P131 and before dependency audit.
+- Root `npm run test` runs P132 after P131, then P133 before dependency audit.
 - Pages uploads `operator-assignment-current-head-coherence` after root runtime
   checks.
 - Pages validates the uploaded current-run P132 artifact after P131 command
-  consistency content validation and before P115 runtime-image local-smoke
-  content validation.
+  consistency content validation and before P133 transition-fixture content
+  validation.
 - P107 counts `operator-assignment-current-head-coherence` as a
   `download_content_gate`.
 
@@ -88,10 +88,10 @@ P132 verifies that:
 
 1. `package.json` exposes
    `check:operator-assignment-current-head-coherence`.
-2. Root `npm run test` runs P132 after P131 before dependency audit.
+2. Root `npm run test` runs P132 after P131, then P133 before dependency audit.
 3. P121 refuses to create a fresh ledger from stale P119/P120/P113 artifacts.
 4. P123 refuses to package operator assignment intake unless P121 points at the
    current P120 and P113 evidence.
 5. P130 refuses to create command-consistency evidence unless it points at the
    current P119 and P121 artifacts.
-6. Pages uploads and validates the current-run P132 artifact.
+6. Pages uploads and validates the current-run P132 artifact before P133.

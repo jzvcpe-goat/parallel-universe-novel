@@ -76,7 +76,7 @@ P131 verifies that the uploaded P130 artifact:
 ## Release Chain
 
 - Root `npm run test` runs P131 after P130 and before dependency audit.
-- Root `npm run test` runs P132 after P131 and before dependency audit.
+- Root `npm run test` runs P132 after P131, then P133 before dependency audit.
 - Pages uploads `operator-assignment-loop-command-consistency` after root
   runtime checks.
 - Pages runs P131 content validation after P124 assignment-intake content
@@ -90,7 +90,7 @@ P131 verifies that the uploaded P130 artifact:
 
 1. `package.json` exposes
    `check:operator-assignment-loop-command-consistency-artifact`.
-2. Root `npm run test` runs P131 after P130 and P132 after P131 before dependency audit.
+2. Root `npm run test` runs P131 after P130, then P132 and P133 before dependency audit.
 3. Pages uploads the P130 JSON artifact.
 4. Pages validates the current-run uploaded P130 artifact with
    `CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED=true`.

@@ -81,7 +81,7 @@ npm run check:operator-assignment-current-head-coherence
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-loop-command-consistency`.
-2. Root `npm run test` runs P130 after P129, then P131 and P132 before dependency audit.
+2. Root `npm run test` runs P130 after P129, then P131, P132 and P133 before dependency audit.
 3. P121 generated artifacts include the env-file strict dry-run command.
 4. P121 generated artifacts include the env-file apply command with
    `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true`.

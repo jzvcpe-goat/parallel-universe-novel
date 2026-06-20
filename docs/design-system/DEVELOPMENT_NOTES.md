@@ -1,5 +1,59 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P134 Zero-Cost Reader Edge Sync Runbook
+
+“0 元全托管阅读端”不是把 AI 运行时搬到 Vercel/Supabase，而是把云端边界收窄为：
+静态 Reader Web、公开读取、数据库存储和健康验证。写作、生成、改写、续写都留在用户
+自己的边缘端设备。
+
+新的工程规则：
+
+1. Reader Web 云端不得新增 `/api/generate`、`/api/write`、AI API key 或读者触发 AI
+   的入口。
+2. Supabase 保活必须直接查 `health_probe`；只 curl Vercel HTML 不算数据库保活。
+3. GitHub scheduled workflow 本身也可能因 public repo 60 天无活动被禁用，所以保活
+   只能作为 best-effort，月度检查要手动 dispatch 或有意做一次维护提交。
+4. `.env.local.sync` 是 writer 密码和 Supabase publishable key 的单点故障；它必须
+   离开 Git/Vercel，但也必须进入可信密码管理器或加密备份。
+5. `novels_history` 是恢复材料，不是一键回滚。恢复章节时要用 SQL 查旧内容，人工把
+   `old_content` 覆盖回 `novels.content`。
+
+落地文档：
+
+```bash
+docs/backend/P134_ZERO_COST_READER_EDGE_SYNC_RUNBOOK.md
+```
+
+## 2026-06-20 P133 Operator Assignment Transition Fixture
+
+P132 证明了 operator assignment 证据链与当前 release head 一致，但还没有证明：
+当部署者真的提供非 secret 的 service id、origin 和 provider-secret-store 确认后，
+系统会从 assignment intake 正确推进到 remote health evidence intake，而不会把
+fixture readiness 当成 live runtime。
+
+新的工程规则：
+
+1. 过渡验证必须使用临时 env 文件和临时 assignment target，不写
+   `deploy/runtime-production/remote-assignment.local.json`。
+2. P133 只证明 P117 ready -> P116 apply -> P75 pending health -> P121 下一目标为
+   `remote-health-evidence-intake`，不创建远程服务、不设置 GitHub variables、不存储
+   provider secrets、不 promote live runtime。
+3. 任何新增 release artifact 必须同时进入 package script、root `npm run test`、
+   Pages upload、Pages content gate、P16/P43/P107 文档矩阵和 release sync manifest。
+4. P133 必须在 P132 current-head coherence 之后、P115 runtime image local-smoke
+   artifact content gate 之前运行。
+5. P133 artifact 只保留 gate/status/decision/boundary 证明，不输出 service id、origin、
+   prompt plumbing、profile/kernel ids、`sourceRefs` 或 private reference material。
+
+验证命令：
+
+```bash
+npm run check:operator-assignment-transition-fixture
+npm run check:operator-assignment-transition-fixture-artifact
+npm run check:ci-artifact-content-coverage
+npm run test
+```
+
 ## 2026-06-20 P123 Fixture-Isolation Source Coherence
 
 P132 修完 current-head 后，又暴露出一个更细的同类问题：P123 可以读取最新 P121，

@@ -47,7 +47,10 @@ P130 then verifies that P121, P123 and P129 all publish the same env-file
 operator command sequence, and that the legacy apply flag cannot return. P131
 then validates the uploaded P130 artifact content in the same Pages run. P132
 then verifies that P119, P120, P121, P123, P130 and P131 all point at the same
-current head before dependency audit.
+current head. P133 then exercises the env-file assignment transition with a
+temporary assignment target, proving the loop can move from operator assignment
+evidence to remote health evidence without writing production assignment state
+before dependency audit.
 
 ## Command
 
@@ -113,8 +116,8 @@ Completion criteria for that goal:
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P125, P126, P128, P129, P130, P131 and P132 before
-   dependency audit.
+   then P122, P123, P124, P125, P126, P128, P129, P130, P131, P132 and P133
+   before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current-head P119/P120/P113 evidence, not
    hardcoded wishful thinking or stale operator packets.
