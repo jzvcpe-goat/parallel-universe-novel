@@ -147,9 +147,24 @@ function validateTextValue(key, value) {
 function readOperatorEnv() {
   const envFile = loadOperatorAssignmentEnvFile({
     root,
-    allowedKeys: [...Object.keys(envSpec), 'REMOTE_RUNTIME_ENVIRONMENT'],
+    allowedKeys: [
+      ...Object.keys(envSpec),
+      'REMOTE_RUNTIME_ENVIRONMENT',
+      'REMOTE_RUNTIME_MODE',
+      'REMOTE_FRONTEND_SERVICE_ID',
+      'REMOTE_FRONTEND_ORIGIN',
+      'REMOTE_FRONTEND_SECRETS_CONFIGURED',
+      'REMOTE_AGENT_REMOTE_REQUIRED',
+      'REMOTE_AGENT_LOCATION',
+      'REMOTE_AI_GENERATION_CLOUD_RUNTIME',
+      'REMOTE_READER_CAN_TRIGGER_AI',
+      'REMOTE_AGENT_ABSENCE_REASON',
+    ],
   })
   const effectiveEnv = envFile.effectiveEnv
+  if (String(effectiveEnv.REMOTE_RUNTIME_MODE || '').trim() === 'edge-only') {
+    throw new Error('edge-only runtime uses npm run remote-assignment:prepare; do not apply it into the legacy two-service remote-assignment.local.json')
+  }
   const missing = Object.keys(envSpec).filter(key => effectiveEnv[key] == null || String(effectiveEnv[key]).trim() === '')
   assert(missing.length === 0, `missing operator env vars: ${missing.join(', ')}`)
   const owner = validateTextValue('REMOTE_OPERATOR_OWNER', effectiveEnv.REMOTE_OPERATOR_OWNER)

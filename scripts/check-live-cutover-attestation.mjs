@@ -193,18 +193,26 @@ const p66 = latestArtifact('remote-origin-provisioning-')
 const p23 = latestArtifact('live-runtime-readiness-')
 
 const localAssignmentReady = p75?.payload?.decision === 'remote_assignment_ready'
-const variableAssignmentReady = isProvided(apiServiceId)
-  && isProvided(agentServiceId)
-  && apiSecretsReady
-  && agentSecretsReady
-  && isRemoteHttps(apiOrigin)
-  && isRemoteHttps(agentOrigin)
+const edgeOnlyAssignmentReady = localAssignmentReady && p75?.payload?.runtimeMode === 'edge-only'
+const envRuntimeMode = envOrRepo('REMOTE_RUNTIME_MODE', repoVariables.values)
+const variableEdgeOnly = envRuntimeMode === 'edge-only'
+const variableAssignmentReady = variableEdgeOnly
+  ? isProvided(apiServiceId)
+    && apiSecretsReady
+    && isRemoteHttps(apiOrigin)
+  : isProvided(apiServiceId)
+    && isProvided(agentServiceId)
+    && apiSecretsReady
+    && agentSecretsReady
+    && isRemoteHttps(apiOrigin)
+    && isRemoteHttps(agentOrigin)
 const assignmentAttestationReady = localAssignmentReady || variableAssignmentReady
 const assignmentSource = localAssignmentReady
   ? 'p75_local_assignment_ready'
   : variableAssignmentReady
     ? 'ci_repository_variable_attestation'
     : 'unattested'
+const remoteAgentRequired = !(edgeOnlyAssignmentReady || variableEdgeOnly)
 
 const p73Ready = p73?.payload?.executionDecision === 'remote_origin_execution_ready'
   || p73?.payload?.status === 'ready'
@@ -215,11 +223,11 @@ const p23Ready = p23?.payload?.status === 'ready'
 const stages = [
   stage('public-runtime-mode-live', mode === 'live', `current=${mode}`, 'Set VITE_PUBLIC_RUNTIME_MODE=live only after P75/P73/P66/P23 are ready.'),
   stage('api-origin-ready', isRemoteHttps(apiOrigin), apiOrigin || 'missing VITE_API_ORIGIN', 'Set VITE_API_ORIGIN to the remote FastAPI HTTPS origin.'),
-  stage('agent-origin-ready', isRemoteHttps(agentOrigin), agentOrigin || 'missing VITE_AGENT_RUNTIME_BASE_URL', 'Set VITE_AGENT_RUNTIME_BASE_URL to the remote Agent HTTPS origin.'),
+  stage('agent-origin-ready', remoteAgentRequired ? isRemoteHttps(agentOrigin) : true, remoteAgentRequired ? (agentOrigin || 'missing VITE_AGENT_RUNTIME_BASE_URL') : 'not-required-edge-only', 'Set VITE_AGENT_RUNTIME_BASE_URL to the remote Agent HTTPS origin, unless P75 proves edge-only.'),
   stage('api-service-attested', isProvided(apiServiceId) || localAssignmentReady, isProvided(apiServiceId) ? 'provided' : assignmentSource, 'Set REMOTE_API_SERVICE_ID as a non-secret GitHub repository variable, or provide ready P75 local assignment evidence.'),
-  stage('agent-service-attested', isProvided(agentServiceId) || localAssignmentReady, isProvided(agentServiceId) ? 'provided' : assignmentSource, 'Set REMOTE_AGENT_SERVICE_ID as a non-secret GitHub repository variable, or provide ready P75 local assignment evidence.'),
+  stage('agent-service-attested', remoteAgentRequired ? (isProvided(agentServiceId) || localAssignmentReady) : true, remoteAgentRequired ? (isProvided(agentServiceId) ? 'provided' : assignmentSource) : 'not-required-edge-only', 'Set REMOTE_AGENT_SERVICE_ID as a non-secret GitHub repository variable, unless P75 proves edge-only.'),
   stage('api-secret-store-attested', apiSecretsReady || localAssignmentReady, String(apiSecretsReady || localAssignmentReady), 'Set REMOTE_API_SECRETS_CONFIGURED=true after provider secret store is configured.'),
-  stage('agent-secret-store-attested', agentSecretsReady || localAssignmentReady, String(agentSecretsReady || localAssignmentReady), 'Set REMOTE_AGENT_SECRETS_CONFIGURED=true after provider secret store is configured.'),
+  stage('agent-secret-store-attested', remoteAgentRequired ? (agentSecretsReady || localAssignmentReady) : true, remoteAgentRequired ? String(agentSecretsReady || localAssignmentReady) : 'not-required-edge-only', 'Set REMOTE_AGENT_SECRETS_CONFIGURED=true after provider secret store is configured, unless P75 proves edge-only.'),
   stage('assignment-attestation-ready', assignmentAttestationReady, assignmentSource, 'Run strict P75 locally, or set the non-secret REMOTE_* attestation variables in GitHub.'),
   stage('remote-origin-execution-ready', p73Ready, p73?.payload?.executionDecision || 'missing P73 ready artifact', 'Run REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution.'),
   stage('remote-origin-provisioning-ready', p66Ready, p66?.payload?.provisioningDecision || 'missing P66 ready artifact', 'Run REQUIRE_REMOTE_ORIGIN_PROVISIONED=true npm run check:remote-origin-provisioning.'),
@@ -261,7 +269,8 @@ const artifact = {
   publicRuntime: {
     mode,
     apiOrigin: apiOrigin || null,
-    agentOrigin: agentOrigin || null,
+    agentOrigin: remoteAgentRequired ? (agentOrigin || null) : null,
+    remoteAgentRequired,
   },
   evidence: {
     p75: p75 ? { path: p75.path, decision: p75.payload?.decision || null } : null,

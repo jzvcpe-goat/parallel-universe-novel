@@ -32,6 +32,17 @@ The committed contract fixture is:
 deploy/runtime-production/remote-assignment.fixture.json
 ```
 
+P138 adds a higher-level compiler path for topology-aware deployment evidence:
+
+```text
+deploy/runtime-production/runtime-assignment.intent.local.json
+deploy/runtime-production/generated/remote-assignment.contract.json
+```
+
+When `runtime_mode=edge-only`, the generated contract is the preferred P75
+input. In that topology, remote Agent absence is expected evidence, not a
+missing service id.
+
 The fixture uses reserved `.invalid` origins. It is only for validating the
 assignment shape and P79 command generation. It must produce
 `remote_assignment_pending_health`, not `remote_assignment_ready`; the fixture
@@ -89,6 +100,10 @@ npm run check:remote-runtime-assignment-intake
 - `remote_assignment_incomplete`: assignment file exists, but service ids, origins, image refs, or provider-secret-store confirmations are missing.
 - `remote_assignment_pending_health`: assignment fields are present, but one or both remote `/health` checks are not ready.
 - `remote_assignment_ready`: service ids, origins, image refs, provider-secret-store confirmations and health checks are ready.
+
+For a P138 `edge-only` contract, `remote_assignment_ready` means the frontend
+and managed data API evidence is complete and the remote Agent absence boundary
+is explicit. Remote health is then checked by `npm run remote-health:check`.
 
 ## Assignment Rules
 
@@ -160,6 +175,9 @@ P117 `check:remote-assignment-env-dry-run` is the no-write preflight for the
 same non-secret environment variables. It catches partial env sets, placeholder
 values, invalid origins and secret-looking material before P116 writes ignored
 local state.
+
+P138 `remote-assignment:prepare` is the preferred path for edge-only topology.
+It must not fabricate `REMOTE_AGENT_SERVICE_ID` or `REMOTE_AGENT_ORIGIN`.
 
 ## Acceptance
 

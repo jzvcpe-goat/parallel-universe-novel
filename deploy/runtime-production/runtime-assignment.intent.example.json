@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "goal": "parallel-universe-novel-reader",
+  "environment": "production",
+  "runtime_mode": "edge-only",
+  "operator": {
+    "owner": "<deployment-owner>",
+    "provider": "vercel-supabase-managed"
+  },
+  "frontend": {
+    "provider": "vercel",
+    "service_id": "<vercel-project-id>",
+    "origin": "https://<your-vercel-project>.vercel.app",
+    "secrets_configured": true
+  },
+  "data_api": {
+    "provider": "supabase",
+    "service_id": "<supabase-project-ref>",
+    "origin": "https://<supabase-project-ref>.supabase.co",
+    "secrets_configured": true,
+    "public_key_model": "publishable-or-legacy-anon-with-rls"
+  },
+  "agent": {
+    "remote_required": false,
+    "location": "user-owned-edge-device",
+    "ai_generation_cloud_runtime": false,
+    "reader_can_trigger_ai": false
+  },
+  "health": {
+    "frontend_url": "https://<your-vercel-project>.vercel.app",
+    "data_probe_table": "health_probe",
+    "data_probe_id": "reader"
+  }
+}

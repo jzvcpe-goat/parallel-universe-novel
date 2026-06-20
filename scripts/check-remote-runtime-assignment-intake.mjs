@@ -7,6 +7,8 @@ const artifactDir = join(root, 'artifacts', 'runtime')
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 const defaultAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const assignmentPath = process.env.REMOTE_RUNTIME_ASSIGNMENT_FILE || defaultAssignmentPath
+const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
+const explicitAssignmentPath = Boolean(process.env.REMOTE_RUNTIME_ASSIGNMENT_FILE)
 
 function read(rel) {
   return readFileSync(join(root, rel), 'utf8')
@@ -143,6 +145,115 @@ function buildMissingArtifact() {
   }
 }
 
+function buildContractArtifact(contract) {
+  const isEdgeOnly = contract.runtime_mode === 'edge-only'
+  const frontend = contract.topology?.frontend || {}
+  const dataApi = contract.topology?.data_api || {}
+  const agent = contract.topology?.agent || {}
+  const apiOrigin = normalizeOrigin(dataApi.origin)
+  const frontendOrigin = normalizeOrigin(frontend.origin)
+  const agentOrigin = normalizeOrigin(agent.remote_origin)
+  const stages = [
+    stage('runtime-contract-present', true, generatedContractPath, 'Compiled runtime assignment contract was read.'),
+    stage('runtime-contract-version', contract.schema_version === 1, String(contract.schema_version), 'Use runtime assignment contract schema_version=1.'),
+    stage('runtime-mode', ['edge-only', 'hybrid', 'full-remote'].includes(contract.runtime_mode), String(contract.runtime_mode), 'Use edge-only, hybrid, or full-remote runtime mode.'),
+    stage('operator-owner', Boolean(contract.operator?.owner), contract.operator?.owner ? 'provided' : 'missing', 'Fill operator.owner in runtime assignment intent.'),
+    stage('operator-provider', Boolean(contract.operator?.provider), contract.operator?.provider ? 'provided' : 'missing', 'Fill operator.provider in runtime assignment intent.'),
+    stage('frontend-service-id', Boolean(frontend.service_id), frontend.service_id ? 'provided' : 'missing', 'Fill frontend.service_id.'),
+    stage('frontend-origin', isRemoteHttps(frontendOrigin), frontendOrigin || 'missing', 'Fill frontend.origin with production HTTPS origin.'),
+    stage('frontend-secrets-ready', frontend.secrets_configured === true, String(frontend.secrets_configured), 'Confirm frontend provider config is ready.'),
+    stage('data-api-service-id', Boolean(dataApi.service_id), dataApi.service_id ? 'provided' : 'missing', 'Fill data_api.service_id.'),
+    stage('data-api-origin', isRemoteHttps(apiOrigin), apiOrigin || 'missing', 'Fill data_api.origin with production HTTPS origin.'),
+    stage('data-api-secrets-ready', dataApi.secrets_configured === true, String(dataApi.secrets_configured), 'Confirm data API publishable/RLS config is ready.'),
+    stage('secret-boundary', contract.secret_boundary?.service_role_in_frontend_allowed === false && contract.secret_boundary?.writer_password_in_frontend_allowed === false && contract.secret_boundary?.cloud_ai_api_keys_allowed === false, 'public boundary checked', 'Keep service role, writer password and AI keys out of frontend.'),
+  ]
+
+  if (isEdgeOnly) {
+    stages.push(stage('remote-agent-not-required', agent.remote_required === false, String(agent.remote_required), 'Edge-only runtime must not require remote agent.'))
+    stages.push(stage('remote-agent-service-absent', agent.remote_service_id == null && agent.remote_origin == null, 'not-required-edge-only', 'Do not fabricate remote Agent service evidence for edge-only.'))
+    stages.push(stage('cloud-ai-runtime-disabled', agent.ai_generation_cloud_runtime === false, String(agent.ai_generation_cloud_runtime), 'AI generation must stay on the user-owned edge device.'))
+    stages.push(stage('reader-ai-trigger-disabled', agent.reader_can_trigger_ai === false, String(agent.reader_can_trigger_ai), 'Reader cloud path must not trigger AI generation.'))
+  } else {
+    stages.push(stage('remote-agent-required', agent.remote_required === true, String(agent.remote_required), 'Hybrid/full-remote requires remote Agent service.'))
+    stages.push(stage('agent-service-id', Boolean(agent.remote_service_id), agent.remote_service_id ? 'provided' : 'missing', 'Fill agent.service_id.'))
+    stages.push(stage('agent-origin', isRemoteHttps(agentOrigin), agentOrigin || 'missing', 'Fill agent.origin with remote HTTPS origin.'))
+    stages.push(stage('agent-provider-secrets-ready', agent.remote_secrets_configured === true, String(agent.remote_secrets_configured), 'Confirm Agent provider secrets are configured.'))
+  }
+
+  const blockedStages = stages.filter(item => item.status !== 'ready').map(item => item.id)
+  return {
+    version: 1,
+    gate: 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE',
+    generatedAt: new Date().toISOString(),
+    repository: repo,
+    assignmentPath: generatedContractPath,
+    assignmentSource: 'runtime-assignment-compiler',
+    runtimeMode: contract.runtime_mode,
+    remoteAgentRequired: !isEdgeOnly,
+    decision: blockedStages.length ? 'remote_assignment_incomplete' : 'remote_assignment_ready',
+    blockedStages,
+    services: {
+      api: {
+        serviceIdProvided: Boolean(dataApi.service_id),
+        origin: apiOrigin || null,
+        image: null,
+        providerSecretsConfigured: dataApi.secrets_configured === true,
+      },
+      frontend: {
+        serviceIdProvided: Boolean(frontend.service_id),
+        origin: frontendOrigin || null,
+        providerSecretsConfigured: frontend.secrets_configured === true,
+      },
+      agent: isEdgeOnly
+        ? {
+            serviceIdProvided: false,
+            origin: null,
+            providerSecretsConfigured: false,
+            absenceExpected: true,
+            absenceReason: 'edge-only runtime: AI generation occurs on user-owned edge device',
+          }
+        : {
+            serviceIdProvided: Boolean(agent.remote_service_id),
+            origin: agentOrigin || null,
+            providerSecretsConfigured: agent.remote_secrets_configured === true,
+            absenceExpected: false,
+          },
+    },
+    health: {
+      frontend: { status: 'pending_remote_health_check', url: contract.health?.frontend_url || null },
+      dataApi: {
+        status: 'pending_remote_health_check',
+        origin: apiOrigin || null,
+        table: contract.health?.data_probe_table || null,
+        id: contract.health?.data_probe_id || null,
+      },
+      agent: isEdgeOnly
+        ? { status: 'not-required-edge-only', required: false }
+        : { status: 'pending_remote_health_check', required: true, origin: agentOrigin || null },
+    },
+    stages,
+    exportCommandsForP73: isEdgeOnly
+      ? [
+          'export REMOTE_RUNTIME_MODE=edge-only',
+          `export REMOTE_API_SERVICE_ID=${dataApi.service_id || '<supabase-project-ref>'}`,
+          `export REMOTE_API_ORIGIN=${apiOrigin || 'https://<supabase-project-ref>.supabase.co'}`,
+          `export REMOTE_API_SECRETS_CONFIGURED=${dataApi.secrets_configured === true ? 'true' : '<true-after-rls-and-publishable-key>'}`,
+          'export REMOTE_AGENT_REMOTE_REQUIRED=false',
+          'export REMOTE_AGENT_SECRETS_CONFIGURED=false',
+          'npm run remote-health:check',
+        ]
+      : [
+          `export REMOTE_API_SERVICE_ID=${dataApi.service_id || '<provider-api-service-id>'}`,
+          `export REMOTE_AGENT_SERVICE_ID=${agent.remote_service_id || '<provider-agent-service-id>'}`,
+          `export REMOTE_API_ORIGIN=${apiOrigin || 'https://<api-host>'}`,
+          `export REMOTE_AGENT_ORIGIN=${agentOrigin || 'https://<agent-host>'}`,
+          `export REMOTE_API_SECRETS_CONFIGURED=${dataApi.secrets_configured === true ? 'true' : '<true-after-provider-secret-store>'}`,
+          `export REMOTE_AGENT_SECRETS_CONFIGURED=${agent.remote_secrets_configured === true ? 'true' : '<true-after-provider-secret-store>'}`,
+          'REQUIRE_REMOTE_ORIGIN_EXECUTED=true npm run check:remote-origin-execution',
+        ],
+  }
+}
+
 function expectedImage(serviceManifest, id) {
   const service = serviceManifest.services.find(item => item.id === id)
   assert(service, `service manifest missing ${id}`)
@@ -270,8 +381,11 @@ assertContains('docs/backend/P74_REMOTE_RUNTIME_OPERATOR_HANDOFF.md', [
 ])
 
 const serviceManifest = readJson('deploy/runtime-production/service-manifest.json')
+const contract = explicitAssignmentPath ? null : maybeReadJson(generatedContractPath)
 const assignment = maybeReadJson(assignmentPath)
-const artifact = assignment
+const artifact = contract
+  ? buildContractArtifact(contract)
+  : assignment
   ? await buildAssignmentArtifact({ assignment, serviceManifest })
   : buildMissingArtifact()
 
@@ -291,7 +405,8 @@ console.log(JSON.stringify({
   status: artifact.decision === 'remote_assignment_ready' ? 'passed' : 'passed_with_assignment_blockers',
   gate: artifact.gate,
   decision: artifact.decision,
-  assignmentPath,
+  assignmentPath: artifact.assignmentPath || assignmentPath,
+  runtimeMode: artifact.runtimeMode || 'full-remote',
   blockedStages: artifact.blockedStages,
   artifactPath,
 }, null, 2))

@@ -5066,3 +5066,30 @@ P93 修的是 P43/P91/P79/P81 之间的证据空洞：GitHub Actions 能上传
    content gates。
 6. 经验：远端 assignment 证据比普通日志更容易被误读成“已经上线”。P93 只验内容
    一致性，不创建远端服务、不写 local assignment、不解除 live runtime blocker。
+
+## 2026-06-20 P138 Remote Assignment Compiler v3
+
+P138 修的是旧 operator-assignment 链条对部署拓扑的误判：以前所有上线路径都被
+压成 API + Agent 两个远端服务，所以 `REMOTE_AGENT_SERVICE_ID`、
+`REMOTE_AGENT_ORIGIN` 和 `REMOTE_AGENT_SECRETS_CONFIGURED=true` 总是必填。
+当真实方案是 0 元托管 reader + Supabase + 用户自有 edge 写作时，这会把“远端
+Agent 有意缺席”误判为缺证据。
+
+本轮原则：
+
+1. 新增 `runtime-assignment.intent.local.json` 作为 ignored 本地语义输入，由
+   `remote-assignment:prepare` 编译成 ignored contract、legacy env、operator
+   evidence、ledger patch 和 health evidence request。
+2. `edge-only` 是一等 runtime mode：`REMOTE_RUNTIME_MODE=edge-only`、
+   `REMOTE_AGENT_REMOTE_REQUIRED=false`、`REMOTE_AI_GENERATION_CLOUD_RUNTIME=false`
+   和 `REMOTE_READER_CAN_TRIGGER_AI=false` 是边界证据。
+3. `check:remote-assignment-env-dry-run` 改为 mode-aware。edge-only 下禁止伪造
+   `REMOTE_AGENT_SERVICE_ID` 和 `REMOTE_AGENT_ORIGIN`，并要求
+   `REMOTE_AGENT_SECRETS_CONFIGURED=false`。
+4. `check:remote-runtime-assignment-intake` 优先接受 compiler 生成的
+   `remote-assignment.contract.json`。edge-only 合同 ready 后，P75 blocker 从
+   “缺远端 Agent”转为“等待 remote health evidence”。
+5. `check:live-cutover-attestation` 在 P75 证明 edge-only 后，不再要求
+   `VITE_AGENT_RUNTIME_BASE_URL` 或远端 Agent attestation。
+6. 经验：不能为了过 gate 填假服务。正确做法是让 gate 理解真实拓扑，并把剩余
+   断点移动到可验证的健康探针、RLS、公开读取和上线变量证据。

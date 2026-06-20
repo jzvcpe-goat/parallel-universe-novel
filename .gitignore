@@ -36,6 +36,10 @@ deploy/runtime-production/remote-assignment.local.json
 deploy/runtime-production/remote-assignment.*.local.json
 deploy/runtime-production/remote-assignment.env.local
 deploy/runtime-production/remote-assignment.*.env.local
+deploy/runtime-production/runtime-assignment.intent.local.json
+deploy/runtime-production/runtime-assignment.*.intent.local.json
+deploy/runtime-production/generated/*
+!deploy/runtime-production/generated/.gitkeep
 
 # Local harness/generated artifacts
 artifacts/

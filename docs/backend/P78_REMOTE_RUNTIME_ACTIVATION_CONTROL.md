@@ -11,6 +11,11 @@ GitHub repository variables. Instead, it aggregates the already-owned gates:
 - P76 live cutover attestation,
 - P77 live rollback rehearsal.
 
+P138 adds a topology-aware compiler before P75. If P75 is backed by a ready
+`edge-only` contract, P78 must not wait for a remote Agent service. It should
+move the remaining blocker to frontend/data health evidence and live cutover
+attestation.
+
 This keeps the project from drifting back into oral handoff. The operator can
 see exactly whether the blocker is image evidence, service assignment, remote
 health, live variables, or rollback ownership.
@@ -48,6 +53,17 @@ REQUIRE_REMOTE_ACTIVATION_CONTROL_READY=true npm run check:remote-runtime-activa
    `deploy/runtime-production/remote-assignment.local.json`.
 3. Fill only non-secret service evidence: owner, provider, service ids, HTTPS
    origins, image refs and provider-secret-store confirmation flags.
+
+For edge-only reader hosting, use the compiler path instead:
+
+```bash
+cp deploy/runtime-production/runtime-assignment.intent.example.json \
+  deploy/runtime-production/runtime-assignment.intent.local.json
+npm run remote-assignment:prepare
+npm run check:remote-runtime-assignment-intake
+npm run remote-health:check
+```
+
 4. Generate the P79 Remote Assignment Execution Pack:
 
    ```bash
