@@ -8,6 +8,7 @@ const artifactDir = join(root, 'artifacts', 'runtime')
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const edgeOnlyExampleAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function read(rel) {
@@ -105,6 +106,7 @@ function isCurrentAssignmentIntake(payload) {
     && [
       targetAssignmentPath,
       preferredAssignmentPath,
+      edgeOnlyExampleAssignmentPath,
       generatedContractPath,
     ].includes(payload.assignmentPath)
 }
@@ -129,6 +131,8 @@ Head: \`${packet.headSha}\`
 Target local file: \`${packet.targetAssignmentPath}\`
 
 Preferred edge-only intent: \`${packet.preferredAssignmentPath}\`
+
+Tracked edge-only projection: \`${packet.edgeOnlyExampleAssignmentPath}\`
 
 Assignment source: \`${packet.assignmentSource}\`
 
@@ -277,6 +281,7 @@ const packet = {
   publicReleaseBlocking: false,
   targetAssignmentPath,
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   generatedContractPath,
   assignmentSource: p75.payload.assignmentSource || 'legacy-full-remote-assignment',
   assignmentFilePresent,

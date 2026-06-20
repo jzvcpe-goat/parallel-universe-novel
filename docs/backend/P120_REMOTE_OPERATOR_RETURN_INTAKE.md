@@ -21,10 +21,12 @@ In short: P120 does not create remote services and does not write
 `deploy/runtime-production/remote-assignment.local.json`.
 
 P120 must read P75 assignment evidence only from the current production path:
-the P138 edge-only intent/compiled contract, or the legacy local assignment when
-the operator explicitly chooses full remote deployment.
+the tracked P138 edge-only projection, the ignored edge-only intent/compiled
+contract, or the legacy local assignment when the operator explicitly chooses
+full remote deployment.
 
 ```text
+deploy/runtime-production/runtime-assignment.intent.example.json
 deploy/runtime-production/runtime-assignment.intent.local.json
 deploy/runtime-production/generated/remote-assignment.contract.json
 deploy/runtime-production/remote-assignment.local.json

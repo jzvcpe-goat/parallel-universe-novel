@@ -22,6 +22,7 @@ const source = process.env.CHECK_REMOTE_OPERATOR_RETURN_INTAKE_ARTIFACT_SOURCE |
 const artifactName = 'remote-operator-return-intake'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const edgeOnlyExampleAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function assert(condition, message) {
@@ -134,6 +135,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   const acceptedAssignmentPaths = new Set([
     targetAssignmentPath,
     preferredAssignmentPath,
+    edgeOnlyExampleAssignmentPath,
     generatedContractPath,
   ])
   const allowedStatuses = [
@@ -161,6 +163,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.publicReleaseBlocking === false, 'P120 packet must not block static public release')
   assert(payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
   assert(payload.preferredAssignmentPath === preferredAssignmentPath, 'P120 preferred assignment path mismatch')
+  assert(payload.edgeOnlyExampleAssignmentPath === edgeOnlyExampleAssignmentPath, 'P120 tracked edge-only projection path mismatch')
   assert(payload.generatedContractPath === generatedContractPath, 'P120 generated contract path mismatch')
   for (const flag of ['writesLocalAssignment', 'createsRemoteServices', 'setsGitHubVariables', 'storesProviderSecrets', 'promotesLiveRuntime', 'treatsFixtureAsReady']) {
     assert(payload.boundary?.[flag] === false, `P120 packet must keep boundary.${flag}=false`)
@@ -199,6 +202,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(markdownText.includes('P120 Remote Operator Return Intake'), 'P120 Markdown must have title')
   assert(markdownText.includes(targetAssignmentPath), 'P120 Markdown must include target assignment path')
   assert(markdownText.includes(preferredAssignmentPath), 'P120 Markdown must include preferred assignment path')
+  assert(markdownText.includes(edgeOnlyExampleAssignmentPath), 'P120 Markdown must include tracked edge-only projection path')
 
   return {
     blockedStages: Array.isArray(payload.blockedStages) ? payload.blockedStages : [],
@@ -292,6 +296,7 @@ try {
       status: payload.status,
       targetAssignmentPath: payload.targetAssignmentPath,
       preferredAssignmentPath: payload.preferredAssignmentPath,
+      edgeOnlyExampleAssignmentPath: payload.edgeOnlyExampleAssignmentPath,
       generatedContractPath: payload.generatedContractPath,
       assignmentSource: payload.assignmentSource,
       assignmentDecision: payload.assignmentDecision,
