@@ -92,6 +92,7 @@ chapters, run a local JSON backup before overwriting published content.
 
 ## Acceptance Checklist
 
+- P135 Zero-Cost Reader Edge Sync Gate is present in root `npm run test`.
 - Supabase project exists and records `project_ref`, API URL and environment.
 - Writer user exists and is used only by the edge sync device.
 - `health_probe`, `novels` and `novels_history` exist.

@@ -1,0 +1,70 @@
+name: Keep Supabase Reader Health Alive
+
+on:
+  schedule:
+    - cron: "0 3 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: Query Reader health probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check keep-alive configuration
+        id: config
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Supabase keep-alive skipped: SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is not configured."
+          fi
+
+      - name: Set up Node
+        if: steps.config.outputs.configured == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install Supabase client
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install @supabase/supabase-js@^2
+
+      - name: Query Supabase health probe
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { createClient } from '@supabase/supabase-js'
+
+          const url = process.env.SUPABASE_URL
+          const key = process.env.SUPABASE_PUBLISHABLE_KEY
+          if (!url || !key) throw new Error('Missing Supabase keep-alive configuration')
+
+          const supabase = createClient(url, key, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+          })
+
+          const { data, error } = await supabase
+            .from('health_probe')
+            .select('id,status,updated_at')
+            .eq('id', 'reader')
+            .single()
+
+          if (error) throw error
+          console.log('Supabase reader health OK:', data)
+          NODE

@@ -1,5 +1,30 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P135 Zero-Cost Reader Edge Sync Gate
+
+P134 只是把“0 元全托管阅读端”的边界讲清楚；P135 把这条边界变成 root test
+里可执行的工程门禁。
+
+新的工程规则：
+
+1. `keep-supabase-alive` 必须直接查询 Supabase `health_probe`，不能只请求静态
+   Reader 页面。
+2. 该 workflow 缺少 `SUPABASE_URL` 或 `SUPABASE_PUBLISHABLE_KEY` 时必须安全跳过，
+   不能因为未配置运营密钥而让普通 CI 红掉。
+3. keep-alive 只能使用公开读取所需的 Supabase 配置，不得出现 service-role、writer
+   password、AI provider key 或云端写作 API。
+4. `.env.local.sync` 和 `backups/` 必须保持 Git ignored；密钥备份只进入可信密码
+   管理器或加密个人存储。
+5. public frontend 与 keep-alive workflow 一起扫描，防止 `/api/generate`、`/api/write`
+   或模型 key 重新进入 Reader 云端路径。
+
+验证命令：
+
+```bash
+npm run check:zero-cost-reader-edge-sync
+npm run test
+```
+
 ## 2026-06-20 P134 Zero-Cost Reader Edge Sync Runbook
 
 “0 元全托管阅读端”不是把 AI 运行时搬到 Vercel/Supabase，而是把云端边界收窄为：

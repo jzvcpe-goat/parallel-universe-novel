@@ -25,8 +25,11 @@ backend/**/__pycache__/
 .env.*
 !.env.example
 !**/.env.example
+.env.local.sync
+.env.*.local
 backend/.env
 private/
+backups/
 reference-work-vault.key
 **/reference-work-vault.key
 deploy/runtime-production/remote-assignment.local.json
