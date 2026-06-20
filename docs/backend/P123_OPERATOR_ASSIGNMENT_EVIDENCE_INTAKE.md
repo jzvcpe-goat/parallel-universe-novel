@@ -152,6 +152,10 @@ After the assignment evidence is complete, P121 should stop selecting
     `remote-assignment:prepare` sequence.
 17. P132 validates that the assignment-intake evidence chain uses current-head
     P119/P120/P121/P123/P130/P131 artifacts.
+18. In edge-only mode, the P123 public handoff must project blocking stages from
+    the P138 intent/health boundary, not from the legacy full-remote assignment
+    draft. Missing remote Agent service id, origin, secret-store confirmation or
+    health must not appear as current blockers.
 
 ## Failure Modes
 

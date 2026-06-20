@@ -170,6 +170,14 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   ]) {
     assert(!requiredEnv.has(env), `P123 edge-only evidence must not require ${env}`)
   }
+  for (const stage of payload.blockedStages || []) {
+    assert(!/^assignment-agent-/i.test(stage), `P123 edge-only blocked stages must not require legacy remote Agent assignment: ${stage}`)
+    assert(!/^agent-(service-id|origin|provider-secrets-ready|health-ready)$/i.test(stage), `P123 edge-only blocked stages must not require remote Agent evidence: ${stage}`)
+  }
+  assert(
+    (payload.blockedStages || []).some(stage => String(stage).startsWith('data-api-')),
+    'P123 edge-only blocked stages must keep the managed data API evidence visible',
+  )
   for (const item of payload.requiredOperatorEvidence) {
     assert(item.publicSafe === true, `P123 operator evidence ${item.env} must be public-safe metadata`)
     assert(!/secret value|token value|database url/i.test(`${item.label} ${item.validation}`), `P123 operator evidence ${item.env} must not request secret values`)

@@ -84,6 +84,95 @@ function scanNoPrivateTerms(value) {
   return forbidden.filter(pattern => pattern.test(text)).map(pattern => String(pattern))
 }
 
+function isPlaceholder(value) {
+  const text = String(value || '').trim()
+  return /<[^>]+>/.test(text)
+    || /\bFILL_[A-Z0-9_]+\b/i.test(text)
+    || /\bREPLACE_ME\b/i.test(text)
+    || /\bYOUR[_-][A-Z0-9_-]+\b/i.test(text)
+    || /\bTODO[_-][A-Z0-9_-]+\b/i.test(text)
+    || /\bUNKNOWN\b/i.test(text)
+}
+
+function isRemoteHttps(value) {
+  const text = String(value || '').trim()
+  if (isPlaceholder(text)) return false
+  let url
+  try {
+    url = new URL(text)
+  } catch {
+    return false
+  }
+  return url.protocol === 'https:'
+    && url.hostname !== 'localhost'
+    && url.hostname !== '127.0.0.1'
+    && url.hostname !== '0.0.0.0'
+    && url.hostname !== '::1'
+    && !url.hostname.endsWith('.local')
+    && !url.hostname.endsWith('.invalid')
+    && url.hostname !== 'example.com'
+    && !url.username
+    && !url.password
+    && !url.search
+    && !url.hash
+}
+
+function publicAssignmentIntentProjection() {
+  const intentPath = join(root, preferredAssignmentPath)
+  const healthResultPath = join(root, 'deploy/runtime-production/generated/remote-health-evidence.result.json')
+  const stages = []
+  if (!existsSync(intentPath)) {
+    return [
+      'runtime-assignment-intent-present',
+      'data-api-service-id',
+      'data-api-origin',
+      'data-api-configured',
+      'data-api-health-ready',
+    ]
+  }
+
+  let intent
+  try {
+    intent = JSON.parse(readFileSync(intentPath, 'utf8'))
+  } catch {
+    return [
+      'runtime-assignment-intent-valid-json',
+      'data-api-service-id',
+      'data-api-origin',
+      'data-api-configured',
+      'data-api-health-ready',
+    ]
+  }
+
+  if (!intent.operator?.owner || isPlaceholder(intent.operator.owner)) stages.push('operator-owner')
+  if (!intent.operator?.provider || isPlaceholder(intent.operator.provider)) stages.push('operator-provider')
+  if (!intent.frontend?.provider || isPlaceholder(intent.frontend.provider)) stages.push('frontend-provider')
+  if (!intent.frontend?.service_id || isPlaceholder(intent.frontend.service_id)) stages.push('frontend-service-id')
+  if (!isRemoteHttps(intent.frontend?.origin)) stages.push('frontend-origin')
+  if (intent.frontend?.secrets_configured !== true) stages.push('frontend-configured')
+  if (!intent.data_api?.service_id || isPlaceholder(intent.data_api.service_id)) stages.push('data-api-service-id')
+  if (!isRemoteHttps(intent.data_api?.origin)) stages.push('data-api-origin')
+  if (intent.data_api?.secrets_configured !== true) stages.push('data-api-configured')
+  if (intent.agent?.remote_required !== false) stages.push('remote-agent-absence-confirmed')
+  if (intent.agent?.ai_generation_cloud_runtime !== false) stages.push('cloud-ai-runtime-disabled')
+  if (intent.agent?.reader_can_trigger_ai !== false) stages.push('reader-ai-trigger-disabled')
+
+  let healthOk = false
+  if (existsSync(healthResultPath)) {
+    try {
+      const health = JSON.parse(readFileSync(healthResultPath, 'utf8'))
+      healthOk = health.status === 'ok'
+        && health.runtime_mode === 'edge-only'
+        && health.remote_agent?.required === false
+        && health.remote_agent?.evidence === 'not-required-edge-only'
+    } catch {
+      healthOk = false
+    }
+  }
+  if (!healthOk) stages.push('data-api-health-ready')
+  return stages
+}
+
 function assertIncludes(file, terms) {
   const text = read(file)
   for (const term of terms) assert(text.includes(term), `${file} must include ${term}`)
@@ -378,7 +467,7 @@ const packet = {
       'REMOTE_ASSIGNMENT_ENV_FILE=deploy/runtime-production/remote-assignment.env.local REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
     ],
   },
-  blockedStages: Array.isArray(p120.payload.blockedStages) ? p120.payload.blockedStages : [],
+  blockedStages: publicAssignmentIntentProjection(),
   nextCommands,
   sourceEvidence: {
     loopNextGoalLedger: summarize(p121),
