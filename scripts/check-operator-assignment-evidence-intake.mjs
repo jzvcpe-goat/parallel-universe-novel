@@ -199,8 +199,12 @@ const p120 = latestArtifact(
 )
 const p117 = latestArtifact(
   'remote-assignment-env-dry-run-',
-  payload => payload.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE',
-  'P117 env dry-run',
+  payload => payload.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE'
+    && (payload.currentHead === headSha || sourceWorkspaceNoGit)
+    && payload.targetPath === targetAssignmentPath
+    && payload.decision === 'operator_env_not_supplied'
+    && payload.p116ApplyPreflight?.readyForApply === false,
+  'current waiting P117 env dry-run',
 )
 const p75 = latestArtifact(
   'remote-runtime-assignment-intake-',
@@ -228,7 +232,16 @@ const p105 = latestArtifact(
 assert(p121.payload.selectedGoal?.id === 'operator-assignment-evidence-intake', 'P123 only runs when P121 selects operator-assignment-evidence-intake')
 assert(p121.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file), 'P123 requires P121 to reference the current P120 operator return intake')
 assert(p121.payload.sourceEvidence?.imageDrift?.file === relative(root, p113.file), 'P123 requires P121 to reference the current P113 image drift evidence')
+assert(p122.payload.headSha === headSha || sourceWorkspaceNoGit, 'P123 requires current-head P122 fixture isolation')
 assert(p122.payload.selectedNextGoal === 'operator-assignment-evidence-intake', 'P122 must confirm operator-assignment-evidence-intake')
+assert(
+  p122.payload.sourceEvidence?.loopNextGoalLedger?.file === relative(root, p121.file),
+  'P123 requires P122 to reference the current P121 loop next-goal ledger',
+)
+assert(
+  p122.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file),
+  'P123 requires P122 to reference the current P120 operator return intake',
+)
 assert(p120.payload.decision === 'operator_return_waiting_for_assignment', 'P123 requires P120 to still be waiting for operator assignment evidence')
 assert(p120.payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
 const assignmentDecision = String(p75.payload.decision || '')

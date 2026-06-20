@@ -117,23 +117,28 @@ After the assignment evidence is complete, P121 should stop selecting
    assignment exists; in CI/public checkout where the ignored assignment is
    absent, P123 verifies the absence is consistently reported by P75, P113 and
    P120.
-6. P123 verifies local assignment files remain untracked.
-7. P123 emits JSON and Markdown handoff artifacts.
-8. P123 artifacts remain redacted and contain no secrets, prompt plumbing,
+6. P123 verifies P122 references the same current P121 loop ledger and P120
+   operator-return intake that P123 is about to package.
+7. P123 uses the current-head P117 `operator_env_not_supplied` artifact for
+   the waiting state, so later P125/P126/P129 ready/follow-up fixtures cannot be
+   mistaken for real operator evidence.
+8. P123 verifies local assignment files remain untracked.
+9. P123 emits JSON and Markdown handoff artifacts.
+10. P123 artifacts remain redacted and contain no secrets, prompt plumbing,
    private title material, runtime identifiers or candidate prose.
-9. P124 downloads and validates the uploaded P123 artifact content in the same
+11. P124 downloads and validates the uploaded P123 artifact content in the same
    Pages run before the artifact can be used as operator handoff evidence.
-10. P125 validates the P117 operator env validator with positive and negative
+12. P125 validates the P117 operator env validator with positive and negative
     fixtures before the operator handoff can be treated as mechanically ready.
-11. P126 validates the P116 apply helper with a temporary fixture target before
+13. P126 validates the P116 apply helper with a temporary fixture target before
     real operator evidence is written.
-12. P128 validates the tracked local env template and ignored local env target
+14. P128 validates the tracked local env template and ignored local env target
     before a deployment operator fills real values.
-13. P129 validates explicit ignored env-file loading for P117/P116 and rejects
+15. P129 validates explicit ignored env-file loading for P117/P116 and rejects
     tracked templates, unsupported keys and unignored paths.
-14. P130 validates that P121/P123/P129 all expose the env-file strict dry-run
+16. P130 validates that P121/P123/P129 all expose the env-file strict dry-run
     and `REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true` apply sequence.
-15. P132 validates that the assignment-intake evidence chain uses current-head
+17. P132 validates that the assignment-intake evidence chain uses current-head
     P119/P120/P121/P123/P130/P131 artifacts.
 
 ## Failure Modes

@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-20 P123 Fixture-Isolation Source Coherence
+
+P132 修完 current-head 后，又暴露出一个更细的同类问题：P123 可以读取最新 P121，
+但同时引用较早的 P122 fixture-isolation artifact。这样 selected goal 仍然正确，
+却不能证明“fixture 没有回流”这件事就是针对当前 P121/P120 证明的。
+
+新的工程规则：
+
+1. P123 不能只检查 P122 的 `selectedNextGoal`，还必须检查 P122 的
+   `sourceEvidence.loopNextGoalLedger.file` 等于当前 P121 artifact。
+2. P123 也必须检查 P122 的 `sourceEvidence.operatorReturnIntake.file` 等于当前
+   P120 artifact。
+3. P122、P123、P130、P131、P132 必须作为同一段尾部链顺序重跑；只单独重跑 P121
+   会故意让 P123 失败，直到 P122 刷新。
+4. 这类修正仍然不写 `remote-assignment.local.json`，不创建远程服务，不设置 GitHub
+   variables，不存储 provider secrets。
+5. P125/P126/P129 会故意生成 ready/follow-up fixture 来验证 env validator、apply helper
+   和 env-file loader；P123 不能按 latest 读取 P117，而必须读取当前 head、当前 target
+   path、`operator_env_not_supplied` 且 `readyForApply=false` 的等待证据。
+
+验证命令：
+
+```bash
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-evidence-intake-artifact
+npm run check:operator-assignment-current-head-coherence
+npm run test
+```
+
 ## 2026-06-19 P132 Operator Assignment Current-Head Coherence
 
 P131 让 P130 command-consistency 证明进入了 Pages artifact，但还留下一个更细的
