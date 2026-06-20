@@ -36,6 +36,7 @@ P140 prepares the current frontend and edge-only Agent boundary in the ignored
 P138 intent file:
 
 ```text
+deploy/runtime-production/runtime-assignment.intent.example.json
 deploy/runtime-production/runtime-assignment.intent.local.json
 ```
 
@@ -45,9 +46,11 @@ The generated contract is:
 deploy/runtime-production/generated/remote-assignment.contract.json
 ```
 
-The old `deploy/runtime-production/remote-assignment.local.json` env/apply path
-is now a legacy full-remote fallback only. It is valid only if the operator
-explicitly chooses a full remote API plus Agent Runtime deployment.
+The tracked example projection is the clean-checkout fallback for CI; the
+ignored local intent is the operator-editable copy. The old
+`deploy/runtime-production/remote-assignment.local.json` env/apply path is now
+a legacy full-remote fallback only. It is valid only if the operator explicitly
+chooses a full remote API plus Agent Runtime deployment.
 
 | Evidence key | Meaning | Rule |
 | --- | --- | --- |

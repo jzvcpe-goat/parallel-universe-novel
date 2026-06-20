@@ -7,6 +7,7 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts', 'runtime')
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const edgeOnlyExampleAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function read(rel) {
@@ -62,6 +63,7 @@ function isCurrentAssignmentIntake(payload) {
     && [
       targetAssignmentPath,
       preferredAssignmentPath,
+      edgeOnlyExampleAssignmentPath,
       generatedContractPath,
     ].includes(payload.assignmentPath)
 }
@@ -206,6 +208,8 @@ Runtime topology: \`${packet.runtimeTopology}\`
 
 Preferred local intent: \`${packet.preferredAssignmentPath}\`
 
+Tracked edge-only projection: \`${packet.edgeOnlyExampleAssignmentPath}\`
+
 Generated contract: \`${packet.generatedContractPath}\`
 
 Legacy full-remote assignment file: \`${packet.legacyTargetAssignmentPath}\`
@@ -268,6 +272,7 @@ assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
   'P123 Operator Assignment Evidence Intake',
   'check:operator-assignment-evidence-intake',
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   'edge-only',
   'remote-assignment:prepare',
   'P138',
@@ -350,6 +355,7 @@ assert(
 assert(p120.payload.decision === 'operator_return_waiting_for_assignment', 'P123 requires P120 to still be waiting for operator assignment evidence')
 assert(p120.payload.targetAssignmentPath === targetAssignmentPath, 'P120 target assignment path mismatch')
 assert(p120.payload.preferredAssignmentPath === preferredAssignmentPath, 'P120 preferred assignment path mismatch')
+assert(p120.payload.edgeOnlyExampleAssignmentPath === edgeOnlyExampleAssignmentPath, 'P120 tracked edge-only projection path mismatch')
 const assignmentDecision = String(p75.payload.decision || '')
 const assignmentFilePresent = Boolean(
   p75.payload.assignmentFilePresent
@@ -483,6 +489,7 @@ const packet = {
   selectedGoal: 'operator-assignment-evidence-intake',
   runtimeTopology: 'edge-only-preferred',
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   generatedContractPath,
   legacyTargetAssignmentPath: targetAssignmentPath,
   targetAssignmentPath,

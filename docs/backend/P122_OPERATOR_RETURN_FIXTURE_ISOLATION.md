@@ -17,12 +17,14 @@ read that newer fixture artifact when judging the real operator return.
 The source of truth for P120 is the current production assignment path set:
 
 ```text
+deploy/runtime-production/runtime-assignment.intent.example.json
 deploy/runtime-production/runtime-assignment.intent.local.json
 deploy/runtime-production/generated/remote-assignment.contract.json
 deploy/runtime-production/remote-assignment.local.json
 ```
 
-The first two paths are the P138/P140 edge-only path. The legacy
+The first three paths are the P138/P140 edge-only path: tracked projection,
+ignored local intent and generated contract. The legacy
 `remote-assignment.local.json` path remains valid only when the operator
 explicitly chooses full-remote deployment. P122 verifies that P120 selects one
 of those production paths and never the fixture assignment, then verifies P121

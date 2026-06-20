@@ -22,6 +22,7 @@ const source = process.env.CHECK_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ARTIFACT_SO
 const artifactName = 'operator-assignment-evidence-intake'
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const edgeOnlyExampleAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 
 function assert(condition, message) {
@@ -138,6 +139,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   const acceptedAssignmentPaths = new Set([
     targetAssignmentPath,
     preferredAssignmentPath,
+    edgeOnlyExampleAssignmentPath,
     generatedContractPath,
   ])
 
@@ -148,6 +150,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.selectedGoal === 'operator-assignment-evidence-intake', 'P123 selected goal mismatch')
   assert(payload.runtimeTopology === 'edge-only-preferred', 'P123 runtime topology must prefer edge-only')
   assert(payload.preferredAssignmentPath === preferredAssignmentPath, 'P123 preferred assignment path mismatch')
+  assert(payload.edgeOnlyExampleAssignmentPath === edgeOnlyExampleAssignmentPath, 'P123 tracked edge-only projection path mismatch')
   assert(payload.generatedContractPath === generatedContractPath, 'P123 generated contract path mismatch')
   assert(payload.legacyTargetAssignmentPath === targetAssignmentPath, 'P123 legacy full-remote assignment path mismatch')
   assert(['remote_assignment_missing', 'remote_assignment_incomplete'].includes(payload.assignmentDecision), 'P123 assignment decision must be missing or incomplete')
@@ -225,6 +228,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(markdownPrivateMatches.length === 0, `P123 Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)
   assert(markdownText.includes('P123 Operator Assignment Evidence Intake'), 'P123 Markdown must have title')
   assert(markdownText.includes(preferredAssignmentPath), 'P123 Markdown must include preferred assignment path')
+  assert(markdownText.includes(edgeOnlyExampleAssignmentPath), 'P123 Markdown must include tracked edge-only projection path')
   assert(markdownText.includes('edge-only-preferred'), 'P123 Markdown must include runtime topology')
 
   return {
@@ -322,6 +326,7 @@ try {
       selectedGoal: payload.selectedGoal,
       runtimeTopology: payload.runtimeTopology,
       preferredAssignmentPath: payload.preferredAssignmentPath,
+      edgeOnlyExampleAssignmentPath: payload.edgeOnlyExampleAssignmentPath,
       generatedContractPath: payload.generatedContractPath,
       legacyTargetAssignmentPath: payload.legacyTargetAssignmentPath,
       ...validation,

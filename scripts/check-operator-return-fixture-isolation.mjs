@@ -7,6 +7,7 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts', 'runtime')
 const targetAssignmentPath = 'deploy/runtime-production/remote-assignment.local.json'
 const preferredAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
+const edgeOnlyExampleAssignmentPath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
 const fixtureAssignmentPath = 'deploy/runtime-production/remote-assignment.fixture.json'
 
@@ -94,6 +95,7 @@ function isCurrentAssignmentIntake(payload) {
     && [
       targetAssignmentPath,
       preferredAssignmentPath,
+      edgeOnlyExampleAssignmentPath,
       generatedContractPath,
     ].includes(payload.assignmentPath)
 }
@@ -139,6 +141,7 @@ for (const term of [
   'check:operator-return-fixture-isolation',
   targetAssignmentPath,
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   fixtureAssignmentPath,
   'P129',
   'P130',
@@ -180,6 +183,7 @@ assert(selectedAssignment?.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE', 'P12
 assert([
   targetAssignmentPath,
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   generatedContractPath,
 ].includes(selectedAssignment.assignmentPath), 'P120 must cite a current production assignment path, not fixture assignment path')
 assert(selectedAssignment.assignmentPath !== fixtureAssignmentPath, 'P120 must not cite fixture assignment path')
@@ -212,6 +216,7 @@ const artifact = {
   headSha,
   targetAssignmentPath,
   preferredAssignmentPath,
+  edgeOnlyExampleAssignmentPath,
   generatedContractPath,
   fixtureAssignmentPath,
   p120Decision,
