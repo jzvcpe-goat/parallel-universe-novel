@@ -212,6 +212,7 @@ const liveCutover = latest('live-cutover-attestation-', payload => payload.gate 
 const activationControl = latest('remote-activation-control-', payload => payload.gate === 'P78_REMOTE_RUNTIME_ACTIVATION_CONTROL', 'latest P78 activation control')
 const blockerLedger = latest('remote-runtime-blockers-', payload => payload.headSha === headSha, 'current P85 blocker ledger', { allowFallback: true })
 const blockerConvergence = latest('runtime-completion-blocker-convergence-', payload => payload.status, 'latest P96 blocker convergence')
+const runtimeAssignmentEvidence = blockerLedger.payload.sourceEvidence?.runtimeAssignment || {}
 
 const apiImage = fillPlan.payload.currentImages?.api || imageEvidence.payload.images?.find(item => item.includes('/parallel-universe-novel-api:'))
 const agentImage = fillPlan.payload.currentImages?.agent || imageEvidence.payload.images?.find(item => item.includes('/parallel-universe-novel-agent-runtime:'))
@@ -310,6 +311,11 @@ const artifact = {
     blockerLedger: {
       ...evidenceSummary(blockerLedger, ['headSha']),
       blockedStages,
+      runtimeAssignment: {
+        runtimeMode: runtimeAssignmentEvidence.runtimeMode || null,
+        assignmentPath: runtimeAssignmentEvidence.assignmentPath || null,
+        selectedEdgeOnlyCurrentPath: runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true,
+      },
     },
     blockerConvergence: evidenceSummary(blockerConvergence, ['blockerCount']),
   },

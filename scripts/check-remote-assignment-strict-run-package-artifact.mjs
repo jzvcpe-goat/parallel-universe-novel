@@ -135,6 +135,9 @@ function validateStrictRunPackage(payload, markdownText, expectedHeadSha, option
   const privateMatches = scanNoPrivateText(JSON.stringify(payload))
   const markdownPrivateMatches = scanNoPrivateText(markdownText)
   const blockedStages = Array.isArray(payload.blockedStages) ? payload.blockedStages : []
+  const runtimeAssignmentEvidence = payload.upstreamEvidence?.blockerLedger?.runtimeAssignment || {}
+  const currentEdgeOnlyProjection = runtimeAssignmentEvidence.runtimeMode === 'edge-only'
+    && runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true
   const commandText = Array.isArray(payload.strictRunPackage)
     ? payload.strictRunPackage.map(item => item.command).join('\n')
     : ''
@@ -204,6 +207,9 @@ function validateStrictRunPackage(payload, markdownText, expectedHeadSha, option
   if (localAssignmentExists === true) {
     assert(!blockedStages.includes('remote-assignment-file-present'), 'strict-run local artifact must clear only file-present blocker when local draft exists')
     assert(blockedStages.includes('remote-assignment-health-ready'), 'strict-run local artifact must keep assignment health blocked')
+  } else if (localAssignmentExists === false && currentEdgeOnlyProjection) {
+    assert(!blockedStages.includes('remote-assignment-file-present'), 'strict-run CI artifact must not reintroduce file-present blocker for tracked edge-only projection evidence')
+    assert(blockedStages.includes('remote-assignment-health-ready'), 'strict-run CI artifact must keep edge-only Data API health blocked')
   } else if (localAssignmentExists === false) {
     assert(blockedStages.includes('remote-assignment-file-present'), 'strict-run CI artifact must preserve file-present blocker without local draft')
   } else {

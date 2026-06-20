@@ -114,6 +114,12 @@ artifact may preserve `remote-assignment-file-present` as blocked. The P118
 artifact checker accepts either shape, but it never allows `activation-control`
 to disappear until strict live cutover gates pass.
 
+For the current `edge-only` clean-checkout topology, P85 can prove that the
+tracked `runtime-assignment.intent.example.json` is the selected projection. In
+that case the current-run P118 artifact must not reintroduce
+`remote-assignment-file-present`; it must keep the Data API, assignment health,
+live-readiness and activation blockers visible instead.
+
 ## Acceptance
 
 - `package.json` exposes both P118 scripts.
