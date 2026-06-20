@@ -41,7 +41,10 @@ function latestArtifact(prefix, predicate = null, label = prefix) {
     const payload = JSON.parse(readFileSync(file, 'utf8'))
     if (!predicate || predicate(payload)) return { file, payload }
   }
-  throw new Error(`missing ${label} artifact`)
+  const localRehydrationHint = /current P(113|119|120)/.test(label)
+    ? '; run `npm run prepare:loop-next-goal-local` to refresh current-head local loop evidence before running P121 directly'
+    : ''
+  throw new Error(`missing ${label} artifact${localRehydrationHint}`)
 }
 
 function summarize(item) {
