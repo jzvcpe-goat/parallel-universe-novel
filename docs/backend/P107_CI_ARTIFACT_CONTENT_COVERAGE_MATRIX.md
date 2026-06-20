@@ -54,6 +54,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `reference-work-encryption-completion` | `download_content_gate` | `check:reference-work-encryption-completion` | `check:public-privacy-artifacts` | `P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE` |
 | `representative-work-custody` | `download_content_gate` | `check:representative-work-custody` | `check:public-privacy-artifacts` | `P127_REPRESENTATIVE_WORK_CUSTODY_GATE` |
+| `kernel-constraint-reference-encryption` | `download_content_gate` | `check:kernel-constraint-reference-encryption` | `check:public-privacy-artifacts` | `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE` |
 | `local-live-runtime-visual-qa` | `visual_human_evidence` | `qa:live-runtime-local` | `qa:live-runtime-local` | P15 |
 | `github-pages` | `built_bundle_privacy_scan` | `npm --prefix app run build` | `scan:reference-privacy` + `check:public-projection-privacy` + `check:github-pages-spa-fallback` | P16/P80/P83 |
 
@@ -61,7 +62,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all twenty-five Pages artifacts.
+- P43 metadata coverage still includes all twenty-six Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.

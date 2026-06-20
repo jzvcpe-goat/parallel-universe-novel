@@ -271,6 +271,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for non-team access custody and redaction evidence.',
   },
   {
+    name: 'kernel-constraint-reference-encryption',
+    kind: 'download_content_gate',
+    producer: 'check:kernel-constraint-reference-encryption',
+    verifier: 'check:public-privacy-artifacts',
+    contract: 'P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE',
+    uploadStep: 'Upload kernel constraint reference encryption evidence',
+    uploadPath: 'artifacts/runtime/kernel-constraint-reference-encryption-*.json',
+    workflowStep: 'Check public privacy artifact content',
+    reason: 'Downloaded from the same Pages run and checked so kernel/constraint representative-work refs stay encrypted and anonymous.',
+  },
+  {
     name: 'local-live-runtime-visual-qa',
     kind: 'visual_human_evidence',
     producer: 'qa:live-runtime-local',
@@ -339,7 +350,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 19, 'P107 expects nineteen artifacts with downloaded content gates')
+assert(downloadAttested.length === 20, 'P107 expects twenty artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

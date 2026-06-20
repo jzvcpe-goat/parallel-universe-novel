@@ -310,6 +310,7 @@ jobs:
           PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy
           npm run check:reference-work-encryption-completion
           npm run check:representative-work-custody
+          npm run check:kernel-constraint-reference-encryption
 
       - name: Upload reference privacy evidence
         if: always()
@@ -344,6 +345,15 @@ jobs:
         with:
           name: representative-work-custody
           path: artifacts/runtime/representative-work-custody-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload kernel constraint reference encryption evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kernel-constraint-reference-encryption
+          path: artifacts/runtime/kernel-constraint-reference-encryption-*.json
           if-no-files-found: error
           retention-days: 14
 

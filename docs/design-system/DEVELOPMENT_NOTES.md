@@ -5093,3 +5093,25 @@ Agent 有意缺席”误判为缺证据。
    `VITE_AGENT_RUNTIME_BASE_URL` 或远端 Agent attestation。
 6. 经验：不能为了过 gate 填假服务。正确做法是让 gate 理解真实拓扑，并把剩余
    断点移动到可验证的健康探针、RLS、公开读取和上线变量证据。
+
+## 2026-06-20 P139 Kernel Constraint Reference Encryption Gate
+
+P111/P127 已经证明代表作品名进入 encrypted vault / custody 边界，但 loop
+goal 点名的是 kernel 和 constraints 本体。这里不能只依赖全仓隐私扫描：如果
+团队以后直接编辑 `GENRE_CONSTRAINT_RULES.md`、`GENRE_KERNEL_RULES.md` 或
+`genre-runtime-rules.v1.json`，需要一条更窄的门禁专门证明这些“产品大脑”
+没有泄漏代表作品名。
+
+本轮原则：
+
+1. Kernel / constraints / runtime registry 只允许匿名 `rwref_*`，不允许作品名、
+   作者名、source evidence label 或明文映射。
+2. `reference-work-public-refs.json` 只能公开 `{ id }`；真实映射只能在
+   `reference-work-vault.enc.json` 的 AES-256-GCM 密文中。
+3. `check:kernel-constraint-reference-encryption` 在没有 vault key 时做结构门禁；
+   有团队 key 时在内存中解密 vault，仅用红acted needle 扫 kernel/constraints，
+   不打印标题、作者或映射。
+4. Pages workflow 必须上传 `kernel-constraint-reference-encryption` artifact，
+   `check:public-privacy-artifacts` 必须下载校验其 content，而不只是检查存在。
+5. 经验：法律风险边界要按“最容易被手改的文件”建立专用 gate。全仓扫描是安全网，
+   专用 gate 才是团队日常编辑时最早响的警报。

@@ -96,7 +96,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
@@ -136,7 +136,8 @@ This proves:
   `YOUR_*`, `TODO_*` and `<...>` placeholders cannot pass as real remote
   service ids, origins, assignment evidence or GitHub repository variables.
 - The `reference-privacy`, `public-projection-privacy`,
-  `reference-work-encryption-completion` and `representative-work-custody`
+  `reference-work-encryption-completion`, `representative-work-custody` and
+  `kernel-constraint-reference-encryption`
   artifact contents pass P92 redaction and zero-violation checks.
 - The `remote-assignment-schema`, `remote-assignment-execution-pack` and
   `remote-assignment-fixture-gate` contents pass P93 structure and public
@@ -167,83 +168,87 @@ This proves:
 13. Every Pages run must leave a `representative-work-custody` artifact proving
     the non-team access boundary still agrees across rules, runtime, workflow
     and handoff docs.
-14. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
-15. Every Pages run must upload `remote-assignment-schema` so the deployment owner sees whether the assignment template, fixture and local contract are schema-valid.
-16. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
-17. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
-18. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
-19. Every Pages run must upload `remote-assignment-fill-plan` so the deployment
+14. Every Pages run must leave a `kernel-constraint-reference-encryption`
+    artifact proving kernel, constraint and runtime registry files use only
+    encrypted-vault-backed anonymous refs under
+    `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE`.
+15. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
+16. Every Pages run must upload `remote-assignment-schema` so the deployment owner sees whether the assignment template, fixture and local contract are schema-valid.
+17. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
+18. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
+19. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
+20. Every Pages run must upload `remote-assignment-fill-plan` so the deployment
     owner sees one current, operator-safe field checklist and strict validation
     sequence before touching the ignored local assignment file.
-20. Every Pages run must upload `remote-assignment-strict-run-package` so the
+21. Every Pages run must upload `remote-assignment-strict-run-package` so the
     deployment owner sees one ordered strict-run package across P117/P116/P75/P79/P73/P66/P23/P76/P78.
-21. Every Pages run must upload `remote-operator-readiness-packet` so the
+22. Every Pages run must upload `remote-operator-readiness-packet` so the
     deployment owner receives one operator-safe handoff packet built from P118,
     blocker, fill-plan, image and activation evidence.
-22. Every Pages run must upload `remote-operator-return-intake` so the release
+23. Every Pages run must upload `remote-operator-return-intake` so the release
     owner sees whether the operator has returned assignment evidence, whether
     health is still pending, or whether strict activation can begin.
-23. Every Pages run must upload `operator-assignment-evidence-intake` so the
+24. Every Pages run must upload `operator-assignment-evidence-intake` so the
     deployment owner receives the exact non-secret assignment evidence checklist
     selected by P121/P123.
-24. Every Pages run must upload `operator-assignment-loop-command-consistency`
+25. Every Pages run must upload `operator-assignment-loop-command-consistency`
     so the release owner can verify P130 command consistency was retained as
     current-run evidence.
-25. Every Pages run must upload `operator-assignment-current-head-coherence`
+26. Every Pages run must upload `operator-assignment-current-head-coherence`
     so the release owner can verify the operator assignment loop is tied to the
     current release head.
-26. Every Pages run must upload `operator-assignment-transition-fixture` so the
+27. Every Pages run must upload `operator-assignment-transition-fixture` so the
     release owner can verify the env-file assignment transition reaches remote
     health intake without using production assignment evidence.
-27. Every Pages run must upload `runtime-image-local-smoke` so the release owner
+28. Every Pages run must upload `runtime-image-local-smoke` so the release owner
     can inspect whether the current GHCR images were locally smoke-tested,
     skipped for a declared non-strict reason, or run successfully.
-28. Every Pages run must upload `zero-cost-reader-edge-sync` so the release owner
+29. Every Pages run must upload `zero-cost-reader-edge-sync` so the release owner
     can verify the zero-cost Reader cloud path remains storage/read/health only.
-29. Every Pages run must run `check:remote-assignment-handoff-artifact` after
+30. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-30. Every Pages run must run `check:public-privacy-artifacts` after P43 so
+31. Every Pages run must run `check:public-privacy-artifacts` after P43 so
     privacy artifact content is validated, not only its presence.
-31. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
+32. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
     assignment schema, execution pack and fixture artifacts are content-checked.
-32. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+33. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
     so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
-33. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
+34. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
     P90 so the fill plan is current, privacy-safe and still preserves live
     runtime blockers before deploy.
-34. Every Pages run must run `check:remote-assignment-strict-run-package-artifact`
+35. Every Pages run must run `check:remote-assignment-strict-run-package-artifact`
     after P106 so the strict operator sequence is validated, not only uploaded.
-35. Every Pages run must run `check:remote-operator-readiness-packet-artifact`
+36. Every Pages run must run `check:remote-operator-readiness-packet-artifact`
     after P118 so the operator handoff packet is validated, not only uploaded.
-36. Every Pages run must run `check:remote-operator-return-intake-artifact`
+37. Every Pages run must run `check:remote-operator-return-intake-artifact`
     after P119 so the operator return intake is validated, not only uploaded.
-37. Every Pages run must run `check:operator-assignment-evidence-intake-artifact`
+38. Every Pages run must run `check:operator-assignment-evidence-intake-artifact`
     after P120 so the assignment evidence intake packet is validated, not only
     uploaded.
-38. Every Pages run must run
+39. Every Pages run must run
     `check:operator-assignment-loop-command-consistency-artifact` after P124 so
     the P130 command-consistency proof is validated, not only uploaded.
-39. Every Pages run must run `check:operator-assignment-current-head-coherence`
+40. Every Pages run must run `check:operator-assignment-current-head-coherence`
     after P131 so current-head coherence is validated, not only uploaded.
-40. Every Pages run must run `check:operator-assignment-transition-fixture-artifact`
+41. Every Pages run must run `check:operator-assignment-transition-fixture-artifact`
     after P132 so transition-fixture content is validated, not only uploaded.
-41. Every Pages run must run `check:runtime-image-local-smoke-artifact` after
+42. Every Pages run must run `check:runtime-image-local-smoke-artifact` after
     P133 so the current-image local-smoke artifact is validated, not only
     uploaded.
-42. Every Pages run must run `check:zero-cost-reader-edge-sync-artifact` after
+43. Every Pages run must run `check:zero-cost-reader-edge-sync-artifact` after
     P115 so zero-cost Reader edge-sync evidence is validated, not only uploaded.
-43. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
+44. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
     Pages artifact is only uploaded without an explicit verification owner.
-44. Root `npm run test` must run `check:remote-assignment-local-boundary` so
+45. Root `npm run test` must run `check:remote-assignment-local-boundary` so
     ignored local assignment state cannot be committed or replaced by fixture data.
-45. Root `npm run test` must run `check:github-runtime-variable-boundary` so
+46. Root `npm run test` must run `check:github-runtime-variable-boundary` so
     GitHub repository variables cannot contain database URLs, Tool Bridge token
     values, model keys, private keys, provider API tokens or unknown runtime
     variables.
-46. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
+47. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
     placeholders cannot be mistaken for remote runtime evidence.
-47. Live mode fails if browser submission cannot create a candidate draft.
-48. Live mode never enables local fallback.
+48. Live mode fails if browser submission cannot create a candidate draft.
+49. Live mode never enables local fallback.
 
 ## Operational Rule
 
