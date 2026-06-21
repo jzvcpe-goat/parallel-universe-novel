@@ -29,10 +29,13 @@ Operator chain mode, after filling the ignored local env and local publishable
 key:
 
 ```bash
-RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true \
-RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true \
-REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true \
-npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
+```
+
+The sealed command expands to:
+
+```bash
+RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake
 ```
 
 The strict command internally reuses the existing chain:
@@ -121,6 +124,7 @@ P151 is ready only when all of these are true:
 
 P150 is a preflight. P151 is the strict intake. P142 remains the completion
 contract. If P151 is waiting, the next action is still to fill real Data API
-evidence and run the strict operator command above. If P151 is ready but P142
-still reports `operator-assignment-evidence-intake`, rerun the P142 tail gates
-on the same current head instead of declaring completion from a stale artifact.
+evidence and run `npm run prepare:edge-only-data-api-strict-intake`. If P151 is
+ready but P142 still reports `operator-assignment-evidence-intake`, rerun the
+P142 tail gates on the same current head instead of declaring completion from a
+stale artifact.

@@ -1,5 +1,40 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P153 Sealed Edge-Only Data API Strict Intake Command
+
+P151 已经把 Data API 证据收束成严格接入门禁，但真实操作时仍然需要复制三段
+`RUN_*` / `REQUIRE_*` 环境变量。上线边缘的命令越长，越容易出现“证据其实填好了，
+但命令少复制一段”的假失败。P153 的经验是：operator-only 严格链路也要有一个稳定、
+可记忆、可被 gate 反查的 npm 入口。
+
+新的工程规则：
+
+1. 严格 Data API 接入只推荐运行
+   `npm run prepare:edge-only-data-api-strict-intake`。
+2. 该命令展开后等价于 P151 chain mode：
+   `RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true`
+   `RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true`
+   `REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true`
+   `npm run check:edge-only-data-api-strict-intake`。
+3. 该命令必须保持 operator/local only，不能接入 root `npm run test`，否则 CI 会在没有
+   本地 Data API evidence 的情况下误报失败。
+4. P151 artifact 必须同时给出 `sealedStrictCommand`、`expandedStrictCommand` 和
+   `nextStrictCommand`，但不能输出 Supabase URL、project ref、key 或 provider output。
+5. `remote-health:check`、P151 文档和 key-presence 检查必须接受同一组本地 publishable
+   / anon key 名：`VITE_SUPABASE_PUBLISHABLE_KEY`、`VITE_SUPABASE_ANON_KEY`、
+   `SUPABASE_PUBLISHABLE_KEY` 和 `SUPABASE_ANON_KEY`。
+
+验证命令：
+
+```bash
+npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
+```
+
+第二条命令在真实 Data API evidence 尚未填写前应退出非零，但必须先写入 redacted
+`edge-only-data-api-strict-intake-*.json` artifact，把失败收束到 `missingStages` 和
+`chainFailures`。
+
 ## 2026-06-21 P152 Strict Intake Controlled Failure Projection
 
 P151 严格链路在 operator 尚未填好 Data API origin 时，原先会让

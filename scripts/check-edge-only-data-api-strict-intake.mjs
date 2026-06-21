@@ -20,6 +20,8 @@ const healthResultRel = 'deploy/runtime-production/generated/remote-health-evide
 const required = process.env.REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY === 'true'
 const runChain = process.env.RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN === 'true'
 const runRemoteHealth = process.env.RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK === 'true'
+const sealedStrictCommand = 'npm run prepare:edge-only-data-api-strict-intake'
+const expandedStrictCommand = 'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -315,6 +317,7 @@ for (const file of [
   '.github/workflows/pages.yml',
   'scripts/check-github-actions-artifacts.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
+  'scripts/remote-assignment/check-remote-health-evidence.mjs',
 ]) {
   assert(existsSync(path(file)), `missing P151 prerequisite: ${file}`)
 }
@@ -325,8 +328,20 @@ assert(
   'package.json must expose check:edge-only-data-api-strict-intake',
 )
 assert(
+  packageJson.scripts['prepare:edge-only-data-api-strict-intake'] === expandedStrictCommand,
+  'package.json must expose sealed prepare:edge-only-data-api-strict-intake command',
+)
+assert(
   String(packageJson.scripts.test || '').includes('npm run check:remote-health-evidence-artifact && npm run check:edge-only-data-api-strict-intake && npm run check:remote-assignment-image-drift'),
   'root test must run P151 after P145 and before image drift / downstream operator packets',
+)
+assert(
+  !String(packageJson.scripts.test || '').includes('prepare:edge-only-data-api-strict-intake'),
+  'root test must not run the strict operator-only Data API intake command',
+)
+assert(
+  read('scripts/remote-assignment/check-remote-health-evidence.mjs').includes('process.env.SUPABASE_ANON_KEY'),
+  'remote-health:check must support SUPABASE_ANON_KEY like P151 docs and key-presence checks',
 )
 
 for (const [rel, terms] of Object.entries({
@@ -340,12 +355,15 @@ for (const [rel, terms] of Object.entries({
   'docs/backend/P151_EDGE_ONLY_DATA_API_STRICT_INTAKE.md': [
     'P151 Edge-Only Data API Strict Intake',
     'check:edge-only-data-api-strict-intake',
+    'prepare:edge-only-data-api-strict-intake',
     'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true',
     'REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true',
     'SUPABASE_ANON_KEY',
   ],
   'docs/design-system/DEVELOPMENT_NOTES.md': [
     'P151 Edge-Only Data API Strict Intake',
+    'P153 Sealed Edge-Only Data API Strict Intake Command',
+    'prepare:edge-only-data-api-strict-intake',
     'check:edge-only-data-api-strict-intake',
   ],
   '.github/workflows/pages.yml': [
@@ -542,7 +560,9 @@ const artifact = {
     requiresRemoteAgent: false,
     valuesIncluded: false,
   },
-  nextStrictCommand: 'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake',
+  sealedStrictCommand,
+  expandedStrictCommand,
+  nextStrictCommand: sealedStrictCommand,
 }
 
 const privateMatches = scanNoPrivateTerms(artifact)

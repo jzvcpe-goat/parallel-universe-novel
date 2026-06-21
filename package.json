@@ -117,6 +117,7 @@
     "check:runtime-assignment-intent-env-template": "node scripts/check-runtime-assignment-intent-env-template.mjs",
     "check:edge-only-data-api-evidence-readiness": "node scripts/check-edge-only-data-api-evidence-readiness.mjs",
     "check:edge-only-data-api-strict-intake": "node scripts/check-edge-only-data-api-strict-intake.mjs",
+    "prepare:edge-only-data-api-strict-intake": "RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake",
     "check:runtime-assignment-intent-prep": "node scripts/prepare-runtime-assignment-intent.mjs --check",
     "check:runtime-assignment-compiler": "node scripts/check-runtime-assignment-compiler.mjs",
     "check:remote-assignment-compiler-coherence": "node scripts/check-remote-assignment-compiler-coherence.mjs",
