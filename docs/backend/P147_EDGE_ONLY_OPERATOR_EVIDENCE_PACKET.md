@@ -18,6 +18,8 @@ P147 turns P123 and P146 into one operator-safe packet:
 - P146 defines the allowed `runtime-assignment.intent.env.local` fields.
 - P149 creates the ignored local env file from the P146 template without
   requiring operators to hand-copy files or touch the legacy full-remote env.
+- P150 checks the local Data API evidence readiness without printing values or
+  claiming P142 completion.
 - P147 packages the concrete next commands without leaking local values or
   treating the legacy full-remote env as primary evidence.
 
@@ -95,6 +97,10 @@ The packet keeps these as operator-owned inputs:
 11. P147 operator steps begin with
     `npm run prepare:runtime-assignment-intent-env-local`, the P149 bootstrap,
     instead of a manual copy command.
+12. P147's follow-up chain includes
+    `npm run check:edge-only-data-api-evidence-readiness` so the operator can
+    distinguish "local Data API fields not filled" from "health probe still
+    waiting" before running strict P142 checks.
 
 ## Failure Modes
 

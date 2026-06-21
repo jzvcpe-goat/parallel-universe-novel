@@ -44,8 +44,10 @@ npm run prepare:runtime-assignment-intent
 
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
+npm run check:edge-only-data-api-evidence-readiness
 npm run remote-health:check
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
+REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
@@ -66,7 +68,9 @@ P149 is intentionally narrow:
 
 1. `package.json` exposes `prepare:runtime-assignment-intent-env-local`.
 2. `package.json` exposes `check:runtime-assignment-intent-env-local-bootstrap`.
-3. Root `npm run test` runs the P149 check immediately before P146.
+3. Root `npm run test` runs the P149 check immediately before P150 and then
+   P146, so local env bootstrap, Data API evidence readiness and template
+   validation stay in one sequence.
 4. P146, P147 and development notes point to the P149 command instead of
    manual template copying as the current operator path.
 5. The tracked template contains the P140 edge-only key set and no secrets,
@@ -76,6 +80,9 @@ P149 is intentionally narrow:
    ignored by Git and still exposes no secret-like values.
 7. P149 writes a redacted artifact:
    `artifacts/runtime/runtime-assignment-intent-env-local-bootstrap-*.json`.
+8. P150 (`check:edge-only-data-api-evidence-readiness`) runs immediately after
+   P149 in root test, so the ignored local env can be audited for filled Data
+   API evidence without exposing values.
 
 ## Next Goal Effect
 

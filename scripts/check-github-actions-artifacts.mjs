@@ -29,6 +29,7 @@ if (checkCurrentRun) {
     'remote-operator-return-intake',
     'operator-assignment-evidence-intake',
     'edge-only-operator-evidence-packet',
+    'edge-only-data-api-evidence-readiness',
     'edge-only-data-api-evidence-transition-fixture',
     'operator-assignment-loop-command-consistency',
     'operator-assignment-current-head-coherence',

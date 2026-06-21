@@ -183,6 +183,16 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for edge-only Data API/Supabase handoff, no-secret boundaries and no remote Agent requirement.',
   },
   {
+    name: 'edge-only-data-api-evidence-readiness',
+    kind: 'pre_upload_generator_gate',
+    producer: 'check:edge-only-data-api-evidence-readiness',
+    verifier: 'check:edge-only-data-api-evidence-readiness',
+    contract: 'P150_EDGE_ONLY_DATA_API_EVIDENCE_READINESS',
+    uploadStep: 'Upload edge-only Data API evidence readiness',
+    uploadPath: 'artifacts/runtime/edge-only-data-api-evidence-readiness-*.json',
+    reason: 'Generated and checked before upload so the operator can see whether local edge-only Data API evidence is filled, ready for strict P142 checks, or still waiting without exposing values.',
+  },
+  {
     name: 'edge-only-data-api-evidence-transition-fixture',
     kind: 'download_content_gate',
     producer: 'check:edge-only-data-api-evidence-transition-fixture',
@@ -384,7 +394,7 @@ const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
 assert(downloadAttested.length === 23, 'P107 expects twenty-three artifacts with downloaded content gates')
-assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
+assert(preUploadChecked.length === 5, 'P107 expects five artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
 

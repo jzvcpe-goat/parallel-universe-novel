@@ -127,8 +127,8 @@ assert(
   `package.json must expose ${checkScriptName}`,
 )
 assert(
-  rootTest.includes(`npm run ${checkScriptName} && npm run check:runtime-assignment-intent-env-template`),
-  `root npm run test must run ${checkScriptName} immediately before P146`,
+  rootTest.includes(`npm run ${checkScriptName} && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template`),
+  `root npm run test must run ${checkScriptName} immediately before P150 and then P146`,
 )
 
 assert(read('.gitignore').includes(localRel), `${localRel} must be ignored`)
@@ -146,6 +146,7 @@ assertIncludes('docs/backend/P149_RUNTIME_ASSIGNMENT_INTENT_ENV_LOCAL_BOOTSTRAP.
   'P149 Runtime Assignment Intent Env Local Bootstrap',
   scriptName,
   checkScriptName,
+  'check:edge-only-data-api-evidence-readiness',
   localRel,
 ])
 assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [

@@ -5480,3 +5480,40 @@ Verification:
 npm run check:edge-only-data-api-evidence-transition-fixture
 npm run check:edge-only-data-api-evidence-transition-fixture-artifact
 ```
+
+## 2026-06-21 P150 Edge-Only Data API Evidence Readiness
+
+P149 removed the manual copy step, and P148 proved the returned-evidence
+transition in a fixture. The remaining operator pain was still diagnostic:
+before running the strict P142 chain, it was hard to tell whether the local
+Data API fields were missing, the compiler had not been rerun, or only the real
+health probe was still waiting.
+
+Implementation notes:
+
+1. New root-test gate:
+   `npm run check:edge-only-data-api-evidence-readiness`.
+2. P150 runs immediately after
+   `check:runtime-assignment-intent-env-local-bootstrap` and before the P146
+   template gate.
+3. The gate reads the ignored local intent env, optional compiled intent,
+   optional compiled assignment contract and optional P145 health evidence.
+4. The artifact only reports booleans and missing stages. It never prints
+   Supabase project refs, origins, publishable keys, provider keys, database
+   URLs, prompts, candidate text or private reference material.
+5. Default mode is root-test safe and may pass with
+   `passed_waiting_for_edge_only_data_api_evidence`.
+6. Strict mode
+   `REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness`
+   fails until service id, HTTPS origin, configured flag and real health
+   evidence are all present.
+7. P150 is a readiness preflight only. It does not mark P142 complete, create
+   remote services, set GitHub variables, write canon, promote live runtime or
+   require a remote Agent Runtime.
+
+Verification:
+
+```bash
+npm run check:edge-only-data-api-evidence-readiness
+REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
+```
