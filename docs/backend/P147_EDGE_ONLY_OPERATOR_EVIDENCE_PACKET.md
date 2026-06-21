@@ -18,6 +18,8 @@ P147 turns P123 and P146 into one operator-safe packet:
 - P146 defines the allowed `runtime-assignment.intent.env.local` fields.
 - P149 creates the ignored local env file from the P146 template without
   requiring operators to hand-copy files or touch the legacy full-remote env.
+- P156 verifies that the ignored local env and local publishable-key files do
+  not contain forbidden secret classes before any compile or health command.
 - P150 checks the local Data API evidence readiness without printing values or
   claiming P142 completion.
 - P147 packages the concrete next commands without leaking local values or
@@ -98,9 +100,16 @@ The packet keeps these as operator-owned inputs:
     `npm run prepare:runtime-assignment-intent-env-local`, the P149 bootstrap,
     instead of a manual copy command.
 12. P147's follow-up chain includes
-    `npm run check:edge-only-data-api-evidence-readiness` so the operator can
-    distinguish "local Data API fields not filled" from "health probe still
-    waiting" before running strict P142 checks.
+    `REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard`
+    before compile/health commands so the operator catches local secret hygiene
+    failures before attempting Data API verification.
+13. P147 still emits `nextStrictCommand` as
+    `npm run prepare:edge-only-data-api-strict-intake` for the sealed strict
+    P142 intake step after local compile and health evidence are available.
+14. P147 also keeps `npm run check:edge-only-data-api-evidence-readiness` as the
+    local readiness diagnosis gate; P156 catches forbidden local secret classes
+    first, while P150 distinguishes missing Data API fields from health evidence
+    that is still waiting.
 
 ## Failure Modes
 

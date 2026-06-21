@@ -215,6 +215,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.containsCandidateText === false, 'P123 packet must not contain candidate text')
   for (const fragment of [
     'prepare:runtime-assignment-intent-env-local',
+    'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
     'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local',
     'prepare:runtime-assignment-intent',
     'remote-assignment:prepare',

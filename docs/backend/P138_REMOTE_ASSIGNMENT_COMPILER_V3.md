@@ -42,11 +42,20 @@ P149 provides the safe current bootstrap for the ignored local env:
 npm run prepare:runtime-assignment-intent-env-local
 ```
 
+P156 then checks the ignored local env and local publishable-key files for
+forbidden secret classes before the compiler or health probes run:
+
+```bash
+REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+```
+
 ## Commands
 
 Compile all local artifacts:
 
 ```bash
+npm run prepare:runtime-assignment-intent-env-local
+REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare

@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P157 Local Secret Guard Handoff Propagation
+
+P156 made the local Data API secret guard part of root `npm run test`, but the
+operator-facing loop still needed to tell humans and generated packets to run it
+between the P149 env bootstrap and the P138 compiler. Otherwise the machine root
+chain was safer than the handoff instructions.
+
+New engineering rule:
+
+1. The selected `operator-assignment-evidence-intake` command chain is now 9
+   commands: bootstrap intent env, P156 local secret guard, prepare intent,
+   compile public contract, assignment intake, remote health, sealed strict
+   intake, operator return intake, loop ledger.
+2. P121, P123, P130/P131, P138 and P147 must all expose the same normalized
+   command order. Updating only one human doc is not enough.
+3. P147 `nextCommand` points at the P156 local secret guard after bootstrap;
+   `nextStrictCommand` remains the sealed strict Data API intake command.
+4. This step still does not create Data API resources, touch Supabase, write
+   GitHub variables, or claim runtime ready. It only validates local input
+   hygiene before operator-owned evidence is compiled or checked.
+
+Validation commands:
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-assignment-evidence-intake
+npm run check:edge-only-operator-evidence-packet
+npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+```
+
 ## 2026-06-21 P156 Edge-Only Data API Local Secret Guard
 
 P155 证明 strict intake artifact 可以被当前 Pages run 下载并核验，但继续往前倒推发现：
@@ -77,9 +108,9 @@ long-form strict command，操作者仍然需要猜下一步。
    P130 command consistency profile 里。
 2. P147 保留 `nextCommand` 指向第一条编译 intent 的动作，同时新增
    `nextStrictCommand` 指向 sealed strict-intake 命令。
-3. P130/P131 的 operator handoff command count 现在是 8：bootstrap intent env、
-   prepare intent、compile public contract、assignment intake、remote health、sealed
-   strict intake、operator return intake、loop ledger。
+3. P130/P131 的 operator handoff command count 现在是 9：bootstrap intent env、
+   P156 local secret guard、prepare intent、compile public contract、assignment intake、
+   remote health、sealed strict intake、operator return intake、loop ledger。
 4. P142/P150 人读文档只推荐 sealed command；展开后的 `RUN_*`/`REQUIRE_*` 形式仅在
    P151/P153 中作为实现说明保留。
 5. 这个变更不创建 Data API、不访问 Supabase、不设置 GitHub variables、不 claim

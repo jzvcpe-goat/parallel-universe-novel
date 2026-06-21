@@ -137,7 +137,7 @@ function validateCommandConsistency(payload) {
   assert(payload.status === 'passed', 'P130 artifact status mismatch')
   assert(payload.checkedGoal === 'operator-assignment-evidence-intake', 'P130 checked goal mismatch')
   assert(payload.commandProfile === 'edge-only-runtime-assignment-compiler', 'P130 command profile mismatch')
-  assert(payload.commandCount === 8, 'P130 must verify exactly eight edge-only operator handoff commands')
+  assert(payload.commandCount === 9, 'P130 must verify exactly nine edge-only operator handoff commands')
   assert(payload.legacyFragmentCount === 1, 'P130 legacy fragment count mismatch')
   assertRuntimeArtifactPointer(payload.sourceStrictRunArtifact, 'sourceStrictRunArtifact')
   assertRuntimeArtifactPointer(payload.sourceReadinessPacketArtifact, 'sourceReadinessPacketArtifact')

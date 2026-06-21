@@ -165,6 +165,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
 
   for (const fragment of [
     'npm run prepare:runtime-assignment-intent-env-local',
+    'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
     `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`,
     'npm run remote-assignment:prepare',
     'npm run check:remote-runtime-assignment-intake',
@@ -194,7 +195,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   }
   assert(payload.sourceEvidence?.operatorAssignmentEvidenceIntake?.gate === 'P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE', 'P147 must cite P123')
   assert(payload.sourceEvidence?.intentEnvTemplate?.gate === 'P146_EDGE_ONLY_INTENT_ENV_TEMPLATE_GATE', 'P147 must cite P146')
-  assert(payload.nextCommand === `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`, 'P147 next command mismatch')
+  assert(payload.nextCommand === 'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard', 'P147 next command mismatch')
   assert(payload.nextStrictCommand === 'npm run prepare:edge-only-data-api-strict-intake', 'P147 next strict command mismatch')
   assert(privateMatches.length === 0, `P147 packet leaked private terms: ${privateMatches.join(', ')}`)
   assert(markdownPrivateMatches.length === 0, `P147 Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)

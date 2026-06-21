@@ -327,36 +327,42 @@ const packet = {
     },
     {
       order: 3,
+      label: 'Verify local health-input hygiene',
+      command: 'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
+      doneWhen: 'P156 accepts the ignored intent env and local publishable-key file without forbidden secret classes',
+    },
+    {
+      order: 4,
       label: 'Compile edge-only runtime intent',
       command: `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`,
       doneWhen: `${intentRel} has concrete data_api.service_id and origin`,
     },
     {
-      order: 4,
+      order: 5,
       label: 'Compile public contract and operator evidence',
       command: 'npm run remote-assignment:prepare',
       doneWhen: 'generated runtime assignment contract exists without secrets',
     },
     {
-      order: 5,
+      order: 6,
       label: 'Validate edge-only assignment intake',
       command: 'npm run check:remote-runtime-assignment-intake',
       doneWhen: 'only data-api-health-ready remains, or all P75 assignment blockers are cleared',
     },
     {
-      order: 6,
+      order: 7,
       label: 'Run remote health from local publishable key',
       command: 'npm run remote-health:check',
       doneWhen: 'health_probe reader row returns status ok',
     },
     {
-      order: 7,
+      order: 8,
       label: 'Run sealed Data API strict intake',
       command: 'npm run prepare:edge-only-data-api-strict-intake',
       doneWhen: 'P151 passes strict intake with redacted artifact and no missing Data API stages',
     },
     {
-      order: 8,
+      order: 9,
       label: 'Recompute loop goal',
       command: 'npm run check:remote-operator-return-intake && npm run check:loop-next-goal-ledger',
       doneWhen: 'ledger advances to remote-health-evidence-intake or strict activation proof',
@@ -390,7 +396,7 @@ const packet = {
     exposesProviderPlumbing: false,
     containsCandidateText: false,
   },
-  nextCommand: `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`,
+  nextCommand: 'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
   nextStrictCommand: 'npm run prepare:edge-only-data-api-strict-intake',
 }
 

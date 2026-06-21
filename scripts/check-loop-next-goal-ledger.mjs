@@ -111,6 +111,7 @@ function selectNextGoal({ p120, p85, completion }) {
       ],
       acceptanceGates: [
         'npm run prepare:runtime-assignment-intent-env-local',
+        'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
         'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
         'npm run remote-assignment:prepare',
         'npm run check:remote-runtime-assignment-intake',
