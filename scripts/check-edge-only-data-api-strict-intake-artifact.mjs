@@ -83,10 +83,32 @@ function downloadGithubPacket(runId) {
       .filter(file => /edge-only-data-api-strict-intake-.*\.json$/.test(file))
       .filter(file => !/edge-only-data-api-strict-intake-attestation-.*\.json$/.test(file))
       .sort()
-    assert(jsonFiles.length === 1, `expected exactly one P151 JSON in GitHub artifact, got ${jsonFiles.length}`)
+    assert(jsonFiles.length >= 1, `expected at least one P151 JSON in GitHub artifact, got ${jsonFiles.length}`)
+    const jsonPath = jsonFiles
+      .map(file => {
+        let payload = {}
+        try {
+          payload = JSON.parse(readFileSync(file, 'utf8'))
+        } catch {
+          payload = {}
+        }
+        return {
+          file,
+          generatedAt: String(payload.generatedAt || ''),
+          gate: payload.gate || null,
+        }
+      })
+      .filter(candidate => candidate.gate === sourceGate)
+      .sort((left, right) => {
+        const byGeneratedAt = left.generatedAt.localeCompare(right.generatedAt)
+        if (byGeneratedAt !== 0) return byGeneratedAt
+        return left.file.localeCompare(right.file)
+      })
+      .at(-1)?.file
+    assert(jsonPath, 'expected at least one P151 source-gate JSON in GitHub artifact')
     return {
       dir,
-      jsonPath: jsonFiles[0],
+      jsonPath,
       cleanup: () => rmSync(dir, { recursive: true, force: true }),
     }
   } catch (error) {

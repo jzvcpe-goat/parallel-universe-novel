@@ -5992,3 +5992,27 @@ npm run check:runtime-assignment-intent-env-template
 npm run check:edge-only-operator-evidence-packet
 npm run check:edge-only-data-api-strict-intake
 ```
+
+## 2026-06-21 P155 Current-Run Artifact Multiplicity
+
+P162 made the root chain run P151 before P118, while the Pages workflow also
+uploads a dedicated P151 evidence artifact. On GitHub Actions, the downloaded
+`edge-only-data-api-strict-intake` artifact can therefore contain more than one
+P151 JSON for the same run.
+
+Implementation notes:
+
+1. Do not remove root-chain execution to force artifact uniqueness; root-chain
+   coverage is the release gate.
+2. P155 now accepts one or more P151 JSON files in the GitHub artifact, filters
+   to the P151 source gate and validates the latest `generatedAt` packet.
+3. The selected packet still goes through the same head-sha, privacy,
+   redaction, boundary and missing-stage checks.
+4. This is artifact hygiene only. It does not alter P151 readiness semantics,
+   create remote services, store keys or promote a live runtime.
+
+Verification:
+
+```bash
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true CHECK_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_REQUIRED=true npm run check:edge-only-data-api-strict-intake-artifact
+```
