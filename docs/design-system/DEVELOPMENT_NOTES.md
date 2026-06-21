@@ -5626,3 +5626,35 @@ Verification:
 npm run check:edge-only-data-api-evidence-readiness
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
 ```
+
+## 2026-06-21 P152/P123 Operator Bootstrap Command Coherence
+
+P123 already generated a safe operator evidence packet, and P147 separately
+listed the first bootstrap step for creating the ignored edge-only intent env.
+That split made the selected `operator-assignment-evidence-intake` handoff
+slightly too easy to mis-run: an operator could start with the compiler command
+before `runtime-assignment.intent.env.local` existed.
+
+Implementation notes:
+
+1. P121 selected-goal acceptance gates now start with
+   `npm run prepare:runtime-assignment-intent-env-local`.
+2. P123 JSON/Markdown handoff artifacts include the same bootstrap command as
+   the first next command.
+3. P124 validates that uploaded P123 artifacts include the bootstrap command.
+4. P130 command-consistency checks treat the bootstrap command as part of the
+   primary edge-only command surface, ahead of the compiler and
+   `remote-assignment:prepare`.
+5. This change does not fabricate operator evidence, alter Data API readiness,
+   or promote live runtime. It only makes the current waiting handoff executable
+   from a clean local checkout.
+
+Verification:
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-evidence-intake-artifact
+npm run check:operator-assignment-loop-command-consistency
+```

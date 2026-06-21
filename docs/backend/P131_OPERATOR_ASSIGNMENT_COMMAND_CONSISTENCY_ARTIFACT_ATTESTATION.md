@@ -62,8 +62,9 @@ P131 verifies that the uploaded P130 artifact:
 1. Uses `P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY`.
 2. Has status `passed`.
 3. Keeps checked goal `operator-assignment-evidence-intake`.
-4. Verifies exactly five operator handoff commands.
-5. Records the two deprecated command fragments that must stay absent.
+4. Verifies exactly seven operator handoff commands, starting with the ignored
+   edge-only intent env bootstrap.
+5. Records the deprecated command fragment that must stay absent.
 6. Points at P118 strict-run, P119 readiness-packet and P121 ledger runtime
    artifacts.
 7. Keeps no-write/no-deploy boundaries false for local assignment writes,

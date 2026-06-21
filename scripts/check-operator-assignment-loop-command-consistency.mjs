@@ -6,6 +6,7 @@ import { join, relative, resolve } from 'node:path'
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
 const expectedAssignmentCommands = [
+  'npm run prepare:runtime-assignment-intent-env-local',
   'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
