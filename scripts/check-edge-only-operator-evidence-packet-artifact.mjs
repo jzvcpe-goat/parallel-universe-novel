@@ -164,7 +164,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(![...requiredKeys].some(key => key.includes('REMOTE_AGENT')), 'P147 must not require REMOTE_AGENT evidence')
 
   for (const fragment of [
-    `cp deploy/runtime-production/runtime-assignment.intent.env.example ${localEnvRel}`,
+    'npm run prepare:runtime-assignment-intent-env-local',
     `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`,
     'npm run remote-assignment:prepare',
     'npm run check:remote-runtime-assignment-intake',

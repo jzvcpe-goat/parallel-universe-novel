@@ -40,8 +40,7 @@ Use the P146 local env-file handoff when the operator does not want to edit
 JSON directly:
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.env.example \
-  deploy/runtime-production/runtime-assignment.intent.env.local
+npm run prepare:runtime-assignment-intent-env-local
 
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true \
@@ -94,6 +93,10 @@ P146 owns the tracked template for these local-only inputs:
 deploy/runtime-production/runtime-assignment.intent.env.example
 deploy/runtime-production/runtime-assignment.intent.env.local
 ```
+
+P149 owns creation of the ignored local env file. Operators should use
+`npm run prepare:runtime-assignment-intent-env-local` instead of hand-copying
+the template, then fill only the non-secret managed Data API evidence.
 
 `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE` may point only to the ignored local copy.
 The loader accepts non-secret P140 fields, rejects unsupported keys and does

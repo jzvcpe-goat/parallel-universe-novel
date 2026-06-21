@@ -16,6 +16,8 @@ P147 turns P123 and P146 into one operator-safe packet:
 
 - P123 says which edge-only assignment evidence is still missing.
 - P146 defines the allowed `runtime-assignment.intent.env.local` fields.
+- P149 creates the ignored local env file from the P146 template without
+  requiring operators to hand-copy files or touch the legacy full-remote env.
 - P147 packages the concrete next commands without leaking local values or
   treating the legacy full-remote env as primary evidence.
 
@@ -40,6 +42,7 @@ P147 reads:
 
 - `deploy/runtime-production/runtime-assignment.intent.env.example`
 - `deploy/runtime-production/runtime-assignment.intent.env.local` if present
+- latest P149 runtime assignment intent env local bootstrap artifact if present
 - latest P123 operator assignment evidence intake artifact
 - latest P146 edge-only intent env template artifact
 
@@ -89,6 +92,9 @@ The packet keeps these as operator-owned inputs:
    does not promote live runtime.
 10. P148 separately proves the returned Data API evidence transition, so P147
     remains only the operator packet and does not need fixture health evidence.
+11. P147 operator steps begin with
+    `npm run prepare:runtime-assignment-intent-env-local`, the P149 bootstrap,
+    instead of a manual copy command.
 
 ## Failure Modes
 
@@ -96,6 +102,8 @@ The packet keeps these as operator-owned inputs:
   the selected goal and current blockers.
 - Missing P146 evidence fails P147; operators must use the dedicated edge-only
   env template.
+- Missing P149 docs or script exposure fails the local bootstrap gate before
+  operators can be pointed at the edge-only env path.
 - Any secret-like value, model-routing internal, representative work name,
   `sourceRefs`, `profile.id` or `kernel.id` in the packet fails the gate.
 - Any primary-path `REMOTE_AGENT_*` requirement fails the gate.

@@ -115,8 +115,8 @@ current-head P119/P120/P121/P123/P130/P131 evidence.
 ## Next Command Sequence
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.env.example \
-  deploy/runtime-production/runtime-assignment.intent.env.local
+npm run prepare:runtime-assignment-intent-env-local
+
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
@@ -125,6 +125,10 @@ npm run remote-health:check
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
+
+P149 is the current bootstrap for the ignored edge-only env file. Legacy
+full-remote env files remain compatibility fixtures and must not satisfy the
+primary GitHub Pages plus managed Data API path.
 
 After the assignment evidence is complete, P121 should stop selecting
 `operator-assignment-evidence-intake` and route the loop to

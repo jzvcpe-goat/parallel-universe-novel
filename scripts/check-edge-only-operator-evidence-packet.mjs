@@ -215,6 +215,7 @@ assertIncludes('docs/backend/P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET.md', [
   'check:edge-only-operator-evidence-packet',
   'check:edge-only-operator-evidence-packet-artifact',
   localEnvRel,
+  'prepare:runtime-assignment-intent-env-local',
   'does not require a remote Agent Runtime',
 ])
 assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
@@ -314,7 +315,7 @@ const packet = {
     {
       order: 1,
       label: 'Create ignored edge-only intent env',
-      command: `cp ${templateRel} ${localEnvRel}`,
+      command: 'npm run prepare:runtime-assignment-intent-env-local',
       doneWhen: `${localEnvRel} exists and stays ignored by Git`,
     },
     {

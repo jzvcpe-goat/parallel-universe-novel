@@ -281,7 +281,7 @@ const payload = {
     containsRuntimeRuleIdentifiers: false,
   },
   nextCommands: [
-    'copy template to ignored runtime-assignment.intent.env.local',
+    'npm run prepare:runtime-assignment-intent-env-local',
     'fill ignored local env with non-secret managed data API evidence',
     'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
     'npm run remote-assignment:prepare',

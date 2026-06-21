@@ -28,6 +28,12 @@ The ignored local copy is:
 deploy/runtime-production/runtime-assignment.intent.env.local
 ```
 
+P149 owns the safe creation of that ignored local copy:
+
+```bash
+npm run prepare:runtime-assignment-intent-env-local
+```
+
 This gate does not create a Supabase project, write GitHub variables, store
 provider secrets, write canon, promote live runtime, or fabricate health
 readiness.
@@ -35,8 +41,7 @@ readiness.
 ## Operator Sequence
 
 ```bash
-cp deploy/runtime-production/runtime-assignment.intent.env.example \
-  deploy/runtime-production/runtime-assignment.intent.env.local
+npm run prepare:runtime-assignment-intent-env-local
 
 # Fill only non-secret data API evidence in the ignored local file.
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
@@ -92,6 +97,9 @@ npm run check:runtime-assignment-intent-env-template
 8. P146 artifacts contain no concrete Supabase project ref, origin, provider
    secret, prompt plumbing, private reference material, candidate prose or
    internal profile/kernel ids.
+9. P149 provides the current local bootstrap command and root test runs
+   `check:runtime-assignment-intent-env-local-bootstrap` immediately before
+   P146.
 
 ## Next Goal Effect
 

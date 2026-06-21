@@ -5413,6 +5413,40 @@ npm run check:runtime-assignment-intent-env-template
 npm run check:runtime-assignment-intent-prep
 ```
 
+## 2026-06-21 P149 Runtime Assignment Intent Env Local Bootstrap
+
+P146 fixed the template boundary, but it still left a fragile operator action:
+copying the tracked edge-only template into the ignored local env file by hand.
+That small manual step is where the legacy full-remote env path can creep back
+into the active edge-only loop. P149 turns the copy into a bounded command and
+gate.
+
+Implementation notes:
+
+1. New command:
+   `npm run prepare:runtime-assignment-intent-env-local`.
+2. New root-test gate:
+   `npm run check:runtime-assignment-intent-env-local-bootstrap`, run
+   immediately before P146.
+3. The write command creates only
+   `deploy/runtime-production/runtime-assignment.intent.env.local`, which must
+   remain ignored by Git.
+4. The command refuses to overwrite an existing local env unless forced, so
+   operator notes are not silently erased.
+5. P149 does not create Supabase services, set GitHub variables, store
+   publishable keys, store provider keys, migrate legacy
+   `remote-assignment.env.local`, or promote live runtime.
+6. P146/P147/P140/P138/P123 now point operators at the P149 command instead of
+   manual template copying.
+
+Verification:
+
+```bash
+npm run check:runtime-assignment-intent-env-local-bootstrap
+npm run prepare:runtime-assignment-intent-env-local
+npm run check:runtime-assignment-intent-env-local-bootstrap
+```
+
 ## 2026-06-21 P148 Edge-Only Data API Evidence Transition Fixture
 
 P147 packaged the operator-facing evidence request, but the release chain still

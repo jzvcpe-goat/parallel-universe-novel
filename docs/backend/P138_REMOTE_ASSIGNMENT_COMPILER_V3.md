@@ -36,6 +36,12 @@ deploy/runtime-production/runtime-assignment.intent.env.example
 deploy/runtime-production/runtime-assignment.intent.env.local
 ```
 
+P149 provides the safe current bootstrap for the ignored local env:
+
+```bash
+npm run prepare:runtime-assignment-intent-env-local
+```
+
 ## Commands
 
 Compile all local artifacts:
