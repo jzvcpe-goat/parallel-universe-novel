@@ -36,6 +36,18 @@ Run the no-write fixture check used by CI:
 npm run check:runtime-assignment-intent-prep
 ```
 
+Use the P146 local env-file handoff when the operator does not want to edit
+JSON directly:
+
+```bash
+cp deploy/runtime-production/runtime-assignment.intent.env.example \
+  deploy/runtime-production/runtime-assignment.intent.env.local
+
+RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
+RUNTIME_ASSIGNMENT_INTENT_FORCE=true \
+npm run prepare:runtime-assignment-intent
+```
+
 Continue the edge-only assignment flow:
 
 ```bash
@@ -76,6 +88,17 @@ only used by `npm run remote-health:check` from local env, and service-role
 keys, writer passwords and model keys must never be placed in the browser,
 public artifacts or the intent file.
 
+P146 owns the tracked template for these local-only inputs:
+
+```text
+deploy/runtime-production/runtime-assignment.intent.env.example
+deploy/runtime-production/runtime-assignment.intent.env.local
+```
+
+`RUNTIME_ASSIGNMENT_INTENT_ENV_FILE` may point only to the ignored local copy.
+The loader accepts non-secret P140 fields, rejects unsupported keys and does
+not load the tracked example as runtime input.
+
 ## Acceptance
 
 1. `package.json` exposes `prepare:runtime-assignment-intent`.
@@ -90,3 +113,6 @@ public artifacts or the intent file.
    absence without using real Supabase credentials.
 8. The command reports the remaining data API fields instead of inventing
    placeholder readiness.
+9. `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE` can load the ignored P146 env file.
+10. The tracked P146 env template does not ask for remote Agent service id,
+    remote Agent origin or Agent secret-store confirmation.

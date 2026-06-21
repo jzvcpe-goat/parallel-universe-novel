@@ -110,7 +110,7 @@ function selectNextGoal({ p120, p85, completion }) {
         'health_probe row exists and returns status ok',
       ],
       acceptanceGates: [
-        'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
+        'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
         'npm run remote-assignment:prepare',
         'npm run check:remote-runtime-assignment-intake',
         'npm run remote-health:check',

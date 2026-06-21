@@ -125,6 +125,7 @@ const steps = [
   ['check:remote-assignment-fill-plan-artifact'],
   ['check:remote-assignment-env-apply'],
   ['check:remote-assignment-env-dry-run'],
+  ['check:runtime-assignment-intent-env-template'],
   ['check:remote-assignment-image-drift'],
   ['check:remote-assignment-strict-run-package'],
   ['check:remote-assignment-strict-run-package-artifact'],

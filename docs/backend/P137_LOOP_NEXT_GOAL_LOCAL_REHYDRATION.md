@@ -35,6 +35,7 @@ The helper uses existing gates instead of inventing a second routing path:
 - P85/P90 blocker evidence.
 - P105/P106 fill-plan evidence.
 - P117/P116 dry-run and apply-check evidence.
+- P146 edge-only runtime intent env template evidence.
 - P113 current-head image drift.
 - P118/P119/P120 operator handoff and return evidence.
 - P107 artifact coverage.

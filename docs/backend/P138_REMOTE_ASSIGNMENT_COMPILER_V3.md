@@ -27,11 +27,21 @@ The compiler can represent three runtime modes:
 The immediate production unblock is `edge-only`. In that mode, the absence of a
 remote Agent service is not a missing field. It is explicit boundary evidence.
 
+P146 adds a dedicated edge-only env template for P140 so operators do not use
+the legacy full-remote `remote-assignment.env.example` when the loop-selected
+goal is still `operator-assignment-evidence-intake`:
+
+```text
+deploy/runtime-production/runtime-assignment.intent.env.example
+deploy/runtime-production/runtime-assignment.intent.env.local
+```
+
 ## Commands
 
 Compile all local artifacts:
 
 ```bash
+RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
@@ -135,6 +145,8 @@ repo, or browser bundle.
   ledger-patch, health-check, prepare, and compiler-check scripts.
 - Root `npm run test` includes `check:runtime-assignment-intent-prep` before
   `check:runtime-assignment-compiler`.
+- Root `npm run test` includes `check:runtime-assignment-intent-env-template`
+  immediately before `check:runtime-assignment-intent-prep`.
 - Root `npm run test` includes `check:runtime-assignment-compiler`.
 - Root `npm run test` includes `check:remote-assignment-compiler-coherence`
   immediately after `check:runtime-assignment-compiler`.

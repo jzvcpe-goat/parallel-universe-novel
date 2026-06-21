@@ -157,17 +157,17 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(typeof payload.assignmentFilePresent === 'boolean', 'P123 must record assignmentFilePresent as boolean')
   assert(Array.isArray(payload.requiredOperatorEvidence) && payload.requiredOperatorEvidence.length === 11, 'P123 must list exactly eleven edge-only operator evidence inputs')
   for (const env of [
-    'OPERATOR_OWNER',
-    'FRONTEND_PROVIDER',
-    'FRONTEND_SERVICE_ID',
-    'FRONTEND_ORIGIN',
-    'DATA_API_SERVICE_ID',
-    'DATA_API_ORIGIN',
-    'FRONTEND_CONFIGURED',
-    'DATA_API_CONFIGURED',
-    'REMOTE_AGENT_REMOTE_REQUIRED',
-    'REMOTE_AI_GENERATION_CLOUD_RUNTIME',
-    'REMOTE_READER_CAN_TRIGGER_AI',
+    'RUNTIME_ASSIGNMENT_OPERATOR_OWNER',
+    'RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER',
+    'RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID',
+    'RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN',
+    'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID or SUPABASE_PROJECT_REF',
+    'RUNTIME_ASSIGNMENT_DATA_API_ORIGIN or SUPABASE_URL',
+    'RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED',
+    'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED',
+    'agent.remote_required',
+    'agent.ai_generation_cloud_runtime',
+    'agent.reader_can_trigger_ai',
   ]) {
     assert(requiredEnv.has(env), `P123 missing required operator evidence ${env}`)
   }
@@ -214,6 +214,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.boundary?.exposesProviderPlumbing === false, 'P123 packet must not expose provider plumbing')
   assert(payload.boundary?.containsCandidateText === false, 'P123 packet must not contain candidate text')
   for (const fragment of [
+    'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local',
     'prepare:runtime-assignment-intent',
     'remote-assignment:prepare',
     'check:remote-runtime-assignment-intake',

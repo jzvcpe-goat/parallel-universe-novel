@@ -38,6 +38,8 @@ deploy/runtime-production/remote-assignment.env.local
 deploy/runtime-production/remote-assignment.*.env.local
 deploy/runtime-production/runtime-assignment.intent.local.json
 deploy/runtime-production/runtime-assignment.*.intent.local.json
+deploy/runtime-production/runtime-assignment.intent.env.local
+deploy/runtime-production/runtime-assignment.*.intent.env.local
 deploy/runtime-production/generated/*
 !deploy/runtime-production/generated/.gitkeep
 

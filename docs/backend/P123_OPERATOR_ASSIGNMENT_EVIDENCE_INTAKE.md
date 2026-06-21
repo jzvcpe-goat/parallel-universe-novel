@@ -54,17 +54,17 @@ chooses a full remote API plus Agent Runtime deployment.
 
 | Evidence key | Meaning | Rule |
 | --- | --- | --- |
-| `OPERATOR_OWNER` | Deployment owner or accountable team | Non-empty, no whitespace, not a placeholder |
-| `FRONTEND_PROVIDER` | Frontend hosting provider | Non-empty, no whitespace, not a placeholder |
-| `FRONTEND_SERVICE_ID` | Frontend service id | Non-empty hosted site id, not a secret |
-| `FRONTEND_ORIGIN` | Frontend HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
-| `DATA_API_SERVICE_ID` | Managed data API service id or project ref | Non-empty managed data service id, not a secret |
-| `DATA_API_ORIGIN` | Managed data API HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
-| `FRONTEND_CONFIGURED` | Frontend public configuration confirmation | Exactly `true` after public config exists |
-| `DATA_API_CONFIGURED` | Managed data API publishable/RLS configuration confirmation | Exactly `true` after publishable key and read/write policy are configured |
-| `REMOTE_AGENT_REMOTE_REQUIRED` | Remote Agent Runtime requirement | Exactly `false` for edge-only launch |
-| `REMOTE_AI_GENERATION_CLOUD_RUNTIME` | Cloud AI generation runtime | Exactly `false` for edge-only launch |
-| `REMOTE_READER_CAN_TRIGGER_AI` | Reader-triggered cloud AI generation | Exactly `false` for edge-only launch |
+| `RUNTIME_ASSIGNMENT_OPERATOR_OWNER` | Deployment owner or accountable team | Non-empty, no whitespace, not a placeholder |
+| `RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER` | Frontend hosting provider | Usually inferred; override only if Pages host changes |
+| `RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID` | Frontend service id | Usually inferred from the GitHub repository |
+| `RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN` | Frontend HTTPS origin | Usually inferred as the GitHub Pages owner origin |
+| `RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID` or `SUPABASE_PROJECT_REF` | Managed data API service id or project ref | Non-empty managed data service id, not a secret |
+| `RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` or `SUPABASE_URL` | Managed data API HTTPS origin | Remote HTTPS origin, no path, no localhost, no placeholder |
+| `RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED` | Frontend public configuration confirmation | Exactly `true` after public config exists |
+| `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED` | Managed data API publishable/RLS configuration confirmation | Exactly `true` after publishable key and read/write policy are configured |
+| `agent.remote_required` | Remote Agent Runtime requirement | Always `false` for edge-only launch |
+| `agent.ai_generation_cloud_runtime` | Cloud AI generation runtime | Always `false` for edge-only launch |
+| `agent.reader_can_trigger_ai` | Reader-triggered cloud AI generation | Always `false` for edge-only launch |
 
 The frontend rows are auto-prepared from the current GitHub Pages repository
 unless the operator explicitly overrides them. The real external evidence still
@@ -115,6 +115,9 @@ current-head P119/P120/P121/P123/P130/P131 evidence.
 ## Next Command Sequence
 
 ```bash
+cp deploy/runtime-production/runtime-assignment.intent.env.example \
+  deploy/runtime-production/runtime-assignment.intent.env.local
+RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
@@ -171,6 +174,9 @@ After the assignment evidence is complete, P121 should stop selecting
     edge-only projection: `REMOTE_AGENT_SERVICE_ID`, `REMOTE_AGENT_ORIGIN` and
     `REMOTE_AGENT_SECRETS_CONFIGURED` must not reappear as current missing
     evidence.
+21. P146 provides the primary edge-only operator template and P140 loader:
+    `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE` must be the documented path for
+    operator-supplied data API evidence.
 
 ## Failure Modes
 

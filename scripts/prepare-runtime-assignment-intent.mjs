@@ -1,13 +1,32 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const intentRel = 'deploy/runtime-production/runtime-assignment.intent.local.json'
 const intentPath = join(root, intentRel)
+const intentEnvFileKey = 'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE'
 const checkOnly = process.argv.includes('--check') || process.env.RUNTIME_ASSIGNMENT_INTENT_CHECK === 'true'
 const force = process.argv.includes('--force') || process.env.RUNTIME_ASSIGNMENT_INTENT_FORCE === 'true'
+const allowedIntentEnvKeys = [
+  'RUNTIME_ASSIGNMENT_ENVIRONMENT',
+  'RUNTIME_ASSIGNMENT_OPERATOR_OWNER',
+  'RUNTIME_ASSIGNMENT_OPERATOR_PROVIDER',
+  'RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER',
+  'RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID',
+  'RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN',
+  'RUNTIME_ASSIGNMENT_FRONTEND_URL',
+  'RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED',
+  'RUNTIME_ASSIGNMENT_DATA_API_PROVIDER',
+  'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID',
+  'SUPABASE_PROJECT_REF',
+  'RUNTIME_ASSIGNMENT_DATA_API_ORIGIN',
+  'SUPABASE_URL',
+  'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED',
+  'RUNTIME_ASSIGNMENT_DATA_PROBE_TABLE',
+  'RUNTIME_ASSIGNMENT_DATA_PROBE_ID',
+]
 
 function read(rel) {
   return readFileSync(join(root, rel), 'utf8')
@@ -21,8 +40,75 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
-function envFlag(name, fallback = false) {
-  const value = process.env[name]
+function gitCheckIgnore(rel) {
+  try {
+    execFileSync('git', ['check-ignore', '--quiet', rel], {
+      cwd: root,
+      stdio: 'ignore',
+      timeout: 8000,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function normalizedRepoRelative(inputPath) {
+  const absolute = isAbsolute(inputPath) ? resolve(inputPath) : resolve(root, inputPath)
+  const rel = relative(root, absolute).replace(/\\/g, '/')
+  assert(rel && !rel.startsWith('..') && !isAbsolute(rel), `${intentEnvFileKey} must stay inside the repository`)
+  return { absolute, rel }
+}
+
+function parseIntentEnvFile(text) {
+  const values = {}
+  const seen = new Set()
+  for (const [index, rawLine] of text.split(/\r?\n/).entries()) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#')) continue
+    assert(!line.startsWith('export '), `intent env file line ${index + 1} must not use export`)
+    const match = /^([A-Z0-9_]+)=(.*)$/.exec(line)
+    assert(match, `intent env file line ${index + 1} must be KEY=value`)
+    const [, key, rawValue] = match
+    assert(allowedIntentEnvKeys.includes(key), `intent env file contains unsupported key ${key}`)
+    assert(!seen.has(key), `intent env file contains duplicate key ${key}`)
+    seen.add(key)
+    values[key] = rawValue.trim()
+  }
+  return values
+}
+
+function loadIntentEnvFile(env = process.env) {
+  const requestedPath = String(env[intentEnvFileKey] || '').trim()
+  if (!requestedPath) {
+    return {
+      loaded: false,
+      relPath: null,
+      values: {},
+      effectiveEnv: env,
+    }
+  }
+
+  const { absolute, rel } = normalizedRepoRelative(requestedPath)
+  assert(rel.startsWith('deploy/runtime-production/'), `${intentEnvFileKey} must point inside deploy/runtime-production`)
+  assert(rel.endsWith('.intent.env.local'), `${intentEnvFileKey} must point to an ignored .intent.env.local file`)
+  assert(!rel.endsWith('.env.example'), `${intentEnvFileKey} must not point at the tracked template`)
+  assert(existsSync(absolute), `${intentEnvFileKey} target does not exist: ${rel}`)
+  assert(gitCheckIgnore(rel), `${intentEnvFileKey} target must be ignored by Git: ${rel}`)
+  const values = parseIntentEnvFile(readFileSync(absolute, 'utf8'))
+  return {
+    loaded: true,
+    relPath: rel,
+    values,
+    effectiveEnv: {
+      ...env,
+      ...values,
+    },
+  }
+}
+
+function envFlag(env, name, fallback = false) {
+  const value = env[name]
   if (value == null || value === '') return fallback
   return value === 'true'
 }
@@ -82,25 +168,25 @@ function scanNoSecretLikePayload(payload) {
   return forbidden.filter(pattern => pattern.test(text)).map(String)
 }
 
-function inferIntent({ fixture = false } = {}) {
+function inferIntent({ fixture = false, env = process.env } = {}) {
   const [owner, repo] = repoSlug().split('/')
   assert(owner && repo, 'repository slug must be owner/repo')
 
   const frontendOrigin = noTrailingSlash(
-    process.env.RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN
+    env.RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN
       || `https://${owner}.github.io`,
   )
-  const frontendServiceId = process.env.RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID
+  const frontendServiceId = env.RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID
     || `${owner}/${repo}`
-  const frontendUrl = process.env.RUNTIME_ASSIGNMENT_FRONTEND_URL
+  const frontendUrl = env.RUNTIME_ASSIGNMENT_FRONTEND_URL
     || `${frontendOrigin}/${repo}/`
 
-  const dataServiceId = process.env.RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID
-    || process.env.SUPABASE_PROJECT_REF
+  const dataServiceId = env.RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID
+    || env.SUPABASE_PROJECT_REF
     || (fixture ? 'fixture-supabase-project' : '<supabase-project-ref>')
   const dataOrigin = noTrailingSlash(
-    process.env.RUNTIME_ASSIGNMENT_DATA_API_ORIGIN
-      || process.env.SUPABASE_URL
+    env.RUNTIME_ASSIGNMENT_DATA_API_ORIGIN
+      || env.SUPABASE_URL
       || (isPlaceholder(dataServiceId)
         ? 'https://<supabase-project-ref>.supabase.co'
         : `https://${dataServiceId}.supabase.co`),
@@ -109,23 +195,23 @@ function inferIntent({ fixture = false } = {}) {
   return {
     schema_version: 1,
     goal: 'parallel-universe-novel-reader',
-    environment: process.env.RUNTIME_ASSIGNMENT_ENVIRONMENT || 'production',
+    environment: env.RUNTIME_ASSIGNMENT_ENVIRONMENT || 'production',
     runtime_mode: 'edge-only',
     operator: {
-      owner: process.env.RUNTIME_ASSIGNMENT_OPERATOR_OWNER || owner,
-      provider: process.env.RUNTIME_ASSIGNMENT_OPERATOR_PROVIDER || 'github-pages-supabase-managed',
+      owner: env.RUNTIME_ASSIGNMENT_OPERATOR_OWNER || owner,
+      provider: env.RUNTIME_ASSIGNMENT_OPERATOR_PROVIDER || 'github-pages-supabase-managed',
     },
     frontend: {
-      provider: process.env.RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER || 'github-pages',
+      provider: env.RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER || 'github-pages',
       service_id: frontendServiceId,
       origin: frontendOrigin,
-      secrets_configured: envFlag('RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED', true),
+      secrets_configured: envFlag(env, 'RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED', true),
     },
     data_api: {
-      provider: process.env.RUNTIME_ASSIGNMENT_DATA_API_PROVIDER || 'supabase',
+      provider: env.RUNTIME_ASSIGNMENT_DATA_API_PROVIDER || 'supabase',
       service_id: dataServiceId,
       origin: dataOrigin,
-      secrets_configured: envFlag('RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED', fixture),
+      secrets_configured: envFlag(env, 'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED', fixture),
       public_key_model: 'publishable-or-legacy-anon-with-rls',
     },
     agent: {
@@ -136,8 +222,8 @@ function inferIntent({ fixture = false } = {}) {
     },
     health: {
       frontend_url: frontendUrl,
-      data_probe_table: process.env.RUNTIME_ASSIGNMENT_DATA_PROBE_TABLE || 'health_probe',
-      data_probe_id: process.env.RUNTIME_ASSIGNMENT_DATA_PROBE_ID || 'reader',
+      data_probe_table: env.RUNTIME_ASSIGNMENT_DATA_PROBE_TABLE || 'health_probe',
+      data_probe_id: env.RUNTIME_ASSIGNMENT_DATA_PROBE_ID || 'reader',
     },
   }
 }
@@ -145,8 +231,10 @@ function inferIntent({ fixture = false } = {}) {
 for (const file of [
   '.gitignore',
   'deploy/runtime-production/runtime-assignment.intent.example.json',
+  'deploy/runtime-production/runtime-assignment.intent.env.example',
   'docs/backend/P138_REMOTE_ASSIGNMENT_COMPILER_V3.md',
   'docs/backend/P140_RUNTIME_ASSIGNMENT_INTENT_PREPARATION.md',
+  'docs/backend/P146_EDGE_ONLY_INTENT_ENV_TEMPLATE_GATE.md',
 ]) {
   assert(existsSync(join(root, file)), `missing P140 prerequisite: ${file}`)
 }
@@ -165,11 +253,13 @@ assert(
   'root npm run test must include check:runtime-assignment-intent-prep',
 )
 assert(read('.gitignore').includes(intentRel), `${intentRel} must be ignored`)
+assert(read('.gitignore').includes('deploy/runtime-production/runtime-assignment.intent.env.local'), 'runtime assignment intent env local file must be ignored')
 for (const term of [
   'P140 Runtime Assignment Intent Preparation',
   'prepare:runtime-assignment-intent',
   'check:runtime-assignment-intent-prep',
   'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
+  'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE',
   'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID',
   'SUPABASE_PROJECT_REF',
   'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true',
@@ -206,11 +296,12 @@ if (checkOnly) {
   process.exit(0)
 }
 
+const intentEnvFile = loadIntentEnvFile()
 if (existsSync(intentPath) && !force) {
   throw new Error(`${intentRel} already exists; set RUNTIME_ASSIGNMENT_INTENT_FORCE=true to refresh it`)
 }
 
-const intent = inferIntent()
+const intent = inferIntent({ env: intentEnvFile.effectiveEnv })
 const hits = scanNoSecretLikePayload(intent)
 assert(hits.length === 0, `intent leaked secret-like terms: ${hits.join(', ')}`)
 
@@ -233,6 +324,12 @@ console.log(JSON.stringify({
   },
   dataApiMissing: missingFields,
   nextCommand: 'npm run remote-assignment:prepare',
+  intentEnvFile: {
+    loaded: intentEnvFile.loaded,
+    path: intentEnvFile.relPath,
+    providedKeyCount: Object.keys(intentEnvFile.values).length,
+    valuesIncluded: false,
+  },
   note: missingFields.length
     ? 'Fill Supabase/data API evidence in the ignored local intent before running the compiler.'
     : 'Intent is ready for compiler validation.',

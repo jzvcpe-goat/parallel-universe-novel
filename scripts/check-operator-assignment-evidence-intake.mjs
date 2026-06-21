@@ -404,67 +404,67 @@ assert(p105.payload.decision === 'remote_assignment_fill_plan_ready', 'P105 fill
 
 const requiredOperatorEvidence = [
   {
-    env: 'OPERATOR_OWNER',
+    env: 'RUNTIME_ASSIGNMENT_OPERATOR_OWNER',
     label: 'deployment owner or accountable team',
     publicSafe: true,
     validation: 'non-empty, no whitespace, not placeholder',
   },
   {
-    env: 'FRONTEND_PROVIDER',
+    env: 'RUNTIME_ASSIGNMENT_FRONTEND_PROVIDER',
     label: 'frontend hosting provider',
     publicSafe: true,
     validation: 'non-empty, no whitespace, not placeholder',
   },
   {
-    env: 'FRONTEND_SERVICE_ID',
+    env: 'RUNTIME_ASSIGNMENT_FRONTEND_SERVICE_ID',
     label: 'frontend service id',
     publicSafe: true,
     validation: 'non-empty hosted site id, not a secret',
   },
   {
-    env: 'FRONTEND_ORIGIN',
+    env: 'RUNTIME_ASSIGNMENT_FRONTEND_ORIGIN',
     label: 'frontend HTTPS origin',
     publicSafe: true,
     validation: 'remote https origin, no path, no localhost, no placeholder',
   },
   {
-    env: 'DATA_API_SERVICE_ID',
+    env: 'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID or SUPABASE_PROJECT_REF',
     label: 'managed data API service id or project ref',
     publicSafe: true,
     validation: 'non-empty managed data service id, not a secret',
   },
   {
-    env: 'DATA_API_ORIGIN',
+    env: 'RUNTIME_ASSIGNMENT_DATA_API_ORIGIN or SUPABASE_URL',
     label: 'managed data API HTTPS origin',
     publicSafe: true,
     validation: 'remote https origin, no path, no localhost, no placeholder',
   },
   {
-    env: 'FRONTEND_CONFIGURED',
+    env: 'RUNTIME_ASSIGNMENT_FRONTEND_CONFIGURED',
     label: 'frontend public configuration confirmation',
     publicSafe: true,
     validation: 'exactly true after frontend public config exists',
   },
   {
-    env: 'DATA_API_CONFIGURED',
+    env: 'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED',
     label: 'managed data API publishable/RLS configuration confirmation',
     publicSafe: true,
     validation: 'exactly true after publishable key and read/write policy are configured',
   },
   {
-    env: 'REMOTE_AGENT_REMOTE_REQUIRED',
+    env: 'agent.remote_required',
     label: 'remote Agent Runtime requirement',
     publicSafe: true,
     validation: 'exactly false for edge-only launch',
   },
   {
-    env: 'REMOTE_AI_GENERATION_CLOUD_RUNTIME',
+    env: 'agent.ai_generation_cloud_runtime',
     label: 'cloud AI generation runtime',
     publicSafe: true,
     validation: 'exactly false for edge-only launch',
   },
   {
-    env: 'REMOTE_READER_CAN_TRIGGER_AI',
+    env: 'agent.reader_can_trigger_ai',
     label: 'reader-triggered cloud AI generation',
     publicSafe: true,
     validation: 'exactly false for edge-only launch',
@@ -472,7 +472,7 @@ const requiredOperatorEvidence = [
 ]
 
 const nextCommands = [
-  'RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
+  'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
   'npm run remote-health:check',

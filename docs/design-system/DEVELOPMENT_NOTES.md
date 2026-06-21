@@ -5379,3 +5379,36 @@ npm run check:remote-health-evidence-artifact
 npm run check:ci-artifact-content-coverage
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 ```
+
+## 2026-06-21 P146 Edge-Only Intent Env Template Gate
+
+P145 proved the remote health attestation can be uploaded and checked, but
+P121 still selected `operator-assignment-evidence-intake` because the actual
+managed data API evidence is missing. The practical UX problem was that the
+tracked `.env` handoff still pointed at the legacy full-remote assignment flow
+with remote Agent service fields. That conflicts with P138/P140, where the
+current production path is edge-only and remote Agent absence is explicit
+evidence rather than a missing field.
+
+Implementation notes:
+
+1. P146 adds `deploy/runtime-production/runtime-assignment.intent.env.example`
+   as the primary operator template for the edge-only path.
+2. `prepare-runtime-assignment-intent` now supports
+   `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE`, but only for ignored
+   `deploy/runtime-production/*.intent.env.local` files.
+3. The template accepts only non-secret P140 fields. Supabase service-role keys,
+   writer passwords, model provider keys, database URLs and bridge tokens stay
+   outside the repo and artifacts.
+4. The template does not include remote Agent service id, remote Agent origin or
+   Agent secret-store confirmation. Those remain legacy full-remote fields.
+5. Root `npm run test` runs `check:runtime-assignment-intent-env-template`
+   immediately before P140 intent prep, so future changes cannot regress the
+   operator handoff back to the old 8-field remote Agent checklist.
+
+Verification:
+
+```bash
+npm run check:runtime-assignment-intent-env-template
+npm run check:runtime-assignment-intent-prep
+```
