@@ -110,6 +110,10 @@ representative-work name or candidate prose may appear in the artifact.
 6. P156 does not perform network IO and does not run `remote-health:check`.
 7. P156 does not replace P142, P145, P150 or P151; it only prevents local
    operator evidence from entering those gates in an unsafe shape.
+8. When P156 is still waiting for local Data API evidence, its artifact
+   `nextCommand` points forward to
+   `npm run check:edge-only-data-api-evidence-readiness`, not back to the P149
+   bootstrap command.
 
 ## Command Position
 
@@ -118,6 +122,7 @@ The safe local sequence is:
 ```bash
 npm run prepare:runtime-assignment-intent-env-local
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+npm run check:edge-only-data-api-evidence-readiness
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true \
 npm run prepare:runtime-assignment-intent
@@ -125,6 +130,5 @@ npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
-REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
 npm run prepare:edge-only-data-api-strict-intake
 ```

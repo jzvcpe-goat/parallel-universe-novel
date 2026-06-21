@@ -16,6 +16,8 @@ const supportedPublishableKeys = [
   'SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_ANON_KEY',
 ]
+const readyNextCommand = 'npm run remote-health:check'
+const waitingNextCommand = 'npm run check:edge-only-data-api-evidence-readiness'
 const requiredIntentKeys = [
   'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID',
   'SUPABASE_PROJECT_REF',
@@ -215,6 +217,7 @@ for (const [rel, terms] of Object.entries({
   'docs/backend/P156_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD.md': [
     'P156 Edge-Only Data API Local Secret Guard',
     'check:edge-only-data-api-local-secret-guard',
+    waitingNextCommand,
     '.env.local.sync',
     'does not mark P142 complete',
   ],
@@ -286,8 +289,8 @@ const status = ready
   ? 'passed_ready_for_remote_health_check'
   : 'passed_waiting_for_local_data_api_evidence'
 const nextCommand = ready
-  ? 'npm run remote-health:check'
-  : 'npm run prepare:runtime-assignment-intent-env-local'
+  ? readyNextCommand
+  : waitingNextCommand
 const payload = {
   version: 1,
   gate,

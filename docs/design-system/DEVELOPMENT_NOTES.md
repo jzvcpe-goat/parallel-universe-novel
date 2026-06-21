@@ -1,5 +1,31 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P158 P156 Next Command Direction
+
+After P157, the operator packet correctly inserted P156 between the P149
+bootstrap and later compile/health steps, but the P156 artifact itself still
+reported `nextCommand` as `npm run prepare:runtime-assignment-intent-env-local`
+when local Data API evidence was missing. That pointed the operator backward to
+the bootstrap they had already run.
+
+Engineering rule:
+
+1. P156 waiting-state artifacts point forward to
+   `npm run check:edge-only-data-api-evidence-readiness`.
+2. P156 ready-state artifacts still point to `npm run remote-health:check`.
+3. P156 docs must show P150 immediately after P156 as the local diagnosis gate;
+   strict P142 intake remains later, after compile/health evidence exists.
+4. This is only a command-direction fix. It does not create Data API services,
+   run remote health itself, or claim P142/P151 completion.
+
+Validation commands:
+
+```bash
+npm run check:edge-only-data-api-local-secret-guard
+npm run check:edge-only-data-api-evidence-readiness
+npm run check:release-sync-manifest
+```
+
 ## 2026-06-21 P157 Local Secret Guard Handoff Propagation
 
 P156 made the local Data API secret guard part of root `npm run test`, but the
