@@ -11,6 +11,7 @@ const expectedAssignmentCommands = [
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
   'npm run remote-health:check',
+  'npm run prepare:edge-only-data-api-strict-intake',
   'npm run check:remote-operator-return-intake',
   'npm run check:loop-next-goal-ledger',
 ]
@@ -156,6 +157,7 @@ assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.m
   'runtime-assignment.intent.local.json',
   'remote-assignment:prepare',
   'remote-health:check',
+  'prepare:edge-only-data-api-strict-intake',
 ])
 assertIncludes('docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md', [
   'P131 Operator Assignment Command Consistency Artifact Attestation',
@@ -174,8 +176,10 @@ assertIncludes('docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md', ['P13
 assertIncludes('scripts/check-loop-next-goal-ledger.mjs', expectedAssignmentCommands)
 assertIncludes('scripts/check-operator-assignment-evidence-intake.mjs', expectedAssignmentCommands)
 assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [
+  'P154 Operator-Facing Strict Intake Propagation',
   'P130 Operator Assignment Loop Command Consistency',
   'check:operator-assignment-loop-command-consistency',
+  'prepare:edge-only-data-api-strict-intake',
   'remote-assignment:prepare',
 ])
 

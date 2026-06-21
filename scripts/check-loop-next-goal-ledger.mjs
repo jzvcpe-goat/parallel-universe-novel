@@ -115,6 +115,7 @@ function selectNextGoal({ p120, p85, completion }) {
         'npm run remote-assignment:prepare',
         'npm run check:remote-runtime-assignment-intake',
         'npm run remote-health:check',
+        'npm run prepare:edge-only-data-api-strict-intake',
         'npm run check:remote-operator-return-intake',
         'npm run check:loop-next-goal-ledger',
       ],

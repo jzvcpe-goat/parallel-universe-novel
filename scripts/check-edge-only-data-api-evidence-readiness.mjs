@@ -373,6 +373,7 @@ const payload = {
     'npm run remote-health:check',
     'REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact',
     'REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness',
+    'npm run prepare:edge-only-data-api-strict-intake',
   ],
   publicBoundary: {
     containsSecrets: false,

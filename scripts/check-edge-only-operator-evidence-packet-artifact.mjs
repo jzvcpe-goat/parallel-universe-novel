@@ -169,6 +169,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
     'npm run remote-assignment:prepare',
     'npm run check:remote-runtime-assignment-intake',
     'npm run remote-health:check',
+    'npm run prepare:edge-only-data-api-strict-intake',
     'npm run check:remote-operator-return-intake && npm run check:loop-next-goal-ledger',
   ]) {
     assert(stepCommands.includes(fragment), `P147 operator steps must include ${fragment}`)
@@ -194,6 +195,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
   assert(payload.sourceEvidence?.operatorAssignmentEvidenceIntake?.gate === 'P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE', 'P147 must cite P123')
   assert(payload.sourceEvidence?.intentEnvTemplate?.gate === 'P146_EDGE_ONLY_INTENT_ENV_TEMPLATE_GATE', 'P147 must cite P146')
   assert(payload.nextCommand === `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`, 'P147 next command mismatch')
+  assert(payload.nextStrictCommand === 'npm run prepare:edge-only-data-api-strict-intake', 'P147 next strict command mismatch')
   assert(privateMatches.length === 0, `P147 packet leaked private terms: ${privateMatches.join(', ')}`)
   assert(markdownPrivateMatches.length === 0, `P147 Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)
   assert(markdownText.includes('P147 Edge-Only Operator Evidence Packet'), 'P147 Markdown title mismatch')

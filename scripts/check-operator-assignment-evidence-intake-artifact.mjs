@@ -220,6 +220,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
     'remote-assignment:prepare',
     'check:remote-runtime-assignment-intake',
     'remote-health:check',
+    'prepare:edge-only-data-api-strict-intake',
     'check:remote-operator-return-intake',
     'check:loop-next-goal-ledger',
   ]) {

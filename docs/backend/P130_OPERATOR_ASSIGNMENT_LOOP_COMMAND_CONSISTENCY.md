@@ -42,6 +42,7 @@ npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
+npm run prepare:edge-only-data-api-strict-intake
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
@@ -90,14 +91,15 @@ npm run check:operator-assignment-current-head-coherence
 3. P121 generated artifacts include `remote-assignment:prepare`.
 4. P121 generated artifacts include `prepare:runtime-assignment-intent`.
 5. P121 generated artifacts include `remote-health:check`.
-6. P121 and P123 docs/scripts use the same edge-only command sequence.
-7. The old apply-env flag command is absent from P118/P121/P123/P129 docs and
+6. P121 generated artifacts include `prepare:edge-only-data-api-strict-intake`.
+7. P121 and P123 docs/scripts use the same edge-only command sequence.
+8. The old apply-env flag command is absent from P118/P121/P123/P129 docs and
    relevant checker scripts as a primary command.
-8. P130 artifact remains redacted and contains no service ids, origins,
+9. P130 artifact remains redacted and contains no service ids, origins,
    provider credentials, prompt plumbing, private reference material, profile
    ids, kernel ids or `sourceRefs`.
-9. P131 validates the uploaded P130 artifact content in the current Pages run.
-10. P132 validates that P130 points at current-head P119 and P121 artifacts.
+10. P131 validates the uploaded P130 artifact content in the current Pages run.
+11. P132 validates that P130 points at current-head P119 and P121 artifacts.
 
 ## Failure Modes
 

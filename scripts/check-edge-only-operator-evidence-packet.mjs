@@ -351,6 +351,12 @@ const packet = {
     },
     {
       order: 7,
+      label: 'Run sealed Data API strict intake',
+      command: 'npm run prepare:edge-only-data-api-strict-intake',
+      doneWhen: 'P151 passes strict intake with redacted artifact and no missing Data API stages',
+    },
+    {
+      order: 8,
       label: 'Recompute loop goal',
       command: 'npm run check:remote-operator-return-intake && npm run check:loop-next-goal-ledger',
       doneWhen: 'ledger advances to remote-health-evidence-intake or strict activation proof',
@@ -385,6 +391,7 @@ const packet = {
     containsCandidateText: false,
   },
   nextCommand: `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=${localEnvRel} RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent`,
+  nextStrictCommand: 'npm run prepare:edge-only-data-api-strict-intake',
 }
 
 const jsonPrivateMatches = scanNoPrivateTerms(packet)

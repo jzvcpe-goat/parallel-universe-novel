@@ -43,7 +43,7 @@ npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 npm run check:remote-health-evidence-artifact
 npm run check:edge-only-data-api-evidence-readiness
-npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
 npm run check:edge-only-data-api-evidence-transition-fixture
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
@@ -54,7 +54,7 @@ Operator strict mode may additionally run:
 ```bash
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
-REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
 ```
 
 After the first pass, the tail evidence chain must be run in order, not in

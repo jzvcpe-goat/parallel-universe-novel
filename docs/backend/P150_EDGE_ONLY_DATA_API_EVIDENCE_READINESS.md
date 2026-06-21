@@ -100,7 +100,7 @@ npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
-REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
 npm run check:loop-next-goal-ledger
 ```
 
@@ -111,11 +111,12 @@ P150 artifact alone.
 P151 is the next stricter intake gate:
 
 ```bash
-RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true \
-RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true \
-REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true \
-npm run check:edge-only-data-api-strict-intake
+npm run prepare:edge-only-data-api-strict-intake
 ```
+
+The sealed operator command above wraps the stricter
+`check:edge-only-data-api-strict-intake` gate with the required strict-intake,
+remote-health and ready-state environment flags.
 
 P151 checks the same boundary as P150 plus publishable-key presence, P145
 health attestation, P75 blocker clearance and P121 next-goal movement. It still

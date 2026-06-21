@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P154 Operator-Facing Strict Intake Propagation
+
+P153 解决了“严格 Data API 接入命令太长”的问题，但它只把 sealed command 放进
+P151 本身。继续复盘后发现，真正的 operator handoff 还会经过 P121、P123、P147 和
+P130/P131。如果这些面向操作者的 artifact 仍然只写到 `remote-health:check` 或旧的
+long-form strict command，操作者仍然需要猜下一步。
+
+新的工程规则：
+
+1. `npm run prepare:edge-only-data-api-strict-intake` 必须出现在 P121 selected-goal
+   acceptance gates、P123 operator intake packet、P147 edge-only operator packet 和
+   P130 command consistency profile 里。
+2. P147 保留 `nextCommand` 指向第一条编译 intent 的动作，同时新增
+   `nextStrictCommand` 指向 sealed strict-intake 命令。
+3. P130/P131 的 operator handoff command count 现在是 8：bootstrap intent env、
+   prepare intent、compile public contract、assignment intake、remote health、sealed
+   strict intake、operator return intake、loop ledger。
+4. P142/P150 人读文档只推荐 sealed command；展开后的 `RUN_*`/`REQUIRE_*` 形式仅在
+   P151/P153 中作为实现说明保留。
+5. 这个变更不创建 Data API、不访问 Supabase、不设置 GitHub variables、不 claim
+   runtime ready；它只保证下一步操作入口在机器 artifact 和人读文档中一致。
+
+验证命令：
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-assignment-evidence-intake
+npm run check:edge-only-operator-evidence-packet
+npm run check:operator-assignment-loop-command-consistency
+```
+
 ## 2026-06-21 P153 Sealed Edge-Only Data API Strict Intake Command
 
 P151 已经把 Data API 证据收束成严格接入门禁，但真实操作时仍然需要复制三段
