@@ -26,6 +26,23 @@ as readiness.
 
 ## Command
 
+If you just refreshed the loop ledger manually, refresh P122 before P123 so the
+fixture-isolation artifact points at the same current P121/P120 evidence:
+
+```bash
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+```
+
+For a sealed local continuation, prefer:
+
+```bash
+npm run prepare:loop-next-goal-local-tail
+```
+
+If the P122 prerequisite is stale, P123 fails with the recovery command instead
+of emitting a packet from mixed ledger evidence.
+
 ```bash
 npm run check:operator-assignment-evidence-intake
 ```

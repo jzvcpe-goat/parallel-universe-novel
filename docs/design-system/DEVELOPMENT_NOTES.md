@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P161 P123 Stale-P122 Recovery
+
+After P160, a direct local probe exposed an operator ergonomics issue: running
+`npm run check:loop-next-goal-ledger` by itself creates a newer P121 artifact.
+If the operator then runs P123 directly, P123 correctly rejects the stale P122
+fixture-isolation artifact, but the previous error looked like an internal
+coherence failure instead of an actionable step.
+
+Engineering rule:
+
+1. P123 must not silently skip or regenerate P122; P122 remains the explicit
+   fixture-isolation proof between P121 and P123.
+2. When P122 is stale, P123 must print the recovery command:
+   `npm run check:operator-return-fixture-isolation`, then
+   `npm run check:operator-assignment-evidence-intake`.
+3. P123 docs must show both the two-step standalone sequence and the sealed
+   `npm run prepare:loop-next-goal-local-tail` continuation.
+4. This is an operator usability fix only. It does not change the selected next
+   goal, does not create Data API evidence and does not weaken fixture
+   isolation.
+
+Validation commands:
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-return-fixture-isolation
+npm run check:operator-assignment-evidence-intake
+npm run check:operator-assignment-evidence-intake-artifact
+```
+
 ## 2026-06-21 P160 P72 Cached Evidence Fallback
 
 While validating P159, `gh run view` intermittently returned EOF. P72 wrote a

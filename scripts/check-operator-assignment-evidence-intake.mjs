@@ -22,6 +22,11 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function assertFreshPrerequisite(condition, message) {
+  if (condition) return
+  throw new Error(`${message}. Recovery: run \`npm run check:operator-return-fixture-isolation\` after the latest \`npm run check:loop-next-goal-ledger\`, then rerun \`npm run check:operator-assignment-evidence-intake\`.`)
+}
+
 function currentHead() {
   try {
     return execFileSync('git', ['rev-parse', 'HEAD'], {
@@ -272,7 +277,9 @@ for (const file of [
 
 assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
   'P123 Operator Assignment Evidence Intake',
+  'check:operator-return-fixture-isolation',
   'check:operator-assignment-evidence-intake',
+  'prepare:loop-next-goal-local-tail',
   preferredAssignmentPath,
   edgeOnlyExampleAssignmentPath,
   'edge-only',
@@ -344,13 +351,13 @@ const p105 = latestArtifact(
 assert(p121.payload.selectedGoal?.id === 'operator-assignment-evidence-intake', 'P123 only runs when P121 selects operator-assignment-evidence-intake')
 assert(p121.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file), 'P123 requires P121 to reference the current P120 operator return intake')
 assert(p121.payload.sourceEvidence?.imageDrift?.file === relative(root, p113.file), 'P123 requires P121 to reference the current P113 image drift evidence')
-assert(p122.payload.headSha === headSha || sourceWorkspaceNoGit, 'P123 requires current-head P122 fixture isolation')
-assert(p122.payload.selectedNextGoal === 'operator-assignment-evidence-intake', 'P122 must confirm operator-assignment-evidence-intake')
-assert(
+assertFreshPrerequisite(p122.payload.headSha === headSha || sourceWorkspaceNoGit, 'P123 requires current-head P122 fixture isolation')
+assertFreshPrerequisite(p122.payload.selectedNextGoal === 'operator-assignment-evidence-intake', 'P122 must confirm operator-assignment-evidence-intake')
+assertFreshPrerequisite(
   p122.payload.sourceEvidence?.loopNextGoalLedger?.file === relative(root, p121.file),
   'P123 requires P122 to reference the current P121 loop next-goal ledger',
 )
-assert(
+assertFreshPrerequisite(
   p122.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file),
   'P123 requires P122 to reference the current P120 operator return intake',
 )
