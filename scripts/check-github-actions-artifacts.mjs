@@ -28,6 +28,7 @@ if (checkCurrentRun) {
     'remote-operator-readiness-packet',
     'remote-operator-return-intake',
     'operator-assignment-evidence-intake',
+    'edge-only-operator-evidence-packet',
     'operator-assignment-loop-command-consistency',
     'operator-assignment-current-head-coherence',
     'operator-assignment-transition-fixture',

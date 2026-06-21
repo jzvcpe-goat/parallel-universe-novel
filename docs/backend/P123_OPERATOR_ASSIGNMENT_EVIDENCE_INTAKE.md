@@ -177,6 +177,9 @@ After the assignment evidence is complete, P121 should stop selecting
 21. P146 provides the primary edge-only operator template and P140 loader:
     `RUNTIME_ASSIGNMENT_INTENT_ENV_FILE` must be the documented path for
     operator-supplied data API evidence.
+22. P147 emits the edge-only operator evidence packet after P124 so deployment
+    operators see the current Data API/Supabase inputs and do not confuse the
+    selected path with the legacy full-remote Agent handoff.
 
 ## Failure Modes
 
@@ -194,3 +197,6 @@ After the assignment evidence is complete, P121 should stop selecting
 - If Pages uploads the P123 packet but P124 cannot validate the downloaded
   JSON/Markdown content, the release gate fails before deployment evidence is
   accepted.
+- If P147 cannot package the edge-only operator evidence packet from P123 and
+  P146, the selected `operator-assignment-evidence-intake` loop remains too
+  ambiguous to hand off.

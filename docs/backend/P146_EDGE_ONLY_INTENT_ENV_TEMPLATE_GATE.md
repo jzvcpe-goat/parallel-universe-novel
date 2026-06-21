@@ -99,3 +99,8 @@ When P146 is green, `operator-assignment-evidence-intake` is no longer blocked
 by a confusing legacy template. The remaining external input is the actual
 managed data API evidence plus `remote-health:check`; if those are present, P121
 can advance the loop to `remote-health-evidence-intake`.
+
+P147 consumes this template and P123 to emit the edge-only operator evidence packet.
+That packet is the shareable handoff for the current GitHub Pages plus
+managed Data API route; it does not require a remote Agent Runtime and does not
+use legacy `remote-assignment.env.local` values as primary evidence.

@@ -172,6 +172,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for non-secret operator evidence requirements, missing/incomplete assignment state and no-write boundaries.',
   },
   {
+    name: 'edge-only-operator-evidence-packet',
+    kind: 'download_content_gate',
+    producer: 'check:edge-only-operator-evidence-packet',
+    verifier: 'check:edge-only-operator-evidence-packet-artifact',
+    contract: 'P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET_ATTESTATION',
+    uploadStep: 'Upload edge-only operator evidence packet',
+    uploadPath: 'artifacts/runtime/edge-only-operator-evidence-packet-*.json',
+    workflowStep: 'Check edge-only operator evidence packet artifact content',
+    reason: 'Downloaded from the same Pages run and checked for edge-only Data API/Supabase handoff, no-secret boundaries and no remote Agent requirement.',
+  },
+  {
     name: 'operator-assignment-loop-command-consistency',
     kind: 'download_content_gate',
     producer: 'check:operator-assignment-loop-command-consistency',
@@ -361,7 +372,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 21, 'P107 expects twenty-one artifacts with downloaded content gates')
+assert(downloadAttested.length === 22, 'P107 expects twenty-two artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

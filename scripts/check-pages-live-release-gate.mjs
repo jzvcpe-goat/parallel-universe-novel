@@ -370,12 +370,20 @@ assert(
   'Pages workflow must verify operator assignment evidence intake artifact content after the operator return intake artifact content gate',
 )
 assert(
+  workflow.includes('Check edge-only operator evidence packet artifact content')
+    && workflow.includes('CHECK_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:edge-only-operator-evidence-packet-artifact')
+    && workflow.indexOf('Check edge-only operator evidence packet artifact content') > workflow.indexOf('Check operator assignment evidence intake artifact content'),
+  'Pages workflow must verify edge-only operator evidence packet artifact content after the operator assignment evidence intake artifact content gate',
+)
+assert(
   workflow.includes('Check operator assignment command consistency artifact content')
     && workflow.includes('CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:operator-assignment-loop-command-consistency-artifact')
-    && workflow.indexOf('Check operator assignment command consistency artifact content') > workflow.indexOf('Check operator assignment evidence intake artifact content'),
-  'Pages workflow must verify operator assignment command consistency artifact content after the operator assignment evidence intake artifact content gate',
+    && workflow.indexOf('Check operator assignment command consistency artifact content') > workflow.indexOf('Check edge-only operator evidence packet artifact content'),
+  'Pages workflow must verify operator assignment command consistency artifact content after the edge-only operator evidence packet content gate',
 )
 assert(
   workflow.includes('Check operator assignment current-head coherence artifact content')
@@ -510,6 +518,14 @@ assert(
   'package.json must expose check:operator-assignment-evidence-intake-artifact',
 )
 assert(
+  packageJson.scripts['check:edge-only-operator-evidence-packet'] === 'node scripts/check-edge-only-operator-evidence-packet.mjs',
+  'package.json must expose check:edge-only-operator-evidence-packet',
+)
+assert(
+  packageJson.scripts['check:edge-only-operator-evidence-packet-artifact'] === 'node scripts/check-edge-only-operator-evidence-packet-artifact.mjs',
+  'package.json must expose check:edge-only-operator-evidence-packet-artifact',
+)
+assert(
   packageJson.scripts['check:operator-assignment-loop-command-consistency-artifact'] === 'node scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
   'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
 )
@@ -634,6 +650,14 @@ assert(
   'npm run test must include check:operator-assignment-evidence-intake-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:edge-only-operator-evidence-packet'),
+  'npm run test must include check:edge-only-operator-evidence-packet',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:edge-only-operator-evidence-packet-artifact'),
+  'npm run test must include check:edge-only-operator-evidence-packet-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:operator-assignment-loop-command-consistency-artifact'),
   'npm run test must include check:operator-assignment-loop-command-consistency-artifact',
 )
@@ -697,6 +721,8 @@ assert(
     && p16Doc.includes('check:remote-operator-return-intake-artifact')
     && p16Doc.includes('operator-assignment-evidence-intake')
     && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
+    && p16Doc.includes('edge-only-operator-evidence-packet')
+    && p16Doc.includes('check:edge-only-operator-evidence-packet-artifact')
     && p16Doc.includes('operator-assignment-loop-command-consistency')
     && p16Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p16Doc.includes('operator-assignment-current-head-coherence')
@@ -745,6 +771,7 @@ assert(
     && p43Doc.includes('check:remote-operator-readiness-packet-artifact')
     && p43Doc.includes('check:remote-operator-return-intake-artifact')
     && p43Doc.includes('check:operator-assignment-evidence-intake-artifact')
+    && p43Doc.includes('check:edge-only-operator-evidence-packet-artifact')
     && p43Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p43Doc.includes('check:operator-assignment-current-head-coherence')
     && p43Doc.includes('check:operator-assignment-transition-fixture-artifact')
@@ -879,6 +906,8 @@ console.log(JSON.stringify({
   remoteOperatorReturnIntakeContent: 'check:remote-operator-return-intake-artifact',
   operatorAssignmentEvidenceIntake: 'operator-assignment-evidence-intake',
   operatorAssignmentEvidenceIntakeContent: 'check:operator-assignment-evidence-intake-artifact',
+  edgeOnlyOperatorEvidencePacket: 'edge-only-operator-evidence-packet',
+  edgeOnlyOperatorEvidencePacketContent: 'check:edge-only-operator-evidence-packet-artifact',
   operatorAssignmentCommandConsistency: 'operator-assignment-loop-command-consistency',
   operatorAssignmentCommandConsistencyContent: 'check:operator-assignment-loop-command-consistency-artifact',
   operatorAssignmentCurrentHeadCoherence: 'operator-assignment-current-head-coherence',
