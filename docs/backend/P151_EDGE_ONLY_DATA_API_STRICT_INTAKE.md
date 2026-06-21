@@ -49,6 +49,12 @@ npm run check:remote-runtime-assignment-intake
 npm run check:loop-next-goal-ledger
 ```
 
+If any subcommand in that chain cannot proceed because the local Data API
+evidence is still incomplete or malformed, P151 must still write a redacted
+artifact first. In `REQUIRE_*` mode it exits non-zero after writing the
+artifact, using `missingStages` and `chainFailures` to describe the blocker
+without printing provider output, Supabase URLs, project refs or stack traces.
+
 ## Inputs
 
 P151 reads only local or generated evidence shape:
@@ -70,10 +76,10 @@ artifacts/runtime/edge-only-data-api-strict-intake-*.json
 ```
 
 The artifact is redacted. It may include booleans, missing stage names, status,
-decisions and gate summaries. It must not include Supabase URLs, service ids,
-publishable key values, service-role keys, writer passwords, provider keys,
-database URLs, prompts, raw state, reference work names, profile ids, kernel ids
-or candidate story text.
+decisions, chain step names, exit statuses and gate summaries. It must not
+include Supabase URLs, service ids, publishable key values, service-role keys,
+writer passwords, provider keys, database URLs, prompts, raw state, reference
+work names, profile ids, kernel ids or candidate story text.
 
 ## Acceptance
 
@@ -95,6 +101,9 @@ P151 is ready only when all of these are true:
 11. Strict mode fails if any of the above are missing.
 12. Default mode remains root-test safe and reports waiting without leaking
     values.
+13. Chain-mode failures are projected into `chainFailures` and `missingStages`;
+    they must not surface raw compiler/provider output as the operator-facing
+    failure mode.
 
 ## Non-Goals
 

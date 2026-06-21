@@ -51,15 +51,32 @@ function currentHead() {
 }
 
 function runNpm(args, extraEnv = {}) {
-  execFileSync('npm', args, {
+  return execFileSync('npm', args, {
     cwd: root,
-    stdio: 'inherit',
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 120000,
     env: {
       ...process.env,
       ...extraEnv,
     },
   })
+}
+
+function runChainStep(step, args, extraEnv, blockerStage, chainFailures) {
+  try {
+    runNpm(args, extraEnv)
+    return true
+  } catch (error) {
+    chainFailures.push({
+      step,
+      blockerStage,
+      exitStatus: typeof error.status === 'number' ? error.status : null,
+      signal: error.signal || null,
+      outputIncluded: false,
+    })
+    return false
+  }
 }
 
 function gitIgnored(rel) {
@@ -345,21 +362,105 @@ for (const [rel, terms] of Object.entries({
 }
 
 const envFile = parseEnvFile(localEnvRel)
+const chainFailures = []
 
 if (runChain) {
-  assert(envFile.present, `${localEnvRel} is required before running the P151 chain`)
-  assert(gitIgnored(localEnvRel), `${localEnvRel} must be ignored by Git`)
-  runNpm(['run', 'prepare:runtime-assignment-intent'], {
-    RUNTIME_ASSIGNMENT_INTENT_ENV_FILE: localEnvRel,
-    RUNTIME_ASSIGNMENT_INTENT_FORCE: 'true',
-  })
-  runNpm(['run', 'remote-assignment:prepare'])
-  runNpm(['run', 'check:remote-assignment-compiler-coherence'])
-  if (runRemoteHealth) runNpm(['run', 'remote-health:check'])
-  runNpm(['run', 'check:remote-health-evidence-artifact'])
-  runNpm(['run', 'check:edge-only-data-api-evidence-readiness'])
-  runNpm(['run', 'check:remote-runtime-assignment-intake'])
-  runNpm(['run', 'check:loop-next-goal-ledger'])
+  let chainReady = true
+  if (!envFile.present) {
+    chainFailures.push({
+      step: 'load-local-intent-env',
+      blockerStage: 'local-intent-env-file',
+      exitStatus: null,
+      signal: null,
+      outputIncluded: false,
+    })
+    chainReady = false
+  } else if (!gitIgnored(localEnvRel)) {
+    chainFailures.push({
+      step: 'verify-local-intent-env-gitignored',
+      blockerStage: 'local-intent-env-gitignored',
+      exitStatus: null,
+      signal: null,
+      outputIncluded: false,
+    })
+    chainReady = false
+  }
+
+  if (chainReady) {
+    chainReady = runChainStep(
+      'prepare-runtime-assignment-intent',
+      ['run', 'prepare:runtime-assignment-intent'],
+      {
+        RUNTIME_ASSIGNMENT_INTENT_ENV_FILE: localEnvRel,
+        RUNTIME_ASSIGNMENT_INTENT_FORCE: 'true',
+      },
+      'prepared-intent',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    chainReady = runChainStep(
+      'remote-assignment-prepare',
+      ['run', 'remote-assignment:prepare'],
+      {},
+      'compiled-contract',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    chainReady = runChainStep(
+      'remote-assignment-compiler-coherence',
+      ['run', 'check:remote-assignment-compiler-coherence'],
+      {},
+      'compiled-contract-coherence',
+      chainFailures,
+    )
+  }
+  if (chainReady && runRemoteHealth) {
+    chainReady = runChainStep(
+      'remote-health-check',
+      ['run', 'remote-health:check'],
+      {},
+      'remote-health-ready',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    chainReady = runChainStep(
+      'remote-health-evidence-artifact',
+      ['run', 'check:remote-health-evidence-artifact'],
+      {},
+      'p145-health-attestation-ready',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    chainReady = runChainStep(
+      'edge-only-data-api-evidence-readiness',
+      ['run', 'check:edge-only-data-api-evidence-readiness'],
+      {},
+      'p150-readiness-ready',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    chainReady = runChainStep(
+      'remote-runtime-assignment-intake',
+      ['run', 'check:remote-runtime-assignment-intake'],
+      {},
+      'p75-data-api-blockers-cleared',
+      chainFailures,
+    )
+  }
+  if (chainReady) {
+    runChainStep(
+      'loop-next-goal-ledger',
+      ['run', 'check:loop-next-goal-ledger'],
+      {},
+      'loop-next-goal-advanced',
+      chainFailures,
+    )
+  }
 }
 
 const envStatus = safeEnvStatus(envFile.values)
@@ -395,12 +496,11 @@ if (!p75.present || p75.blockedStages.includes('data-api-service-id') || p75.blo
   missingStages.push('p75-data-api-blockers-cleared')
 }
 if (!p121.present || p121.selectedGoal === 'operator-assignment-evidence-intake') missingStages.push('loop-next-goal-advanced')
-
-const ready = missingStages.length === 0
-if (required && !ready) {
-  throw new Error(`P151 strict intake required but not ready: ${missingStages.join(', ')}`)
+for (const failure of chainFailures) {
+  if (!missingStages.includes(failure.blockerStage)) missingStages.push(failure.blockerStage)
 }
 
+const ready = missingStages.length === 0
 const artifact = {
   version: 1,
   gate,
@@ -429,6 +529,7 @@ const artifact = {
     p75,
     p121,
   },
+  chainFailures,
   boundary: {
     createsRemoteServices: false,
     setsGitHubVariables: false,
@@ -454,3 +555,15 @@ console.log(JSON.stringify({
   missingStages,
   artifactPath: relative(root, artifactPath),
 }, null, 2))
+
+if (required && !ready) {
+  console.error(JSON.stringify({
+    status: 'failed_required_not_ready',
+    gate,
+    decision: artifact.decision,
+    missingStages,
+    chainFailures,
+    artifactPath: relative(root, artifactPath),
+  }, null, 2))
+  process.exit(1)
+}

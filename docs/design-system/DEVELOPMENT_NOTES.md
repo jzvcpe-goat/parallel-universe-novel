@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P152 Strict Intake Controlled Failure Projection
+
+P151 严格链路在 operator 尚未填好 Data API origin 时，原先会让
+`remote-assignment:prepare` 的底层 compiler stack trace 直接冒出来。这个不是安全泄漏，
+但它会把上线操作体验从“证据包告诉你缺什么”退回到“脚本异常让人猜”。P152 的经验是：
+严格门禁可以失败，但失败形态也必须产品化、可审计、可重跑。
+
+新的工程规则：
+
+1. `RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true` 下，子命令失败必须被收束为
+   `chainFailures` 和 `missingStages`，不能直接把 stack trace 当作最终输出。
+2. `REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true` 仍然要退出非零；但退出前必须
+   先写入 redacted `edge-only-data-api-strict-intake-*.json` artifact。
+3. `chainFailures` 只能包含 step、blocker stage、exit status、signal 和
+   `outputIncluded=false`，不能包含 Supabase URL、project ref、key、provider output
+   或 compiler stderr。
+4. 默认 root-test 模式仍保持 waiting artifact，不访问远端、不要求 key。
+
+验证命令：
+
+```bash
+RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true \
+RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true \
+REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true \
+npm run check:edge-only-data-api-strict-intake
+```
+
 ## 2026-06-21 P151 Edge-Only Data API Strict Intake
 
 P150 把 Data API evidence readiness 做成了 redacted preflight，但它仍然不是
