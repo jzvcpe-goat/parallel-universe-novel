@@ -30,6 +30,31 @@ npm run check:edge-only-data-api-strict-intake
 npm run check:ci-artifact-content-coverage
 ```
 
+## 2026-06-21 P151 GitHub Artifact Pagination
+
+P151 把 Pages workflow 的 evidence artifacts 从 30 个推到 31 个后，当前 run
+artifact gate 暴露了一个 GitHub Actions API 细节：`actions/runs/{id}/artifacts`
+默认只返回第一页 30 个 artifact。`local-live-runtime-visual-qa` 明明已经由
+`upload-artifact` 上传并显示最终大小，却因为位于第二页，被 metadata gate 误判为
+missing/empty。
+
+新的工程规则：
+
+1. 任何检查 GitHub Actions artifact 名单的脚本都不能依赖 API 默认分页。
+2. 当前 artifact 数量低于 100 时，直接显式使用 `per_page=100`。
+3. 如果未来 artifact 数量继续增长到 100 以上，再升级为 Link header pagination。
+4. 新增 release artifact 后，必须用 current-run mode 验证，而不是只检查最新成功
+   run；否则新增 artifact 可能没有进入当前发布链。
+
+验证命令：
+
+```bash
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+CHECK_GITHUB_ARTIFACTS_RUN_ID=<pages-run-id> \
+CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
+npm run check:github-actions-artifacts
+```
+
 ## 2026-06-20 P141 P117 Edge-Only No-Env Projection
 
 升级到 P138/P140 edge-only assignment 之后，默认 dry-run 不能再把远端 Agent

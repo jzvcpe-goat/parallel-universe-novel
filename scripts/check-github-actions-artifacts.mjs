@@ -95,7 +95,7 @@ try {
 
 let artifacts
 try {
-  const response = ghApi(`repos/${repo}/actions/runs/${run.id}/artifacts`)
+  const response = ghApi(`repos/${repo}/actions/runs/${run.id}/artifacts?per_page=100`)
   artifacts = Array.isArray(response.artifacts) ? response.artifacts : []
 } catch (error) {
   skip(`Unable to inspect GitHub Actions artifacts for run ${run.id}: ${error instanceof Error ? error.message : String(error)}`)
