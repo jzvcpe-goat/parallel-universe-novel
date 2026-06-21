@@ -76,6 +76,15 @@ P151 reads only local or generated evidence shape:
 
 The gate checks key presence only. It does not print key values.
 
+The ignored intent JSON is the semantic source of truth. The env file is an
+authoring adapter, not a second mandatory copy of the same Data API fields. In
+strict chain mode, P151 may skip the `prepare:runtime-assignment-intent` step
+when an already-filled ignored intent is present, git-ignored, `edge-only`, and
+contains the Data API service id, production HTTPS origin and configured flag.
+
+The redacted artifact records the merged local evidence under
+`localInputProjection` with `envAdapterRequiredForReadiness=false`.
+
 ## Output
 
 ```text
@@ -102,9 +111,10 @@ sealed command propagation, missing-stage preservation and redaction.
 
 P151 is ready only when all of these are true:
 
-1. The ignored local intent env exists and is ignored by Git.
-2. The local env has Data API service id, production HTTPS origin,
-   `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`, `health_probe` and `reader`.
+1. At least one ignored local assignment input exists: the env adapter, the
+   semantic intent JSON or the generated contract.
+2. The local assignment input has Data API service id, production HTTPS origin,
+   configured=true, `health_probe` and `reader`.
 3. P156 local secret guard is satisfied: `.env.local`, `.env.local.sync` and
    the ignored intent env have no service-role, writer-password, provider-key,
    database URL or prompt-plumbing material.

@@ -123,7 +123,8 @@ live-readiness and activation blockers visible instead.
 ## Acceptance
 
 - `package.json` exposes both P118 scripts.
-- Root `npm run test` runs P118 after `check:remote-assignment-image-drift`.
+- Root `npm run test` runs P118 after `check:remote-assignment-image-drift`
+  and `check:runtime-assignment-intent-first-projection`.
 - Pages workflow uploads `remote-assignment-strict-run-package`.
 - Pages workflow downloads and checks the same current-run P118 artifact.
 - P107 CI artifact content coverage counts P118 as a downloaded content gate.

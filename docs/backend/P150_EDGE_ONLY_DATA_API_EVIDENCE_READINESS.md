@@ -48,6 +48,16 @@ P150 reads only the local/project evidence shape:
 - optional `deploy/runtime-production/generated/remote-health-evidence.result.json`
 - latest P145 health attestation if present
 
+`runtime-assignment.intent.local.json` is the semantic runtime assignment input.
+`runtime-assignment.intent.env.local` is only an authoring adapter used to
+produce or refresh that intent. If an operator has already filled the ignored
+intent JSON, P150 must not report the Data API service id or origin as missing
+only because the env adapter is still blank.
+
+For readiness projection, P150 merges the env adapter, the ignored intent and
+the generated contract into `localInputProjection`. That projection contains
+booleans only and keeps `valuesIncluded=false`.
+
 It never prints service IDs, Supabase origins, publishable keys, writer
 passwords, provider keys, database URLs, prompts, private reference material or
 candidate prose.

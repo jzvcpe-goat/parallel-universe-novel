@@ -264,6 +264,28 @@ function safeContractStatus() {
   }
 }
 
+function localIntentFileIgnored() {
+  return !existsSync(path(localIntentRel)) || gitIgnored(localIntentRel)
+}
+
+function semanticLocalInputStatus(envStatus, intentStatus, contractStatus) {
+  return {
+    present: envStatus.present || intentStatus.present || contractStatus.present,
+    serviceIdPresent: envStatus.serviceIdPresent || intentStatus.serviceIdPresent || contractStatus.serviceIdPresent,
+    originPresent: envStatus.originPresent || intentStatus.originPresent || contractStatus.originPresent,
+    originLooksProductionHttps: envStatus.originLooksProductionHttps || intentStatus.originLooksProductionHttps || contractStatus.originLooksProductionHttps,
+    configuredFlagTrue: envStatus.configuredFlagTrue || intentStatus.configuredFlagTrue || contractStatus.configuredFlagTrue,
+    runtimeModeEdgeOnly: intentStatus.runtimeModeEdgeOnly === true || contractStatus.runtimeModeEdgeOnly === true,
+    remoteAgentRequired: intentStatus.remoteAgentRequired === true || contractStatus.remoteAgentRequired === true,
+    cloudAiRuntime: intentStatus.cloudAiRuntime === true,
+    readerCanTriggerAi: intentStatus.readerCanTriggerAi === true,
+    envAdapterPresent: envStatus.present,
+    intentPresent: intentStatus.present,
+    contractPresent: contractStatus.present,
+    valuesIncluded: false,
+  }
+}
+
 function safeHealthStatus() {
   if (!existsSync(path(healthResultRel))) return { present: false, ready: false, valuesIncluded: false }
   const health = readJson(healthResultRel)
@@ -367,6 +389,8 @@ for (const [rel, terms] of Object.entries({
     'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true',
     'REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true',
     'SUPABASE_ANON_KEY',
+    'localInputProjection',
+    'runtime-assignment.intent.local.json',
   ],
   'docs/backend/P155_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_ATTESTATION.md': [
     'P155 Edge-Only Data API Strict Intake Artifact Attestation',
@@ -397,19 +421,36 @@ for (const [rel, terms] of Object.entries({
 
 const envFile = parseEnvFile(localEnvRel)
 const chainFailures = []
+const envStatusBeforeChain = safeEnvStatus(envFile.values)
+const intentStatusBeforeChain = safeIntentStatus()
 
 if (runChain) {
   let chainReady = true
-  if (!envFile.present) {
+  const envReadyForPrepare = envFile.present
+    && gitIgnored(localEnvRel)
+    && envStatusBeforeChain.serviceIdPresent
+    && envStatusBeforeChain.originLooksProductionHttps
+    && envStatusBeforeChain.configuredFlagTrue
+  const intentReadyForCompile = intentStatusBeforeChain.present
+    && localIntentFileIgnored()
+    && intentStatusBeforeChain.runtimeModeEdgeOnly
+    && intentStatusBeforeChain.serviceIdPresent
+    && intentStatusBeforeChain.originLooksProductionHttps
+    && intentStatusBeforeChain.configuredFlagTrue
+    && intentStatusBeforeChain.remoteAgentRequired === false
+    && intentStatusBeforeChain.cloudAiRuntime === false
+    && intentStatusBeforeChain.readerCanTriggerAi === false
+
+  if (!envReadyForPrepare && !intentReadyForCompile) {
     chainFailures.push({
-      step: 'load-local-intent-env',
-      blockerStage: 'local-intent-env-file',
+      step: 'load-local-assignment-input',
+      blockerStage: 'local-assignment-input',
       exitStatus: null,
       signal: null,
       outputIncluded: false,
     })
     chainReady = false
-  } else if (!gitIgnored(localEnvRel)) {
+  } else if (envFile.present && !gitIgnored(localEnvRel)) {
     chainFailures.push({
       step: 'verify-local-intent-env-gitignored',
       blockerStage: 'local-intent-env-gitignored',
@@ -420,7 +461,7 @@ if (runChain) {
     chainReady = false
   }
 
-  if (chainReady) {
+  if (chainReady && envReadyForPrepare) {
     chainReady = runChainStep(
       'prepare-runtime-assignment-intent',
       ['run', 'prepare:runtime-assignment-intent'],
@@ -500,6 +541,7 @@ if (runChain) {
 const envStatus = safeEnvStatus(envFile.values)
 const intentStatus = safeIntentStatus()
 const contractStatus = safeContractStatus()
+const localInputProjection = semanticLocalInputStatus(envStatus, intentStatus, contractStatus)
 const healthStatus = safeHealthStatus()
 const keyStatus = publishableKeyPresent()
 const p145 = latestGateStatus('remote-health-evidence-attestation-', 'P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE')
@@ -508,12 +550,13 @@ const p75 = latestGateStatus('remote-runtime-assignment-intake-', 'P75_REMOTE_RU
 const p121 = latestGateStatus('loop-next-goal-ledger-', 'P121_LOOP_NEXT_GOAL_LEDGER')
 
 const missingStages = []
-if (!envFile.present) missingStages.push('local-intent-env-file')
+if (!localInputProjection.present) missingStages.push('local-assignment-input')
 if (envFile.present && !gitIgnored(localEnvRel)) missingStages.push('local-intent-env-gitignored')
-if (!envStatus.serviceIdPresent) missingStages.push('data-api-service-id')
-if (!envStatus.originPresent) missingStages.push('data-api-origin')
-if (!envStatus.originLooksProductionHttps) missingStages.push('data-api-production-origin')
-if (!envStatus.configuredFlagTrue) missingStages.push('data-api-configured')
+if (intentStatus.present && !localIntentFileIgnored()) missingStages.push('runtime-assignment-intent-gitignored')
+if (!localInputProjection.serviceIdPresent) missingStages.push('data-api-service-id')
+if (!localInputProjection.originPresent) missingStages.push('data-api-origin')
+if (!localInputProjection.originLooksProductionHttps) missingStages.push('data-api-production-origin')
+if (!localInputProjection.configuredFlagTrue) missingStages.push('data-api-configured')
 if (!envStatus.probeTableHealthProbe) missingStages.push('health-probe-table')
 if (!envStatus.probeIdReader) missingStages.push('health-probe-id')
 if (!keyStatus.present) missingStages.push('publishable-key-local')
@@ -552,6 +595,11 @@ const artifact = {
     ignoredByGit: envFile.present ? gitIgnored(localEnvRel) : false,
     keyCount: envFile.keyCount,
     valuesIncluded: false,
+  },
+  localInputProjection: {
+    acceptsRuntimeIntentAsSemanticInput: true,
+    envAdapterRequiredForReadiness: false,
+    ...localInputProjection,
   },
   dataApi: envStatus,
   publishableKey: keyStatus,

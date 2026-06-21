@@ -42,6 +42,11 @@ P149 provides the safe current bootstrap for the ignored local env:
 npm run prepare:runtime-assignment-intent-env-local
 ```
 
+The env file is an authoring adapter. The semantic local input remains the
+ignored `runtime-assignment.intent.local.json`. P150/P151 merge env, intent and
+generated contract booleans so an already-filled intent does not require the
+operator to duplicate the same non-secret fields in the env adapter.
+
 P156 then checks the ignored local env and local publishable-key files for
 forbidden secret classes before the compiler or health probes run:
 

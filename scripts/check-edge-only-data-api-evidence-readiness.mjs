@@ -260,6 +260,8 @@ for (const [rel, requiredTerms] of Object.entries({
     'P150 Edge-Only Data API Evidence Readiness',
     'check:edge-only-data-api-evidence-readiness',
     'does not mark P142 complete',
+    'localInputProjection',
+    'runtime-assignment.intent.local.json',
   ],
   'docs/design-system/DEVELOPMENT_NOTES.md': [
     'P150 Edge-Only Data API Evidence Readiness',
@@ -308,10 +310,18 @@ const intent = existsSync(path(intentRel)) ? readJson(intentRel) : null
 const contract = existsSync(path(contractRel)) ? readJson(contractRel) : null
 const intentStatus = safeDataApiStatusFromIntent(intent)
 const contractStatus = safeDataApiStatusFromContract(contract)
-const dataApiEvidenceReady = envStatus.serviceIdPresent
-  && envStatus.originPresent
-  && envStatus.originLooksProductionHttps
-  && envStatus.configuredFlagTrue
+const localDataApiServicePresent = envStatus.serviceIdPresent
+  || intentStatus.serviceIdPresent
+  || contractStatus.serviceIdPresent
+const localDataApiOriginReady = envStatus.originLooksProductionHttps
+  || intentStatus.originLooksProductionHttps
+  || contractStatus.originLooksProductionHttps
+const localDataApiConfigured = envStatus.configuredFlagTrue
+  || intentStatus.configuredFlagTrue
+  || contractStatus.configuredFlagTrue
+const dataApiEvidenceReady = localDataApiServicePresent
+  && localDataApiOriginReady
+  && localDataApiConfigured
 const compiledIntentReady = intentStatus.present
   && intentStatus.runtimeModeEdgeOnly
   && intentStatus.serviceIdPresent
@@ -329,9 +339,9 @@ const compiledContractReady = contractStatus.present && (
 )
 const remoteHealthReady = healthReady()
 const missingStages = []
-if (!envStatus.serviceIdPresent) missingStages.push('data-api-service-id')
-if (!envStatus.originLooksProductionHttps) missingStages.push('data-api-origin')
-if (!envStatus.configuredFlagTrue) missingStages.push('data-api-configured')
+if (!localDataApiServicePresent) missingStages.push('data-api-service-id')
+if (!localDataApiOriginReady) missingStages.push('data-api-origin')
+if (!localDataApiConfigured) missingStages.push('data-api-configured')
 if (!remoteHealthReady) missingStages.push('data-api-health-ready')
 
 const status = missingStages.length === 0 && dataApiEvidenceReady && compiledIntentReady && compiledContractReady
@@ -358,6 +368,14 @@ const payload = {
     valuesIncluded: false,
   },
   dataApiEvidence: envStatus,
+  localInputProjection: {
+    acceptsRuntimeIntentAsSemanticInput: true,
+    envAdapterRequiredForReadiness: false,
+    serviceIdPresent: localDataApiServicePresent,
+    originLooksProductionHttps: localDataApiOriginReady,
+    configuredFlagTrue: localDataApiConfigured,
+    valuesIncluded: false,
+  },
   compiledIntent: intentStatus,
   compiledContract: contractStatus,
   remoteHealth: {

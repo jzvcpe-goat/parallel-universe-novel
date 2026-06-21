@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P162 Runtime Assignment Intent-First Projection
+
+P150/P151 had a practical drift after the Remote Assignment Compiler v3.1 work:
+`runtime-assignment.intent.local.json` could already contain the non-secret Data
+API service id and origin, while `runtime-assignment.intent.env.local` remained
+an empty authoring template. That made P150/P151 report missing service id and
+origin even though the semantic intent existed, and made P75/P121 evidence look
+harder to interpret.
+
+Engineering rule:
+
+1. `runtime-assignment.intent.local.json` is the semantic local input.
+2. `runtime-assignment.intent.env.local` is only an authoring adapter for
+   producing or refreshing the intent.
+3. Readiness projection merges env, intent and generated contract booleans
+   without printing values, and emits `envAdapterRequiredForReadiness=false`.
+4. Strict mode still requires publishable-key presence, P145 health evidence,
+   P75 blocker clearance and P121 next-goal movement.
+5. This does not create Supabase/Data API resources, does not set GitHub
+   variables, does not upload secrets and does not treat fixture health as
+   production health.
+
+Validation commands:
+
+```bash
+npm run check:edge-only-data-api-evidence-readiness
+npm run check:edge-only-data-api-strict-intake
+```
+
 ## 2026-06-21 P161 P123 Stale-P122 Recovery
 
 After P160, a direct local probe exposed an operator ergonomics issue: running

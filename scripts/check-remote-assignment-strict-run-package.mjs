@@ -163,8 +163,8 @@ assert(
 )
 assert(rootTest.includes('npm run check:remote-assignment-strict-run-package'), 'root npm run test must include check:remote-assignment-strict-run-package')
 assert(
-  rootTest.includes('npm run check:remote-assignment-image-drift && npm run check:remote-assignment-strict-run-package'),
-  'root test must run P118 after P113 image drift',
+  rootTest.includes('npm run check:remote-assignment-image-drift && npm run check:runtime-assignment-intent-first-projection && npm run check:remote-assignment-strict-run-package'),
+  'root test must run P118 after P113 image drift and P162 intent-first projection',
 )
 
 for (const file of [
@@ -181,6 +181,7 @@ for (const file of [
 assertIncludes('docs/backend/P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE.md', [
   'P118 Remote Assignment Strict-Run Package',
   'check:remote-assignment-strict-run-package',
+  'check:runtime-assignment-intent-first-projection',
   targetAssignmentPath,
   'does not write',
   'remote-assignment-strict-run-package',
