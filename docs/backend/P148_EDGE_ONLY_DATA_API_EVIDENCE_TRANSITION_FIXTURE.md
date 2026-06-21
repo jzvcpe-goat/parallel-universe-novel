@@ -18,7 +18,9 @@ service evidence, the current scripts can:
 4. accept a strict P145 Data API health result shape;
 5. advance P75 to `remote_assignment_ready` only inside the fixture;
 6. restore the repo-local runtime-production files so the current state remains
-   honest and still waits for real operator evidence.
+   honest and still waits for real operator evidence;
+7. leave exactly one current waiting P145 attestation for the public
+   `remote-health-evidence` Pages artifact.
 
 This is a fixture-only gate. It does not run `remote-health:check`, does not
 query Supabase, does not create services, does not set GitHub variables, does
@@ -55,7 +57,10 @@ artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json
 ```
 
 The artifact must include `fixtureOnly=true`, `valuesIncluded=false`, and
-`leavesHealthReadyArtifactAsCurrentState=false`.
+`leavesHealthReadyArtifactAsCurrentState=false`. It must also include
+`leavesSingleCurrentHealthAttestation=true`, proving the temporary strict P145
+fixture evidence was summarized inside P148 instead of uploaded as current
+remote-health evidence.
 
 ## Acceptance
 
@@ -72,7 +77,10 @@ The artifact must include `fixtureOnly=true`, `valuesIncluded=false`, and
 7. P148 proves P75 becomes `remote_assignment_ready` only during the fixture.
 8. P148 restores runtime-production generated files and writes a fresh waiting
    P145 attestation afterward.
-9. P148 does not leak publishable keys, service-role keys, writer passwords,
+9. P148 removes older P145 fixture attestations so the public
+   `remote-health-evidence` artifact contains exactly one current waiting
+   attestation.
+10. P148 does not leak publishable keys, service-role keys, writer passwords,
    model keys, provider prompt plumbing, source refs, profile ids, kernel ids,
    candidate text, or private reference material.
 

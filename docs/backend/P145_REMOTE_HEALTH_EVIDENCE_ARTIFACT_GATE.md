@@ -100,6 +100,10 @@ P148 may invoke P145 in strict fixture mode to prove the returned Data API
 evidence shape. P148 must then restore the runtime-production files and write a
 fresh waiting P145 attestation, so the latest repo state does not pretend that
 fixture health equals production health.
+After P148 cleanup, the public `remote-health-evidence` Pages artifact must
+contain exactly one P145 attestation: the restored waiting attestation. The
+strict fixture-ready P145 result may be summarized by P148, but it must not be
+uploaded as current remote health evidence.
 
 ## Acceptance
 

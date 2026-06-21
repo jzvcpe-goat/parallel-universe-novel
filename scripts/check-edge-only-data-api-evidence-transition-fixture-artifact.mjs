@@ -160,6 +160,7 @@ function validatePacket(payload, expectedHeadSha) {
   assert(payload.boundary?.includesPublishableKey === false, 'P148 must not include publishable keys')
   assert(payload.boundary?.promotesLiveRuntime === false, 'P148 must not promote live runtime')
   assert(payload.boundary?.leavesHealthReadyArtifactAsCurrentState === false, 'P148 must not leave fixture health as current state')
+  assert(payload.boundary?.leavesSingleCurrentHealthAttestation === true, 'P148 must leave exactly one current P145 attestation for Pages upload')
   assert(payload.boundary?.restoresRuntimeProductionFiles === true, 'P148 must restore runtime-production files')
   assert(payload.boundary?.valuesIncluded === false, 'P148 must not include fixture values')
 }

@@ -160,6 +160,19 @@ function latestArtifact(prefix, predicate, label = prefix) {
   throw new Error(`missing artifact for ${label}`)
 }
 
+function remoteHealthAttestationFiles() {
+  if (!existsSync(artifactDir)) return []
+  return readdirSync(artifactDir)
+    .filter(name => name.startsWith('remote-health-evidence-attestation-') && name.endsWith('.json'))
+    .map(name => join(artifactDir, name))
+}
+
+function retainOnlyCurrentRemoteHealthAttestation(currentFile) {
+  for (const file of remoteHealthAttestationFiles()) {
+    if (file !== currentFile) rmSync(file, { force: true })
+  }
+}
+
 function writeFixtureEnv() {
   mkdirSync(dirname(fixtureEnvPath), { recursive: true })
   writeFileSync(
@@ -334,6 +347,11 @@ try {
       && payload.healthReady === false,
     'P148 restored waiting P145 artifact',
   )
+  retainOnlyCurrentRemoteHealthAttestation(waitingP145Artifact.file)
+  assert(
+    remoteHealthAttestationFiles().length === 1,
+    'P148 cleanup must leave exactly one current P145 attestation for Pages upload',
+  )
 
   const restoredIntake = runJson(process.execPath, ['scripts/check-remote-runtime-assignment-intake.mjs'])
   assert(restoredIntake.decision !== 'remote_assignment_ready', 'P148 cleanup must not leave current P75 in ready state')
@@ -410,6 +428,7 @@ try {
       includesPublishableKey: false,
       promotesLiveRuntime: false,
       leavesHealthReadyArtifactAsCurrentState: false,
+      leavesSingleCurrentHealthAttestation: true,
       restoresRuntimeProductionFiles: true,
       valuesIncluded: false,
     },
