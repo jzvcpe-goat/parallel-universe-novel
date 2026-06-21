@@ -25,6 +25,11 @@ evidence.
 npm run prepare:loop-next-goal-local
 ```
 
+After the helper succeeds, execute the selected next goal directly. Do not run
+P121 again between the helper and P123 unless P122 is rerun afterwards; a fresh
+P121 artifact intentionally makes the previous P122 fixture-isolation artifact
+stale.
+
 ## What It Runs
 
 The helper uses existing gates instead of inventing a second routing path:
@@ -74,3 +79,5 @@ P137 does not:
    must remain unchanged unless the developer is actively editing code.
 7. If P121 or P122 fails after this helper, the failure is a real evidence or
    policy disagreement rather than missing local artifacts.
+8. If an operator manually reruns P121 after this helper, they must rerun P122
+   before P123; P123 must reject a P122 artifact that references an older P121.
