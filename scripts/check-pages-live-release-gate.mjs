@@ -229,6 +229,15 @@ assert(
   'Pages workflow must upload the edge-only Data API strict intake artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Check edge-only Data API strict intake artifact content')
+    && workflow.includes('CHECK_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('npm run check:edge-only-data-api-strict-intake-artifact')
+    && workflow.indexOf('Check edge-only Data API strict intake artifact content') > workflow.indexOf('Upload artifact')
+    && workflow.indexOf('Check edge-only Data API strict intake artifact content') > workflow.indexOf('Check edge-only operator evidence packet artifact content')
+    && workflow.indexOf('Check edge-only Data API strict intake artifact content') < workflow.indexOf('Check edge-only Data API evidence transition fixture artifact content'),
+  'Pages workflow must download-check the edge-only Data API strict intake artifact between P147 and P148 content gates',
+)
+assert(
   workflow.includes('Upload edge-only Data API evidence transition fixture')
     && workflow.includes('edge-only-data-api-evidence-transition-fixture')
     && workflow.includes('artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json')
@@ -552,6 +561,10 @@ assert(
   'package.json must expose check:edge-only-data-api-strict-intake',
 )
 assert(
+  packageJson.scripts['check:edge-only-data-api-strict-intake-artifact'] === 'node scripts/check-edge-only-data-api-strict-intake-artifact.mjs',
+  'package.json must expose check:edge-only-data-api-strict-intake-artifact',
+)
+assert(
   packageJson.scripts['check:edge-only-data-api-evidence-transition-fixture'] === 'node scripts/check-edge-only-data-api-evidence-transition-fixture.mjs',
   'package.json must expose check:edge-only-data-api-evidence-transition-fixture',
 )
@@ -694,6 +707,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-strict-intake'),
   'npm run test must include check:edge-only-data-api-strict-intake',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-strict-intake-artifact'),
+  'npm run test must include check:edge-only-data-api-strict-intake-artifact',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-evidence-transition-fixture')
@@ -870,7 +887,7 @@ assert(
     && p107Doc.includes('operator-assignment-evidence-intake')
     && p107Doc.includes('P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION')
     && p107Doc.includes('edge-only-data-api-strict-intake')
-    && p107Doc.includes('P151_EDGE_ONLY_DATA_API_STRICT_INTAKE')
+    && p107Doc.includes('P155_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('edge-only-data-api-evidence-transition-fixture')
     && p107Doc.includes('P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE')
     && p107Doc.includes('operator-assignment-loop-command-consistency')
@@ -962,6 +979,7 @@ console.log(JSON.stringify({
   edgeOnlyOperatorEvidencePacket: 'edge-only-operator-evidence-packet',
   edgeOnlyOperatorEvidencePacketContent: 'check:edge-only-operator-evidence-packet-artifact',
   edgeOnlyDataApiStrictIntake: 'edge-only-data-api-strict-intake',
+  edgeOnlyDataApiStrictIntakeContent: 'check:edge-only-data-api-strict-intake-artifact',
   edgeOnlyDataApiEvidenceTransitionFixture: 'edge-only-data-api-evidence-transition-fixture',
   edgeOnlyDataApiEvidenceTransitionFixtureContent: 'check:edge-only-data-api-evidence-transition-fixture-artifact',
   operatorAssignmentCommandConsistency: 'operator-assignment-loop-command-consistency',

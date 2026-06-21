@@ -194,13 +194,14 @@ const artifacts = [
   },
   {
     name: 'edge-only-data-api-strict-intake',
-    kind: 'pre_upload_generator_gate',
+    kind: 'download_content_gate',
     producer: 'check:edge-only-data-api-strict-intake',
-    verifier: 'check:edge-only-data-api-strict-intake',
-    contract: 'P151_EDGE_ONLY_DATA_API_STRICT_INTAKE',
+    verifier: 'check:edge-only-data-api-strict-intake-artifact',
+    contract: 'P155_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_ATTESTATION',
     uploadStep: 'Upload edge-only Data API strict intake',
     uploadPath: 'artifacts/runtime/edge-only-data-api-strict-intake-*.json',
-    reason: 'Generated and checked before upload so strict local Data API intake can prove whether env, compiler, health evidence and next-goal movement are ready without exposing values.',
+    workflowStep: 'Check edge-only Data API strict intake artifact content',
+    reason: 'Downloaded from the same Pages run and checked for sealed command propagation, missing-stage preservation, redaction and no-secret boundaries.',
   },
   {
     name: 'edge-only-data-api-evidence-transition-fixture',
@@ -403,8 +404,8 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 23, 'P107 expects twenty-three artifacts with downloaded content gates')
-assert(preUploadChecked.length === 6, 'P107 expects six artifacts with pre-upload generator gates')
+assert(downloadAttested.length === 24, 'P107 expects twenty-four artifacts with downloaded content gates')
+assert(preUploadChecked.length === 5, 'P107 expects five artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
 

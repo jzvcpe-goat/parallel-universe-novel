@@ -1,5 +1,37 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P155 Strict Intake Artifact Content Attestation
+
+P154 把 sealed strict-intake 命令推进了 operator-facing handoff，但复盘 current-run
+artifacts 后发现：`edge-only-data-api-strict-intake` 只被上传和 metadata gate 统计，
+还没有像 P147/P148 那样下载同一 Pages run 的 payload 做内容验收。经验是：越靠近上线
+断点的 artifact，越不能只证明“存在”，还要证明“内容仍然是当前 head、当前 gate、当前
+隐私边界”。
+
+新的工程规则：
+
+1. P151 仍负责生成 redacted `edge-only-data-api-strict-intake-*.json`。
+2. P155 负责下载同一 Pages run 的 `edge-only-data-api-strict-intake` artifact，并校验
+   `repository`、`headSha`、`gate`、`sealedStrictCommand`、`expandedStrictCommand`、
+   `nextStrictCommand`、`missingStages` 和边界 flags。
+3. Pages workflow 必须在 P147 edge-only operator packet content gate 之后、P148
+   Data API transition fixture content gate 之前运行
+   `check:edge-only-data-api-strict-intake-artifact`。
+4. P107 artifact coverage matrix 里，P151 artifact 从 `pre_upload_generator_gate`
+   升级为 `download_content_gate`，verifier 是
+   `check:edge-only-data-api-strict-intake-artifact`。
+5. P155 不运行 strict operator command、不创建 Supabase/Data API 资源、不读取或打印
+   key/password/service-role/provider secret，也不宣称 P142 完成。
+
+验证命令：
+
+```bash
+npm run check:edge-only-data-api-strict-intake
+npm run check:edge-only-data-api-strict-intake-artifact
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-21 P154 Operator-Facing Strict Intake Propagation
 
 P153 解决了“严格 Data API 接入命令太长”的问题，但它只把 sealed command 放进

@@ -190,7 +190,7 @@ npm run check:ci-artifact-content-coverage
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, and `kernel-constraint-reference-encryption`; P111 is the encryption-completion contract for representative work names; P127 is the custody-boundary contract; P139 is the `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE` contract proving kernel, constraint and runtime registry files use encrypted-vault-backed anonymous refs; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P147 is the content attestation gate for `edge-only-operator-evidence-packet`; P150 is the pre-upload generator gate for `edge-only-data-api-evidence-readiness`; P151 is the pre-upload generator gate for `edge-only-data-api-strict-intake`; P148 is the content attestation gate for `edge-only-data-api-evidence-transition-fixture` via `check:edge-only-data-api-evidence-transition-fixture-artifact`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P132 is the content attestation gate for `operator-assignment-current-head-coherence`; P133 is the content attestation gate for `operator-assignment-transition-fixture`; P115 is the content attestation gate for `runtime-image-local-smoke`; P136 is the content attestation gate for `zero-cost-reader-edge-sync`; P145 is the content attestation gate for `remote-health-evidence`; P91 owns the assignment schema generator. P107 does not download additional artifact payloads; it verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, and `kernel-constraint-reference-encryption`; P111 is the encryption-completion contract for representative work names; P127 is the custody-boundary contract; P139 is the `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE` contract proving kernel, constraint and runtime registry files use encrypted-vault-backed anonymous refs; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P147 is the content attestation gate for `edge-only-operator-evidence-packet`; P150 is the pre-upload generator gate for `edge-only-data-api-evidence-readiness`; P151 is the pre-upload generator gate for `edge-only-data-api-strict-intake`; P155 is the content attestation gate for `edge-only-data-api-strict-intake` via `check:edge-only-data-api-strict-intake-artifact`; P148 is the content attestation gate for `edge-only-data-api-evidence-transition-fixture` via `check:edge-only-data-api-evidence-transition-fixture-artifact`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P132 is the content attestation gate for `operator-assignment-current-head-coherence`; P133 is the content attestation gate for `operator-assignment-transition-fixture`; P115 is the content attestation gate for `runtime-image-local-smoke`; P136 is the content attestation gate for `zero-cost-reader-edge-sync`; P145 is the content attestation gate for `remote-health-evidence`; P91 owns the assignment schema generator. P107 does not download additional artifact payloads; it verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
 
 ## Workflow Placement
 
@@ -252,22 +252,25 @@ That placement proves the same run that will deploy Pages also produced the requ
    content is validated separately from artifact metadata.
 12. Pages workflow runs P147 after P124 so `edge-only-operator-evidence-packet`
    content is validated separately from artifact metadata.
-13. Pages workflow runs P148 after P147 so
+13. Pages workflow runs P155 after P147 so `edge-only-data-api-strict-intake`
+   content is validated separately from artifact metadata by
+   `check:edge-only-data-api-strict-intake-artifact`.
+14. Pages workflow runs P148 after P155 so
    `edge-only-data-api-evidence-transition-fixture` content is validated
    separately from artifact metadata by
    `check:edge-only-data-api-evidence-transition-fixture-artifact`.
-14. Pages workflow runs P131 after P148 so
+15. Pages workflow runs P131 after P148 so
    `operator-assignment-loop-command-consistency` content is validated
    separately from artifact metadata.
-15. Pages workflow runs P132 after P131 so
+16. Pages workflow runs P132 after P131 so
    `operator-assignment-current-head-coherence` content is validated separately
    from artifact metadata.
-16. Pages workflow runs P133 after P132 so
+17. Pages workflow runs P133 after P132 so
    `operator-assignment-transition-fixture` content is validated separately
    from artifact metadata.
-17. Pages workflow runs P115 after P133 so `runtime-image-local-smoke` content
+18. Pages workflow runs P115 after P133 so `runtime-image-local-smoke` content
    is validated separately from artifact metadata.
-18. Pages workflow runs P145 after P136 so `remote-health-evidence` content is
+19. Pages workflow runs P145 after P136 so `remote-health-evidence` content is
    validated separately from artifact metadata.
-19. Root `npm run test` runs P107 so the full artifact set always has an
+20. Root `npm run test` runs P107 so the full artifact set always has an
    explicit content-coverage classification.

@@ -12,6 +12,7 @@ import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
+const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
 const gate = 'P151_EDGE_ONLY_DATA_API_STRICT_INTAKE'
 const localEnvRel = 'deploy/runtime-production/runtime-assignment.intent.env.local'
 const localIntentRel = 'deploy/runtime-production/runtime-assignment.intent.local.json'
@@ -313,10 +314,12 @@ for (const file of [
   'docs/backend/P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE.md',
   'docs/backend/P150_EDGE_ONLY_DATA_API_EVIDENCE_READINESS.md',
   'docs/backend/P151_EDGE_ONLY_DATA_API_STRICT_INTAKE.md',
+  'docs/backend/P155_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_ATTESTATION.md',
   'docs/design-system/DEVELOPMENT_NOTES.md',
   '.github/workflows/pages.yml',
   'scripts/check-github-actions-artifacts.mjs',
   'scripts/check-ci-artifact-content-coverage.mjs',
+  'scripts/check-edge-only-data-api-strict-intake-artifact.mjs',
   'scripts/remote-assignment/check-remote-health-evidence.mjs',
 ]) {
   assert(existsSync(path(file)), `missing P151 prerequisite: ${file}`)
@@ -332,8 +335,12 @@ assert(
   'package.json must expose sealed prepare:edge-only-data-api-strict-intake command',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:remote-health-evidence-artifact && npm run check:edge-only-data-api-strict-intake && npm run check:remote-assignment-image-drift'),
-  'root test must run P151 after P145 and before image drift / downstream operator packets',
+  packageJson.scripts['check:edge-only-data-api-strict-intake-artifact'] === 'node scripts/check-edge-only-data-api-strict-intake-artifact.mjs',
+  'package.json must expose check:edge-only-data-api-strict-intake-artifact',
+)
+assert(
+  String(packageJson.scripts.test || '').includes('npm run check:remote-health-evidence-artifact && npm run check:edge-only-data-api-strict-intake && npm run check:edge-only-data-api-strict-intake-artifact && npm run check:remote-assignment-image-drift'),
+  'root test must run P151 then P155 after P145 and before image drift / downstream operator packets',
 )
 assert(
   !String(packageJson.scripts.test || '').includes('prepare:edge-only-data-api-strict-intake'),
@@ -355,16 +362,24 @@ for (const [rel, terms] of Object.entries({
   'docs/backend/P151_EDGE_ONLY_DATA_API_STRICT_INTAKE.md': [
     'P151 Edge-Only Data API Strict Intake',
     'check:edge-only-data-api-strict-intake',
+    'check:edge-only-data-api-strict-intake-artifact',
     'prepare:edge-only-data-api-strict-intake',
     'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true',
     'REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true',
     'SUPABASE_ANON_KEY',
   ],
+  'docs/backend/P155_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_ATTESTATION.md': [
+    'P155 Edge-Only Data API Strict Intake Artifact Attestation',
+    'check:edge-only-data-api-strict-intake-artifact',
+    'edge-only-data-api-strict-intake',
+  ],
   'docs/design-system/DEVELOPMENT_NOTES.md': [
+    'P155 Strict Intake Artifact Content Attestation',
     'P151 Edge-Only Data API Strict Intake',
     'P153 Sealed Edge-Only Data API Strict Intake Command',
     'prepare:edge-only-data-api-strict-intake',
     'check:edge-only-data-api-strict-intake',
+    'check:edge-only-data-api-strict-intake-artifact',
   ],
   '.github/workflows/pages.yml': [
     'edge-only-data-api-strict-intake',
@@ -524,6 +539,7 @@ const artifact = {
   version: 1,
   gate,
   generatedAt: new Date().toISOString(),
+  repository: repo,
   headSha: currentHead(),
   status: ready ? 'passed' : 'passed_waiting_for_edge_only_data_api_strict_intake',
   decision: ready ? 'edge_only_data_api_strict_intake_ready' : 'edge_only_data_api_strict_intake_waiting_for_operator_input',

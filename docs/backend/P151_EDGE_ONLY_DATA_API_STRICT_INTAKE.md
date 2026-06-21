@@ -86,6 +86,16 @@ include Supabase URLs, service ids, publishable key values, service-role keys,
 writer passwords, provider keys, database URLs, prompts, raw state, reference
 work names, profile ids, kernel ids or candidate story text.
 
+P155 verifies this artifact after upload:
+
+```bash
+npm run check:edge-only-data-api-strict-intake-artifact
+```
+
+In Pages current-run mode, P155 downloads the `edge-only-data-api-strict-intake`
+artifact from the same workflow run and checks repository/head coherence,
+sealed command propagation, missing-stage preservation and redaction.
+
 ## Acceptance
 
 P151 is ready only when all of these are true:
@@ -109,6 +119,8 @@ P151 is ready only when all of these are true:
 13. Chain-mode failures are projected into `chainFailures` and `missingStages`;
     they must not surface raw compiler/provider output as the operator-facing
     failure mode.
+14. `check:edge-only-data-api-strict-intake-artifact` validates the uploaded
+    P151 artifact before P148/P131 content gates run in Pages CI.
 
 ## Non-Goals
 

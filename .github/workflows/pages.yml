@@ -489,6 +489,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:edge-only-operator-evidence-packet-artifact
 
+      - name: Check edge-only Data API strict intake artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:edge-only-data-api-strict-intake-artifact
+
       - name: Check edge-only Data API evidence transition fixture artifact content
         env:
           GH_TOKEN: ${{ github.token }}
