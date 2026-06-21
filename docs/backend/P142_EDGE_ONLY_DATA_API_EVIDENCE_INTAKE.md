@@ -40,6 +40,7 @@ npm run remote-assignment:prepare
 npm run check:remote-assignment-compiler-coherence
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
+npm run check:remote-health-evidence-artifact
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
@@ -76,14 +77,19 @@ P142 is complete only when all of the following are true:
    `data-api-service-id`, `data-api-origin`, `data-api-secrets-ready` or
    `data-api-health-ready`.
 5. `remote-health:check` verifies the real data API health probe.
-6. `check:remote-operator-return-intake` advances from
+6. `check:remote-health-evidence-artifact` writes a privacy-safe P145
+   attestation: in CI it may honestly remain
+   `waiting_for_remote_health_evidence`, while a local/operator environment
+   with the publishable key must produce `healthReady=true` before P142 can be
+   marked complete.
+7. `check:remote-operator-return-intake` advances from
    `operator_return_waiting_for_assignment` toward health or activation proof.
-7. `check:loop-next-goal-ledger` stops selecting
+8. `check:loop-next-goal-ledger` stops selecting
    `operator-assignment-evidence-intake`.
-8. P122/P123/P124/P130/P131/P132 all pass on the same current head.
-9. Public projection privacy, reference privacy and kernel/constraint reference
+9. P122/P123/P124/P130/P131/P132 all pass on the same current head.
+10. Public projection privacy, reference privacy and kernel/constraint reference
    encryption gates remain green.
-10. `check:edge-only-current-blocker-projection` proves P76/P85 did not
+11. `check:edge-only-current-blocker-projection` proves P76/P85 did not
    reintroduce remote Agent service, origin, secret-store or health requirements
    into the current edge-only blocker ledger.
 

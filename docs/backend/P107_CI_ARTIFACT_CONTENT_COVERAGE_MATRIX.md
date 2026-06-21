@@ -50,6 +50,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `operator-assignment-transition-fixture` | `download_content_gate` | `check:operator-assignment-transition-fixture` | `check:operator-assignment-transition-fixture-artifact` | `P133_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE_ATTESTATION` |
 | `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `zero-cost-reader-edge-sync` | `download_content_gate` | `check:zero-cost-reader-edge-sync` | `check:zero-cost-reader-edge-sync-artifact` | `P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION` |
+| `remote-health-evidence` | `download_content_gate` | `check:remote-health-evidence-artifact` | `check:remote-health-evidence-artifact` | `P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE` |
 | `reference-privacy` | `download_content_gate` | `scan:reference-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `reference-work-encryption-completion` | `download_content_gate` | `check:reference-work-encryption-completion` | `check:public-privacy-artifacts` | `P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE` |
@@ -62,7 +63,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all twenty-six Pages artifacts.
+- P43 metadata coverage still includes all twenty-seven Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.

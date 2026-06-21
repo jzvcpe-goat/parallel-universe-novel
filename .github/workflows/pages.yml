@@ -292,6 +292,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload remote health evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: remote-health-evidence
+          path: artifacts/runtime/remote-health-evidence-attestation-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
@@ -469,6 +478,13 @@ jobs:
           CHECK_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:zero-cost-reader-edge-sync-artifact
+
+      - name: Check remote health evidence artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_REMOTE_HEALTH_EVIDENCE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:remote-health-evidence-artifact
 
   deploy:
     needs: build

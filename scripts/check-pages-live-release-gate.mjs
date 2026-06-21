@@ -257,6 +257,13 @@ assert(
   'Pages workflow must upload the zero-cost Reader edge sync artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload remote health evidence')
+    && workflow.includes('remote-health-evidence')
+    && workflow.includes('artifacts/runtime/remote-health-evidence-attestation-*.json')
+    && workflow.indexOf('Upload remote health evidence') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the remote health evidence artifact after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -403,6 +410,14 @@ assert(
   'Pages workflow must verify zero-cost Reader edge sync artifact content after the runtime image local smoke artifact content gate',
 )
 assert(
+  workflow.includes('Check remote health evidence artifact content')
+    && workflow.includes('CHECK_REMOTE_HEALTH_EVIDENCE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:remote-health-evidence-artifact')
+    && workflow.indexOf('Check remote health evidence artifact content') > workflow.indexOf('Check zero-cost reader edge sync artifact content'),
+  'Pages workflow must verify remote health evidence artifact content after the zero-cost Reader edge sync artifact content gate',
+)
+assert(
   workflow.includes('VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false'),
   'Pages workflow must always disable local creator fallback for public builds',
 )
@@ -517,6 +532,10 @@ assert(
 assert(
   packageJson.scripts['check:zero-cost-reader-edge-sync-artifact'] === 'node scripts/check-zero-cost-reader-edge-sync-artifact.mjs',
   'package.json must expose check:zero-cost-reader-edge-sync-artifact',
+)
+assert(
+  packageJson.scripts['check:remote-health-evidence-artifact'] === 'node scripts/check-remote-health-evidence-artifact.mjs',
+  'package.json must expose check:remote-health-evidence-artifact',
 )
 assert(
   packageJson.scripts['check:ci-artifact-content-coverage'] === 'node scripts/check-ci-artifact-content-coverage.mjs',
@@ -636,6 +655,10 @@ assert(
   'npm run test must include check:zero-cost-reader-edge-sync-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:remote-health-evidence-artifact'),
+  'npm run test must include check:remote-health-evidence-artifact',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:ci-artifact-content-coverage'),
   'npm run test must include check:ci-artifact-content-coverage',
 )
@@ -684,6 +707,9 @@ assert(
     && p16Doc.includes('check:runtime-image-local-smoke-artifact')
     && p16Doc.includes('zero-cost-reader-edge-sync')
     && p16Doc.includes('check:zero-cost-reader-edge-sync-artifact')
+    && p16Doc.includes('remote-health-evidence')
+    && p16Doc.includes('check:remote-health-evidence-artifact')
+    && p16Doc.includes('P145')
     && p16Doc.includes('reference-work-encryption-completion')
     && p16Doc.includes('representative-work-custody')
     && p16Doc.includes('kernel-constraint-reference-encryption')
@@ -724,6 +750,7 @@ assert(
     && p43Doc.includes('check:operator-assignment-transition-fixture-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:zero-cost-reader-edge-sync-artifact')
+    && p43Doc.includes('check:remote-health-evidence-artifact')
     && p43Doc.includes('check:ci-artifact-content-coverage')
     && p43Doc.includes('check:public-privacy-artifacts')
     && p43Doc.includes('P92')
@@ -741,6 +768,8 @@ assert(
     && p43Doc.includes('operator-assignment-transition-fixture')
     && p43Doc.includes('runtime-image-local-smoke')
     && p43Doc.includes('zero-cost-reader-edge-sync')
+    && p43Doc.includes('remote-health-evidence')
+    && p43Doc.includes('P145')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('reference-work-encryption-completion')
@@ -774,6 +803,8 @@ assert(
     && p107Doc.includes('P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('zero-cost-reader-edge-sync')
     && p107Doc.includes('P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION')
+    && p107Doc.includes('remote-health-evidence')
+    && p107Doc.includes('P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE')
     && p107Doc.includes('reference-privacy')
     && p107Doc.includes('public-projection-privacy')
     && p107Doc.includes('reference-work-encryption-completion')
@@ -858,6 +889,8 @@ console.log(JSON.stringify({
   runtimeImageLocalSmokeContent: 'check:runtime-image-local-smoke-artifact',
   zeroCostReaderEdgeSync: 'zero-cost-reader-edge-sync',
   zeroCostReaderEdgeSyncContent: 'check:zero-cost-reader-edge-sync-artifact',
+  remoteHealthEvidence: 'remote-health-evidence',
+  remoteHealthEvidenceContent: 'check:remote-health-evidence-artifact',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',
   githubRuntimeVariableBoundary: 'check:github-runtime-variable-boundary',
   runtimePlaceholderSentinel: 'check:runtime-placeholder-sentinel',

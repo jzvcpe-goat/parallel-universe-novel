@@ -33,6 +33,7 @@ if (checkCurrentRun) {
     'operator-assignment-transition-fixture',
     'runtime-image-local-smoke',
     'zero-cost-reader-edge-sync',
+    'remote-health-evidence',
     'reference-privacy',
     'public-projection-privacy',
     'reference-work-encryption-completion',

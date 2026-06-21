@@ -86,6 +86,7 @@ fi
 # After P132 current-head coherence content gate: CHECK_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE_ARTIFACT_REQUIRED=true npm run check:operator-assignment-transition-fixture-artifact
 # After P133 transition fixture content gate: CHECK_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_REQUIRED=true npm run check:runtime-image-local-smoke-artifact
 # After P115 runtime image smoke content gate: CHECK_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_REQUIRED=true npm run check:zero-cost-reader-edge-sync-artifact
+# After P136 zero-cost reader content gate: CHECK_REMOTE_HEALTH_EVIDENCE_ARTIFACT_REQUIRED=true npm run check:remote-health-evidence-artifact
 # Root release gate: npm run check:ci-artifact-content-coverage
 # Root local-boundary gate: npm run check:remote-assignment-local-boundary
 # Root repo-variable boundary gate: npm run check:github-runtime-variable-boundary
@@ -96,7 +97,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
@@ -123,6 +124,9 @@ This proves:
   privacy and smoke-result-shape checks.
 - The `zero-cost-reader-edge-sync` artifact content passes P136 Reader cloud
   boundary, local sync boundary and no cloud AI writer path checks.
+- The `remote-health-evidence` artifact content passes P145 Data API health
+  evidence attestation: CI may be explicitly waiting, while strict operator
+  mode requires `healthReady=true`.
 - P107 proves every Pages artifact is owned by a downloaded content gate,
   pre-upload generator gate, built bundle privacy scan or visual evidence path.
 - P108 proves the ignored `remote-assignment.local.json` boundary stays local,
@@ -205,50 +209,56 @@ This proves:
     skipped for a declared non-strict reason, or run successfully.
 29. Every Pages run must upload `zero-cost-reader-edge-sync` so the release owner
     can verify the zero-cost Reader cloud path remains storage/read/health only.
-30. Every Pages run must run `check:remote-assignment-handoff-artifact` after
+30. Every Pages run must upload `remote-health-evidence` so the release owner
+    can verify whether Data API health is still waiting or operator-verified
+    without exposing local keys.
+31. Every Pages run must run `check:remote-assignment-handoff-artifact` after
     P43 so handoff artifact content is validated, not only its presence.
-31. Every Pages run must run `check:public-privacy-artifacts` after P43 so
+32. Every Pages run must run `check:public-privacy-artifacts` after P43 so
     privacy artifact content is validated, not only its presence.
-32. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
+33. Every Pages run must run `check:remote-assignment-artifacts` after P92 so
     assignment schema, execution pack and fixture artifacts are content-checked.
-33. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
+34. Every Pages run must run `check:remote-runtime-blockers-artifact` after P89
     so the blocker ledger is current, privacy-safe and consistent with P72/P80/P81/P89.
-34. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
+35. Every Pages run must run `check:remote-assignment-fill-plan-artifact` after
     P90 so the fill plan is current, privacy-safe and still preserves live
     runtime blockers before deploy.
-35. Every Pages run must run `check:remote-assignment-strict-run-package-artifact`
+36. Every Pages run must run `check:remote-assignment-strict-run-package-artifact`
     after P106 so the strict operator sequence is validated, not only uploaded.
-36. Every Pages run must run `check:remote-operator-readiness-packet-artifact`
+37. Every Pages run must run `check:remote-operator-readiness-packet-artifact`
     after P118 so the operator handoff packet is validated, not only uploaded.
-37. Every Pages run must run `check:remote-operator-return-intake-artifact`
+38. Every Pages run must run `check:remote-operator-return-intake-artifact`
     after P119 so the operator return intake is validated, not only uploaded.
-38. Every Pages run must run `check:operator-assignment-evidence-intake-artifact`
+39. Every Pages run must run `check:operator-assignment-evidence-intake-artifact`
     after P120 so the assignment evidence intake packet is validated, not only
     uploaded.
-39. Every Pages run must run
+40. Every Pages run must run
     `check:operator-assignment-loop-command-consistency-artifact` after P124 so
     the P130 command-consistency proof is validated, not only uploaded.
-40. Every Pages run must run `check:operator-assignment-current-head-coherence`
+41. Every Pages run must run `check:operator-assignment-current-head-coherence`
     after P131 so current-head coherence is validated, not only uploaded.
-41. Every Pages run must run `check:operator-assignment-transition-fixture-artifact`
+42. Every Pages run must run `check:operator-assignment-transition-fixture-artifact`
     after P132 so transition-fixture content is validated, not only uploaded.
-42. Every Pages run must run `check:runtime-image-local-smoke-artifact` after
+43. Every Pages run must run `check:runtime-image-local-smoke-artifact` after
     P133 so the current-image local-smoke artifact is validated, not only
     uploaded.
-43. Every Pages run must run `check:zero-cost-reader-edge-sync-artifact` after
+44. Every Pages run must run `check:zero-cost-reader-edge-sync-artifact` after
     P115 so zero-cost Reader edge-sync evidence is validated, not only uploaded.
-44. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
+45. Every Pages run must run `check:remote-health-evidence-artifact` after P136
+    so Data API health evidence is either explicitly waiting or verified without
+    exposing local keys.
+46. Root `npm run test` must run `check:ci-artifact-content-coverage` so no
     Pages artifact is only uploaded without an explicit verification owner.
-45. Root `npm run test` must run `check:remote-assignment-local-boundary` so
+47. Root `npm run test` must run `check:remote-assignment-local-boundary` so
     ignored local assignment state cannot be committed or replaced by fixture data.
-46. Root `npm run test` must run `check:github-runtime-variable-boundary` so
+48. Root `npm run test` must run `check:github-runtime-variable-boundary` so
     GitHub repository variables cannot contain database URLs, Tool Bridge token
     values, model keys, private keys, provider API tokens or unknown runtime
     variables.
-47. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
+49. Root `npm run test` must run `check:runtime-placeholder-sentinel` so handoff
     placeholders cannot be mistaken for remote runtime evidence.
-48. Live mode fails if browser submission cannot create a candidate draft.
-49. Live mode never enables local fallback.
+50. Live mode fails if browser submission cannot create a candidate draft.
+51. Live mode never enables local fallback.
 
 ## Operational Rule
 

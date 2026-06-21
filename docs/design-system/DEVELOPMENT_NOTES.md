@@ -5346,3 +5346,36 @@ npm run check:remote-assignment-fill-plan
 npm run check:remote-assignment-fill-plan-artifact
 npm run check:edge-only-current-blocker-projection
 ```
+
+## 2026-06-20 P145 Remote Health Evidence Artifact Gate
+
+P144 之后，edge-only 编译器已经能把 assignment contract、operator evidence、
+ledger patch 和 health request 统一指向 `remote-health-evidence-intake`。新的断点
+不再是“怎么生成下一步”，而是“怎么证明下一步被真实执行，同时不把本地 key 上传”。
+
+本轮原则：
+
+1. `remote-health:check` 仍是唯一会读取本地 Supabase/Data API publishable key 的
+   命令；它写入 ignored/generated health result，不进入 Git。
+2. 新增 P145：`check:remote-health-evidence-artifact`。它把 raw health result
+   投影成 `remote-health-evidence-attestation-*.json`，供 Pages 上传和 current-run
+   下载核验。
+3. P145 必须区分两种 required：
+   `CHECK_REMOTE_HEALTH_EVIDENCE_ARTIFACT_REQUIRED=true` 只表示 CI 必须有 artifact；
+   `REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true` 才表示 P142 必须已经完成真实健康检查。
+4. 没有本地 key 的 CI 可以生成 `waiting_for_remote_health_evidence`，但不能写
+   `healthReady=true`，也不能让 P142 被标记完成。
+5. 有真实 `remote-health:check` 结果时，P145 只公开 HTTPS origin、`health_probe`、
+   `reader` probe 和 remote-Agent-not-required 结论；不得公开 publishable key、
+   service-role key、writer password、provider key、Authorization header、system
+   prompt、source refs、profile/kernel id 或 raw runtime state。
+6. 经验：部署证据门不要把“artifact 存在”和“真实远端 ready”混成一个布尔值。
+   前者保证 release chain 可审计，后者才允许上线断点推进。
+
+验证命令：
+
+```bash
+npm run check:remote-health-evidence-artifact
+npm run check:ci-artifact-content-coverage
+REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
+```

@@ -227,6 +227,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for zero-cost Reader cloud boundary, local sync boundary and no cloud AI writer path.',
   },
   {
+    name: 'remote-health-evidence',
+    kind: 'download_content_gate',
+    producer: 'check:remote-health-evidence-artifact',
+    verifier: 'check:remote-health-evidence-artifact',
+    contract: 'P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE',
+    uploadStep: 'Upload remote health evidence',
+    uploadPath: 'artifacts/runtime/remote-health-evidence-attestation-*.json',
+    workflowStep: 'Check remote health evidence artifact content',
+    reason: 'Downloaded from the same Pages run and checked so Data API health evidence is either explicitly waiting or verified without exposing local keys.',
+  },
+  {
     name: 'reference-privacy',
     kind: 'download_content_gate',
     producer: 'scan:reference-privacy',
@@ -350,7 +361,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 20, 'P107 expects twenty artifacts with downloaded content gates')
+assert(downloadAttested.length === 21, 'P107 expects twenty-one artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
