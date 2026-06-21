@@ -44,6 +44,17 @@ Run the no-write compiler gate:
 npm run check:runtime-assignment-compiler
 ```
 
+Run the output-coherence gate:
+
+```bash
+npm run check:remote-assignment-compiler-coherence
+```
+
+P144 Remote Assignment Compiler Coherence proves that the generated contract,
+legacy env, operator evidence, ledger patch and health request still project
+the current `edge-only` path toward `remote-health-evidence-intake` instead of
+the old remote Agent Runtime checklist.
+
 Validate the generated contract:
 
 ```bash
@@ -125,6 +136,8 @@ repo, or browser bundle.
 - Root `npm run test` includes `check:runtime-assignment-intent-prep` before
   `check:runtime-assignment-compiler`.
 - Root `npm run test` includes `check:runtime-assignment-compiler`.
+- Root `npm run test` includes `check:remote-assignment-compiler-coherence`
+  immediately after `check:runtime-assignment-compiler`.
 - `check:remote-assignment-env-dry-run` is mode-aware.
 - `check:remote-runtime-assignment-intake` can accept an edge-only generated
   contract without requiring remote Agent service evidence.

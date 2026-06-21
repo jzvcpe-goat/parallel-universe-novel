@@ -37,6 +37,7 @@ be committed, uploaded as CI artifact, or copied into docs.
 ```bash
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare
+npm run check:remote-assignment-compiler-coherence
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 npm run check:remote-operator-return-intake
@@ -68,18 +69,21 @@ P142 is complete only when all of the following are true:
    HTTPS origin and `secrets_configured=true` evidence.
 2. `remote-assignment:prepare` compiles an edge-only assignment contract without
    reintroducing remote Agent Runtime requirements.
-3. `check:remote-runtime-assignment-intake` no longer reports
+3. `check:remote-assignment-compiler-coherence` proves the generated operator
+   evidence, ledger patch and health request all advance to
+   `remote-health-evidence-intake`.
+4. `check:remote-runtime-assignment-intake` no longer reports
    `data-api-service-id`, `data-api-origin`, `data-api-secrets-ready` or
    `data-api-health-ready`.
-4. `remote-health:check` verifies the real data API health probe.
-5. `check:remote-operator-return-intake` advances from
+5. `remote-health:check` verifies the real data API health probe.
+6. `check:remote-operator-return-intake` advances from
    `operator_return_waiting_for_assignment` toward health or activation proof.
-6. `check:loop-next-goal-ledger` stops selecting
+7. `check:loop-next-goal-ledger` stops selecting
    `operator-assignment-evidence-intake`.
-7. P122/P123/P124/P130/P131/P132 all pass on the same current head.
-8. Public projection privacy, reference privacy and kernel/constraint reference
+8. P122/P123/P124/P130/P131/P132 all pass on the same current head.
+9. Public projection privacy, reference privacy and kernel/constraint reference
    encryption gates remain green.
-9. `check:edge-only-current-blocker-projection` proves P76/P85 did not
+10. `check:edge-only-current-blocker-projection` proves P76/P85 did not
    reintroduce remote Agent service, origin, secret-store or health requirements
    into the current edge-only blocker ledger.
 
