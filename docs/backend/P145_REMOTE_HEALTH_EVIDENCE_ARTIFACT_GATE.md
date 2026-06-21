@@ -36,6 +36,8 @@ Operator-ready strict mode, after local `.env.local.sync` or `.env.local`
 contains the publishable Data API key:
 
 ```bash
+REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true \
+npm run check:edge-only-data-api-local-secret-guard
 npm run remote-health:check
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 ```
@@ -91,9 +93,12 @@ evidence. It must not include:
 
 ## Workflow Placement
 
-Root `npm run test` runs P145 after `check:remote-assignment-compiler-coherence`
-and before the CI artifact coverage matrix. Pages uploads the generated
-`remote-health-evidence` artifact, then downloads it again with
+Root `npm run test` runs P156 before P150 and runs P145 after
+`check:remote-assignment-compiler-coherence` and before the CI artifact
+coverage matrix. P145 assumes the local files used by `remote-health:check`
+have already passed `check:edge-only-data-api-local-secret-guard` when the
+operator is in strict mode. Pages uploads the generated `remote-health-evidence`
+artifact, then downloads it again with
 `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true` to verify its content.
 
 P148 may invoke P145 in strict fixture mode to prove the returned Data API
@@ -109,12 +114,14 @@ uploaded as current remote health evidence.
 
 1. `package.json` exposes `check:remote-health-evidence-artifact`.
 2. Root `npm run test` includes `check:remote-health-evidence-artifact`.
-3. Pages uploads `remote-health-evidence`.
-4. Pages runs `check:remote-health-evidence-artifact` in current-run artifact
+3. Operator strict mode runs P156 before `remote-health:check`.
+4. Pages uploads `remote-health-evidence`.
+5. Pages runs `check:remote-health-evidence-artifact` in current-run artifact
    mode after upload.
-5. P107 includes `remote-health-evidence` as a `download_content_gate`.
-6. Waiting CI artifacts remain honest and do not claim P142 completion.
-7. Strict operator mode fails unless `remote-health:check` produced a valid
+6. P107 includes `remote-health-evidence` as a `download_content_gate`.
+7. Waiting CI artifacts remain honest and do not claim P142 completion.
+8. Strict operator mode fails unless P156 has accepted the local health-input
+   files and `remote-health:check` produced a valid
    Data API health result.
-8. No P145 artifact contains secrets, provider plumbing, raw runtime state,
+9. No P145 artifact contains secrets, provider plumbing, raw runtime state,
    private research material or candidate story text.

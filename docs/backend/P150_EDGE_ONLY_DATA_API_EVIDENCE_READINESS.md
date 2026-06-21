@@ -7,10 +7,12 @@ Date: 2026-06-21
 
 ## Purpose
 
-P150 closes the small but recurring gap between P149 and P142. P149 creates the
-ignored local env file where the operator can record managed Data API evidence.
-P142 remains the real completion contract for Supabase/Data API health. P150
-sits between them and answers one narrow question:
+P150 closes the small but recurring gap between P149/P156 and P142. P149
+creates the ignored local env file where the operator can record managed Data
+API evidence. P156 verifies that local health-input files are not carrying
+forbidden secret classes. P142 remains the real completion contract for
+Supabase/Data API health. P150 sits after those local checks and answers one
+narrow question:
 
 Has the local edge-only Data API evidence been filled enough to run the strict
 P142 command chain?
@@ -69,7 +71,7 @@ The artifact includes booleans only:
 ## Acceptance
 
 1. `package.json` exposes `check:edge-only-data-api-evidence-readiness`.
-2. Root `npm run test` runs P150 immediately after P149 and before P146.
+2. Root `npm run test` runs P150 immediately after P156 and before P146.
 3. Pages workflow uploads `edge-only-data-api-evidence-readiness`.
 4. P43 current-run artifact metadata requires
    `edge-only-data-api-evidence-readiness`.
@@ -94,6 +96,7 @@ RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true \
 npm run prepare:runtime-assignment-intent
 
+npm run check:edge-only-data-api-local-secret-guard
 npm run remote-assignment:prepare
 npm run check:remote-assignment-compiler-coherence
 npm run check:remote-runtime-assignment-intake
@@ -122,3 +125,8 @@ P151 checks the same boundary as P150 plus publishable-key presence, P145
 health attestation, P75 blocker clearance and P121 next-goal movement. It still
 does not create remote services, set GitHub variables, promote live runtime or
 mark P142 complete from fixture evidence.
+
+P156 is earlier and narrower than both P150 and P151: it checks only that
+`.env.local`, `.env.local.sync` and the ignored intent env do not contain
+forbidden service-role, writer-password, provider-key, database URL or prompt
+plumbing material before the health and readiness gates consume those files.

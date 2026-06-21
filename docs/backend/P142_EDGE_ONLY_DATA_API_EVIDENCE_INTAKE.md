@@ -37,6 +37,7 @@ be committed, uploaded as CI artifact, or copied into docs.
 ```bash
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
+npm run check:edge-only-data-api-local-secret-guard
 npm run remote-assignment:prepare
 npm run check:remote-assignment-compiler-coherence
 npm run check:remote-runtime-assignment-intake
@@ -52,6 +53,7 @@ npm run check:loop-next-goal-ledger
 Operator strict mode may additionally run:
 
 ```bash
+REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
 npm run prepare:edge-only-data-api-strict-intake
@@ -94,26 +96,32 @@ P142 is complete only when all of the following are true:
    `waiting_for_remote_health_evidence`, while a local/operator environment
    with the publishable key must produce `healthReady=true` before P142 can be
    marked complete.
-7. `check:edge-only-data-api-evidence-readiness` writes a redacted P150
+7. `check:edge-only-data-api-local-secret-guard` writes a redacted P156 local
+   guard artifact. In default mode it may honestly remain waiting; in strict
+   mode with `REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true` it must
+   prove local health-input files contain only allowed publishable/anon-key
+   evidence and no service-role, writer-password, provider-key, database URL or
+   prompt-plumbing material.
+8. `check:edge-only-data-api-evidence-readiness` writes a redacted P150
    preflight artifact. In default mode it may honestly remain waiting; in
    strict mode with `REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true` it must
    prove the local Data API evidence and real health evidence are present.
-8. `check:edge-only-data-api-strict-intake` writes a redacted P151 strict
+9. `check:edge-only-data-api-strict-intake` writes a redacted P151 strict
    intake artifact. In default mode it may honestly remain waiting; in strict
    mode with `REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true` it must prove
    local env, compiler output, publishable-key presence, health evidence, P145,
    P150, P75 and P121 have all advanced.
-9. `check:remote-operator-return-intake` advances from
+10. `check:remote-operator-return-intake` advances from
    `operator_return_waiting_for_assignment` toward health or activation proof.
-10. `check:loop-next-goal-ledger` stops selecting
+11. `check:loop-next-goal-ledger` stops selecting
    `operator-assignment-evidence-intake`.
-11. P122/P123/P124/P130/P131/P132 all pass on the same current head.
-12. Public projection privacy, reference privacy and kernel/constraint reference
+12. P122/P123/P124/P130/P131/P132 all pass on the same current head.
+13. Public projection privacy, reference privacy and kernel/constraint reference
    encryption gates remain green.
-13. `check:edge-only-current-blocker-projection` proves P76/P85 did not
+14. `check:edge-only-current-blocker-projection` proves P76/P85 did not
    reintroduce remote Agent service, origin, secret-store or health requirements
    into the current edge-only blocker ledger.
-14. `check:edge-only-data-api-evidence-transition-fixture` passes as a
+15. `check:edge-only-data-api-evidence-transition-fixture` passes as a
     fixture-only proof that returned Data API evidence can make P75 ready, while
     still restoring the repo to a waiting state until real `remote-health:check`
     evidence exists.

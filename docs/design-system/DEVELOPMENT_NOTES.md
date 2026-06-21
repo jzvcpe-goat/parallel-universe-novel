@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P156 Edge-Only Data API Local Secret Guard
+
+P155 证明 strict intake artifact 可以被当前 Pages run 下载并核验，但继续往前倒推发现：
+`remote-health:check` 依赖的 `.env.local` / `.env.local.sync` 仍然是本地单点输入。如果这里
+混入 service-role key、writer password、provider key、database URL 或 prompt plumbing，
+后面的 P145/P150/P151 即使保持 redacted，也已经建立在错误的本地输入边界上。
+
+新的工程规则：
+
+1. P149 负责创建 ignored local intent env；P156 必须紧跟 P149、早于 P150。
+2. P156 只读 ignored local files 和 tracked template shape，不联网、不创建 Supabase、
+   不运行 `remote-health:check`，也不宣称 P142 完成。
+3. `.env.local` / `.env.local.sync` 只允许保存本地 health check 所需的 publishable /
+   legacy anon key 名：`VITE_SUPABASE_PUBLISHABLE_KEY`、`VITE_SUPABASE_ANON_KEY`、
+   `SUPABASE_PUBLISHABLE_KEY`、`SUPABASE_ANON_KEY`。
+4. service-role、writer password、database URL、provider API key、Tool Bridge token、
+   authorization header、private key、system/provider prompt、raw state、sourceRefs、
+   `profile.id`、`kernel.id` 一旦出现在这些 health-input 文件里，默认模式也必须失败。
+5. P156 artifact 只包含 booleans 和 counts，不能包含 URL、service id、key、password、
+   provider output、prompt、reference material 或 candidate prose。
+6. root `npm run test` 的顺序固定为 P149 -> P156 -> P150 -> P146，避免文档和机器 gate
+   对 local evidence 的解释漂移。
+
+验证命令：
+
+```bash
+npm run check:edge-only-data-api-local-secret-guard
+npm run check:runtime-assignment-intent-env-local-bootstrap
+npm run check:edge-only-data-api-evidence-readiness
+```
+
 ## 2026-06-21 P155 Strict Intake Artifact Content Attestation
 
 P154 把 sealed strict-intake 命令推进了 operator-facing handoff，但复盘 current-run

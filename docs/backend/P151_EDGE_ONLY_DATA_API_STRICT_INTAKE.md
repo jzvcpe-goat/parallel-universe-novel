@@ -8,8 +8,9 @@ Date: 2026-06-21
 ## Purpose
 
 P150 tells us whether the local Data API evidence is filled enough to attempt
-the P142 completion chain. P151 turns that into one strict intake checkpoint:
-it verifies the ignored local intent env, generated runtime assignment,
+the P142 completion chain, after P156 has checked local health-input hygiene.
+P151 turns that into one strict intake checkpoint: it verifies the ignored
+local intent env, generated runtime assignment,
 publishable-key availability, real `health_probe` result, P145 health
 attestation, P150 readiness, P75 assignment intake and P121 next-goal movement.
 
@@ -43,6 +44,7 @@ The strict command internally reuses the existing chain:
 ```bash
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
+npm run check:edge-only-data-api-local-secret-guard
 npm run remote-assignment:prepare
 npm run check:remote-assignment-compiler-coherence
 npm run remote-health:check
@@ -103,23 +105,26 @@ P151 is ready only when all of these are true:
 1. The ignored local intent env exists and is ignored by Git.
 2. The local env has Data API service id, production HTTPS origin,
    `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`, `health_probe` and `reader`.
-3. A publishable/anon key is present locally for `remote-health:check`.
-4. The prepared intent and compiled contract are `edge-only`.
-5. The compiled contract does not require a remote Agent service, origin,
+3. P156 local secret guard is satisfied: `.env.local`, `.env.local.sync` and
+   the ignored intent env have no service-role, writer-password, provider-key,
+   database URL or prompt-plumbing material.
+4. A publishable/anon key is present locally for `remote-health:check`.
+5. The prepared intent and compiled contract are `edge-only`.
+6. The compiled contract does not require a remote Agent service, origin,
    secret store or health check.
-6. `remote-health:check` has produced a real `health_probe` result.
-7. P145 is `passed` with `healthReady=true`.
-8. P150 is `passed` and has no missing stages.
-9. P75 no longer reports Data API service id, origin, configured/secrets or
+7. `remote-health:check` has produced a real `health_probe` result.
+8. P145 is `passed` with `healthReady=true`.
+9. P150 is `passed` and has no missing stages.
+10. P75 no longer reports Data API service id, origin, configured/secrets or
    health blockers.
-10. P121 no longer selects `operator-assignment-evidence-intake`.
-11. Strict mode fails if any of the above are missing.
-12. Default mode remains root-test safe and reports waiting without leaking
+11. P121 no longer selects `operator-assignment-evidence-intake`.
+12. Strict mode fails if any of the above are missing.
+13. Default mode remains root-test safe and reports waiting without leaking
     values.
-13. Chain-mode failures are projected into `chainFailures` and `missingStages`;
+14. Chain-mode failures are projected into `chainFailures` and `missingStages`;
     they must not surface raw compiler/provider output as the operator-facing
     failure mode.
-14. `check:edge-only-data-api-strict-intake-artifact` validates the uploaded
+15. `check:edge-only-data-api-strict-intake-artifact` validates the uploaded
     P151 artifact before P148/P131 content gates run in Pages CI.
 
 ## Non-Goals

@@ -237,8 +237,12 @@ assert(
   'package.json must expose check:edge-only-data-api-evidence-readiness',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
-  'root test must run P150 after P149 and before P146',
+  packageJson.scripts['check:edge-only-data-api-local-secret-guard'] === 'node scripts/check-edge-only-data-api-local-secret-guard.mjs',
+  'package.json must expose check:edge-only-data-api-local-secret-guard',
+)
+assert(
+  String(packageJson.scripts.test || '').includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
+  'root test must run P150 after P149/P156 and before P146',
 )
 
 for (const [rel, requiredTerms] of Object.entries({
