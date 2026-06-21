@@ -49,6 +49,13 @@ forbidden secret classes before the compiler or health probes run:
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
 ```
 
+P150 then diagnoses whether the remaining Data API evidence gap is public
+service id/origin/configuration or health proof:
+
+```bash
+npm run check:edge-only-data-api-evidence-readiness
+```
+
 ## Commands
 
 Compile all local artifacts:
@@ -56,6 +63,7 @@ Compile all local artifacts:
 ```bash
 npm run prepare:runtime-assignment-intent-env-local
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+npm run check:edge-only-data-api-evidence-readiness
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
 npm run remote-assignment:prepare

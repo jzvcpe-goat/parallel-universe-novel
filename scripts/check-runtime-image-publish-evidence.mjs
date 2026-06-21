@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
@@ -50,7 +50,45 @@ function finish(payload) {
   console.log(JSON.stringify(output, null, 2))
 }
 
+function cachedCurrentHeadEvidence(headSha) {
+  if (!headSha || !existsSync(artifactDir)) return null
+  const files = readdirSync(artifactDir)
+    .filter(name => name.startsWith('runtime-image-publish-evidence-') && name.endsWith('.json'))
+    .map(name => join(artifactDir, name))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
+  for (const file of files) {
+    let payload
+    try {
+      payload = JSON.parse(readFileSync(file, 'utf8'))
+    } catch {
+      continue
+    }
+    if (
+      payload?.status === 'passed'
+      && payload?.headSha === headSha
+      && Array.isArray(payload.images)
+      && payload.images.some(image => String(image).includes(`:${headSha}`))
+      && Array.isArray(payload.latestTags)
+    ) {
+      return { file, payload }
+    }
+  }
+  return null
+}
+
 function blocked(reason, detail) {
+  const cached = cachedCurrentHeadEvidence(currentHead())
+  if (cached && !requirePublished) {
+    finish({
+      ...cached.payload,
+      cacheReuse: {
+        status: 'used_current_head_cached_evidence',
+        sourceArtifact: relative(root, cached.file),
+        refreshBlockedReason: reason,
+      },
+    })
+    return
+  }
   const payload = {
     status: 'passed_with_publish_blockers',
     gate: 'P72 Runtime Image Publish Evidence Gate',

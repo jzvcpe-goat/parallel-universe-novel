@@ -101,8 +101,9 @@ The packet keeps these as operator-owned inputs:
     instead of a manual copy command.
 12. P147's follow-up chain includes
     `REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard`
-    before compile/health commands so the operator catches local secret hygiene
-    failures before attempting Data API verification.
+    and then `npm run check:edge-only-data-api-evidence-readiness` before
+    compile/health commands so the operator catches local secret hygiene and
+    missing Data API evidence before attempting Data API verification.
 13. P147 still emits `nextStrictCommand` as
     `npm run prepare:edge-only-data-api-strict-intake` for the sealed strict
     P142 intake step after local compile and health evidence are available.

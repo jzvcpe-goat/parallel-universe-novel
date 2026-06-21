@@ -124,25 +124,28 @@ Completion criteria for that goal:
 2. `npm run remote-assignment:prepare` compiles the ignored local intent into
    generated contract, legacy env, handoff evidence, ledger patch and remote
    health request artifacts;
-3. `npm run check:remote-runtime-assignment-intake` accepts the generated
+3. `npm run check:edge-only-data-api-evidence-readiness` diagnoses whether the
+   remaining local Data API evidence gap is service id, origin, configuration
+   or health proof before the compiler path continues;
+4. `npm run check:remote-runtime-assignment-intake` accepts the generated
    `edge-only` contract without requiring a fake Agent Runtime service;
-4. `npm run remote-health:check` verifies the reader/data edge contract rather
+5. `npm run remote-health:check` verifies the reader/data edge contract rather
    than a full remote AI generation service;
-5. `npm run check:remote-operator-return-intake` moves the loop toward health
+6. `npm run check:remote-operator-return-intake` moves the loop toward health
    evidence;
-6. `npm run check:loop-next-goal-ledger` stops selecting assignment intake
+7. `npm run check:loop-next-goal-ledger` stops selecting assignment intake
    after complete edge-only evidence is present;
-7. frontend HTTPS origin is inferred from the current GitHub Pages repository
+8. frontend HTTPS origin is inferred from the current GitHub Pages repository
    unless explicitly overridden;
-8. managed data API service id, HTTPS origin, publishable/RLS configuration and
+9. managed data API service id, HTTPS origin, publishable/RLS configuration and
    `health_probe` evidence are confirmed by the operator;
-9. remote Agent Runtime absence is explicit: AI generation stays on the
+10. remote Agent Runtime absence is explicit: AI generation stays on the
    user-owned edge device and the reader cannot trigger cloud AI generation;
-10. P75 can reach `remote_assignment_ready` for the `edge-only` contract;
-11. P148 proves that returned Data API evidence can move P75 from pending
+11. P75 can reach `remote_assignment_ready` for the `edge-only` contract;
+12. P148 proves that returned Data API evidence can move P75 from pending
     health to ready only inside a cleaned-up fixture;
-12. P73/P66/P23/P65/P76/P78 strict gates can run without relying on fixtures;
-13. public Pages remains privacy-clean and no internal model or rule identifiers
+13. P73/P66/P23/P65/P76/P78 strict gates can run without relying on fixtures;
+14. public Pages remains privacy-clean and no internal model or rule identifiers
    leak to Reader or Creator UI.
 
 Current edge-only command sequence:
@@ -150,6 +153,7 @@ Current edge-only command sequence:
 ```bash
 npm run prepare:runtime-assignment-intent-env-local
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+npm run check:edge-only-data-api-evidence-readiness
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true \
 npm run prepare:runtime-assignment-intent

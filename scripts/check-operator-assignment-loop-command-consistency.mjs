@@ -8,6 +8,7 @@ const artifactDir = join(root, 'artifacts/runtime')
 const expectedAssignmentCommands = [
   'npm run prepare:runtime-assignment-intent-env-local',
   'REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard',
+  'npm run check:edge-only-data-api-evidence-readiness',
   'RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent',
   'npm run remote-assignment:prepare',
   'npm run check:remote-runtime-assignment-intake',
@@ -159,6 +160,7 @@ assertIncludes('docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.m
   'remote-assignment:prepare',
   'remote-health:check',
   'check:edge-only-data-api-local-secret-guard',
+  'check:edge-only-data-api-evidence-readiness',
   'prepare:edge-only-data-api-strict-intake',
 ])
 assertIncludes('docs/backend/P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION.md', [

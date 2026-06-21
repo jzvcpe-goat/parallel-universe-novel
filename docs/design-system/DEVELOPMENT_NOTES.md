@@ -1,5 +1,60 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P160 P72 Cached Evidence Fallback
+
+While validating P159, `gh run view` intermittently returned EOF. P72 wrote a
+new `passed_with_publish_blockers` artifact even though a current-head `passed`
+P72 artifact already existed. Downstream gates use latest-artifact selection, so
+that transient network read failure made P89/P90 look blocked.
+
+Engineering rule:
+
+1. P72 default mode may reuse an existing current-head `passed` P72 artifact
+   when GitHub Actions is temporarily unreadable.
+2. The reused artifact must match the current head and include commit-tagged API
+   and Agent Runtime image refs plus `runtime-latest` tags.
+3. The fresh output records `cacheReuse.refreshBlockedReason`, so the temporary
+   GitHub read failure is visible without poisoning downstream gates.
+4. Strict `REQUIRE_RUNTIME_IMAGE_PUBLISHED=true` mode is not relaxed.
+
+Validation commands:
+
+```bash
+npm run check:runtime-image-publish-evidence
+npm run check:remote-assignment-handoff
+npm run check:remote-runtime-blockers-artifact
+```
+
+## 2026-06-21 P159 P150 Readiness Handoff Propagation
+
+P158 fixed the P156 artifact `nextCommand`, but the broader operator-facing
+handoff still had a drift: P121, P123, P147 and P130 could show the P156 secret
+guard and then jump straight to compile/health commands. That made P150 a root
+test gate, but not a visible operator step.
+
+Engineering rule:
+
+1. The selected `operator-assignment-evidence-intake` command chain is now 10
+   commands: bootstrap intent env, P156 local secret guard, P150 readiness
+   diagnosis, prepare intent, compile public contract, assignment intake,
+   remote health, sealed strict intake, operator return intake, loop ledger.
+2. P121, P123, P130/P131, P138 and P147 must all expose the same normalized
+   P150-after-P156 order.
+3. P150 is a diagnosis gate, not readiness proof. It may pass in waiting mode
+   while still reporting missing Data API evidence.
+4. This does not create Data API resources, run remote health, set GitHub
+   variables or claim P142/P151 completion.
+
+Validation commands:
+
+```bash
+npm run check:loop-next-goal-ledger
+npm run check:operator-assignment-evidence-intake
+npm run check:edge-only-operator-evidence-packet
+npm run check:operator-assignment-loop-command-consistency
+npm run check:operator-assignment-loop-command-consistency-artifact
+```
+
 ## 2026-06-21 P158 P156 Next Command Direction
 
 After P157, the operator packet correctly inserted P156 between the P149
@@ -35,10 +90,11 @@ chain was safer than the handoff instructions.
 
 New engineering rule:
 
-1. The selected `operator-assignment-evidence-intake` command chain is now 9
-   commands: bootstrap intent env, P156 local secret guard, prepare intent,
-   compile public contract, assignment intake, remote health, sealed strict
-   intake, operator return intake, loop ledger.
+1. The selected `operator-assignment-evidence-intake` command chain is now 10
+   commands after P159: bootstrap intent env, P156 local secret guard, P150
+   readiness diagnosis, prepare intent, compile public contract, assignment
+   intake, remote health, sealed strict intake, operator return intake, loop
+   ledger.
 2. P121, P123, P130/P131, P138 and P147 must all expose the same normalized
    command order. Updating only one human doc is not enough.
 3. P147 `nextCommand` points at the P156 local secret guard after bootstrap;
@@ -134,9 +190,10 @@ long-form strict command，操作者仍然需要猜下一步。
    P130 command consistency profile 里。
 2. P147 保留 `nextCommand` 指向第一条编译 intent 的动作，同时新增
    `nextStrictCommand` 指向 sealed strict-intake 命令。
-3. P130/P131 的 operator handoff command count 现在是 9：bootstrap intent env、
-   P156 local secret guard、prepare intent、compile public contract、assignment intake、
-   remote health、sealed strict intake、operator return intake、loop ledger。
+3. P130/P131 的 operator handoff command count 在 P159 后是 10：bootstrap intent env、
+   P156 local secret guard、P150 readiness diagnosis、prepare intent、compile public
+   contract、assignment intake、remote health、sealed strict intake、operator return
+   intake、loop ledger。
 4. P142/P150 人读文档只推荐 sealed command；展开后的 `RUN_*`/`REQUIRE_*` 形式仅在
    P151/P153 中作为实现说明保留。
 5. 这个变更不创建 Data API、不访问 Supabase、不设置 GitHub variables、不 claim

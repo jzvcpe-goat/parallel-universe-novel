@@ -64,6 +64,13 @@ successful image publish run. In that case it writes
 `passed_with_publish_blockers` so normal Pages CI can run before the manual image
 publish workflow.
 
+If GitHub Actions is temporarily unreadable but a previous local P72 artifact
+already proves the same current head, default mode writes a fresh `passed`
+artifact that reuses the current-head cached evidence and records the refresh
+failure reason under `cacheReuse`. This prevents a transient `gh` EOF from
+poisoning downstream latest-artifact selection. Strict mode still requires a
+fresh successful read or fails.
+
 Strict mode fails if the current commit lacks a successful publish run or if the
 run log lacks image refs/digests. Use strict mode after triggering P71.
 
@@ -77,3 +84,5 @@ run log lacks image refs/digests. Use strict mode after triggering P71.
 5. The artifact does not include provider secrets, database URLs, Tool Bridge
    tokens, system prompts, candidate prose or private reference mappings.
 6. Pages release ordering is covered by P99.
+7. Default mode reuses same-head cached evidence only when the cached artifact
+   is already `passed` and contains commit-tagged image refs plus latest tags.
