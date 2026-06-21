@@ -65,7 +65,9 @@ npm run prepare:loop-next-goal-local
 ```
 
 That helper may refresh the ignored local assignment draft, so it is local-only
-and not part of root `npm run test`.
+and not part of root `npm run test`. It also runs P122 after P121, so the
+selected goal can immediately consume current fixture-isolation evidence instead
+of failing on a stale P122 artifact.
 
 ## Inputs
 

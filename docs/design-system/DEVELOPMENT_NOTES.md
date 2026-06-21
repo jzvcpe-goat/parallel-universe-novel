@@ -55,6 +55,29 @@ CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
 npm run check:github-actions-artifacts
 ```
 
+## 2026-06-21 P137 Rehydrates P122
+
+`prepare:loop-next-goal-local` 原本只刷新到 P121。实际继续执行时会出现一个细微断点：
+P123 会读取最新 P121，但如果 P122 仍是旧 artifact，就无法证明 fixture isolation
+对应的是当前 P120/P121 证据链。结果是“下一步 goal 选对了”，但第一条执行命令仍然因
+stale P122 失败。
+
+新的工程规则：
+
+1. P137 本地 helper 必须在 P121 后立即运行 P122。
+2. P137 artifact 的 `nextCommand` 应该指向 P123，而不是让人再手动补 P122。
+3. P120/P121/P122/P123 这段证据链必须顺序执行；并行跑 P120/P122 会故意制造
+   stale reference。
+4. 这仍然只是本地 ignored assignment refresh，不进入 root `npm run test`，不创建
+   remote services，不设置 GitHub variables，不存储 secrets。
+
+验证命令：
+
+```bash
+npm run prepare:loop-next-goal-local
+npm run check:operator-assignment-evidence-intake
+```
+
 ## 2026-06-20 P141 P117 Edge-Only No-Env Projection
 
 升级到 P138/P140 edge-only assignment 之后，默认 dry-run 不能再把远端 Agent

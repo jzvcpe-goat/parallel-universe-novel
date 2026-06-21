@@ -15,7 +15,9 @@ or operator-return evidence.
 P137 adds a local-only helper for the common follow-on case: after a release
 commit lands, the operator wants to continue the loop immediately, but local
 runtime artifacts or the ignored assignment draft still point at the previous
-head. The helper refreshes the current-head evidence chain and then runs P121.
+head. The helper refreshes the current-head evidence chain, runs P121, and then
+runs P122 so the selected next goal can execute without stale fixture-isolation
+evidence.
 
 ## Command
 
@@ -40,6 +42,8 @@ The helper uses existing gates instead of inventing a second routing path:
 - P118/P119/P120 operator handoff and return evidence.
 - P107 artifact coverage.
 - P121 loop next-goal ledger.
+- P122 operator-return fixture isolation for the same current P120/P121
+  evidence chain.
 
 ## Boundary
 
@@ -64,7 +68,9 @@ P137 does not:
 2. Root `npm run test` does not run `prepare:loop-next-goal-local`.
 3. The helper emits `loop-next-goal-local-rehydration-*.json`.
 4. The helper runs P121 after refreshing current-head P113/P119/P120 evidence.
-5. The helper may update only ignored local assignment state; tracked files
+5. The helper runs P122 after P121 so P123 can immediately consume the current
+   fixture-isolation artifact.
+6. The helper may update only ignored local assignment state; tracked files
    must remain unchanged unless the developer is actively editing code.
-6. If P121 fails after this helper, the failure is a real evidence or policy
-   disagreement rather than missing local artifacts.
+7. If P121 or P122 fails after this helper, the failure is a real evidence or
+   policy disagreement rather than missing local artifacts.

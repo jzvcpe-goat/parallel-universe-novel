@@ -135,6 +135,7 @@ const steps = [
   ['check:remote-operator-return-intake-artifact'],
   ['check:ci-artifact-content-coverage'],
   ['check:loop-next-goal-ledger'],
+  ['check:operator-return-fixture-isolation'],
 ]
 
 const executed = []
@@ -152,7 +153,7 @@ const artifact = {
   refreshesIgnoredAssignmentDraft: true,
   assignmentPath: localAssignmentRel,
   commands: executed.map(item => item.script),
-  nextCommand: 'npm run check:operator-return-fixture-isolation',
+  nextCommand: 'npm run check:operator-assignment-evidence-intake',
 }
 const privateHits = scanNoPrivateTerms(artifact)
 assert(privateHits.length === 0, `P137 artifact leaked private terms: ${privateHits.join(', ')}`)
