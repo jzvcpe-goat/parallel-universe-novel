@@ -5412,3 +5412,37 @@ Verification:
 npm run check:runtime-assignment-intent-env-template
 npm run check:runtime-assignment-intent-prep
 ```
+
+## 2026-06-21 P148 Edge-Only Data API Evidence Transition Fixture
+
+P147 packaged the operator-facing evidence request, but the release chain still
+lacked a positive proof that returned Data API evidence would actually move the
+edge-only compiler path from `remote_assignment_pending_health` to
+`remote_assignment_ready`. P148 fills that gap without fabricating production
+readiness.
+
+Implementation notes:
+
+1. P148 creates an ignored `*.intent.env.local` fixture, runs the real
+   `prepare:runtime-assignment-intent` and `remote-assignment:prepare` chain,
+   and verifies the compiled contract remains `edge-only`.
+2. The fixture first runs P75 before health evidence and requires exactly one
+   blocker: `data-api-health-ready`.
+3. It then writes a production-shaped but synthetic P145 health result and runs
+   strict `REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true
+   npm run check:remote-health-evidence-artifact`.
+4. P75 must become `remote_assignment_ready` only while the fixture health
+   result is present.
+5. The script restores all runtime-production generated files and runs P145/P75
+   again so the current repo state remains honestly waiting for real operator
+   Data API evidence.
+6. The artifact is `fixtureOnly=true`, includes no keys or values, and is
+   uploaded/validated by Pages as
+   `edge-only-data-api-evidence-transition-fixture`.
+
+Verification:
+
+```bash
+npm run check:edge-only-data-api-evidence-transition-fixture
+npm run check:edge-only-data-api-evidence-transition-fixture-artifact
+```

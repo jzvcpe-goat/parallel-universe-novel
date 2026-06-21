@@ -245,14 +245,16 @@ assert(
   'package.json must expose check:operator-assignment-evidence-intake',
 )
 assert(
-  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:edge-only-operator-evidence-packet && npm run check:edge-only-operator-evidence-packet-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run check:operator-assignment-transition-fixture && npm run check:operator-assignment-transition-fixture-artifact && npm run audit:dependencies'),
-  'root test must run P123/P124/P147/P125/P126/P128/P129/P130/P131/P132/P133 after P121/P122 and before dependency audit',
+  rootTest.includes('npm run check:loop-next-goal-ledger && npm run check:operator-return-fixture-isolation && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:edge-only-operator-evidence-packet && npm run check:edge-only-operator-evidence-packet-artifact && npm run check:edge-only-data-api-evidence-transition-fixture && npm run check:edge-only-data-api-evidence-transition-fixture-artifact && npm run check:operator-assignment-env-validation-fixture && npm run check:operator-assignment-env-apply-fixture && npm run check:operator-assignment-env-template && npm run check:operator-assignment-env-file-loader && npm run check:operator-assignment-loop-command-consistency && npm run check:operator-assignment-loop-command-consistency-artifact && npm run check:operator-assignment-current-head-coherence && npm run check:operator-assignment-transition-fixture && npm run check:operator-assignment-transition-fixture-artifact && npm run audit:dependencies'),
+  'root test must run P123/P124/P147/P148/P125/P126/P128/P129/P130/P131/P132/P133 after P121/P122 and before dependency audit',
 )
 
 for (const file of [
   'docs/backend/P121_LOOP_NEXT_GOAL_LEDGER.md',
   'docs/backend/P122_OPERATOR_RETURN_FIXTURE_ISOLATION.md',
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
+  'docs/backend/P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET.md',
+  'docs/backend/P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE.md',
   'docs/backend/P128_OPERATOR_ASSIGNMENT_ENV_TEMPLATE_GATE.md',
   'docs/backend/P129_OPERATOR_ASSIGNMENT_ENV_FILE_LOADER.md',
   'docs/backend/P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY.md',

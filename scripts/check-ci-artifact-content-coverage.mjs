@@ -183,6 +183,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked for edge-only Data API/Supabase handoff, no-secret boundaries and no remote Agent requirement.',
   },
   {
+    name: 'edge-only-data-api-evidence-transition-fixture',
+    kind: 'download_content_gate',
+    producer: 'check:edge-only-data-api-evidence-transition-fixture',
+    verifier: 'check:edge-only-data-api-evidence-transition-fixture-artifact',
+    contract: 'P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE',
+    uploadStep: 'Upload edge-only Data API evidence transition fixture',
+    uploadPath: 'artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json',
+    workflowStep: 'Check edge-only Data API evidence transition fixture artifact content',
+    reason: 'Downloaded from the same Pages run and checked so returned Data API evidence can make the edge-only contract ready in a fixture without claiming production readiness.',
+  },
+  {
     name: 'operator-assignment-loop-command-consistency',
     kind: 'download_content_gate',
     producer: 'check:operator-assignment-loop-command-consistency',
@@ -372,7 +383,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 22, 'P107 expects twenty-two artifacts with downloaded content gates')
+assert(downloadAttested.length === 23, 'P107 expects twenty-three artifacts with downloaded content gates')
 assert(preUploadChecked.length === 4, 'P107 expects four artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

@@ -41,6 +41,7 @@ npm run check:remote-assignment-compiler-coherence
 npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 npm run check:remote-health-evidence-artifact
+npm run check:edge-only-data-api-evidence-transition-fixture
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
@@ -92,6 +93,10 @@ P142 is complete only when all of the following are true:
 11. `check:edge-only-current-blocker-projection` proves P76/P85 did not
    reintroduce remote Agent service, origin, secret-store or health requirements
    into the current edge-only blocker ledger.
+12. `check:edge-only-data-api-evidence-transition-fixture` passes as a
+    fixture-only proof that returned Data API evidence can make P75 ready, while
+    still restoring the repo to a waiting state until real `remote-health:check`
+    evidence exists.
 
 ## Non-Goals
 
@@ -101,6 +106,7 @@ P142 is complete only when all of the following are true:
 - Do not require remote Agent Runtime service id, origin, secret-store
   confirmation or health proof for the edge-only path.
 - Do not use fixture assignment evidence to satisfy production readiness.
+- Do not use P148 fixture health evidence to mark P142 complete.
 - Do not paste representative work names into kernel, constraint, docs,
   artifacts, UI or public runtime output.
 

@@ -79,8 +79,9 @@ ids, kernel ids or raw runtime state.
 ## Acceptance
 
 1. `package.json` exposes `check:operator-return-fixture-isolation`.
-2. Root `npm run test` runs P122 after P121, then P123, P124, P125, P126,
-   P128, P129, P130, P131, P132 and P133, before dependency audit.
+2. Root `npm run test` runs P122 after P121, then P123, P124, P147, P148,
+   P125, P126, P128, P129, P130, P131, P132 and P133, before dependency
+   audit.
 3. P120 filters P75 assignment evidence by the current production assignment
    path set.
 4. P120 packet cites the selected production assignment path in

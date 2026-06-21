@@ -258,6 +258,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload edge-only Data API evidence transition fixture
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-only-data-api-evidence-transition-fixture
+          path: artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload operator assignment command consistency
         if: always()
         uses: actions/upload-artifact@v7
@@ -461,6 +470,13 @@ jobs:
           CHECK_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET_ARTIFACT_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:edge-only-operator-evidence-packet-artifact
+
+      - name: Check edge-only Data API evidence transition fixture artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:edge-only-data-api-evidence-transition-fixture-artifact
 
       - name: Check operator assignment command consistency artifact content
         env:

@@ -75,8 +75,8 @@ The packet keeps these as operator-owned inputs:
 ## Acceptance
 
 1. `package.json` exposes both P147 scripts.
-2. Root `npm run test` runs P147 after P124 and before the legacy full-remote
-   compatibility fixtures.
+2. Root `npm run test` runs P147 after P124 and before P148 and the legacy
+   full-remote compatibility fixtures.
 3. Pages workflow uploads `edge-only-operator-evidence-packet`.
 4. Pages workflow downloads and checks the same current-run P147 artifact.
 5. `check:github-actions-artifacts` current-run mode requires the P147 artifact.
@@ -87,6 +87,8 @@ The packet keeps these as operator-owned inputs:
 9. P147 does not require a remote Agent Runtime, does not write local
    assignment files, does not create remote services, does not store keys and
    does not promote live runtime.
+10. P148 separately proves the returned Data API evidence transition, so P147
+    remains only the operator packet and does not need fixture health evidence.
 
 ## Failure Modes
 

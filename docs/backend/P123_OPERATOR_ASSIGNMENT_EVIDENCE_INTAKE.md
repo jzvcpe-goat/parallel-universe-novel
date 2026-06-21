@@ -133,8 +133,9 @@ After the assignment evidence is complete, P121 should stop selecting
 ## Acceptance
 
 1. `package.json` exposes `check:operator-assignment-evidence-intake`.
-2. Root `npm run test` runs P123 after P121 and P122, then P124, P125, P126,
-   P128, P129, P130, P131, P132 and P133 before dependency audit.
+2. Root `npm run test` runs P123 after P121 and P122, then P124, P147,
+   P148, P125, P126, P128, P129, P130, P131, P132 and P133 before dependency
+   audit.
 3. P123 only passes when P121 selected `operator-assignment-evidence-intake`.
 4. P123 only passes when P120 still reports
    `operator_return_waiting_for_assignment`.
@@ -180,6 +181,8 @@ After the assignment evidence is complete, P121 should stop selecting
 22. P147 emits the edge-only operator evidence packet after P124 so deployment
     operators see the current Data API/Supabase inputs and do not confuse the
     selected path with the legacy full-remote Agent handoff.
+23. P148 proves the fixture-only Data API evidence transition after P147 and
+    before the legacy full-remote operator assignment fixture chain.
 
 ## Failure Modes
 

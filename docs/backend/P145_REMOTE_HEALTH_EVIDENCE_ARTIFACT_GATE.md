@@ -96,6 +96,11 @@ and before the CI artifact coverage matrix. Pages uploads the generated
 `remote-health-evidence` artifact, then downloads it again with
 `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true` to verify its content.
 
+P148 may invoke P145 in strict fixture mode to prove the returned Data API
+evidence shape. P148 must then restore the runtime-production files and write a
+fresh waiting P145 attestation, so the latest repo state does not pretend that
+fixture health equals production health.
+
 ## Acceptance
 
 1. `package.json` exposes `check:remote-health-evidence-artifact`.

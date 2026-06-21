@@ -222,6 +222,13 @@ assert(
   'Pages workflow must upload the operator assignment evidence intake artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload edge-only Data API evidence transition fixture')
+    && workflow.includes('edge-only-data-api-evidence-transition-fixture')
+    && workflow.includes('artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json')
+    && workflow.indexOf('Upload edge-only Data API evidence transition fixture') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the edge-only Data API evidence transition fixture artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload operator assignment command consistency')
     && workflow.includes('operator-assignment-loop-command-consistency')
     && workflow.includes('artifacts/runtime/operator-assignment-loop-command-consistency-*.json')
@@ -378,12 +385,20 @@ assert(
   'Pages workflow must verify edge-only operator evidence packet artifact content after the operator assignment evidence intake artifact content gate',
 )
 assert(
+  workflow.includes('Check edge-only Data API evidence transition fixture artifact content')
+    && workflow.includes('CHECK_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:edge-only-data-api-evidence-transition-fixture-artifact')
+    && workflow.indexOf('Check edge-only Data API evidence transition fixture artifact content') > workflow.indexOf('Check edge-only operator evidence packet artifact content'),
+  'Pages workflow must verify edge-only Data API evidence transition fixture artifact content after the edge-only operator evidence packet content gate',
+)
+assert(
   workflow.includes('Check operator assignment command consistency artifact content')
     && workflow.includes('CHECK_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:operator-assignment-loop-command-consistency-artifact')
-    && workflow.indexOf('Check operator assignment command consistency artifact content') > workflow.indexOf('Check edge-only operator evidence packet artifact content'),
-  'Pages workflow must verify operator assignment command consistency artifact content after the edge-only operator evidence packet content gate',
+    && workflow.indexOf('Check operator assignment command consistency artifact content') > workflow.indexOf('Check edge-only Data API evidence transition fixture artifact content'),
+  'Pages workflow must verify operator assignment command consistency artifact content after the edge-only Data API transition fixture content gate',
 )
 assert(
   workflow.includes('Check operator assignment current-head coherence artifact content')
@@ -526,6 +541,14 @@ assert(
   'package.json must expose check:edge-only-operator-evidence-packet-artifact',
 )
 assert(
+  packageJson.scripts['check:edge-only-data-api-evidence-transition-fixture'] === 'node scripts/check-edge-only-data-api-evidence-transition-fixture.mjs',
+  'package.json must expose check:edge-only-data-api-evidence-transition-fixture',
+)
+assert(
+  packageJson.scripts['check:edge-only-data-api-evidence-transition-fixture-artifact'] === 'node scripts/check-edge-only-data-api-evidence-transition-fixture-artifact.mjs',
+  'package.json must expose check:edge-only-data-api-evidence-transition-fixture-artifact',
+)
+assert(
   packageJson.scripts['check:operator-assignment-loop-command-consistency-artifact'] === 'node scripts/check-operator-assignment-loop-command-consistency-artifact.mjs',
   'package.json must expose check:operator-assignment-loop-command-consistency-artifact',
 )
@@ -658,6 +681,11 @@ assert(
   'npm run test must include check:edge-only-operator-evidence-packet-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-evidence-transition-fixture')
+    && String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-evidence-transition-fixture-artifact'),
+  'npm run test must include check:edge-only-data-api-evidence-transition-fixture and its artifact gate',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:operator-assignment-loop-command-consistency-artifact'),
   'npm run test must include check:operator-assignment-loop-command-consistency-artifact',
 )
@@ -723,6 +751,8 @@ assert(
     && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p16Doc.includes('edge-only-operator-evidence-packet')
     && p16Doc.includes('check:edge-only-operator-evidence-packet-artifact')
+    && p16Doc.includes('edge-only-data-api-evidence-transition-fixture')
+    && p16Doc.includes('check:edge-only-data-api-evidence-transition-fixture-artifact')
     && p16Doc.includes('operator-assignment-loop-command-consistency')
     && p16Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p16Doc.includes('operator-assignment-current-head-coherence')
@@ -772,6 +802,7 @@ assert(
     && p43Doc.includes('check:remote-operator-return-intake-artifact')
     && p43Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p43Doc.includes('check:edge-only-operator-evidence-packet-artifact')
+    && p43Doc.includes('check:edge-only-data-api-evidence-transition-fixture-artifact')
     && p43Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p43Doc.includes('check:operator-assignment-current-head-coherence')
     && p43Doc.includes('check:operator-assignment-transition-fixture-artifact')
@@ -790,6 +821,7 @@ assert(
     && p43Doc.includes('remote-operator-readiness-packet')
     && p43Doc.includes('remote-operator-return-intake')
     && p43Doc.includes('operator-assignment-evidence-intake')
+    && p43Doc.includes('edge-only-data-api-evidence-transition-fixture')
     && p43Doc.includes('operator-assignment-loop-command-consistency')
     && p43Doc.includes('operator-assignment-current-head-coherence')
     && p43Doc.includes('operator-assignment-transition-fixture')
@@ -820,6 +852,8 @@ assert(
     && p107Doc.includes('P120_REMOTE_OPERATOR_RETURN_INTAKE')
     && p107Doc.includes('operator-assignment-evidence-intake')
     && p107Doc.includes('P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION')
+    && p107Doc.includes('edge-only-data-api-evidence-transition-fixture')
+    && p107Doc.includes('P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE')
     && p107Doc.includes('operator-assignment-loop-command-consistency')
     && p107Doc.includes('P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION')
     && p107Doc.includes('operator-assignment-current-head-coherence')
@@ -908,6 +942,8 @@ console.log(JSON.stringify({
   operatorAssignmentEvidenceIntakeContent: 'check:operator-assignment-evidence-intake-artifact',
   edgeOnlyOperatorEvidencePacket: 'edge-only-operator-evidence-packet',
   edgeOnlyOperatorEvidencePacketContent: 'check:edge-only-operator-evidence-packet-artifact',
+  edgeOnlyDataApiEvidenceTransitionFixture: 'edge-only-data-api-evidence-transition-fixture',
+  edgeOnlyDataApiEvidenceTransitionFixtureContent: 'check:edge-only-data-api-evidence-transition-fixture-artifact',
   operatorAssignmentCommandConsistency: 'operator-assignment-loop-command-consistency',
   operatorAssignmentCommandConsistencyContent: 'check:operator-assignment-loop-command-consistency-artifact',
   operatorAssignmentCurrentHeadCoherence: 'operator-assignment-current-head-coherence',

@@ -38,15 +38,18 @@ from the no-secret fixture path.
 When the selected goal is `operator-assignment-evidence-intake`, P122 is
 followed by P123, which packages the exact non-secret operator assignment
 evidence required by the P138 `edge-only` runtime assignment compiler. P124
-then validates the uploaded P123 artifact content in the same Pages run. P128
-and P129 remain as legacy full-remote env/apply compatibility gates; they are
-not the current edge-only unblock. P130 then verifies that P121 and P123 publish
-the same P138 compiler command sequence and that the legacy apply flag cannot
-return as the primary route. P131 then validates the uploaded P130 artifact
-content in the same Pages run. P132 then verifies that P119, P120, P121, P123,
-P130 and P131 all point at the same current head. P133 still keeps the legacy
-transition fixture covered so older full-remote workflows remain mechanically
-safe, but it is not allowed to override the P138 edge-only selected goal.
+then validates the uploaded P123 artifact content in the same Pages run. P147
+packages the edge-only operator evidence request, and P148 proves the returned
+Data API evidence transition in a fixture without claiming production
+readiness. P128 and P129 remain as legacy full-remote env/apply compatibility
+gates; they are not the current edge-only unblock. P130 then verifies that P121
+and P123 publish the same P138 compiler command sequence and that the legacy
+apply flag cannot return as the primary route. P131 then validates the uploaded
+P130 artifact content in the same Pages run. P132 then verifies that P119, P120,
+P121, P123, P130 and P131 all point at the same current head. P133 still keeps
+the legacy transition fixture covered so older full-remote workflows remain
+mechanically safe, but it is not allowed to override the P138 edge-only selected
+goal.
 
 ## Command
 
@@ -124,8 +127,10 @@ Completion criteria for that goal:
 9. remote Agent Runtime absence is explicit: AI generation stays on the
    user-owned edge device and the reader cannot trigger cloud AI generation;
 10. P75 can reach `remote_assignment_ready` for the `edge-only` contract;
-11. P73/P66/P23/P65/P76/P78 strict gates can run without relying on fixtures;
-12. public Pages remains privacy-clean and no internal model or rule identifiers
+11. P148 proves that returned Data API evidence can move P75 from pending
+    health to ready only inside a cleaned-up fixture;
+12. P73/P66/P23/P65/P76/P78 strict gates can run without relying on fixtures;
+13. public Pages remains privacy-clean and no internal model or rule identifiers
    leak to Reader or Creator UI.
 
 Current edge-only command sequence:
@@ -145,8 +150,8 @@ npm run check:loop-next-goal-ledger
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
 2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P125, P126, P128, P129, P130, P131, P132 and P133
-   before dependency audit.
+   then P122, P123, P124, P147, P148, P125, P126, P128, P129, P130, P131, P132
+   and P133 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current-head P119/P120/P113 evidence, not
    hardcoded wishful thinking or stale operator packets.
