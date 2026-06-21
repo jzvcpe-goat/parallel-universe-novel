@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-21 P151 Edge-Only Data API Strict Intake
+
+P150 把 Data API evidence readiness 做成了 redacted preflight，但它仍然不是
+P142 完成证明。P151 的经验是：上线前必须有一个 strict intake gate，把本地 ignored
+env、runtime assignment compiler、publishable key presence、`remote-health:check`、
+P145、P150、P75 和 P121 统一收束，且默认 CI 仍然能诚实等待。
+
+新的工程规则：
+
+1. 默认命令 `npm run check:edge-only-data-api-strict-intake` 只生成 redacted
+   waiting artifact，不要求 Supabase key，不访问远端，也不 claim readiness。
+2. 严格命令必须显式打开：
+   `RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true`
+   `RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true`
+   `REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true`
+   `npm run check:edge-only-data-api-strict-intake`。
+3. P151 只能读取 ignored local env、generated contract、generated health result
+   和现有 gate artifacts；输出中只允许 booleans、missing stage 和 gate summary。
+4. P151 不能打印 Supabase URL、project ref、publishable key、service-role key、
+   writer password、provider key、prompt plumbing、source refs 或代表作品信息。
+5. P151 必须进入 root test、Pages artifact upload、P43 artifact metadata gate 和
+   P107 coverage matrix；否则它只是本地脚本，不是 release 证据。
+
+验证命令：
+
+```bash
+npm run check:edge-only-data-api-strict-intake
+npm run check:ci-artifact-content-coverage
+```
+
 ## 2026-06-20 P141 P117 Edge-Only No-Env Projection
 
 升级到 P138/P140 edge-only assignment 之后，默认 dry-run 不能再把远端 Agent

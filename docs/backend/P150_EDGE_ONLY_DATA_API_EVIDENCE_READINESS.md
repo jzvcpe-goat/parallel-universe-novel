@@ -100,9 +100,24 @@ npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
+REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake
 npm run check:loop-next-goal-ledger
 ```
 
 If P150 is ready but P142 still selects `operator-assignment-evidence-intake`,
 the strict P142 chain must be rerun rather than declaring completion from the
 P150 artifact alone.
+
+P151 is the next stricter intake gate:
+
+```bash
+RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true \
+RUN_EDGE_ONLY_DATA_API_REMOTE_HEALTH_CHECK=true \
+REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true \
+npm run check:edge-only-data-api-strict-intake
+```
+
+P151 checks the same boundary as P150 plus publishable-key presence, P145
+health attestation, P75 blocker clearance and P121 next-goal movement. It still
+does not create remote services, set GitHub variables, promote live runtime or
+mark P142 complete from fixture evidence.

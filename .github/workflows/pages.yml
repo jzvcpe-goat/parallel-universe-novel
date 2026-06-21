@@ -267,6 +267,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload edge-only Data API strict intake
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-only-data-api-strict-intake
+          path: artifacts/runtime/edge-only-data-api-strict-intake-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload edge-only Data API evidence transition fixture
         if: always()
         uses: actions/upload-artifact@v7

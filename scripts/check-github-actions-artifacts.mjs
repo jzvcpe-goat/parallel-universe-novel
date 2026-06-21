@@ -30,6 +30,7 @@ if (checkCurrentRun) {
     'operator-assignment-evidence-intake',
     'edge-only-operator-evidence-packet',
     'edge-only-data-api-evidence-readiness',
+    'edge-only-data-api-strict-intake',
     'edge-only-data-api-evidence-transition-fixture',
     'operator-assignment-loop-command-consistency',
     'operator-assignment-current-head-coherence',

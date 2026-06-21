@@ -222,6 +222,13 @@ assert(
   'Pages workflow must upload the operator assignment evidence intake artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload edge-only Data API strict intake')
+    && workflow.includes('edge-only-data-api-strict-intake')
+    && workflow.includes('artifacts/runtime/edge-only-data-api-strict-intake-*.json')
+    && workflow.indexOf('Upload edge-only Data API strict intake') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the edge-only Data API strict intake artifact after root runtime checks',
+)
+assert(
   workflow.includes('Upload edge-only Data API evidence transition fixture')
     && workflow.includes('edge-only-data-api-evidence-transition-fixture')
     && workflow.includes('artifacts/runtime/edge-only-data-api-evidence-transition-fixture-*.json')
@@ -541,6 +548,10 @@ assert(
   'package.json must expose check:edge-only-operator-evidence-packet-artifact',
 )
 assert(
+  packageJson.scripts['check:edge-only-data-api-strict-intake'] === 'node scripts/check-edge-only-data-api-strict-intake.mjs',
+  'package.json must expose check:edge-only-data-api-strict-intake',
+)
+assert(
   packageJson.scripts['check:edge-only-data-api-evidence-transition-fixture'] === 'node scripts/check-edge-only-data-api-evidence-transition-fixture.mjs',
   'package.json must expose check:edge-only-data-api-evidence-transition-fixture',
 )
@@ -681,6 +692,10 @@ assert(
   'npm run test must include check:edge-only-operator-evidence-packet-artifact',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-strict-intake'),
+  'npm run test must include check:edge-only-data-api-strict-intake',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-evidence-transition-fixture')
     && String(packageJson.scripts.test).includes('npm run check:edge-only-data-api-evidence-transition-fixture-artifact'),
   'npm run test must include check:edge-only-data-api-evidence-transition-fixture and its artifact gate',
@@ -751,6 +766,7 @@ assert(
     && p16Doc.includes('check:operator-assignment-evidence-intake-artifact')
     && p16Doc.includes('edge-only-operator-evidence-packet')
     && p16Doc.includes('check:edge-only-operator-evidence-packet-artifact')
+    && p16Doc.includes('edge-only-data-api-strict-intake')
     && p16Doc.includes('edge-only-data-api-evidence-transition-fixture')
     && p16Doc.includes('check:edge-only-data-api-evidence-transition-fixture-artifact')
     && p16Doc.includes('operator-assignment-loop-command-consistency')
@@ -821,6 +837,7 @@ assert(
     && p43Doc.includes('remote-operator-readiness-packet')
     && p43Doc.includes('remote-operator-return-intake')
     && p43Doc.includes('operator-assignment-evidence-intake')
+    && p43Doc.includes('edge-only-data-api-strict-intake')
     && p43Doc.includes('edge-only-data-api-evidence-transition-fixture')
     && p43Doc.includes('operator-assignment-loop-command-consistency')
     && p43Doc.includes('operator-assignment-current-head-coherence')
@@ -852,6 +869,8 @@ assert(
     && p107Doc.includes('P120_REMOTE_OPERATOR_RETURN_INTAKE')
     && p107Doc.includes('operator-assignment-evidence-intake')
     && p107Doc.includes('P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION')
+    && p107Doc.includes('edge-only-data-api-strict-intake')
+    && p107Doc.includes('P151_EDGE_ONLY_DATA_API_STRICT_INTAKE')
     && p107Doc.includes('edge-only-data-api-evidence-transition-fixture')
     && p107Doc.includes('P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE')
     && p107Doc.includes('operator-assignment-loop-command-consistency')
@@ -942,6 +961,7 @@ console.log(JSON.stringify({
   operatorAssignmentEvidenceIntakeContent: 'check:operator-assignment-evidence-intake-artifact',
   edgeOnlyOperatorEvidencePacket: 'edge-only-operator-evidence-packet',
   edgeOnlyOperatorEvidencePacketContent: 'check:edge-only-operator-evidence-packet-artifact',
+  edgeOnlyDataApiStrictIntake: 'edge-only-data-api-strict-intake',
   edgeOnlyDataApiEvidenceTransitionFixture: 'edge-only-data-api-evidence-transition-fixture',
   edgeOnlyDataApiEvidenceTransitionFixtureContent: 'check:edge-only-data-api-evidence-transition-fixture-artifact',
   operatorAssignmentCommandConsistency: 'operator-assignment-loop-command-consistency',

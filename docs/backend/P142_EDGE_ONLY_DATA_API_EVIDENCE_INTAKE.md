@@ -43,6 +43,7 @@ npm run check:remote-runtime-assignment-intake
 npm run remote-health:check
 npm run check:remote-health-evidence-artifact
 npm run check:edge-only-data-api-evidence-readiness
+npm run check:edge-only-data-api-strict-intake
 npm run check:edge-only-data-api-evidence-transition-fixture
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
@@ -53,6 +54,7 @@ Operator strict mode may additionally run:
 ```bash
 REQUIRE_REMOTE_HEALTH_EVIDENCE_READY=true npm run check:remote-health-evidence-artifact
 REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true npm run check:edge-only-data-api-evidence-readiness
+REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true npm run check:edge-only-data-api-strict-intake
 ```
 
 After the first pass, the tail evidence chain must be run in order, not in
@@ -96,17 +98,22 @@ P142 is complete only when all of the following are true:
    preflight artifact. In default mode it may honestly remain waiting; in
    strict mode with `REQUIRE_EDGE_ONLY_DATA_API_EVIDENCE_READY=true` it must
    prove the local Data API evidence and real health evidence are present.
-8. `check:remote-operator-return-intake` advances from
+8. `check:edge-only-data-api-strict-intake` writes a redacted P151 strict
+   intake artifact. In default mode it may honestly remain waiting; in strict
+   mode with `REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true` it must prove
+   local env, compiler output, publishable-key presence, health evidence, P145,
+   P150, P75 and P121 have all advanced.
+9. `check:remote-operator-return-intake` advances from
    `operator_return_waiting_for_assignment` toward health or activation proof.
-9. `check:loop-next-goal-ledger` stops selecting
+10. `check:loop-next-goal-ledger` stops selecting
    `operator-assignment-evidence-intake`.
-10. P122/P123/P124/P130/P131/P132 all pass on the same current head.
-11. Public projection privacy, reference privacy and kernel/constraint reference
+11. P122/P123/P124/P130/P131/P132 all pass on the same current head.
+12. Public projection privacy, reference privacy and kernel/constraint reference
    encryption gates remain green.
-12. `check:edge-only-current-blocker-projection` proves P76/P85 did not
+13. `check:edge-only-current-blocker-projection` proves P76/P85 did not
    reintroduce remote Agent service, origin, secret-store or health requirements
    into the current edge-only blocker ledger.
-13. `check:edge-only-data-api-evidence-transition-fixture` passes as a
+14. `check:edge-only-data-api-evidence-transition-fixture` passes as a
     fixture-only proof that returned Data API evidence can make P75 ready, while
     still restoring the repo to a waiting state until real `remote-health:check`
     evidence exists.

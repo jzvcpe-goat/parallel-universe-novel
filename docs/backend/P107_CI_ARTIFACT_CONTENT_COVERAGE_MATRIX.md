@@ -47,6 +47,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `operator-assignment-evidence-intake` | `download_content_gate` | `check:operator-assignment-evidence-intake` | `check:operator-assignment-evidence-intake-artifact` | `P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION` |
 | `edge-only-operator-evidence-packet` | `download_content_gate` | `check:edge-only-operator-evidence-packet` | `check:edge-only-operator-evidence-packet-artifact` | `P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET_ATTESTATION` |
 | `edge-only-data-api-evidence-readiness` | `pre_upload_generator_gate` | `check:edge-only-data-api-evidence-readiness` | `check:edge-only-data-api-evidence-readiness` | `P150_EDGE_ONLY_DATA_API_EVIDENCE_READINESS` |
+| `edge-only-data-api-strict-intake` | `pre_upload_generator_gate` | `check:edge-only-data-api-strict-intake` | `check:edge-only-data-api-strict-intake` | `P151_EDGE_ONLY_DATA_API_STRICT_INTAKE` |
 | `edge-only-data-api-evidence-transition-fixture` | `download_content_gate` | `check:edge-only-data-api-evidence-transition-fixture` | `check:edge-only-data-api-evidence-transition-fixture-artifact` | `P148_EDGE_ONLY_DATA_API_EVIDENCE_TRANSITION_FIXTURE` |
 | `operator-assignment-loop-command-consistency` | `download_content_gate` | `check:operator-assignment-loop-command-consistency` | `check:operator-assignment-loop-command-consistency-artifact` | `P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION` |
 | `operator-assignment-current-head-coherence` | `download_content_gate` | `check:operator-assignment-current-head-coherence` | `check:operator-assignment-current-head-coherence` | `P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE` |
@@ -66,7 +67,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all thirty Pages artifacts.
+- P43 metadata coverage still includes all thirty-one Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.
