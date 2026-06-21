@@ -65,7 +65,9 @@ P151 reads only local or generated evidence shape:
 - ignored generated `remote-health-evidence.result.json`;
 - latest P145, P150, P75 and P121 artifacts;
 - publishable/anon key presence from process env, `.env.local` or
-  `.env.local.sync`.
+  `.env.local.sync`; accepted names are `VITE_SUPABASE_PUBLISHABLE_KEY`,
+  `VITE_SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY` and
+  `SUPABASE_ANON_KEY`.
 
 The gate checks key presence only. It does not print key values.
 

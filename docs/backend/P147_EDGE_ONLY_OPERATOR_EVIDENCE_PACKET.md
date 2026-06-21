@@ -73,8 +73,8 @@ The packet keeps these as operator-owned inputs:
 - `RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` or `SUPABASE_URL`
 - `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`
 - local-only `VITE_SUPABASE_PUBLISHABLE_KEY`,
-  `VITE_SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY` for
-  `remote-health:check`
+  `VITE_SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY` or
+  `SUPABASE_ANON_KEY` for `remote-health:check`
 - `health_probe` row with `id=reader` and `status=ok`
 
 ## Acceptance

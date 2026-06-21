@@ -216,6 +216,7 @@ assertIncludes('docs/backend/P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET.md', [
   'check:edge-only-operator-evidence-packet-artifact',
   localEnvRel,
   'prepare:runtime-assignment-intent-env-local',
+  'SUPABASE_ANON_KEY',
   'does not require a remote Agent Runtime',
 ])
 assertIncludes('docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md', [
@@ -299,7 +300,7 @@ const packet = {
       publicSafe: true,
     },
     {
-      key: 'VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY',
+      key: 'VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY',
       meaning: 'local-only publishable key for health check',
       source: '.env.local or .env.local.sync',
       publicSafe: false,

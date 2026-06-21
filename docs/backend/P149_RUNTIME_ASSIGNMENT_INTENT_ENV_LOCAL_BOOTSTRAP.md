@@ -52,6 +52,11 @@ npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
 
+The local-only key for `remote-health:check` is intentionally separate from the
+intent env. Put it in `.env.local` or `.env.local.sync` as
+`VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`,
+`SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_ANON_KEY`.
+
 ## Boundary
 
 P149 is intentionally narrow:

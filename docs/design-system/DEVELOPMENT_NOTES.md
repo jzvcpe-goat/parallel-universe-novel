@@ -5658,3 +5658,33 @@ npm run check:operator-assignment-evidence-intake
 npm run check:operator-assignment-evidence-intake-artifact
 npm run check:operator-assignment-loop-command-consistency
 ```
+
+## 2026-06-21 P147/P151 Local Publishable-Key Name Coherence
+
+P151 already accepted `SUPABASE_ANON_KEY` from process env, `.env.local` or
+`.env.local.sync`, but the P147 operator packet listed only the Vite-prefixed
+keys and `SUPABASE_PUBLISHABLE_KEY`. That mismatch could make a valid local
+health-check setup look unsupported during handoff.
+
+Implementation notes:
+
+1. P147 required evidence now lists all four supported local-only names:
+   `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`,
+   `SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_ANON_KEY`.
+2. P151 docs now enumerate the same four names, and the P151 script asserts the
+   docs keep `SUPABASE_ANON_KEY`.
+3. The P146 template and P149 bootstrap docs say the publishable/anon key
+   belongs in `.env.local` or `.env.local.sync`, never in
+   `runtime-assignment.intent.env.local`.
+4. This change does not add a secret to Git, change the Data API readiness
+   contract, or mark P142 complete. It only removes drift between the operator
+   handoff and the strict intake implementation.
+
+Verification:
+
+```bash
+npm run check:runtime-assignment-intent-env-local-bootstrap
+npm run check:runtime-assignment-intent-env-template
+npm run check:edge-only-operator-evidence-packet
+npm run check:edge-only-data-api-strict-intake
+```

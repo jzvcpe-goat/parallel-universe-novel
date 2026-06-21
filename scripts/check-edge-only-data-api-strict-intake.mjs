@@ -342,6 +342,7 @@ for (const [rel, terms] of Object.entries({
     'check:edge-only-data-api-strict-intake',
     'RUN_EDGE_ONLY_DATA_API_STRICT_INTAKE_CHAIN=true',
     'REQUIRE_EDGE_ONLY_DATA_API_STRICT_INTAKE_READY=true',
+    'SUPABASE_ANON_KEY',
   ],
   'docs/design-system/DEVELOPMENT_NOTES.md': [
     'P151 Edge-Only Data API Strict Intake',

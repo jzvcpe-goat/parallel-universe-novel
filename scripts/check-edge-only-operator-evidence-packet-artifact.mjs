@@ -156,7 +156,7 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
     'RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID or SUPABASE_PROJECT_REF',
     'RUNTIME_ASSIGNMENT_DATA_API_ORIGIN or SUPABASE_URL',
     'RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED',
-    'VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY',
+    'VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY',
     'health_probe reader row',
   ]) {
     assert(requiredKeys.has(key), `P147 missing required evidence ${key}`)

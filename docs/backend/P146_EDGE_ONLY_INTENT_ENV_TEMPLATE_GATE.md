@@ -56,6 +56,11 @@ npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
 ```
 
+The local-only publishable/anon key for `remote-health:check` belongs in
+`.env.local` or `.env.local.sync`, never in the intent env. The accepted key
+names are `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`,
+`SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_ANON_KEY`.
+
 ## Template Rules
 
 The tracked template must:
