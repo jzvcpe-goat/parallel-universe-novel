@@ -30,6 +30,13 @@ P121 again between the helper and P123 unless P122 is rerun afterwards; a fresh
 P121 artifact intentionally makes the previous P122 fixture-isolation artifact
 stale.
 
+For a one-command local continuation that refreshes the evidence and immediately
+runs the safe P123/P124/P147 tail without inserting another P121, use:
+
+```bash
+npm run prepare:loop-next-goal-local-tail
+```
+
 ## What It Runs
 
 The helper uses existing gates instead of inventing a second routing path:
@@ -81,3 +88,6 @@ P137 does not:
    policy disagreement rather than missing local artifacts.
 8. If an operator manually reruns P121 after this helper, they must rerun P122
    before P123; P123 must reject a P122 artifact that references an older P121.
+9. `package.json` exposes `prepare:loop-next-goal-local-tail` so operators can
+   execute the whole local P137 -> P123/P124/P147 continuation without manually
+   replaying P121 between the linked artifacts.

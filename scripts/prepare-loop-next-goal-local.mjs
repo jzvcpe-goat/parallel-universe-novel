@@ -73,6 +73,10 @@ assert(
   'package.json must expose prepare:loop-next-goal-local',
 )
 assert(
+  packageJson.scripts['prepare:loop-next-goal-local-tail'] === 'npm run prepare:loop-next-goal-local && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:edge-only-operator-evidence-packet && npm run check:edge-only-operator-evidence-packet-artifact',
+  'package.json must expose prepare:loop-next-goal-local-tail as the sealed P137 -> P123/P124/P147 continuation',
+)
+assert(
   !String(packageJson.scripts.test || '').includes('prepare:loop-next-goal-local'),
   'root npm run test must not run prepare:loop-next-goal-local because it may refresh ignored local assignment state',
 )
@@ -81,6 +85,7 @@ for (const [file, terms] of [
   ['docs/backend/P137_LOOP_NEXT_GOAL_LOCAL_REHYDRATION.md', [
     'P137 Loop Next Goal Local Rehydration',
     'prepare:loop-next-goal-local',
+    'prepare:loop-next-goal-local-tail',
     'local-only',
     'not part of root `npm run test`',
     'weaken P121/P132 current-head coherence',
@@ -141,6 +146,13 @@ const steps = [
 const executed = []
 for (const [script, extraEnv] of steps) executed.push(run(script, extraEnv))
 
+const safeContinuationCommands = [
+  'npm run check:operator-assignment-evidence-intake',
+  'npm run check:operator-assignment-evidence-intake-artifact',
+  'npm run check:edge-only-operator-evidence-packet',
+  'npm run check:edge-only-operator-evidence-packet-artifact',
+]
+
 mkdirSync(artifactDir, { recursive: true })
 const artifact = {
   version: 1,
@@ -153,7 +165,11 @@ const artifact = {
   refreshesIgnoredAssignmentDraft: true,
   assignmentPath: localAssignmentRel,
   commands: executed.map(item => item.script),
+  sealedTailCommand: 'npm run prepare:loop-next-goal-local-tail',
   nextCommand: 'npm run check:operator-assignment-evidence-intake',
+  nextCommands: safeContinuationCommands,
+  forbiddenImmediateCommand: 'npm run check:loop-next-goal-ledger',
+  rerunFixtureIsolationIfP121Runs: 'npm run check:operator-return-fixture-isolation',
 }
 const privateHits = scanNoPrivateTerms(artifact)
 assert(privateHits.length === 0, `P137 artifact leaked private terms: ${privateHits.join(', ')}`)

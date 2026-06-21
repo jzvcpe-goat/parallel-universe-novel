@@ -69,6 +69,16 @@ and not part of root `npm run test`. It also runs P122 after P121, so the
 selected goal can immediately consume current fixture-isolation evidence instead
 of failing on a stale P122 artifact.
 
+If the operator wants to both rehydrate local evidence and run the current
+assignment-intake tail, use:
+
+```bash
+npm run prepare:loop-next-goal-local-tail
+```
+
+That sealed local command runs P137 and then P123/P124/P147/P147 artifact in
+order. It exists specifically to avoid rerunning P121 between P137 and P123.
+
 ## Inputs
 
 P121 reads the latest local evidence from:

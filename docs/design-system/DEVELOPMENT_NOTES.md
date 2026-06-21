@@ -99,12 +99,14 @@ stale P122 失败。
    必须先重跑 P122；否则 P123 应该拒绝 stale P122。
 5. 这仍然只是本地 ignored assignment refresh，不进入 root `npm run test`，不创建
    remote services，不设置 GitHub variables，不存储 secrets。
+6. 为了避免人工把 P121 插回 P137 和 P123 中间，提供
+   `prepare:loop-next-goal-local-tail`。它会重新执行 P137，再顺序跑 P123/P124/P147
+   和 P147 artifact gate；这是本地继续 loop 的推荐入口。
 
 验证命令：
 
 ```bash
-npm run prepare:loop-next-goal-local
-npm run check:operator-assignment-evidence-intake
+npm run prepare:loop-next-goal-local-tail
 ```
 
 ## 2026-06-20 P141 P117 Edge-Only No-Env Projection

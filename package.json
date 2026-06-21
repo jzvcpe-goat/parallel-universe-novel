@@ -122,6 +122,7 @@
     "check:remote-assignment-compiler-coherence": "node scripts/check-remote-assignment-compiler-coherence.mjs",
     "prepare:remote-assignment-local": "node scripts/prepare-remote-assignment-local.mjs",
     "prepare:loop-next-goal-local": "node scripts/prepare-loop-next-goal-local.mjs",
+    "prepare:loop-next-goal-local-tail": "npm run prepare:loop-next-goal-local && npm run check:operator-assignment-evidence-intake && npm run check:operator-assignment-evidence-intake-artifact && npm run check:edge-only-operator-evidence-packet && npm run check:edge-only-operator-evidence-packet-artifact",
     "check:remote-assignment-draft-prep": "node scripts/prepare-remote-assignment-local.mjs --check",
     "check:remote-assignment-image-drift": "node scripts/check-remote-assignment-image-drift.mjs",
     "check:remote-assignment-strict-run-package": "node scripts/check-remote-assignment-strict-run-package.mjs",
