@@ -19,6 +19,17 @@ or secrets, does not store provider keys, and does not write canon. It only runs
 the existing local-secret guard, assignment compiler, health check, strict
 intake and current-head refresh in one ordered path.
 
+## Operational Continuity
+
+P168 assumes the P134/P135/P136 operations contract is already being followed:
+the scheduled keep-alive directly checks `health_probe`, `.env.local.sync` is
+backed up outside Git in a trusted password manager or encrypted personal
+storage, and `novels_history` recovery is manual SQL plus human confirmation.
+
+The fast path only replays gates. It does not recover lost local env files,
+automate chapter rollback, create Data API services or mark
+`operator-assignment-evidence-intake` complete without real returned evidence.
+
 ## Commands
 
 Lightweight contract check, included in root `npm run test`:
@@ -78,8 +89,8 @@ source references or generated story text.
 P168 verifies that:
 
 1. `package.json` exposes both P168 scripts.
-2. Root `npm run test` runs the lightweight P168 contract check after P164 and
-   before P121.
+2. Root `npm run test` runs the lightweight P168 contract check after P164,
+   then P170 operations continuity, before P121.
 3. Root `npm run test` does not run the operator-only prepare command.
 4. The prepare command runs exactly the sequence above.
 5. Failure artifacts preserve the external-evidence blocker stage without

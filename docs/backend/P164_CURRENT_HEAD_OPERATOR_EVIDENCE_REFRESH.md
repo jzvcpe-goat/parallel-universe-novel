@@ -81,7 +81,7 @@ P164 verifies that:
 
 1. `package.json` exposes both P164 scripts.
 2. Root `npm run test` runs the lightweight P164 contract check, then the P168
-   contract check, before P121.
+   fast-path contract and P170 operations continuity gate, before P121.
 3. Root `npm run test` does not run the local/network refresh command.
 4. The prepare script runs P163 before delegating current-head loop evidence to
    P137 so the Data API evidence vocabulary is checked before operator evidence

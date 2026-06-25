@@ -50,6 +50,23 @@ P163 keeps the human-fillable evidence card aligned with the same fields:
 deploy/runtime-production/edge-only-data-api.evidence-card.example.md
 ```
 
+## Operational Continuity
+
+P147 inherits the P134/P135/P136 zero-cost Reader operations contract. The
+operator packet is not only a field checklist; it also depends on the operating
+rules that keep the edge-only path recoverable:
+
+- keep-alive must query managed Data API `health_probe` directly and can be
+  manually dispatched during release checks;
+- `.env.local.sync` remains local-only and must be backed up in a trusted
+  password manager or encrypted personal storage outside Git;
+- `novels_history` is manual recovery material, not one-click rollback.
+
+These rules remain operator-facing. P147 does not print local values, and P168
+only runs the sealed return command after the operator fills the local Data API
+evidence. Until that strict return path passes, the selected goal remains
+`operator-assignment-evidence-intake`.
+
 ## Commands
 
 ```bash

@@ -84,8 +84,8 @@ assert(
   'root npm run test must not run the P164 local/network refresh command',
 )
 assert(
-  testScript.includes('npm run check:current-head-operator-evidence-refresh && npm run check:operator-evidence-return-fast-path && npm run check:loop-next-goal-ledger'),
-  'root npm run test must run the lightweight P164 and P168 contract checks before P121',
+  testScript.includes('npm run check:current-head-operator-evidence-refresh && npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:loop-next-goal-ledger'),
+  'root npm run test must run the lightweight P164, P168 and P170 contract checks before P121',
 )
 
 const prepareScript = read('scripts/prepare-current-head-operator-evidence.mjs')

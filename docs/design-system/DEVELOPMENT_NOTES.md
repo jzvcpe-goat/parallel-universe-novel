@@ -1,5 +1,37 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P170 Operator Operations Continuity
+
+P134/P135/P136 already documented the three easy-to-miss zero-cost Reader
+operations details: GitHub Actions keep-alive needs monthly/manual attention,
+`.env.local.sync` must be backed up outside Git, and `novels_history` is manual
+SQL recovery material rather than one-click rollback. The remaining risk was
+that the current P147/P168 operator evidence path could be followed without
+reading those older runbooks.
+
+Implementation notes:
+
+1. Added `check:operator-operations-continuity` as P170 and placed it in root
+   `npm run test` after `check:operator-evidence-return-fast-path` and before
+   `check:loop-next-goal-ledger`.
+2. P170 verifies that P134/P135/P136 still cover direct `health_probe`
+   keep-alive, `.env.local.sync` password-manager/encrypted backup, and
+   `novels_history` manual recovery.
+3. P147 and P168 now explicitly inherit the P134/P135/P136 operations
+   continuity contract while keeping `operator-assignment-evidence-intake` as
+   the selected goal until real Data API evidence is returned.
+4. The P170 artifact reports only booleans and status. It does not create
+   services, upload secrets, write local env values, promote live runtime or
+   mark operator evidence complete.
+
+Verification:
+
+```bash
+npm run check:operator-operations-continuity
+npm run check:operator-evidence-return-fast-path
+npm run check:loop-next-goal-ledger
+```
+
 ## 2026-06-25 P169 Operator Evidence Return Artifact Coverage
 
 P168 closed the local command path for returning operator-filled Data API
