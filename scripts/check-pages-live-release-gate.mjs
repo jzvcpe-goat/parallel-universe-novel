@@ -305,6 +305,21 @@ assert(
   'Pages workflow must upload the remote health evidence artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload Narrative OKF knowledge layer evidence')
+    && workflow.includes('narrative-okf-knowledge-layer')
+    && workflow.includes('artifacts/runtime/narrative-okf-knowledge-layer-*.json')
+    && workflow.includes('Upload Narrative OKF runtime consumption evidence')
+    && workflow.includes('narrative-okf-runtime-consumption')
+    && workflow.includes('artifacts/runtime/narrative-okf-runtime-consumption-*.json')
+    && workflow.includes('Upload OKF runtime image context evidence')
+    && workflow.includes('okf-runtime-image-context')
+    && workflow.includes('artifacts/runtime/okf-runtime-image-context-*.json')
+    && workflow.indexOf('Upload Narrative OKF knowledge layer evidence') > workflow.indexOf('Run runtime checks')
+    && workflow.indexOf('Upload Narrative OKF runtime consumption evidence') > workflow.indexOf('Run runtime checks')
+    && workflow.indexOf('Upload OKF runtime image context evidence') > workflow.indexOf('Run runtime checks'),
+  'Pages workflow must upload the Narrative OKF P165/P166/P167 artifacts after root runtime checks',
+)
+assert(
   workflow.includes('Scan built Pages privacy')
     && workflow.includes('npm run scan:reference-privacy')
     && workflow.includes('PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy')
@@ -343,12 +358,20 @@ assert(
   'Pages workflow must verify the current run evidence artifacts after all required artifacts are uploaded',
 )
 assert(
+  workflow.includes('Check Narrative OKF release artifact content')
+    && workflow.includes('CHECK_NARRATIVE_OKF_RELEASE_ARTIFACTS_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:narrative-okf-release-artifacts')
+    && workflow.indexOf('Check Narrative OKF release artifact content') > workflow.indexOf('Check current run evidence artifacts'),
+  'Pages workflow must verify Narrative OKF artifact contents after the current-run artifact metadata gate',
+)
+assert(
   workflow.includes('Check public privacy artifact content')
     && workflow.includes('CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:public-privacy-artifacts')
-    && workflow.indexOf('Check public privacy artifact content') > workflow.indexOf('Check current run evidence artifacts'),
-  'Pages workflow must verify public privacy artifact contents after the current-run artifact metadata gate',
+    && workflow.indexOf('Check public privacy artifact content') > workflow.indexOf('Check Narrative OKF release artifact content'),
+  'Pages workflow must verify public privacy artifact contents after the Narrative OKF release artifact content gate',
 )
 assert(
   workflow.includes('Check remote assignment artifact content')
@@ -549,6 +572,10 @@ assert(
   'package.json must expose check:kernel-constraint-legal-privacy-loop',
 )
 assert(
+  packageJson.scripts['check:narrative-okf-release-artifacts'] === 'node scripts/check-narrative-okf-release-artifacts.mjs',
+  'package.json must expose check:narrative-okf-release-artifacts',
+)
+assert(
   packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
   'package.json must expose check:remote-assignment-artifacts',
 )
@@ -705,6 +732,10 @@ assert(
   'npm run test must include check:kernel-constraint-legal-privacy-loop',
 )
 assert(
+  String(packageJson.scripts.test).includes('npm run check:narrative-okf-release-artifacts'),
+  'npm run test must include check:narrative-okf-release-artifacts',
+)
+assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-artifacts'),
   'npm run test must include check:remote-assignment-artifacts',
 )
@@ -857,6 +888,11 @@ assert(
     && p16Doc.includes('remote-health-evidence')
     && p16Doc.includes('check:remote-health-evidence-artifact')
     && p16Doc.includes('P145')
+    && p16Doc.includes('narrative-okf-knowledge-layer')
+    && p16Doc.includes('narrative-okf-runtime-consumption')
+    && p16Doc.includes('okf-runtime-image-context')
+    && p16Doc.includes('check:narrative-okf-release-artifacts')
+    && p16Doc.includes('P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION')
     && p16Doc.includes('reference-work-encryption-completion')
     && p16Doc.includes('representative-work-custody')
     && p16Doc.includes('kernel-constraint-reference-encryption')
@@ -923,6 +959,11 @@ assert(
     && p43Doc.includes('zero-cost-reader-edge-sync')
     && p43Doc.includes('remote-health-evidence')
     && p43Doc.includes('P145')
+    && p43Doc.includes('narrative-okf-knowledge-layer')
+    && p43Doc.includes('narrative-okf-runtime-consumption')
+    && p43Doc.includes('okf-runtime-image-context')
+    && p43Doc.includes('check:narrative-okf-release-artifacts')
+    && p43Doc.includes('P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION')
     && p43Doc.includes('reference-privacy')
     && p43Doc.includes('public-projection-privacy')
     && p43Doc.includes('reference-work-encryption-completion')
@@ -962,6 +1003,10 @@ assert(
     && p107Doc.includes('P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION')
     && p107Doc.includes('remote-health-evidence')
     && p107Doc.includes('P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE')
+    && p107Doc.includes('narrative-okf-knowledge-layer')
+    && p107Doc.includes('narrative-okf-runtime-consumption')
+    && p107Doc.includes('okf-runtime-image-context')
+    && p107Doc.includes('P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION')
     && p107Doc.includes('reference-privacy')
     && p107Doc.includes('public-projection-privacy')
     && p107Doc.includes('reference-work-encryption-completion')
@@ -1058,6 +1103,10 @@ console.log(JSON.stringify({
   zeroCostReaderEdgeSyncContent: 'check:zero-cost-reader-edge-sync-artifact',
   remoteHealthEvidence: 'remote-health-evidence',
   remoteHealthEvidenceContent: 'check:remote-health-evidence-artifact',
+  narrativeOkfKnowledgeLayer: 'narrative-okf-knowledge-layer',
+  narrativeOkfRuntimeConsumption: 'narrative-okf-runtime-consumption',
+  okfRuntimeImageContext: 'okf-runtime-image-context',
+  narrativeOkfReleaseArtifactContent: 'check:narrative-okf-release-artifacts',
   artifactContentCoverage: 'check:ci-artifact-content-coverage',
   githubRuntimeVariableBoundary: 'check:github-runtime-variable-boundary',
   runtimePlaceholderSentinel: 'check:runtime-placeholder-sentinel',

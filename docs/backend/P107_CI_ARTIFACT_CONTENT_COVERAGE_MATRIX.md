@@ -57,6 +57,9 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `zero-cost-reader-edge-sync` | `download_content_gate` | `check:zero-cost-reader-edge-sync` | `check:zero-cost-reader-edge-sync-artifact` | `P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION` |
 | `remote-health-evidence` | `download_content_gate` | `check:remote-health-evidence-artifact` | `check:remote-health-evidence-artifact` | `P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE` |
+| `narrative-okf-knowledge-layer` | `download_content_gate` | `check:narrative-okf-knowledge-layer` | `check:narrative-okf-release-artifacts` | `P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION` |
+| `narrative-okf-runtime-consumption` | `download_content_gate` | `check:narrative-okf-runtime-consumption` | `check:narrative-okf-release-artifacts` | `P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION` |
+| `okf-runtime-image-context` | `download_content_gate` | `check:okf-runtime-image-context` | `check:narrative-okf-release-artifacts` | `P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION` |
 | `reference-privacy` | `download_content_gate` | `scan:reference-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `public-projection-privacy` | `download_content_gate` | `check:public-projection-privacy` | `check:public-privacy-artifacts` | `P92_PUBLIC_PRIVACY_ARTIFACT_ATTESTATION` |
 | `reference-work-encryption-completion` | `download_content_gate` | `check:reference-work-encryption-completion` | `check:public-privacy-artifacts` | `P111_REFERENCE_WORK_ENCRYPTION_COMPLETION_GATE` |
@@ -70,7 +73,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all thirty-four Pages artifacts.
+- P43 metadata coverage still includes all thirty-seven Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation. `operator-evidence-return-fast-path`

@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P176 Narrative OKF Release Artifact Attestation
+
+P165/P166/P167 made the OKF-style knowledge layer real, but they were still
+mostly local/root-test evidence. Because OKF cards shape Agent Runtime behavior,
+the release chain also needs current-run proof that those cards, the internal
+runtime consumption summary and the image-copy boundary remain intact.
+
+Engineering rule:
+
+1. OKF knowledge cards are internal-agent-readable contracts, not public product
+   copy and not a second runtime truth.
+2. The Pages workflow must upload `narrative-okf-knowledge-layer`,
+   `narrative-okf-runtime-consumption` and `okf-runtime-image-context`.
+3. `check:narrative-okf-release-artifacts` must download the current-run
+   artifacts and verify no card bodies, source authority values, representative
+   work names, provider plumbing or private refs leaked.
+4. P43, P107 and P16 must name the same three OKF artifacts and the same P176
+   verifier so the release chain cannot drift.
+
+Verification:
+
+```bash
+npm run check:narrative-okf-knowledge-layer
+npm run check:narrative-okf-runtime-consumption
+npm run check:okf-runtime-image-context
+npm run check:narrative-okf-release-artifacts
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-25 P175 Kernel Constraint Privacy Release Attestation
 
 P173 closed the local kernel/constraint legal privacy loop, but local closure is

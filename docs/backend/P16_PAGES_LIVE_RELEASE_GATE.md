@@ -72,6 +72,7 @@ if [ "$VITE_PUBLIC_RUNTIME_MODE" = "live" ]; then
   REQUIRE_PUBLIC_RUNTIME=true npm run qa:live-runtime-browser
 fi
 # After all evidence uploads: CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true npm run check:github-actions-artifacts
+# After P43 metadata gate: CHECK_NARRATIVE_OKF_RELEASE_ARTIFACTS_REQUIRED=true npm run check:narrative-okf-release-artifacts
 # After P43 metadata gate: CHECK_PUBLIC_PRIVACY_ARTIFACTS_REQUIRED=true npm run check:public-privacy-artifacts
 # After P92 privacy artifact content gate: CHECK_REMOTE_ASSIGNMENT_ARTIFACTS_REQUIRED=true npm run check:remote-assignment-artifacts
 # After P93 assignment artifact content gate: CHECK_REMOTE_ASSIGNMENT_HANDOFF_ARTIFACT_REQUIRED=true npm run check:remote-assignment-handoff-artifact
@@ -100,7 +101,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `kernel-constraint-legal-privacy-loop`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `narrative-okf-knowledge-layer`, `narrative-okf-runtime-consumption`, `okf-runtime-image-context`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `kernel-constraint-legal-privacy-loop`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
@@ -151,6 +152,12 @@ This proves:
 - The `remote-health-evidence` artifact content passes P145 Data API health
   evidence attestation: CI may be explicitly waiting, while strict operator
   mode requires `healthReady=true`.
+- The `narrative-okf-knowledge-layer`, `narrative-okf-runtime-consumption` and
+  `okf-runtime-image-context` artifact contents pass
+  P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION, proving the internal OKF
+  cards, Agent Runtime consumption and image-copy boundary are release-evidence
+  backed without exposing card bodies, provider plumbing or representative work
+  names.
 - P107 proves every Pages artifact is owned by a downloaded content gate,
   pre-upload generator gate, built bundle privacy scan or visual evidence path.
 - P108 proves the ignored `remote-assignment.local.json` boundary stays local,
@@ -204,7 +211,11 @@ This proves:
 15. Every Pages run must leave a `kernel-constraint-legal-privacy-loop`
     artifact proving the kernel/constraint legal privacy loop is closed for the
     release run under `P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP`.
-16. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
+16. Every Pages run must leave `narrative-okf-knowledge-layer`,
+    `narrative-okf-runtime-consumption` and `okf-runtime-image-context`
+    artifacts, and `check:narrative-okf-release-artifacts` must validate their
+    `P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION` payloads.
+17. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
 17. Every Pages run must upload `remote-assignment-schema` so the deployment owner sees whether the assignment template, fixture and local contract are schema-valid.
 18. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
 18. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.

@@ -52,8 +52,8 @@ assert(
   'package.json must expose check:okf-runtime-image-context',
 )
 assert(
-  testScript.includes('npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:runtime-artifact-contract'),
-  'root npm run test must run P167 after P166 and before runtime artifact contract',
+  testScript.includes('npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:narrative-okf-release-artifacts && npm run check:runtime-artifact-contract'),
+  'root npm run test must run P167 after P166 and before P176/runtime artifact contract',
 )
 
 const manifest = readJson('docs/baseline/RELEASE_SYNC_MANIFEST.json')

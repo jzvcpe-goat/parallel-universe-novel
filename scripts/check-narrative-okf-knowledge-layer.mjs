@@ -81,8 +81,8 @@ assert(
   'package.json must expose check:narrative-okf-knowledge-layer',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:runtime-rule-handshake && npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:runtime-artifact-contract'),
-  'root npm run test must run P165 then P166 between runtime rule handshake and runtime artifact contract',
+  String(packageJson.scripts.test || '').includes('npm run check:runtime-rule-handshake && npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:narrative-okf-release-artifacts && npm run check:runtime-artifact-contract'),
+  'root npm run test must run P165/P166/P167/P176 between runtime rule handshake and runtime artifact contract',
 )
 
 const readmePath = `${baseDir}/README.md`

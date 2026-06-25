@@ -50,8 +50,8 @@ assert(
   'package.json must expose check:narrative-okf-runtime-consumption',
 )
 assert(
-  testScript.includes('npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:runtime-artifact-contract'),
-  'root npm run test must run P166 after P165 and before runtime artifact contract',
+  testScript.includes('npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:narrative-okf-release-artifacts && npm run check:runtime-artifact-contract'),
+  'root npm run test must run P166 after P165 and before P167/P176/runtime artifact contract',
 )
 
 const requiredFiles = [

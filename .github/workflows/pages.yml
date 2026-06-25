@@ -357,6 +357,33 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload Narrative OKF knowledge layer evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: narrative-okf-knowledge-layer
+          path: artifacts/runtime/narrative-okf-knowledge-layer-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Narrative OKF runtime consumption evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: narrative-okf-runtime-consumption
+          path: artifacts/runtime/narrative-okf-runtime-consumption-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload OKF runtime image context evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: okf-runtime-image-context
+          path: artifacts/runtime/okf-runtime-image-context-*.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
@@ -446,6 +473,13 @@ jobs:
           CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED: true
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:github-actions-artifacts
+
+      - name: Check Narrative OKF release artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_NARRATIVE_OKF_RELEASE_ARTIFACTS_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:narrative-okf-release-artifacts
 
       - name: Check public privacy artifact content
         env:

@@ -303,6 +303,39 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked so Data API health evidence is either explicitly waiting or verified without exposing local keys.',
   },
   {
+    name: 'narrative-okf-knowledge-layer',
+    kind: 'download_content_gate',
+    producer: 'check:narrative-okf-knowledge-layer',
+    verifier: 'check:narrative-okf-release-artifacts',
+    contract: 'P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION',
+    uploadStep: 'Upload Narrative OKF knowledge layer evidence',
+    uploadPath: 'artifacts/runtime/narrative-okf-knowledge-layer-*.json',
+    workflowStep: 'Check Narrative OKF release artifact content',
+    reason: 'Downloaded from the same Pages run and checked so P165 OKF knowledge cards are release-evidence backed without exposing card bodies or representative work names.',
+  },
+  {
+    name: 'narrative-okf-runtime-consumption',
+    kind: 'download_content_gate',
+    producer: 'check:narrative-okf-runtime-consumption',
+    verifier: 'check:narrative-okf-release-artifacts',
+    contract: 'P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION',
+    uploadStep: 'Upload Narrative OKF runtime consumption evidence',
+    uploadPath: 'artifacts/runtime/narrative-okf-runtime-consumption-*.json',
+    workflowStep: 'Check Narrative OKF release artifact content',
+    reason: 'Downloaded from the same Pages run and checked so P166 Agent Runtime OKF consumption remains internal-only and hidden from public projection.',
+  },
+  {
+    name: 'okf-runtime-image-context',
+    kind: 'download_content_gate',
+    producer: 'check:okf-runtime-image-context',
+    verifier: 'check:narrative-okf-release-artifacts',
+    contract: 'P176_NARRATIVE_OKF_RELEASE_ARTIFACT_ATTESTATION',
+    uploadStep: 'Upload OKF runtime image context evidence',
+    uploadPath: 'artifacts/runtime/okf-runtime-image-context-*.json',
+    workflowStep: 'Check Narrative OKF release artifact content',
+    reason: 'Downloaded from the same Pages run and checked so P167 deployment images carry the internal OKF cards without copying private vault keys or creating remote services.',
+  },
+  {
     name: 'reference-privacy',
     kind: 'download_content_gate',
     producer: 'scan:reference-privacy',
@@ -437,7 +470,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 27, 'P107 expects twenty-seven artifacts with downloaded content gates')
+assert(downloadAttested.length === 30, 'P107 expects thirty artifacts with downloaded content gates')
 assert(preUploadChecked.length === 5, 'P107 expects five artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
