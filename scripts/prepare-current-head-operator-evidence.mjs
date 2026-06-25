@@ -8,15 +8,8 @@ const artifactDir = join(root, 'artifacts', 'runtime')
 const gate = 'P164_CURRENT_HEAD_OPERATOR_EVIDENCE_REFRESH'
 
 const sequence = [
-  { id: 'p72-runtime-image', script: 'check:runtime-image-publish-evidence' },
-  { id: 'local-assignment-draft', script: 'prepare:remote-assignment-local', env: { REMOTE_ASSIGNMENT_DRAFT_FORCE: 'true' }, writesLocalIgnoredFiles: true },
   { id: 'p163-data-api-card', script: 'check:edge-only-data-api-evidence-card' },
-  { id: 'p121-loop-ledger', script: 'check:loop-next-goal-ledger' },
-  { id: 'p122-fixture-isolation', script: 'check:operator-return-fixture-isolation' },
-  { id: 'p123-evidence-intake', script: 'check:operator-assignment-evidence-intake' },
-  { id: 'p124-evidence-artifact', script: 'check:operator-assignment-evidence-intake-artifact' },
-  { id: 'p147-edge-packet', script: 'check:edge-only-operator-evidence-packet' },
-  { id: 'p147-edge-packet-artifact', script: 'check:edge-only-operator-evidence-packet-artifact' },
+  { id: 'p137-local-tail', script: 'prepare:loop-next-goal-local-tail', writesLocalIgnoredFiles: true },
   { id: 'p130-command-consistency', script: 'check:operator-assignment-loop-command-consistency' },
   { id: 'p131-command-consistency-artifact', script: 'check:operator-assignment-loop-command-consistency-artifact' },
   { id: 'p132-current-head-coherence', script: 'check:operator-assignment-current-head-coherence' },

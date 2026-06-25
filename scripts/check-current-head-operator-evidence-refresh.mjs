@@ -7,15 +7,8 @@ const artifactDir = join(root, 'artifacts', 'runtime')
 const gate = 'P164_CURRENT_HEAD_OPERATOR_EVIDENCE_REFRESH'
 
 const expectedScripts = [
-  'check:runtime-image-publish-evidence',
-  'prepare:remote-assignment-local',
   'check:edge-only-data-api-evidence-card',
-  'check:loop-next-goal-ledger',
-  'check:operator-return-fixture-isolation',
-  'check:operator-assignment-evidence-intake',
-  'check:operator-assignment-evidence-intake-artifact',
-  'check:edge-only-operator-evidence-packet',
-  'check:edge-only-operator-evidence-packet-artifact',
+  'prepare:loop-next-goal-local-tail',
   'check:operator-assignment-loop-command-consistency',
   'check:operator-assignment-loop-command-consistency-artifact',
   'check:operator-assignment-current-head-coherence',
@@ -96,9 +89,10 @@ assert(
 
 const prepareScript = read('scripts/prepare-current-head-operator-evidence.mjs')
 const checkScript = read('scripts/check-current-head-operator-evidence-refresh.mjs')
+const p137PrepareScript = read('scripts/prepare-loop-next-goal-local.mjs')
 assertInOrder('P164 prepare sequence', prepareScript, expectedScripts.map(script => `script: '${script}'`))
 assertInOrder('P164 check sequence', checkScript, expectedScripts.map(script => `'${script}'`))
-assert(prepareScript.includes("REMOTE_ASSIGNMENT_DRAFT_FORCE: 'true'"), 'P164 prepare must force-refresh the ignored local assignment draft')
+assert(p137PrepareScript.includes("'prepare:remote-assignment-local', { REMOTE_ASSIGNMENT_DRAFT_FORCE: 'true' }"), 'P137 prepare must force-refresh the ignored local assignment draft delegated by P164')
 assert(prepareScript.includes('writesTrackedFiles: false'), 'P164 prepare artifact must declare no tracked writes')
 assert(prepareScript.includes("selectedGoal: 'operator-assignment-evidence-intake'"), 'P164 prepare artifact must keep the selected loop goal explicit')
 

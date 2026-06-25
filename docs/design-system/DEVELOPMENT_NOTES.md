@@ -44,9 +44,10 @@ Implementation notes:
    as a lightweight contract check; the local refresh command itself stays out
    of root test because it can touch ignored local artifacts and network-backed
    evidence.
-3. The fixed order is: P72 image evidence, forced ignored assignment draft,
-   P163 evidence card, P121 loop ledger, P122 fixture isolation, P123/P124,
-   P147/P147 artifact, P130/P131 and P132 current-head coherence.
+3. The fixed order is now: P163 evidence card, P137 sealed local tail
+   (`prepare:loop-next-goal-local-tail`), then P130/P131 and P132 current-head
+   coherence. P137 remains the single owner for refreshing current-head
+   P113/P119/P120/P121/P122 evidence and the safe P123/P124/P147 continuation.
 4. The P164 artifact records command names, status, duration and current head
    only. It must not contain service ids, origins, keys, provider prompt
    plumbing, source references, profile ids, kernel ids or representative work

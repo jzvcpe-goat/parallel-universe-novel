@@ -35,19 +35,17 @@ npm run prepare:current-head-operator-evidence
 The refresh command runs this fixed sequence:
 
 ```bash
-npm run check:runtime-image-publish-evidence
-REMOTE_ASSIGNMENT_DRAFT_FORCE=true npm run prepare:remote-assignment-local
 npm run check:edge-only-data-api-evidence-card
-npm run check:loop-next-goal-ledger
-npm run check:operator-return-fixture-isolation
-npm run check:operator-assignment-evidence-intake
-npm run check:operator-assignment-evidence-intake-artifact
-npm run check:edge-only-operator-evidence-packet
-npm run check:edge-only-operator-evidence-packet-artifact
+npm run prepare:loop-next-goal-local-tail
 npm run check:operator-assignment-loop-command-consistency
 npm run check:operator-assignment-loop-command-consistency-artifact
 npm run check:operator-assignment-current-head-coherence
 ```
+
+`prepare:loop-next-goal-local-tail` is the delegated P137 path that refreshes
+current-head P113/P119/P120/P121/P122 evidence and then runs the safe
+P123/P124/P147 continuation without inserting another P121 between linked
+artifacts.
 
 ## Artifact
 
@@ -74,13 +72,15 @@ P164 verifies that:
 1. `package.json` exposes both P164 scripts.
 2. Root `npm run test` runs the lightweight P164 contract check before P121.
 3. Root `npm run test` does not run the local/network refresh command.
-4. The prepare script runs P72 before the local assignment draft refresh.
-5. The prepare script runs P163 before P121 so the Data API evidence card
-   vocabulary is checked before operator evidence gets interpreted.
-6. P121 and P122 run immediately before P123.
-7. P123, P124, P147, P147 artifact, P130, P131 and P132 run in order.
-8. P164 docs, scripts and release-sync manifest stay aligned.
-9. Public-boundary privacy terms remain absent from artifacts and docs.
+4. The prepare script runs P163 before delegating current-head loop evidence to
+   P137 so the Data API evidence vocabulary is checked before operator evidence
+   gets interpreted.
+5. The prepare script delegates P113/P119/P120/P121/P122 and the safe
+   P123/P124/P147 continuation to `prepare:loop-next-goal-local-tail` instead
+   of maintaining a second copy of that ordering.
+6. P130, P131 and P132 run after the P137 tail.
+7. P164 docs, scripts and release-sync manifest stay aligned.
+8. Public-boundary privacy terms remain absent from artifacts and docs.
 
 ## Non-Goals
 
