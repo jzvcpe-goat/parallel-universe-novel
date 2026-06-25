@@ -61,6 +61,34 @@ npm run check:current-head-operator-evidence-refresh
 npm run prepare:current-head-operator-evidence
 ```
 
+## 2026-06-24 P165 Narrative OKF Knowledge Layer
+
+Google OKF 的启发是：不要让提示词、产品规则、运行时边界和交接文档继续散在不同
+地方，而是用人和 agent 都能读的 Markdown + frontmatter 承载知识合同。本轮先做
+最小可验证层，不改运行时真值。
+
+Implementation notes:
+
+1. 新增 `docs/product/knowledge/narrative-okf/`，包含 genre kernel、
+   constraint profile、Socratic creator flow、quality brake、Tool Bridge、
+   public projection 和 market template refresh 七张知识卡。
+2. 每张卡声明 `source_authority`，仍指向现有 runtime truth 或 v3 baseline；
+   OKF card 不是第二套规则源。
+3. `check:narrative-okf-knowledge-layer` 会验证 frontmatter、卡片清单、
+   source authority、release sync 和 privacy boundary。
+4. Root `npm run test` 在 runtime rule handshake 后运行 P165，再进入 runtime
+   artifact contract，确保规则真值和知识卡不会漂移。
+5. 卡片不允许包含明文代表作品标题样式、可还原 source mapping、database URL、
+   service-role key、writer password 或 provider key。
+
+Verification:
+
+```bash
+npm run check:narrative-okf-knowledge-layer
+npm run check:public-projection-privacy
+npm run scan:reference-privacy
+```
+
 ## 2026-06-21 P161 P123 Stale-P122 Recovery
 
 After P160, a direct local probe exposed an operator ergonomics issue: running
