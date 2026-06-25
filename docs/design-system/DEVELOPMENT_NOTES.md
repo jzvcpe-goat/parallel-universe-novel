@@ -1,5 +1,36 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P173 Kernel Constraint Legal Privacy Loop
+
+P111/P127/P139 already protect representative-work privacy, but the active
+loop goal needed one current, explicit closure gate for the legal-risk wording:
+kernel and constraint materials must not reveal representative work names to
+public users or non-team members.
+
+Engineering rule:
+
+1. `GENRE_CONSTRAINT_RULES.md`, `GENRE_KERNEL_RULES.md` and
+   `genre-runtime-rules.v1.json` may use only anonymous `rwref_*` references.
+2. The OKF cards for constraint profiles and genre kernels must keep
+   `representative_work_names: encrypted_vault_only`.
+3. The agent runtime must load the registry and must not carry representative
+   work title lists.
+4. P173 is an aggregation gate: it requires the P111 encryption-completion,
+   P127 custody and P139 kernel/constraint encryption artifacts to be passed and
+   redacted before it reports success.
+5. This is legal/privacy evidence hardening only. It does not change genre
+   rules, decrypt the vault, publish private mappings or alter public UI.
+
+Verification:
+
+```bash
+npm run scan:reference-privacy
+npm run check:reference-work-encryption-completion
+npm run check:representative-work-custody
+npm run check:kernel-constraint-reference-encryption
+npm run check:kernel-constraint-legal-privacy-loop
+```
+
 ## 2026-06-25 P172 Operator Operations Continuity Artifact Attestation
 
 P171 made `operator-operations-continuity` visible in the Pages artifact list,
