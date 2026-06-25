@@ -40,6 +40,13 @@ For a sealed local continuation, prefer:
 npm run prepare:loop-next-goal-local-tail
 ```
 
+For the full current-head operator-assignment chain through P130/P131/P132,
+prefer the P164 refresh command:
+
+```bash
+npm run prepare:current-head-operator-evidence
+```
+
 If the P122 prerequisite is stale, P123 fails with the recovery command instead
 of emitting a packet from mixed ledger evidence.
 

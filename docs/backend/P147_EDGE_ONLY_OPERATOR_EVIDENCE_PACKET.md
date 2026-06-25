@@ -25,6 +25,16 @@ P147 turns P123 and P146 into one operator-safe packet:
 - P147 packages the concrete next commands without leaking local values or
   treating the legacy full-remote env as primary evidence.
 
+If P123/P124/P147/P130/P131/P132 may be reading stale current-head artifacts,
+refresh the whole operator-assignment chain first:
+
+```bash
+npm run prepare:current-head-operator-evidence
+```
+
+That P164 refresh keeps the selected loop goal as
+`operator-assignment-evidence-intake`; it is not a readiness shortcut.
+
 P163 keeps the human-fillable evidence card aligned with the same fields:
 
 ```text

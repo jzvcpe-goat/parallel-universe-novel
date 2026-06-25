@@ -37,6 +37,17 @@ runs the safe P123/P124/P147 tail without inserting another P121, use:
 npm run prepare:loop-next-goal-local-tail
 ```
 
+For the broader current-head operator-assignment chain through P130/P131/P132,
+use the P164 sealed refresh instead:
+
+```bash
+npm run prepare:current-head-operator-evidence
+```
+
+The P164 path preserves the current selected goal
+`operator-assignment-evidence-intake` until real managed Data API evidence is
+available.
+
 ## What It Runs
 
 The helper uses existing gates instead of inventing a second routing path:

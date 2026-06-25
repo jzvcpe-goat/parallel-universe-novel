@@ -29,6 +29,38 @@ npm run check:edge-only-data-api-evidence-readiness
 npm run check:edge-only-data-api-strict-intake
 ```
 
+## 2026-06-24 P164 Current-Head Operator Evidence Refresh
+
+P163 made the Data API evidence vocabulary compact, but the next failure mode
+was operational: P72/P121/P122/P123/P124/P147/P130/P131/P132 are order
+dependent. Running them in parallel can make later gates read stale local
+artifacts even though each individual gate is correct.
+
+Implementation notes:
+
+1. Added `prepare:current-head-operator-evidence` as the sealed local refresh
+   command for the current `operator-assignment-evidence-intake` loop.
+2. Added `check:current-head-operator-evidence-refresh` to root `npm run test`
+   as a lightweight contract check; the local refresh command itself stays out
+   of root test because it can touch ignored local artifacts and network-backed
+   evidence.
+3. The fixed order is: P72 image evidence, forced ignored assignment draft,
+   P163 evidence card, P121 loop ledger, P122 fixture isolation, P123/P124,
+   P147/P147 artifact, P130/P131 and P132 current-head coherence.
+4. The P164 artifact records command names, status, duration and current head
+   only. It must not contain service ids, origins, keys, provider prompt
+   plumbing, source references, profile ids, kernel ids or representative work
+   material.
+5. If the loop is still waiting on real managed Data API evidence, P164 must
+   preserve the selected goal `operator-assignment-evidence-intake`.
+
+Verification:
+
+```bash
+npm run check:current-head-operator-evidence-refresh
+npm run prepare:current-head-operator-evidence
+```
+
 ## 2026-06-21 P161 P123 Stale-P122 Recovery
 
 After P160, a direct local probe exposed an operator ergonomics issue: running

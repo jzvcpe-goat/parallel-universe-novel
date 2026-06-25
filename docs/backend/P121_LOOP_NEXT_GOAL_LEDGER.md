@@ -168,9 +168,9 @@ npm run check:loop-next-goal-ledger
 ## Acceptance
 
 1. `package.json` exposes `check:loop-next-goal-ledger`.
-2. Root `npm run test` runs P121 after P120 and CI artifact content coverage,
-   then P122, P123, P124, P147, P148, P125, P126, P128, P129, P130, P131, P132
-   and P133 before dependency audit.
+2. Root `npm run test` runs the P164 current-head refresh contract check after
+   CI artifact content coverage, then P121, P122, P123, P124, P147, P148,
+   P125, P126, P128, P129, P130, P131, P132 and P133 before dependency audit.
 3. P121 emits JSON and Markdown artifacts.
 4. P121 selects the next goal from current-head P119/P120/P113 evidence, not
    hardcoded wishful thinking or stale operator packets.

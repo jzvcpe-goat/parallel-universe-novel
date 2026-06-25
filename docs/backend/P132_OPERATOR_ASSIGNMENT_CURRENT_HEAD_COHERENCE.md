@@ -26,6 +26,12 @@ selected next goal.
 npm run check:operator-assignment-current-head-coherence
 ```
 
+Recommended local refresh when any prerequisite artifact may be stale:
+
+```bash
+npm run prepare:current-head-operator-evidence
+```
+
 Current-run GitHub Actions mode:
 
 ```bash
