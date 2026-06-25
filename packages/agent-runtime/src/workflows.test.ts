@@ -7,6 +7,7 @@ import {
   resolveConstraints,
   resolveKernels,
 } from './constraints.js'
+import { loadNarrativeOkfCards, narrativeOkfRuntimeSummary } from './okf.js'
 import { agentRuntimeMeta, qualityBrakeWorkflow, socraticCreateWorkflow, statePreviewWorkflow } from './workflows.js'
 import { projectPublicSocraticCreateOutput } from './workflows.js'
 import { serviceToken, ToolBridgeError } from './toolBridge.js'
@@ -41,6 +42,25 @@ test('agent runtime exposes shared rulebook metadata', () => {
     agentRuntimeMeta.runtimeRules.documentCore.runtimeContract.noMatchBehavior,
     'socratic_clarify_without_runtime_constraints',
   )
+})
+
+test('agent runtime consumes OKF cards as an internal read-only knowledge layer', () => {
+  const cards = loadNarrativeOkfCards()
+  const cardText = JSON.stringify(cards)
+  const publicIndexText = JSON.stringify(agentRuntimeMeta.narrativeOkf)
+
+  assert.equal(cards.length, 7)
+  assert.equal(narrativeOkfRuntimeSummary.cardCount, cards.length)
+  assert.equal(agentRuntimeMeta.narrativeOkf.cardCount, cards.length)
+  assert.equal(agentRuntimeMeta.narrativeOkf.publicProjection, 'redacted_story_guidance_only')
+  assert.equal(agentRuntimeMeta.narrativeOkf.representativeWorkNames, 'encrypted_vault_only')
+  assert.ok(cards.every(card => card.body.includes('##')))
+  assert.ok(cards.every(card => card.sourceAuthority.startsWith('docs/')))
+  assert.ok(!cardText.includes('《'))
+  assert.ok(!cardText.includes('sourceRefs: ['))
+  assert.ok(!publicIndexText.includes('sourceAuthority'))
+  assert.ok(!publicIndexText.includes('source_authority'))
+  assert.ok(!publicIndexText.includes('body'))
 })
 
 test('tool bridge service token default is only allowed outside protected deploy env', () => {
@@ -125,6 +145,9 @@ test('socratic workflow returns candidate draft and at most two questions', asyn
   assert.ok(result.runtimeArtifact.scenePlan.beats.length > 0)
   assert.ok(result.runtimeArtifact.scenePlan.candidateEvents.every(event => event.source === 'time_engine'))
   assert.ok(result.runtimeArtifact.stateWritebackPreview.length > 0)
+  assert.equal(result.okfKnowledge.representativeWorkNames, 'encrypted_vault_only')
+  assert.equal(result.okfKnowledge.publicProjection, 'hidden_from_public_projection')
+  assert.ok(result.okfKnowledge.cardIds.length >= 7)
   assert.equal(result.runtimeArtifact.timeConsistencyReport.status, 'pass')
   assert.equal(result.runtimeArtifact.qualityBrakeReport.result, 'pass')
   assert.equal(result.runtimeArtifact.branchGenerationResult.status, 'not_generated')
@@ -150,11 +173,15 @@ test('public socratic projection hides runtime internals', async () => {
   assert.ok(!('activeConstraints' in projected))
   assert.ok(!('activeKernels' in projected))
   assert.ok(!('sourceLabels' in projected))
+  assert.ok(!('okfKnowledge' in projected))
   assert.ok(!('runTrace' in projected))
   assert.ok(!('ledger' in projected))
   assert.ok(!('cost' in projected))
   assert.ok(!text.includes('runtimeArtifact'))
   assert.ok(!text.includes('sourceRefs'))
+  assert.ok(!text.includes('sourceAuthority'))
+  assert.ok(!text.includes('narrativeOkf'))
+  assert.ok(!text.includes('okfKnowledge'))
   assert.ok(!text.includes('kernelId'))
   assert.ok(!text.includes('profileId'))
 })

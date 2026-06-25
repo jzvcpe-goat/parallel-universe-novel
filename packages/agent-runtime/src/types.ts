@@ -184,6 +184,13 @@ export interface SocraticCreateOutput {
     beatPlan: string[]
   }>
   sourceLabels: Record<string, 'human' | 'memo' | 'llm_candidate' | 'rule_engine' | 'time_engine' | 'quality_gate'>
+  okfKnowledge: {
+    version: 1
+    cardIds: string[]
+    appliedBoundaries: string[]
+    publicProjection: 'hidden_from_public_projection'
+    representativeWorkNames: 'encrypted_vault_only'
+  }
   runtimeArtifact: RuntimeArtifact
   qualityPreview: {
     result: 'pass' | 'warn' | 'rewrite' | 'block'

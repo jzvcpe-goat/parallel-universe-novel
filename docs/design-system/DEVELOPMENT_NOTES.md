@@ -90,6 +90,31 @@ npm run check:public-projection-privacy
 npm run scan:reference-privacy
 ```
 
+## 2026-06-25 P166 Narrative OKF Runtime Consumption
+
+P165 made OKF cards readable and gated. P166 makes them consumable by the
+agent runtime without turning them into a second source of truth.
+
+Implementation notes:
+
+1. Added `packages/agent-runtime/src/okf.ts` as a read-only loader for the seven
+   `docs/product/knowledge/narrative-okf/*.md` cards.
+2. `socraticCreateWorkflow` now carries an internal `okfKnowledge` summary and
+   labels it as `rule_engine`; public projection continues to omit it.
+3. `agentRuntimeMeta.narrativeOkf` exposes only a safe count/id/privacy summary,
+   not card bodies or `source_authority`.
+4. Added `check:narrative-okf-runtime-consumption` and placed it after P165 and
+   before runtime artifact contract in root `npm run test`.
+5. FastAPI remains the business fact owner; OKF cards do not write canon,
+   bypass Tool Bridge or redefine runtime rule truth.
+
+Verification:
+
+```bash
+npm run check:narrative-okf-runtime-consumption
+npm --workspace @narrativeos/agent-runtime test
+```
+
 ## 2026-06-21 P161 P123 Stale-P122 Recovery
 
 After P160, a direct local probe exposed an operator ergonomics issue: running

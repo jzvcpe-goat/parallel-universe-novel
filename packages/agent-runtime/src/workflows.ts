@@ -9,6 +9,7 @@ import {
   runtimeRulesMeta,
 } from './constraints.js'
 import { ledgerEntry } from './ledger.js'
+import { narrativeOkfRuntimeSummary } from './okf.js'
 import { simulateKernelEventDensity } from './timeEngine.js'
 import { qualityCheckTool, requiresToolBridgeFailClosed, socraticTurnTool, statePreviewTool } from './toolBridge.js'
 import type {
@@ -611,8 +612,16 @@ export async function socraticCreateWorkflow(
       settingCards: 'rule_engine',
       activeConstraints: 'rule_engine',
       activeKernels: 'rule_engine',
+      okfKnowledge: 'rule_engine',
       runtimeArtifact: 'rule_engine',
       qualityPreview: 'quality_gate',
+    },
+    okfKnowledge: {
+      version: narrativeOkfRuntimeSummary.version,
+      cardIds: narrativeOkfRuntimeSummary.cardIds,
+      appliedBoundaries: narrativeOkfRuntimeSummary.runtimeBoundaries,
+      publicProjection: 'hidden_from_public_projection',
+      representativeWorkNames: narrativeOkfRuntimeSummary.representativeWorkNames,
     },
     runtimeArtifact,
     qualityPreview: {
@@ -622,6 +631,7 @@ export async function socraticCreateWorkflow(
     },
     runTrace: [
       { step: 'intent.resolve', status: 'ok', detail: '故事种子已进入自然语言创作流程。' },
+      { step: 'okf.load', status: 'ok', detail: `已加载 ${narrativeOkfRuntimeSummary.cardCount} 张内部知识卡。` },
       { step: 'constraint.resolve', status: 'ok', detail: profiles.map(profile => profile.displayName).join('、') || '未激活特殊题材约束。' },
       { step: 'kernel.plan', status: 'ok', detail: kernels.map(kernel => kernel.name).join('、') || '使用通用开场节拍。' },
       { step: 'draft.candidate', status: 'ok', detail: '已生成候选正文，等待作者确认。' },
@@ -884,6 +894,13 @@ export const agentRuntimeMeta = {
   package: '@mastra/core',
   mode: 'mock-local-first-round',
   runtimeRules: runtimeRulesMeta,
+  narrativeOkf: {
+    version: narrativeOkfRuntimeSummary.version,
+    cardCount: narrativeOkfRuntimeSummary.cardCount,
+    cardIds: narrativeOkfRuntimeSummary.cardIds,
+    publicProjection: narrativeOkfRuntimeSummary.publicProjection,
+    representativeWorkNames: narrativeOkfRuntimeSummary.representativeWorkNames,
+  },
   contracts: agentContracts,
   workflows: Object.keys(workflowRegistry),
 }
