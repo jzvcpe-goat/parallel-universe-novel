@@ -15,6 +15,8 @@ function assert(condition, message) {
 const providers = read('backend/src/narrativeos/providers.py')
 const appFactory = read('backend/src/narrativeos/api/app_factory.py')
 const providerTests = read('backend/tests/test_provider_routing.py')
+const corsTests = read('backend/tests/test_cors_config.py')
+const envExample = read('backend/.env.example')
 const contract = read('docs/backend/P34_MODEL_AGNOSTIC_CREATOR_RUNTIME.md')
 const packageJson = JSON.parse(read('package.json'))
 
@@ -39,6 +41,14 @@ assert(
 assert(
   !appFactory.includes('ok.kimi.link'),
   'FastAPI default CORS origins must not include old Kimi preview domains',
+)
+assert(
+  !envExample.includes('ok.kimi.link') && !corsTests.includes('ok.kimi.link'),
+  'env examples and CORS tests must not preserve old Kimi preview domains',
+)
+assert(
+  envExample.includes('NARRATIVEOS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://jzvcpe-goat.github.io'),
+  'env example must use the public GitHub Pages origin as the neutral hosted frontend origin',
 )
 assert(
   providerTests.includes('test_default_llm_policy_is_protocol_first_without_vendor_defaults')

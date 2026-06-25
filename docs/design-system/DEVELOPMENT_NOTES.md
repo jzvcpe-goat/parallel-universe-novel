@@ -1,5 +1,32 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P177 Provider-Neutral Example Custody
+
+OKF-style knowledge cards and model-agnostic runtime contracts are only useful
+if surrounding examples do not quietly reintroduce old single-provider identity.
+The runtime already removed Kimi/Moonshot as defaults, but the public env
+example and CORS fixture still carried an old Kimi preview domain. That made the
+codebase look provider-specific even though adapters are supposed to be explicit
+operator choices.
+
+Engineering rule:
+
+1. Provider names may exist only as explicit adapter options or documentation
+   examples; they must not appear as default runtime identity.
+2. Public env examples should use local origins and the current neutral hosted
+   frontend origin, not a vendor preview domain.
+3. CORS tests should verify configurable origins with neutral product-owned
+   example domains.
+4. `check:provider-agnostic-config` must cover env examples and CORS fixtures,
+   not only runtime source files.
+
+Verification:
+
+```bash
+npm run check:provider-agnostic-config
+node scripts/run-backend-python.mjs -m pytest backend/tests/test_cors_config.py backend/tests/test_provider_runtime_routing.py
+```
+
 ## 2026-06-25 P176 Narrative OKF Release Artifact Attestation
 
 P165/P166/P167 made the OKF-style knowledge layer real, but they were still

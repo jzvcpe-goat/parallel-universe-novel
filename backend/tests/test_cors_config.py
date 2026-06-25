@@ -9,7 +9,7 @@ from src.narrativeos.repository import SQLAlchemyRepository
 def test_app_sets_cors_headers_for_known_frontend_origin(tmp_path: Path, monkeypatch):
     monkeypatch.setenv(
         "NARRATIVEOS_ALLOWED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000,https://rhdrrmzncad2e.ok.kimi.link",
+        "http://localhost:3000,http://127.0.0.1:3000,https://creator-preview.parallel-universe-novel.example",
     )
     monkeypatch.delenv("NARRATIVEOS_ALLOWED_ORIGIN_REGEX", raising=False)
     app = create_app(repository=SQLAlchemyRepository(database_url="sqlite:///%s" % (tmp_path / "cors.db")))
@@ -18,14 +18,14 @@ def test_app_sets_cors_headers_for_known_frontend_origin(tmp_path: Path, monkeyp
     response = client.options(
         "/health",
         headers={
-            "Origin": "https://rhdrrmzncad2e.ok.kimi.link",
+            "Origin": "https://creator-preview.parallel-universe-novel.example",
             "Access-Control-Request-Method": "GET",
             "Access-Control-Request-Headers": "Authorization,Content-Type",
         },
     )
 
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "https://rhdrrmzncad2e.ok.kimi.link"
+    assert response.headers["access-control-allow-origin"] == "https://creator-preview.parallel-universe-novel.example"
     assert response.headers["access-control-allow-credentials"] == "true"
 
 
