@@ -1,5 +1,51 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P178 Edge-Only Data API Evidence Completion Boundary
+
+After P177, the current release head is provider-neutral and the privacy gates
+are green. The next loop selected by `check:loop-next-goal-ledger` remains
+`operator-assignment-evidence-intake`, but the failure is no longer ambiguous:
+the edge-only compiler path is present, local templates are ignored by Git, and
+runtime images / Pages artifacts are current. What is still missing is real
+managed Data API evidence from the operator.
+
+Current blocker:
+
+1. `RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID` or `SUPABASE_PROJECT_REF` is still
+   absent from the ignored local intent env.
+2. `RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` or `SUPABASE_URL` is still absent.
+3. `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true` is not yet attested.
+4. `.env.local` / `.env.local.sync` does not currently provide a publishable or
+   anon key for `remote-health:check`.
+5. `deploy/runtime-production/generated/remote-health-evidence.result.json` is
+   absent, so P145 correctly reports `waiting_for_remote_health_evidence`.
+
+Engineering rule:
+
+1. Do not fabricate Data API readiness, Supabase health, service ids, origins or
+   publishable keys in docs, fixtures, CI artifacts or GitHub variables.
+2. The correct next operator path is still P147 -> P168:
+   fill the ignored local Data API evidence, run the local secret guard, compile
+   the runtime assignment, run `remote-health:check`, then run
+   `prepare:edge-only-data-api-strict-intake`.
+3. P150/P151/P145 are allowed to pass in waiting mode in normal CI; strict mode
+   is only valid after the operator supplies real external evidence.
+4. If this blocker reappears after a new commit, first run
+   `npm run prepare:loop-next-goal-local` to refresh current-head P113/P120/P121
+   artifacts before judging the selected goal.
+
+Verification:
+
+```bash
+npm run check:edge-only-data-api-local-secret-guard
+npm run check:runtime-assignment-intent-prep
+npm run check:runtime-assignment-compiler
+npm run check:remote-assignment-compiler-coherence
+npm run check:edge-only-data-api-evidence-readiness
+npm run check:edge-only-data-api-strict-intake
+npm run check:remote-health-evidence-artifact
+```
+
 ## 2026-06-25 P177 Provider-Neutral Example Custody
 
 OKF-style knowledge cards and model-agnostic runtime contracts are only useful
