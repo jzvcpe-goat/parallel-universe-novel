@@ -125,8 +125,8 @@ assert(
   'root npm run test must not run the evidence-return fast path because it needs real external Data API evidence',
 )
 assert(
-  rootTest.includes('npm run check:ci-artifact-content-coverage && npm run check:current-head-operator-evidence-refresh && npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:loop-next-goal-ledger'),
-  'root npm run test must run the lightweight P168 and P170 contract checks between P164 and P121',
+  rootTest.includes('npm run check:ci-artifact-content-coverage && npm run check:current-head-operator-evidence-refresh && npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:operator-operations-continuity-artifact && npm run check:loop-next-goal-ledger'),
+  'root npm run test must run the lightweight P168, P170 and P172 checks between P164 and P121',
 )
 
 const prepareScript = read('scripts/prepare-operator-evidence-return-fast-path.mjs')

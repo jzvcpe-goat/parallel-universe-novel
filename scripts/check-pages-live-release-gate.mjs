@@ -443,12 +443,21 @@ assert(
   'Pages workflow must verify operator assignment current-head coherence artifact content after the command consistency artifact content gate',
 )
 assert(
+  workflow.includes('Check operator operations continuity artifact content')
+    && workflow.includes('CHECK_OPERATOR_OPERATIONS_CONTINUITY_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:operator-operations-continuity-artifact')
+    && workflow.indexOf('Check operator operations continuity artifact content') > workflow.indexOf('Check operator assignment current-head coherence artifact content')
+    && workflow.indexOf('Check operator operations continuity artifact content') < workflow.indexOf('Check operator assignment transition fixture artifact content'),
+  'Pages workflow must verify operator operations continuity artifact content after current-head coherence and before transition fixture',
+)
+assert(
   workflow.includes('Check operator assignment transition fixture artifact content')
     && workflow.includes('CHECK_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:operator-assignment-transition-fixture-artifact')
-    && workflow.indexOf('Check operator assignment transition fixture artifact content') > workflow.indexOf('Check operator assignment current-head coherence artifact content'),
-  'Pages workflow must verify operator assignment transition fixture artifact content after the current-head coherence content gate',
+    && workflow.indexOf('Check operator assignment transition fixture artifact content') > workflow.indexOf('Check operator operations continuity artifact content'),
+  'Pages workflow must verify operator assignment transition fixture artifact content after the operator operations continuity content gate',
 )
 assert(
   workflow.includes('Check runtime image local smoke artifact content')
@@ -1011,7 +1020,7 @@ console.log(JSON.stringify({
   operatorEvidenceReturnFastPath: 'operator-evidence-return-fast-path',
   operatorEvidenceReturnFastPathContent: 'check:operator-evidence-return-fast-path',
   operatorOperationsContinuity: 'operator-operations-continuity',
-  operatorOperationsContinuityContent: 'check:operator-operations-continuity',
+  operatorOperationsContinuityContent: 'check:operator-operations-continuity-artifact',
   operatorAssignmentTransitionFixture: 'operator-assignment-transition-fixture',
   operatorAssignmentTransitionFixtureContent: 'check:operator-assignment-transition-fixture-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',

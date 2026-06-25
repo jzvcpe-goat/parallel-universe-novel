@@ -535,6 +535,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:operator-assignment-current-head-coherence
 
+      - name: Check operator operations continuity artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_OPERATOR_OPERATIONS_CONTINUITY_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:operator-operations-continuity-artifact
+
       - name: Check operator assignment transition fixture artifact content
         env:
           GH_TOKEN: ${{ github.token }}

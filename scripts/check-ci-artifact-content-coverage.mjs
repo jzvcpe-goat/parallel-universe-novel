@@ -248,13 +248,14 @@ const artifacts = [
   },
   {
     name: 'operator-operations-continuity',
-    kind: 'pre_upload_generator_gate',
+    kind: 'download_content_gate',
     producer: 'check:operator-operations-continuity',
-    verifier: 'check:operator-operations-continuity',
-    contract: 'P170_OPERATOR_OPERATIONS_CONTINUITY',
+    verifier: 'check:operator-operations-continuity-artifact',
+    contract: 'P172_OPERATOR_OPERATIONS_CONTINUITY_ARTIFACT_ATTESTATION',
     uploadStep: 'Upload operator operations continuity',
     uploadPath: 'artifacts/runtime/operator-operations-continuity-*.json',
-    reason: 'Generated and checked before upload so the P134/P135/P136 operations continuity rules stay visible in the current Pages run without exposing local Data API values.',
+    workflowStep: 'Check operator operations continuity artifact content',
+    reason: 'Downloaded from the same Pages run and checked so the P134/P135/P136 operations continuity rules remain current-run visible, privacy-safe and tied to the selected operator evidence intake goal.',
   },
   {
     name: 'operator-assignment-transition-fixture',
@@ -424,8 +425,8 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 24, 'P107 expects twenty-four artifacts with downloaded content gates')
-assert(preUploadChecked.length === 7, 'P107 expects seven artifacts with pre-upload generator gates')
+assert(downloadAttested.length === 25, 'P107 expects twenty-five artifacts with downloaded content gates')
+assert(preUploadChecked.length === 6, 'P107 expects six artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
 

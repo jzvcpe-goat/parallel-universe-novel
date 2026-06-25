@@ -15,6 +15,7 @@ const files = {
   p168: 'docs/backend/P168_OPERATOR_EVIDENCE_RETURN_FAST_PATH.md',
   p169: 'docs/backend/P169_OPERATOR_EVIDENCE_RETURN_ARTIFACT_COVERAGE.md',
   p170: 'docs/backend/P170_OPERATOR_OPERATIONS_CONTINUITY.md',
+  p172: 'docs/backend/P172_OPERATOR_OPERATIONS_CONTINUITY_ARTIFACT_ATTESTATION.md',
   keepAlive: '.github/workflows/keep-supabase-alive.yml',
   pages: '.github/workflows/pages.yml',
   evidenceCard: 'deploy/runtime-production/edge-only-data-api.evidence-card.example.md',
@@ -74,8 +75,12 @@ assert(
   'package.json must expose check:operator-operations-continuity',
 )
 assert(
-  testScript.includes('npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:loop-next-goal-ledger'),
-  'root npm run test must run P170 after P168 and before P121',
+  packageJson.scripts['check:operator-operations-continuity-artifact'] === 'node scripts/check-operator-operations-continuity-artifact.mjs',
+  'package.json must expose check:operator-operations-continuity-artifact',
+)
+assert(
+  testScript.includes('npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:operator-operations-continuity-artifact && npm run check:loop-next-goal-ledger'),
+  'root npm run test must run P170 then P172 after P168 and before P121',
 )
 
 assertIncludes(files.p134, [
@@ -167,10 +172,20 @@ assertIncludes(files.p170, [
   'no secrets',
 ])
 
+assertIncludes(files.p172, [
+  'P172 Operator Operations Continuity Artifact Attestation',
+  'check:operator-operations-continuity-artifact',
+  'P170_OPERATOR_OPERATIONS_CONTINUITY',
+  'valuesIncluded',
+  'operator-assignment-evidence-intake',
+])
+
 const manifest = readJson(files.releaseSyncManifest)
 for (const relPath of [
   files.p170,
+  files.p172,
   'scripts/check-operator-operations-continuity.mjs',
+  'scripts/check-operator-operations-continuity-artifact.mjs',
 ]) {
   assert(manifest.syncAsIs.includes(relPath), `release sync manifest must include ${relPath}`)
 }
@@ -180,6 +195,7 @@ assertInOrder('root test operator operations sequence', testScript, [
   'npm run check:current-head-operator-evidence-refresh',
   'npm run check:operator-evidence-return-fast-path',
   'npm run check:operator-operations-continuity',
+  'npm run check:operator-operations-continuity-artifact',
   'npm run check:loop-next-goal-ledger',
 ])
 
