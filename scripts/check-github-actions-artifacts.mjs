@@ -34,6 +34,7 @@ if (checkCurrentRun) {
     'edge-only-data-api-evidence-transition-fixture',
     'operator-assignment-loop-command-consistency',
     'operator-assignment-current-head-coherence',
+    'operator-evidence-return-fast-path',
     'operator-assignment-transition-fixture',
     'runtime-image-local-smoke',
     'zero-cost-reader-edge-sync',

@@ -237,6 +237,16 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked so P119/P120/P121/P123/P130/P131 evidence all matches the current release head.',
   },
   {
+    name: 'operator-evidence-return-fast-path',
+    kind: 'pre_upload_generator_gate',
+    producer: 'check:operator-evidence-return-fast-path',
+    verifier: 'check:operator-evidence-return-fast-path',
+    contract: 'P168_OPERATOR_EVIDENCE_RETURN_FAST_PATH',
+    uploadStep: 'Upload operator evidence return fast path',
+    uploadPath: 'artifacts/runtime/operator-evidence-return-fast-path-contract-*.json',
+    reason: 'Generated and checked before upload so the operator-return fast path has current-run evidence without requiring external Data API values.',
+  },
+  {
     name: 'operator-assignment-transition-fixture',
     kind: 'download_content_gate',
     producer: 'check:operator-assignment-transition-fixture',
@@ -405,7 +415,7 @@ const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
 assert(downloadAttested.length === 24, 'P107 expects twenty-four artifacts with downloaded content gates')
-assert(preUploadChecked.length === 5, 'P107 expects five artifacts with pre-upload generator gates')
+assert(preUploadChecked.length === 6, 'P107 expects six artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')
 

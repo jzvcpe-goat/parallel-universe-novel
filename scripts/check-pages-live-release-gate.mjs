@@ -259,6 +259,15 @@ assert(
   'Pages workflow must upload the operator assignment current-head coherence artifact after root runtime checks',
 )
 assert(
+  workflow.includes('Upload operator evidence return fast path')
+    && workflow.includes('operator-evidence-return-fast-path')
+    && workflow.includes('artifacts/runtime/operator-evidence-return-fast-path-contract-*.json')
+    && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Run runtime checks')
+    && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Upload operator assignment current-head coherence')
+    && workflow.indexOf('Upload operator evidence return fast path') < workflow.indexOf('Upload operator assignment transition fixture'),
+  'Pages workflow must upload the operator evidence return fast path contract after current-head coherence and before transition fixture',
+)
+assert(
   workflow.includes('Upload operator assignment transition fixture')
     && workflow.includes('operator-assignment-transition-fixture')
     && workflow.includes('artifacts/runtime/operator-assignment-transition-fixture-*.json')
@@ -790,6 +799,8 @@ assert(
     && p16Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p16Doc.includes('operator-assignment-current-head-coherence')
     && p16Doc.includes('check:operator-assignment-current-head-coherence')
+    && p16Doc.includes('operator-evidence-return-fast-path')
+    && p16Doc.includes('P168')
     && p16Doc.includes('operator-assignment-transition-fixture')
     && p16Doc.includes('check:operator-assignment-transition-fixture-artifact')
     && p16Doc.includes('runtime-image-local-smoke')
@@ -838,6 +849,8 @@ assert(
     && p43Doc.includes('check:edge-only-data-api-evidence-transition-fixture-artifact')
     && p43Doc.includes('check:operator-assignment-loop-command-consistency-artifact')
     && p43Doc.includes('check:operator-assignment-current-head-coherence')
+    && p43Doc.includes('operator-evidence-return-fast-path')
+    && p43Doc.includes('P168')
     && p43Doc.includes('check:operator-assignment-transition-fixture-artifact')
     && p43Doc.includes('check:runtime-image-local-smoke-artifact')
     && p43Doc.includes('check:zero-cost-reader-edge-sync-artifact')
@@ -986,6 +999,8 @@ console.log(JSON.stringify({
   operatorAssignmentCommandConsistencyContent: 'check:operator-assignment-loop-command-consistency-artifact',
   operatorAssignmentCurrentHeadCoherence: 'operator-assignment-current-head-coherence',
   operatorAssignmentCurrentHeadCoherenceContent: 'check:operator-assignment-current-head-coherence',
+  operatorEvidenceReturnFastPath: 'operator-evidence-return-fast-path',
+  operatorEvidenceReturnFastPathContent: 'check:operator-evidence-return-fast-path',
   operatorAssignmentTransitionFixture: 'operator-assignment-transition-fixture',
   operatorAssignmentTransitionFixtureContent: 'check:operator-assignment-transition-fixture-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',

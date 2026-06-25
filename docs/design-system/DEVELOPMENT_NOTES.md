@@ -1,5 +1,31 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P169 Operator Evidence Return Artifact Coverage
+
+P168 closed the local command path for returning operator-filled Data API
+evidence, but the Pages run still needed a visible artifact for the same
+contract. P169 makes the P168 contract current-run-visible without turning it
+into a second download-content gate.
+
+Engineering rule:
+
+1. Upload `operator-evidence-return-fast-path` from the P168 contract artifact.
+2. Require it in P43 current-run metadata mode.
+3. Classify it in P107 as `pre_upload_generator_gate`, because P168 generates
+   and validates the artifact before upload.
+4. Do not add external Data API values, secrets, provider plumbing, profile ids,
+   kernel ids, source refs or generated story text to the uploaded artifact.
+5. Keep the selected loop goal on `operator-assignment-evidence-intake` until
+   the existing strict evidence gates accept real operator-returned data.
+
+Validation commands:
+
+```bash
+npm run check:operator-evidence-return-fast-path
+npm run check:ci-artifact-content-coverage
+npm run check:github-actions-artifacts
+```
+
 ## 2026-06-21 P162 Runtime Assignment Intent-First Projection
 
 P150/P151 had a practical drift after the Remote Assignment Compiler v3.1 work:
