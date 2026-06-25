@@ -67,8 +67,9 @@ assert(
     && agentDockerfile.includes('NODE_ENV=production')
     && agentDockerfile.includes('NARRATIVEOS_DEPLOY_ENV=production')
     && agentDockerfile.includes('COPY docs/product/rules /app/docs/product/rules')
+    && agentDockerfile.includes('COPY docs/product/knowledge/narrative-okf /app/docs/product/knowledge/narrative-okf')
     && agentDockerfile.includes('run", "start"'),
-  'Agent Dockerfile must run the production start script on 0.0.0.0:4111 with protected production deploy env and runtime rules',
+  'Agent Dockerfile must run the production start script on 0.0.0.0:4111 with protected production deploy env, runtime rules and OKF knowledge cards',
 )
 assert(
   compose.includes('MASTRA_TOOL_BRIDGE_BASE_URL: http://api:8787')

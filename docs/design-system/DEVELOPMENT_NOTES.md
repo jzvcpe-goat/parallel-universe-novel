@@ -115,6 +115,34 @@ npm run check:narrative-okf-runtime-consumption
 npm --workspace @narrativeos/agent-runtime test
 ```
 
+## 2026-06-25 P167 OKF Runtime Image Context
+
+P166 introduced a real deploy-time gap: local Agent Runtime could load
+`docs/product/knowledge/narrative-okf`, but the Docker image only copied
+`docs/product/rules`. GitHub Actions caught the failure in
+`check:runtime-preview-compose` because the container could not boot.
+
+Engineering rule:
+
+1. Any runtime-readable knowledge directory must be part of the deploy image
+   context, not only the repository checkout.
+2. Agent Runtime copies `docs/product/rules` and
+   `docs/product/knowledge/narrative-okf`; it must not copy vault keys or
+   decrypted representative-work mappings.
+3. `check:okf-runtime-image-context` runs after P166 and before runtime artifact
+   contract checks in root `npm run test`.
+4. Runtime preview compose, deploy readiness and remote host target gates all
+   assert the same Dockerfile copy contract.
+5. This is a packaging boundary fix only: OKF cards still do not become runtime
+   truth, public copy or canon-writing logic.
+
+Verification:
+
+```bash
+npm run check:okf-runtime-image-context
+npm run check:runtime-preview-compose
+```
+
 ## 2026-06-21 P161 P123 Stale-P122 Recovery
 
 After P160, a direct local probe exposed an operator ergonomics issue: running

@@ -54,6 +54,11 @@ curl https://<api-host>/health
 
 File: `deploy/agent-runtime/Dockerfile`
 
+The Agent Runtime image carries the internal Narrative OKF knowledge cards
+under `docs/product/knowledge/narrative-okf`. They are agent-readable runtime
+guidance only; public projection must still hide card bodies, source authority,
+representative work names and provider prompt plumbing.
+
 Run shape:
 
 ```bash

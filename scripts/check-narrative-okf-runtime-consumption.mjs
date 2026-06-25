@@ -50,12 +50,13 @@ assert(
   'package.json must expose check:narrative-okf-runtime-consumption',
 )
 assert(
-  testScript.includes('npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:runtime-artifact-contract'),
+  testScript.includes('npm run check:narrative-okf-knowledge-layer && npm run check:narrative-okf-runtime-consumption && npm run check:okf-runtime-image-context && npm run check:runtime-artifact-contract'),
   'root npm run test must run P166 after P165 and before runtime artifact contract',
 )
 
 const requiredFiles = [
   'docs/backend/P166_NARRATIVE_OKF_RUNTIME_CONSUMPTION.md',
+  'docs/backend/P167_OKF_RUNTIME_IMAGE_CONTEXT.md',
   'packages/agent-runtime/src/okf.ts',
   'packages/agent-runtime/src/workflows.ts',
   'packages/agent-runtime/src/workflows.test.ts',
@@ -69,8 +70,10 @@ const manifest = readJson('docs/baseline/RELEASE_SYNC_MANIFEST.json')
 const syncAsIs = new Set(manifest.syncAsIs)
 for (const relPath of [
   'docs/backend/P166_NARRATIVE_OKF_RUNTIME_CONSUMPTION.md',
+  'docs/backend/P167_OKF_RUNTIME_IMAGE_CONTEXT.md',
   'packages/agent-runtime/src/okf.ts',
   'scripts/check-narrative-okf-runtime-consumption.mjs',
+  'scripts/check-okf-runtime-image-context.mjs',
 ]) {
   assert(syncAsIs.has(relPath), `release sync manifest must include ${relPath}`)
 }

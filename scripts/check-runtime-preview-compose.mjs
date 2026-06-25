@@ -194,6 +194,7 @@ function validateStaticContract() {
     'NODE_ENV=production',
     'NARRATIVEOS_DEPLOY_ENV=production',
     'COPY docs/product/rules /app/docs/product/rules',
+    'COPY docs/product/knowledge/narrative-okf /app/docs/product/knowledge/narrative-okf',
   ])
   assertContains('docs/backend/P68_RUNTIME_PREVIEW_COMPOSE_GATE.md', [
     'P68 Runtime Preview Compose Gate',

@@ -147,8 +147,9 @@ for (const profile of profiles) {
 
 assert(
   apiDockerfile.includes('COPY docs/product/rules /app/docs/product/rules')
-    && agentDockerfile.includes('COPY docs/product/rules /app/docs/product/rules'),
-  'both production Dockerfiles must copy runtime rules',
+    && agentDockerfile.includes('COPY docs/product/rules /app/docs/product/rules')
+    && agentDockerfile.includes('COPY docs/product/knowledge/narrative-okf /app/docs/product/knowledge/narrative-okf'),
+  'production Dockerfiles must copy runtime rules and Agent Runtime OKF knowledge cards',
 )
 
 assertContains('docs/backend/P69_REMOTE_RUNTIME_HOST_TARGET_GATE.md', [

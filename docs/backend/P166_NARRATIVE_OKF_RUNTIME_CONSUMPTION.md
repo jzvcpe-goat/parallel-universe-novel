@@ -24,6 +24,9 @@ npm run check:narrative-okf-runtime-consumption
 ## Runtime Contract
 
 P166 adds a read-only OKF loader in `packages/agent-runtime/src/okf.ts`.
+P167_OKF_RUNTIME_IMAGE_CONTEXT owns the deployment-package follow-through: the
+Agent Runtime image must copy the same OKF card directory used by local
+development.
 
 The loader may expose:
 
