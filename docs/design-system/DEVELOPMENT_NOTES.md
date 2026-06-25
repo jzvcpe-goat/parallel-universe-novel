@@ -1,5 +1,34 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P175 Kernel Constraint Privacy Release Attestation
+
+P173 closed the local kernel/constraint legal privacy loop, but local closure is
+not enough for release confidence. Public users and non-team members see the
+deployed build and downloadable GitHub Actions artifacts, so the release run
+must also prove the P173 artifact exists and is content-safe.
+
+Engineering rule:
+
+1. A privacy gate that protects legal-risk material should not stay local-only
+   once it becomes part of the launch story.
+2. Pages must run P173 after P139 and upload
+   `kernel-constraint-legal-privacy-loop` as a current-run artifact.
+3. P92 must download-validate the uploaded P173 JSON together with P80,
+   Public Projection Privacy, P111, P127 and P139.
+4. P43, P107 and P16 must agree on the same artifact set; otherwise the release
+   docs, metadata gate and content gate can drift apart.
+5. The artifact remains redacted: no titles, authors, decrypted mappings,
+   source-ref mappings, provider payloads, vault keys or violation details.
+
+Verification:
+
+```bash
+npm run check:kernel-constraint-legal-privacy-loop
+npm run check:public-privacy-artifacts
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-25 P174 Operator Evidence Return Fast Path Artifact Attestation
 
 P168 defined the operator-only fast path for returning Data API evidence, and

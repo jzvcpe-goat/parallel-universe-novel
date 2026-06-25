@@ -171,6 +171,8 @@ assertIncludes('scripts/check-public-privacy-artifacts.mjs', [
   'public-projection-privacy',
   'reference-work-encryption-completion',
   'representative-work-custody',
+  'kernel-constraint-reference-encryption',
+  'kernel-constraint-legal-privacy-loop',
   'violationCount',
   'redaction',
 ])
@@ -240,10 +242,13 @@ assertIncludes('.github/workflows/pages.yml', [
   'name: reference-privacy',
   'name: reference-work-encryption-completion',
   'name: representative-work-custody',
+  'name: kernel-constraint-reference-encryption',
+  'name: kernel-constraint-legal-privacy-loop',
 ])
 assertIncludes('scripts/check-github-actions-artifacts.mjs', [
   'reference-privacy',
   'public-projection-privacy',
+  'kernel-constraint-legal-privacy-loop',
 ])
 
 assertIncludes('docs/design-system/DEVELOPMENT_NOTES.md', [

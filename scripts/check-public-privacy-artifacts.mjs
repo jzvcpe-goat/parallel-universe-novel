@@ -52,6 +52,12 @@ const artifactSpecs = [
     contract: 'P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE',
     validate: validateKernelConstraintReferenceEncryption,
   },
+  {
+    name: 'kernel-constraint-legal-privacy-loop',
+    filePattern: /^kernel-constraint-legal-privacy-loop-.*\.json$/,
+    contract: 'P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP',
+    validate: validateKernelConstraintLegalPrivacyLoop,
+  },
 ]
 
 function assert(condition, message) {
@@ -276,6 +282,36 @@ function validateKernelConstraintReferenceEncryption(payload, label) {
   }
   assert(Number(payload.scanStats?.publicRefCount || 0) > 0, `${label} public ref count must be positive`)
   assert(payload.scanStats?.violationCount === 0, `${label} scan violation count must be 0`)
+  assert(payload.redaction?.representativeNamesIncluded === false, `${label} must not include representative names`)
+  assert(payload.redaction?.authorNamesIncluded === false, `${label} must not include author names`)
+  assert(payload.redaction?.decryptedMappingsIncluded === false, `${label} must not include decrypted mappings`)
+  assert(payload.redaction?.sourceRefMappingsIncluded === false, `${label} must not include sourceRef mappings`)
+  assert(payload.redaction?.keyValuesIncluded === false, `${label} must not include key values`)
+  assert(payload.redaction?.violationDetailsIncluded === false, `${label} must not include violation details`)
+  scanNoPrivatePayload(payload, label)
+}
+
+function validateKernelConstraintLegalPrivacyLoop(payload, label) {
+  assert(payload.status === 'passed', `${label} must be passed`)
+  assert(payload.artifactContract === 'P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP', `${label} contract mismatch`)
+  assert(payload.scope === 'kernel and constraint representative-work legal privacy loop closure', `${label} scope mismatch`)
+  for (const key of [
+    'constraintsAnonymousRefsOnly',
+    'kernelsAnonymousRefsOnly',
+    'runtimeRefsAnonymousOnly',
+    'publicRefsExposeOnlyIds',
+    'encryptedVaultShapeOnly',
+    'okfBoundaryAligned',
+    'agentRuntimeReadsRegistryOnly',
+    'rootTestIncludesGate',
+    'upstreamArtifactsPassed',
+  ]) {
+    assert(payload.checks?.[key] === true, `${label} check ${key} must be true`)
+  }
+  assert(Number(payload.scanStats?.publicRefCount || 0) > 0, `${label} public ref count must be positive`)
+  assert(payload.scanStats?.violationCount === 0, `${label} scan violation count must be 0`)
+  assert(Array.isArray(payload.checkedArtifacts), `${label} must include checkedArtifacts`)
+  assert(payload.checkedArtifacts.length === 3, `${label} must attest P111/P127/P139 artifacts`)
   assert(payload.redaction?.representativeNamesIncluded === false, `${label} must not include representative names`)
   assert(payload.redaction?.authorNamesIncluded === false, `${label} must not include author names`)
   assert(payload.redaction?.decryptedMappingsIncluded === false, `${label} must not include decrypted mappings`)

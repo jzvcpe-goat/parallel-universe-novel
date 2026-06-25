@@ -358,6 +358,17 @@ const artifacts = [
     reason: 'Downloaded from the same Pages run and checked so kernel/constraint representative-work refs stay encrypted and anonymous.',
   },
   {
+    name: 'kernel-constraint-legal-privacy-loop',
+    kind: 'download_content_gate',
+    producer: 'check:kernel-constraint-legal-privacy-loop',
+    verifier: 'check:public-privacy-artifacts',
+    contract: 'P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP',
+    uploadStep: 'Upload kernel constraint legal privacy loop evidence',
+    uploadPath: 'artifacts/runtime/kernel-constraint-legal-privacy-loop-*.json',
+    workflowStep: 'Check public privacy artifact content',
+    reason: 'Downloaded from the same Pages run and checked so the kernel/constraint legal privacy loop is release-evidence backed, not only locally asserted.',
+  },
+  {
     name: 'local-live-runtime-visual-qa',
     kind: 'visual_human_evidence',
     producer: 'qa:live-runtime-local',
@@ -426,7 +437,7 @@ const preUploadChecked = artifacts.filter(artifact => artifact.kind === 'pre_upl
 const visuallyAttested = artifacts.filter(artifact => artifact.kind === 'visual_human_evidence').map(artifact => artifact.name)
 const bundleScanned = artifacts.filter(artifact => artifact.kind === 'built_bundle_privacy_scan').map(artifact => artifact.name)
 
-assert(downloadAttested.length === 26, 'P107 expects twenty-six artifacts with downloaded content gates')
+assert(downloadAttested.length === 27, 'P107 expects twenty-seven artifacts with downloaded content gates')
 assert(preUploadChecked.length === 5, 'P107 expects five artifacts with pre-upload generator gates')
 assert(visuallyAttested.length === 1, 'P107 expects one visual evidence artifact')
 assert(bundleScanned.length === 1, 'P107 expects one built bundle scan artifact')

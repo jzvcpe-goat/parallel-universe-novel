@@ -49,6 +49,11 @@ The command writes a redacted artifact:
 artifacts/runtime/kernel-constraint-legal-privacy-loop-*.json
 ```
 
+Pages uploads this artifact as `kernel-constraint-legal-privacy-loop`, and P92
+downloads it in current-run mode through `check:public-privacy-artifacts`. That
+keeps the legal privacy loop release-evidence backed instead of only locally
+asserted.
+
 ## Handoff Notes
 
 - Do not paste representative work titles into kernel docs, constraint docs,

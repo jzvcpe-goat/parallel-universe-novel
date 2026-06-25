@@ -4,7 +4,7 @@ Date: 2026-06-18
 
 ## Goal
 
-P80, the Public Projection Privacy Audit, P111 and P127 create release
+P80, the Public Projection Privacy Audit, P111, P127, P139 and P173 create release
 artifacts. P92 verifies the contents of those uploaded artifacts, not just their
 presence.
 
@@ -19,6 +19,10 @@ This gate protects the legal/privacy boundary for representative works:
   have been reduced to encrypted-vault-only storage plus anonymous public refs.
 - `representative-work-custody` must prove the non-team access boundary still
   agrees with constraints, kernels, runtime registry, Pages workflow and docs.
+- `kernel-constraint-reference-encryption` must prove kernel, constraint and
+  runtime registry refs remain encrypted-vault-backed anonymous IDs.
+- `kernel-constraint-legal-privacy-loop` must prove the full kernel/constraint
+  legal privacy loop is closed for the current Pages run, not only locally.
 - The attestation output is redacted and never prints titles, authors, decrypted
   mappings, prompt text, provider payloads or violation detail strings.
 
@@ -41,7 +45,7 @@ npm run check:public-privacy-artifacts
 
 ## What This Proves
 
-- All four downloadable privacy artifacts exist for the run being checked.
+- All six downloadable privacy artifacts exist for the run being checked.
 - Every JSON file inside the `reference-privacy` artifact has
   `artifactContract = P80_REFERENCE_PRIVACY_ARTIFACT_GATE`, `status = passed`,
   zero violations and redaction flags set to false.
@@ -54,6 +58,12 @@ npm run check:public-privacy-artifacts
 - Every JSON file inside the `representative-work-custody` artifact has
   `artifactContract = P127_REPRESENTATIVE_WORK_CUSTODY_GATE`, `status = passed`,
   zero violations and redaction flags set to false.
+- Every JSON file inside the `kernel-constraint-reference-encryption` artifact
+  has `artifactContract = P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE`,
+  `status = passed`, zero violations and redaction flags set to false.
+- Every JSON file inside the `kernel-constraint-legal-privacy-loop` artifact has
+  `artifactContract = P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP`,
+  `status = passed`, zero violations and redaction flags set to false.
 - The artifact payloads do not include representative work titles, author
   fields, decrypted mappings, vault key values, prompt text, provider payloads
   or violation details.
@@ -81,7 +91,8 @@ npm run check:public-privacy-artifacts
 1. `package.json` exposes `check:public-privacy-artifacts`.
 2. Root `npm run test` includes `check:public-privacy-artifacts` after
    `scan:reference-privacy`, `check:reference-work-encryption-completion` and
-   `check:representative-work-custody`.
+   `check:representative-work-custody`, with P139 and P173 also present in the
+   root chain before this content attestation.
 3. Pages workflow runs `check:public-privacy-artifacts` in current-run mode.
 4. P16/P43/P45 handoff docs mention P92 so artifact metadata and content
    responsibilities stay aligned.

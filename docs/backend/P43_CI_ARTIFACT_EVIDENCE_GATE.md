@@ -4,7 +4,7 @@ Date: 2026-06-17
 
 ## Goal
 
-把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下三十三类可下载证据：
+把 GitHub Actions 的上线证据从“日志里看见通过”升级成可自动核验的 artifact gate。当前 Pages workflow 必须留下三十四类可下载证据：
 
 - `runtime-readiness-ledger`
 - `live-cutover-attestation`
@@ -37,6 +37,7 @@ Date: 2026-06-17
 - `reference-work-encryption-completion`
 - `representative-work-custody`
 - `kernel-constraint-reference-encryption`
+- `kernel-constraint-legal-privacy-loop`
 - `local-live-runtime-visual-qa`
 - `github-pages`
 
@@ -48,7 +49,7 @@ Date: 2026-06-17
 npm run check:github-actions-artifacts
 ```
 
-检查当前 CI run。CI 当前 run 必须包含三十三类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`remote-assignment-fill-plan`、`remote-assignment-strict-run-package`、`remote-operator-readiness-packet`、`remote-operator-return-intake`、`operator-assignment-evidence-intake`、`edge-only-operator-evidence-packet`、`edge-only-data-api-evidence-readiness`、`edge-only-data-api-strict-intake`、`edge-only-data-api-evidence-transition-fixture`、`operator-assignment-loop-command-consistency`、`operator-assignment-current-head-coherence`、`operator-evidence-return-fast-path`、`operator-operations-continuity`、`operator-assignment-transition-fixture`、`runtime-image-local-smoke`、`zero-cost-reader-edge-sync`、`remote-health-evidence`、`reference-privacy`、`public-projection-privacy`、`reference-work-encryption-completion`、`representative-work-custody`、`kernel-constraint-reference-encryption`、`local-live-runtime-visual-qa` 和 `github-pages`：
+检查当前 CI run。CI 当前 run 必须包含三十四类 artifact，包括 `live-cutover-attestation`、`live-rollback-rehearsal`、`remote-runtime-activation-control`、`remote-assignment-handoff`、`remote-assignment-schema`、`remote-assignment-execution-pack`、`remote-assignment-fixture-gate`、`remote-runtime-blockers`、`remote-assignment-fill-plan`、`remote-assignment-strict-run-package`、`remote-operator-readiness-packet`、`remote-operator-return-intake`、`operator-assignment-evidence-intake`、`edge-only-operator-evidence-packet`、`edge-only-data-api-evidence-readiness`、`edge-only-data-api-strict-intake`、`edge-only-data-api-evidence-transition-fixture`、`operator-assignment-loop-command-consistency`、`operator-assignment-current-head-coherence`、`operator-evidence-return-fast-path`、`operator-operations-continuity`、`operator-assignment-transition-fixture`、`runtime-image-local-smoke`、`zero-cost-reader-edge-sync`、`remote-health-evidence`、`reference-privacy`、`public-projection-privacy`、`reference-work-encryption-completion`、`representative-work-custody`、`kernel-constraint-reference-encryption`、`kernel-constraint-legal-privacy-loop`、`local-live-runtime-visual-qa` 和 `github-pages`：
 
 ```bash
 CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
@@ -59,8 +60,9 @@ npm run check:github-actions-artifacts
 本地默认如果无法访问 GitHub API 会 `skipped`；CI 使用 `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`，无法检查或缺 artifact 都会失败。
 
 P43 只证明 artifact 元数据存在。`reference-privacy`、
-`public-projection-privacy`、`reference-work-encryption-completion` 和
-`representative-work-custody`、`kernel-constraint-reference-encryption`
+`public-projection-privacy`、`reference-work-encryption-completion`、
+`representative-work-custody`、`kernel-constraint-reference-encryption` 和
+`kernel-constraint-legal-privacy-loop`
 的 JSON 内容由 P92 再下载核验，
 `remote-assignment-schema`、`remote-assignment-execution-pack` 和
 `remote-assignment-fixture-gate` 的 JSON/Markdown 内容由 P93 再下载核验，
@@ -190,6 +192,7 @@ npm run check:ci-artifact-content-coverage
 - `reference-work-encryption-completion` exists and is non-empty.
 - `representative-work-custody` exists and is non-empty.
 - `kernel-constraint-reference-encryption` exists and is non-empty.
+- `kernel-constraint-legal-privacy-loop` exists and is non-empty.
 - `local-live-runtime-visual-qa` exists and is non-empty.
 - `github-pages` exists and is non-empty.
 - None of the required artifacts are expired.
@@ -198,7 +201,7 @@ npm run check:ci-artifact-content-coverage
 
 ## Public Boundary
 
-This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, and `kernel-constraint-reference-encryption`; P111 is the encryption-completion contract for representative work names; P127 is the custody-boundary contract; P139 is the `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE` contract proving kernel, constraint and runtime registry files use encrypted-vault-backed anonymous refs; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P147 is the content attestation gate for `edge-only-operator-evidence-packet`; P150 is the pre-upload generator gate for `edge-only-data-api-evidence-readiness`; P151 is the pre-upload generator gate for `edge-only-data-api-strict-intake`; P155 is the content attestation gate for `edge-only-data-api-strict-intake` via `check:edge-only-data-api-strict-intake-artifact`; P148 is the content attestation gate for `edge-only-data-api-evidence-transition-fixture` via `check:edge-only-data-api-evidence-transition-fixture-artifact`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P132 is the content attestation gate for `operator-assignment-current-head-coherence`; P168 generates the `operator-evidence-return-fast-path` contract and P174 is its content attestation gate via `check:operator-evidence-return-fast-path-artifact`; P172 is the content attestation gate for `operator-operations-continuity` via `check:operator-operations-continuity-artifact`; P133 is the content attestation gate for `operator-assignment-transition-fixture`; P115 is the content attestation gate for `runtime-image-local-smoke`; P136 is the content attestation gate for `zero-cost-reader-edge-sync`; P145 is the content attestation gate for `remote-health-evidence`; P91 owns the assignment schema generator. P107 verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
+This gate only checks artifact metadata: artifact names, sizes, expiration state, run id, and head sha. It does not download artifact contents, and it must not print provider secrets, system prompts, database URLs, representative work mappings, or candidate text. P92 is the content attestation gate for `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, and `kernel-constraint-legal-privacy-loop`; P111 is the encryption-completion contract for representative work names; P127 is the custody-boundary contract; P139 is the `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE` contract proving kernel, constraint and runtime registry files use encrypted-vault-backed anonymous refs; P173 is the `P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP` contract proving that the current release run closes the kernel/constraint legal privacy loop for users and non-team members; P93 is the content attestation gate for `remote-assignment-schema`, `remote-assignment-execution-pack`, and `remote-assignment-fixture-gate`; P89 is the content attestation gate for `remote-assignment-handoff`; P90 is the content attestation gate for `remote-runtime-blockers`; P106 is the content attestation gate for `remote-assignment-fill-plan`; P118 is the content attestation gate for `remote-assignment-strict-run-package`; P119 is the content attestation gate for `remote-operator-readiness-packet`; P120 is the content attestation gate for `remote-operator-return-intake`; P124 is the content attestation gate for `operator-assignment-evidence-intake`; P147 is the content attestation gate for `edge-only-operator-evidence-packet`; P150 is the pre-upload generator gate for `edge-only-data-api-evidence-readiness`; P151 is the pre-upload generator gate for `edge-only-data-api-strict-intake`; P155 is the content attestation gate for `edge-only-data-api-strict-intake` via `check:edge-only-data-api-strict-intake-artifact`; P148 is the content attestation gate for `edge-only-data-api-evidence-transition-fixture` via `check:edge-only-data-api-evidence-transition-fixture-artifact`; P131 is the content attestation gate for `operator-assignment-loop-command-consistency`; P132 is the content attestation gate for `operator-assignment-current-head-coherence`; P168 generates the `operator-evidence-return-fast-path` contract and P174 is its content attestation gate via `check:operator-evidence-return-fast-path-artifact`; P172 is the content attestation gate for `operator-operations-continuity` via `check:operator-operations-continuity-artifact`; P133 is the content attestation gate for `operator-assignment-transition-fixture`; P115 is the content attestation gate for `runtime-image-local-smoke`; P136 is the content attestation gate for `zero-cost-reader-edge-sync`; P145 is the content attestation gate for `remote-health-evidence`; P91 owns the assignment schema generator. P107 verifies that the metadata gate, content gates, pre-upload generator gates, bundle scans and visual evidence have no unowned release artifact.
 
 ## Workflow Placement
 
@@ -235,7 +238,8 @@ This gate only checks artifact metadata: artifact names, sizes, expiration state
 29. `Upload reference work encryption completion evidence`
 30. `Upload representative work custody evidence`
 31. `Upload kernel constraint reference encryption evidence`
-32. `Upload artifact`
+32. `Upload kernel constraint legal privacy loop evidence`
+33. `Upload artifact`
 
 That placement proves the same run that will deploy Pages also produced the required evidence package.
 
@@ -243,7 +247,7 @@ That placement proves the same run that will deploy Pages also produced the requ
 
 1. `package.json` exposes `check:github-actions-artifacts`.
 2. `scripts/check-github-actions-artifacts.mjs` checks the latest successful run by default.
-3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `local-live-runtime-visual-qa` and `github-pages`.
+3. The script can check the current CI run when `CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true`; current-run mode requires `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `kernel-constraint-legal-privacy-loop`, `local-live-runtime-visual-qa` and `github-pages`.
 4. The workflow runs the current-run gate with `CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true`.
 5. Missing, expired, or empty required artifacts fail the gate.
 6. Pages workflow runs P92, P93, P89 and P90 after P43 so public privacy

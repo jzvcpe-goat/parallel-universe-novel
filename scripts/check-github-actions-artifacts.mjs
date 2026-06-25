@@ -45,6 +45,7 @@ if (checkCurrentRun) {
     'reference-work-encryption-completion',
     'representative-work-custody',
     'kernel-constraint-reference-encryption',
+    'kernel-constraint-legal-privacy-loop',
   )
 }
 const requiredArtifacts = (process.env.CHECK_GITHUB_ARTIFACTS_REQUIRED_NAMES || defaultArtifacts.join(','))

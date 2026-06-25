@@ -376,6 +376,7 @@ jobs:
           npm run check:reference-work-encryption-completion
           npm run check:representative-work-custody
           npm run check:kernel-constraint-reference-encryption
+          npm run check:kernel-constraint-legal-privacy-loop
 
       - name: Upload reference privacy evidence
         if: always()
@@ -419,6 +420,15 @@ jobs:
         with:
           name: kernel-constraint-reference-encryption
           path: artifacts/runtime/kernel-constraint-reference-encryption-*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload kernel constraint legal privacy loop evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kernel-constraint-legal-privacy-loop
+          path: artifacts/runtime/kernel-constraint-legal-privacy-loop-*.json
           if-no-files-found: error
           retention-days: 14
 

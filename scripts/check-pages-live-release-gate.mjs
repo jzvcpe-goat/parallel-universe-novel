@@ -311,6 +311,7 @@ assert(
     && workflow.includes('npm run check:reference-work-encryption-completion')
     && workflow.includes('npm run check:representative-work-custody')
     && workflow.includes('npm run check:kernel-constraint-reference-encryption')
+    && workflow.includes('npm run check:kernel-constraint-legal-privacy-loop')
     && workflow.includes('Upload reference privacy evidence')
     && workflow.includes('reference-privacy')
     && workflow.includes('artifacts/runtime/reference-privacy-*.json')
@@ -326,9 +327,12 @@ assert(
     && workflow.includes('Upload kernel constraint reference encryption evidence')
     && workflow.includes('kernel-constraint-reference-encryption')
     && workflow.includes('artifacts/runtime/kernel-constraint-reference-encryption-*.json')
+    && workflow.includes('Upload kernel constraint legal privacy loop evidence')
+    && workflow.includes('kernel-constraint-legal-privacy-loop')
+    && workflow.includes('artifacts/runtime/kernel-constraint-legal-privacy-loop-*.json')
     && workflow.indexOf('Upload reference privacy evidence') > workflow.indexOf('Scan built Pages privacy')
     && workflow.indexOf('Upload public projection privacy evidence') > workflow.indexOf('Scan built Pages privacy'),
-  'Pages workflow must scan built Pages privacy and upload reference, public projection, encryption completion, custody, and kernel/constraint privacy evidence artifacts',
+  'Pages workflow must scan built Pages privacy and upload reference, public projection, encryption completion, custody, kernel/constraint, and legal privacy loop evidence artifacts',
 )
 assert(
   workflow.includes('Check current run evidence artifacts')
@@ -541,6 +545,10 @@ assert(
   'package.json must expose check:kernel-constraint-reference-encryption',
 )
 assert(
+  packageJson.scripts['check:kernel-constraint-legal-privacy-loop'] === 'node scripts/check-kernel-constraint-legal-privacy-loop.mjs',
+  'package.json must expose check:kernel-constraint-legal-privacy-loop',
+)
+assert(
   packageJson.scripts['check:remote-assignment-artifacts'] === 'node scripts/check-remote-assignment-artifacts.mjs',
   'package.json must expose check:remote-assignment-artifacts',
 )
@@ -691,6 +699,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:kernel-constraint-reference-encryption'),
   'npm run test must include check:kernel-constraint-reference-encryption',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:kernel-constraint-legal-privacy-loop'),
+  'npm run test must include check:kernel-constraint-legal-privacy-loop',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-artifacts'),
@@ -1054,6 +1066,7 @@ console.log(JSON.stringify({
   referenceWorkEncryptionCompletion: 'reference-work-encryption-completion',
   representativeWorkCustody: 'representative-work-custody',
   kernelConstraintReferenceEncryption: 'kernel-constraint-reference-encryption',
+  kernelConstraintLegalPrivacyLoop: 'kernel-constraint-legal-privacy-loop',
   publicPrivacyArtifactContent: 'check:public-privacy-artifacts',
   assignmentArtifactContent: 'check:remote-assignment-artifacts',
   liveModeGate: 'qa:live-runtime-browser',

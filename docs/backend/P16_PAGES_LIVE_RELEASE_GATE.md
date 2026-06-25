@@ -100,7 +100,7 @@ This proves:
 
 - Local FastAPI + Agent Runtime can execute the same live-mode Creator browser path.
 - Local live-mode visual evidence is downloadable from the `local-live-runtime-visual-qa` artifact.
-- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
+- The same run contains `runtime-readiness-ledger`, `live-cutover-attestation`, `live-rollback-rehearsal`, `remote-runtime-activation-control`, `remote-assignment-handoff`, `remote-assignment-schema`, `remote-assignment-execution-pack`, `remote-assignment-fixture-gate`, `remote-runtime-blockers`, `remote-assignment-fill-plan`, `remote-assignment-strict-run-package`, `remote-operator-readiness-packet`, `remote-operator-return-intake`, `operator-assignment-evidence-intake`, `edge-only-operator-evidence-packet`, `edge-only-data-api-evidence-readiness`, `edge-only-data-api-strict-intake`, `edge-only-data-api-evidence-transition-fixture`, `operator-assignment-loop-command-consistency`, `operator-assignment-current-head-coherence`, `operator-evidence-return-fast-path`, `operator-operations-continuity`, `operator-assignment-transition-fixture`, `runtime-image-local-smoke`, `zero-cost-reader-edge-sync`, `remote-health-evidence`, `reference-privacy`, `public-projection-privacy`, `reference-work-encryption-completion`, `representative-work-custody`, `kernel-constraint-reference-encryption`, `kernel-constraint-legal-privacy-loop`, `local-live-runtime-visual-qa`, and `github-pages` artifacts.
 - The `remote-assignment-handoff` artifact content passes P89 structural,
   privacy and current-head image checks.
 - The `remote-runtime-blockers` artifact content passes P90 current-head,
@@ -164,8 +164,9 @@ This proves:
   `YOUR_*`, `TODO_*` and `<...>` placeholders cannot pass as real remote
   service ids, origins, assignment evidence or GitHub repository variables.
 - The `reference-privacy`, `public-projection-privacy`,
-  `reference-work-encryption-completion`, `representative-work-custody` and
-  `kernel-constraint-reference-encryption`
+  `reference-work-encryption-completion`, `representative-work-custody`,
+  `kernel-constraint-reference-encryption` and
+  `kernel-constraint-legal-privacy-loop`
   artifact contents pass P92 redaction and zero-violation checks.
 - The `remote-assignment-schema`, `remote-assignment-execution-pack` and
   `remote-assignment-fixture-gate` contents pass P93 structure and public
@@ -200,9 +201,12 @@ This proves:
     artifact proving kernel, constraint and runtime registry files use only
     encrypted-vault-backed anonymous refs under
     `P139_KERNEL_CONSTRAINT_REFERENCE_ENCRYPTION_GATE`.
-15. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
-16. Every Pages run must upload `remote-assignment-schema` so the deployment owner sees whether the assignment template, fixture and local contract are schema-valid.
-17. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
+15. Every Pages run must leave a `kernel-constraint-legal-privacy-loop`
+    artifact proving the kernel/constraint legal privacy loop is closed for the
+    release run under `P173_KERNEL_CONSTRAINT_LEGAL_PRIVACY_LOOP`.
+16. Every Pages run must upload `remote-assignment-handoff` so the deployment owner sees the current-image assignment template before filling the ignored local assignment file.
+17. Every Pages run must upload `remote-assignment-schema` so the deployment owner sees whether the assignment template, fixture and local contract are schema-valid.
+18. Every Pages run must upload `remote-assignment-execution-pack` so the deployment owner sees the latest service-assignment command bundle or blocker.
 18. Every Pages run must upload `remote-assignment-fixture-gate` proving the no-secret assignment fixture can generate a strict P79 pack while P75 stays pending health.
 19. Every Pages run must upload `remote-runtime-blockers` so the release owner sees one normalized blocker ledger across P23/P65/P66/P72/P75/P76/P78/P79.
 20. Every Pages run must upload `remote-assignment-fill-plan` so the deployment
