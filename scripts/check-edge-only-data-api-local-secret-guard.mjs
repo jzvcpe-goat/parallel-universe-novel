@@ -194,8 +194,8 @@ assert(
   'package.json must expose check:edge-only-data-api-local-secret-guard',
 )
 assert(
-  testScript.includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
-  'root npm run test must run P156 after P149 and before P150',
+  testScript.includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-card && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
+  'root npm run test must run P156 after P149 and before P163/P150',
 )
 for (const [rel, terms] of Object.entries({
   'docs/backend/P142_EDGE_ONLY_DATA_API_EVIDENCE_INTAKE.md': [

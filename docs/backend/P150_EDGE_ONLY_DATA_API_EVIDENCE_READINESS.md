@@ -58,6 +58,19 @@ For readiness projection, P150 merges the env adapter, the ignored intent and
 the generated contract into `localInputProjection`. That projection contains
 booleans only and keeps `valuesIncluded=false`.
 
+The operator-facing evidence card is:
+
+```text
+deploy/runtime-production/edge-only-data-api.evidence-card.example.md
+```
+
+P163 verifies that this card and P150 agree on the accepted Data API evidence:
+`RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID` or `SUPABASE_PROJECT_REF`,
+`RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` or `SUPABASE_URL`,
+`RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`, local publishable/anon key
+presence and `health_probe` with `id=reader` and `status=ok`. The same boundary
+keeps the remote Agent Runtime not required.
+
 It never prints service IDs, Supabase origins, publishable keys, writer
 passwords, provider keys, database URLs, prompts, private reference material or
 candidate prose.
@@ -81,7 +94,7 @@ The artifact includes booleans only:
 ## Acceptance
 
 1. `package.json` exposes `check:edge-only-data-api-evidence-readiness`.
-2. Root `npm run test` runs P150 immediately after P156 and before P146.
+2. Root `npm run test` runs P150 after P149/P156/P163 and before P146.
 3. Pages workflow uploads `edge-only-data-api-evidence-readiness`.
 4. P43 current-run artifact metadata requires
    `edge-only-data-api-evidence-readiness`.

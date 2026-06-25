@@ -223,6 +223,7 @@ for (const file of [
   'docs/backend/P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET.md',
   'docs/backend/P149_RUNTIME_ASSIGNMENT_INTENT_ENV_LOCAL_BOOTSTRAP.md',
   'docs/backend/P150_EDGE_ONLY_DATA_API_EVIDENCE_READINESS.md',
+  'docs/backend/P163_EDGE_ONLY_DATA_API_EVIDENCE_CARD.md',
   'docs/design-system/DEVELOPMENT_NOTES.md',
   '.github/workflows/pages.yml',
   'scripts/check-github-actions-artifacts.mjs',
@@ -241,8 +242,8 @@ assert(
   'package.json must expose check:edge-only-data-api-local-secret-guard',
 )
 assert(
-  String(packageJson.scripts.test || '').includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
-  'root test must run P150 after P149/P156 and before P146',
+  String(packageJson.scripts.test || '').includes('npm run check:runtime-assignment-intent-env-local-bootstrap && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-card && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template'),
+  'root test must run P150 after P149/P156/P163 and before P146',
 )
 
 for (const [rel, requiredTerms] of Object.entries({

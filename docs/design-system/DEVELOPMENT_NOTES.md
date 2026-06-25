@@ -6016,3 +6016,35 @@ Verification:
 ```bash
 CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true CHECK_EDGE_ONLY_DATA_API_STRICT_INTAKE_ARTIFACT_REQUIRED=true npm run check:edge-only-data-api-strict-intake-artifact
 ```
+
+## 2026-06-21 P163 Edge-Only Evidence Card
+
+The current production blocker is no longer ambiguous frontend/backend wiring;
+it is missing managed Data API evidence. P123/P147/P150/P151 already describe
+that chain, but the human handoff still benefited from one compact
+operator-facing card.
+
+Implementation notes:
+
+1. Added `deploy/runtime-production/edge-only-data-api.evidence-card.example.md`
+   as a commit-safe template with YAML frontmatter plus human instructions.
+2. Added `check:edge-only-data-api-evidence-card` to verify the template and
+   P123/P147/P150/P151/P163 docs use the same Data API field names and
+   edge-only boundary.
+3. The card accepts only field names, local fill locations and verification
+   commands. It rejects real Data API URLs, publishable-key/JWT-looking values,
+   service-role/writer-password/provider-key material, prompt plumbing,
+   representative work references, profile/kernel ids and `sourceRefs`.
+4. Root test runs P163 after local secret hygiene and before P150/P151
+   readiness diagnostics, so vocabulary drift is caught before operator
+   evidence gets interpreted.
+5. This is not a readiness shortcut. It does not create remote services, write
+   local values, store keys, set GitHub variables or promote live runtime.
+
+Verification:
+
+```bash
+npm run check:edge-only-data-api-evidence-card
+npm run check:edge-only-data-api-evidence-readiness
+npm run check:edge-only-data-api-strict-intake
+```

@@ -78,8 +78,9 @@ P149 is intentionally narrow:
 1. `package.json` exposes `prepare:runtime-assignment-intent-env-local`.
 2. `package.json` exposes `check:runtime-assignment-intent-env-local-bootstrap`.
 3. Root `npm run test` runs the P149 check, then P156 local secret guard, then
-   P150 and P146, so local env bootstrap, local health-input hygiene, Data API
-   evidence readiness and template validation stay in one sequence.
+   P163 evidence-card vocabulary, then P150 and P146, so local env bootstrap,
+   local health-input hygiene, Data API handoff vocabulary, evidence readiness
+   and template validation stay in one sequence.
 4. P146, P147 and development notes point to the P149 command instead of
    manual template copying as the current operator path.
 5. The tracked template contains the P140 edge-only key set and no secrets,
@@ -90,9 +91,10 @@ P149 is intentionally narrow:
 7. P149 writes a redacted artifact:
    `artifacts/runtime/runtime-assignment-intent-env-local-bootstrap-*.json`.
 8. P156 (`check:edge-only-data-api-local-secret-guard`) runs immediately after
-   P149 in root test, and P150 (`check:edge-only-data-api-evidence-readiness`)
-   runs immediately after P156, so the ignored local env can be audited for
-   safe health-input shape before filled Data API evidence is assessed.
+   P149 in root test, P163 (`check:edge-only-data-api-evidence-card`) runs
+   after P156, and P150 (`check:edge-only-data-api-evidence-readiness`) runs
+   after P163, so the ignored local env can be audited for safe health-input
+   shape before filled Data API evidence is assessed.
 
 ## Next Goal Effect
 

@@ -100,7 +100,7 @@ representative-work name or candidate prose may appear in the artifact.
 ## Acceptance
 
 1. `package.json` exposes `check:edge-only-data-api-local-secret-guard`.
-2. Root `npm run test` runs P156 after P149 and before P150.
+2. Root `npm run test` runs P156 after P149 and before P163/P150.
 3. P156 passes in default mode when local evidence is still absent, but records
    `passed_waiting_for_local_data_api_evidence`.
 4. P156 fails immediately if local health-input files contain service-role,
@@ -122,6 +122,7 @@ The safe local sequence is:
 ```bash
 npm run prepare:runtime-assignment-intent-env-local
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+npm run check:edge-only-data-api-evidence-card
 npm run check:edge-only-data-api-evidence-readiness
 RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local \
 RUNTIME_ASSIGNMENT_INTENT_FORCE=true \

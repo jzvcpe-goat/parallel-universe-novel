@@ -74,6 +74,19 @@ P151 reads only local or generated evidence shape:
   `VITE_SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY` and
   `SUPABASE_ANON_KEY`.
 
+The operator-facing evidence card is:
+
+```text
+deploy/runtime-production/edge-only-data-api.evidence-card.example.md
+```
+
+P163 verifies that this card and P151 agree on the accepted Data API evidence:
+`RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID` or `SUPABASE_PROJECT_REF`,
+`RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` or `SUPABASE_URL`,
+`RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`, local publishable/anon key
+presence and `health_probe` with `id=reader` and `status=ok`. The same boundary
+keeps the remote Agent Runtime not required.
+
 The gate checks key presence only. It does not print key values.
 
 The ignored intent JSON is the semantic source of truth. The env file is an

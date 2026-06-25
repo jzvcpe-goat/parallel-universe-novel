@@ -25,6 +25,12 @@ P147 turns P123 and P146 into one operator-safe packet:
 - P147 packages the concrete next commands without leaking local values or
   treating the legacy full-remote env as primary evidence.
 
+P163 keeps the human-fillable evidence card aligned with the same fields:
+
+```text
+deploy/runtime-production/edge-only-data-api.evidence-card.example.md
+```
+
 ## Commands
 
 ```bash

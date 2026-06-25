@@ -63,6 +63,15 @@ The generated contract is:
 deploy/runtime-production/generated/remote-assignment.contract.json
 ```
 
+The operator-facing evidence card is:
+
+```text
+deploy/runtime-production/edge-only-data-api.evidence-card.example.md
+```
+
+P163 checks that this card, P123, P147, P150 and P151 use the same field names
+and edge-only boundary.
+
 The tracked example projection is the clean-checkout fallback for CI; the
 ignored local intent is the operator-editable copy. The old
 `deploy/runtime-production/remote-assignment.local.json` env/apply path is now

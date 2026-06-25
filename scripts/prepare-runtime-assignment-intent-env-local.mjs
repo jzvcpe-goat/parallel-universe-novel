@@ -127,8 +127,8 @@ assert(
   `package.json must expose ${checkScriptName}`,
 )
 assert(
-  rootTest.includes(`npm run ${checkScriptName} && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template`),
-  `root npm run test must run ${checkScriptName} immediately before P156/P150/P146`,
+  rootTest.includes(`npm run ${checkScriptName} && npm run check:edge-only-data-api-local-secret-guard && npm run check:edge-only-data-api-evidence-card && npm run check:edge-only-data-api-evidence-readiness && npm run check:runtime-assignment-intent-env-template`),
+  `root npm run test must run ${checkScriptName} before P156/P163/P150/P146`,
 )
 
 assert(read('.gitignore').includes(localRel), `${localRel} must be ignored`)
