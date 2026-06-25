@@ -29,6 +29,40 @@ npm run check:edge-only-data-api-evidence-readiness
 npm run check:edge-only-data-api-strict-intake
 ```
 
+## 2026-06-25 P168 Operator Evidence Return Fast Path
+
+P164 made the current-head `operator-assignment-evidence-intake` chain
+refreshable while external Data API evidence is still missing. P168 adds the
+other side of that handoff: once the deployment operator has filled the local
+edge-only Data API evidence and the local publishable-key file, there is now one
+sealed command for replaying the necessary gates in order.
+
+Implementation notes:
+
+1. Added `prepare:operator-evidence-return-fast-path` for the operator-only
+   return moment.
+2. Added `check:operator-evidence-return-fast-path` to root `npm run test`
+   between P164 and P121; the check validates command order and boundaries but
+   does not require real external Data API evidence.
+3. The fast path reuses existing gates: P156 local secret guard, P140 intent
+   preparation, P138 assignment generation, P145 remote health evidence, P151
+   strict intake and P164 current-head refresh.
+4. The prepare artifact records command names, statuses and blocker stages only.
+   It never copies local values, URLs, keys, provider payloads, private
+   reference material, profile/kernel ids or generated story text.
+5. This is not a deployment shortcut. It does not create services, set GitHub
+   variables, store secrets, promote live runtime, write canon or change the
+   selected `operator-assignment-evidence-intake` loop before strict evidence is
+   accepted.
+
+Verification:
+
+```bash
+npm run check:operator-evidence-return-fast-path
+npm run check:current-head-operator-evidence-refresh
+npm run check:loop-next-goal-ledger
+```
+
 ## 2026-06-24 P164 Current-Head Operator Evidence Refresh
 
 P163 made the Data API evidence vocabulary compact, but the next failure mode

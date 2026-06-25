@@ -35,6 +35,15 @@ npm run prepare:current-head-operator-evidence
 That P164 refresh keeps the selected loop goal as
 `operator-assignment-evidence-intake`; it is not a readiness shortcut.
 
+After the operator has filled the edge-only Data API evidence and local
+publishable-key file, use the P168 return fast path to run local secret hygiene,
+assignment compilation, health verification, strict intake and current-head
+refresh in order:
+
+```bash
+npm run prepare:operator-evidence-return-fast-path
+```
+
 P163 keeps the human-fillable evidence card aligned with the same fields:
 
 ```text
@@ -127,6 +136,9 @@ The packet keeps these as operator-owned inputs:
     local readiness diagnosis gate; P156 catches forbidden local secret classes
     first, while P150 distinguishes missing Data API fields from health evidence
     that is still waiting.
+15. After the local Data API evidence is filled, P168 seals the same follow-up
+    chain as `npm run prepare:operator-evidence-return-fast-path`; P147 remains
+    the packet and does not execute that operator-only command in root test.
 
 ## Failure Modes
 

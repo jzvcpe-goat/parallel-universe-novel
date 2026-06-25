@@ -47,6 +47,14 @@ prefer the P164 refresh command:
 npm run prepare:current-head-operator-evidence
 ```
 
+After the deployment operator fills the edge-only Data API evidence and local
+publishable-key file, use the P168 fast path instead of manually replaying the
+full command list:
+
+```bash
+npm run prepare:operator-evidence-return-fast-path
+```
+
 If the P122 prerequisite is stale, P123 fails with the recovery command instead
 of emitting a packet from mixed ledger evidence.
 
@@ -162,6 +170,12 @@ npm run remote-health:check
 npm run prepare:edge-only-data-api-strict-intake
 npm run check:remote-operator-return-intake
 npm run check:loop-next-goal-ledger
+```
+
+The same post-fill sequence is sealed by:
+
+```bash
+npm run prepare:operator-evidence-return-fast-path
 ```
 
 P149 is the current bootstrap for the ignored edge-only env file. Legacy

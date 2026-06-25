@@ -16,6 +16,7 @@ const expectedScripts = [
 
 const requiredDocs = [
   'docs/backend/P164_CURRENT_HEAD_OPERATOR_EVIDENCE_REFRESH.md',
+  'docs/backend/P168_OPERATOR_EVIDENCE_RETURN_FAST_PATH.md',
   'docs/backend/P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE.md',
   'docs/backend/P137_LOOP_NEXT_GOAL_LOCAL_REHYDRATION.md',
   'docs/backend/P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE.md',
@@ -83,8 +84,8 @@ assert(
   'root npm run test must not run the P164 local/network refresh command',
 )
 assert(
-  testScript.includes('npm run check:current-head-operator-evidence-refresh && npm run check:loop-next-goal-ledger'),
-  'root npm run test must run the lightweight P164 contract check before P121',
+  testScript.includes('npm run check:current-head-operator-evidence-refresh && npm run check:operator-evidence-return-fast-path && npm run check:loop-next-goal-ledger'),
+  'root npm run test must run the lightweight P164 and P168 contract checks before P121',
 )
 
 const prepareScript = read('scripts/prepare-current-head-operator-evidence.mjs')

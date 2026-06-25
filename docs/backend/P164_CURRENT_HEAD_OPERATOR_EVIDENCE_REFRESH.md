@@ -18,6 +18,16 @@ managed Data API evidence is provided. P164 does not change readiness semantics;
 it gives operators and agents one safe local command for refreshing the current
 head proof chain before continuing.
 
+Once the operator has filled the edge-only Data API evidence and local
+publishable-key file, P168 becomes the preferred return path:
+
+```bash
+npm run prepare:operator-evidence-return-fast-path
+```
+
+P168 runs local secret hygiene, assignment compilation, health verification,
+strict intake and this P164 current-head refresh in one ordered sequence.
+
 ## Commands
 
 Lightweight contract check, included in root `npm run test`:
@@ -70,7 +80,8 @@ private reference material, profile ids, kernel ids or source references.
 P164 verifies that:
 
 1. `package.json` exposes both P164 scripts.
-2. Root `npm run test` runs the lightweight P164 contract check before P121.
+2. Root `npm run test` runs the lightweight P164 contract check, then the P168
+   contract check, before P121.
 3. Root `npm run test` does not run the local/network refresh command.
 4. The prepare script runs P163 before delegating current-head loop evidence to
    P137 so the Data API evidence vocabulary is checked before operator evidence
@@ -106,3 +117,5 @@ P164 does not:
    refresh is needed.
 5. The selected next goal remains `operator-assignment-evidence-intake` while
    managed Data API evidence is still missing.
+6. P168 documents the post-fill fast path without changing P164 current-head
+   refresh semantics.
