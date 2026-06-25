@@ -90,7 +90,7 @@ P168 verifies that:
 
 1. `package.json` exposes both P168 scripts.
 2. Root `npm run test` runs the lightweight P168 contract check after P164,
-   then P170 operations continuity, before P121.
+   then P174 artifact attestation and P170 operations continuity, before P121.
 3. Root `npm run test` does not run the operator-only prepare command.
 4. The prepare command runs exactly the sequence above.
 5. Failure artifacts preserve the external-evidence blocker stage without

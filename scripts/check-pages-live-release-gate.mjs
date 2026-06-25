@@ -265,7 +265,7 @@ assert(
     && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Run runtime checks')
     && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Upload operator assignment current-head coherence')
     && workflow.indexOf('Upload operator evidence return fast path') < workflow.indexOf('Upload operator operations continuity'),
-  'Pages workflow must upload the operator evidence return fast path contract after current-head coherence and before transition fixture',
+  'Pages workflow must upload the operator evidence return fast path contract after current-head coherence and before operations continuity',
 )
 assert(
   workflow.includes('Upload operator operations continuity')
@@ -274,7 +274,7 @@ assert(
     && workflow.indexOf('Upload operator operations continuity') > workflow.indexOf('Run runtime checks')
     && workflow.indexOf('Upload operator operations continuity') > workflow.indexOf('Upload operator evidence return fast path')
     && workflow.indexOf('Upload operator operations continuity') < workflow.indexOf('Upload operator assignment transition fixture'),
-  'Pages workflow must upload the operator operations continuity artifact after P168 fast path evidence and before transition fixture',
+  'Pages workflow must upload the operator operations continuity artifact after P168/P174 fast path evidence and before transition fixture',
 )
 assert(
   workflow.includes('Upload operator assignment transition fixture')
@@ -443,13 +443,22 @@ assert(
   'Pages workflow must verify operator assignment current-head coherence artifact content after the command consistency artifact content gate',
 )
 assert(
+  workflow.includes('Check operator evidence return fast path artifact content')
+    && workflow.includes('CHECK_OPERATOR_EVIDENCE_RETURN_FAST_PATH_ARTIFACT_REQUIRED: true')
+    && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
+    && workflow.includes('npm run check:operator-evidence-return-fast-path-artifact')
+    && workflow.indexOf('Check operator evidence return fast path artifact content') > workflow.indexOf('Check operator assignment current-head coherence artifact content')
+    && workflow.indexOf('Check operator evidence return fast path artifact content') < workflow.indexOf('Check operator operations continuity artifact content'),
+  'Pages workflow must verify operator evidence return fast path artifact content after current-head coherence and before operations continuity',
+)
+assert(
   workflow.includes('Check operator operations continuity artifact content')
     && workflow.includes('CHECK_OPERATOR_OPERATIONS_CONTINUITY_ARTIFACT_REQUIRED: true')
     && workflow.includes('CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true')
     && workflow.includes('npm run check:operator-operations-continuity-artifact')
-    && workflow.indexOf('Check operator operations continuity artifact content') > workflow.indexOf('Check operator assignment current-head coherence artifact content')
+    && workflow.indexOf('Check operator operations continuity artifact content') > workflow.indexOf('Check operator evidence return fast path artifact content')
     && workflow.indexOf('Check operator operations continuity artifact content') < workflow.indexOf('Check operator assignment transition fixture artifact content'),
-  'Pages workflow must verify operator operations continuity artifact content after current-head coherence and before transition fixture',
+  'Pages workflow must verify operator operations continuity artifact content after the fast path artifact gate and before transition fixture',
 )
 assert(
   workflow.includes('Check operator assignment transition fixture artifact content')
@@ -632,6 +641,10 @@ assert(
   'package.json must expose check:ci-artifact-content-coverage',
 )
 assert(
+  packageJson.scripts['check:operator-evidence-return-fast-path-artifact'] === 'node scripts/check-operator-evidence-return-fast-path-artifact.mjs',
+  'package.json must expose check:operator-evidence-return-fast-path-artifact',
+)
+assert(
   packageJson.scripts['check:remote-assignment-local-boundary'] === 'node scripts/check-remote-assignment-local-boundary.mjs',
   'package.json must expose check:remote-assignment-local-boundary',
 )
@@ -690,6 +703,10 @@ assert(
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-fill-plan-artifact'),
   'npm run test must include check:remote-assignment-fill-plan-artifact',
+)
+assert(
+  String(packageJson.scripts.test).includes('npm run check:operator-evidence-return-fast-path-artifact'),
+  'npm run test must include check:operator-evidence-return-fast-path-artifact',
 )
 assert(
   String(packageJson.scripts.test).includes('npm run check:remote-assignment-strict-run-package'),
@@ -1018,7 +1035,7 @@ console.log(JSON.stringify({
   operatorAssignmentCurrentHeadCoherence: 'operator-assignment-current-head-coherence',
   operatorAssignmentCurrentHeadCoherenceContent: 'check:operator-assignment-current-head-coherence',
   operatorEvidenceReturnFastPath: 'operator-evidence-return-fast-path',
-  operatorEvidenceReturnFastPathContent: 'check:operator-evidence-return-fast-path',
+  operatorEvidenceReturnFastPathContent: 'check:operator-evidence-return-fast-path-artifact',
   operatorOperationsContinuity: 'operator-operations-continuity',
   operatorOperationsContinuityContent: 'check:operator-operations-continuity-artifact',
   operatorAssignmentTransitionFixture: 'operator-assignment-transition-fixture',

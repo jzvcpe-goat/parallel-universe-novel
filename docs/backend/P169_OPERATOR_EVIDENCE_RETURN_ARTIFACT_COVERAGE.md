@@ -27,14 +27,16 @@ artifacts/runtime/operator-evidence-return-fast-path-contract-*.json
 ```
 
 P43 requires the artifact by name in current-run mode. P107 classifies it as a
-`pre_upload_generator_gate` because `check:operator-evidence-return-fast-path`
-already generates and validates the contract before upload. There is no separate
-download-content gate for P169.
+`download_content_gate` once P174 is present: P168 generates and validates the
+contract before upload, and P174 downloads the uploaded JSON from the same Pages
+run to prove that the release artifact still carries the expected sequence and
+boundary flags.
 
 ## Commands
 
 ```bash
 npm run check:operator-evidence-return-fast-path
+npm run check:operator-evidence-return-fast-path-artifact
 npm run check:ci-artifact-content-coverage
 npm run check:github-actions-artifacts
 ```
@@ -59,9 +61,10 @@ material, profile ids, kernel ids, source references or generated story text.
 1. `.github/workflows/pages.yml` uploads `operator-evidence-return-fast-path`.
 2. `scripts/check-github-actions-artifacts.mjs` requires it in current-run mode.
 3. `scripts/check-ci-artifact-content-coverage.mjs` classifies it as a
-   pre-upload generator gate.
+   download content gate once P174 is active.
 4. P16, P43 and P107 document the artifact and its verification ownership.
-5. Root `npm run test` still runs P168 before artifact coverage checks.
+5. Root `npm run test` runs P168 before P174, then continues to operations
+   continuity.
 6. The selected loop goal remains `operator-assignment-evidence-intake` until
    real external Data API evidence is returned and accepted by the existing
    strict gates.

@@ -1,5 +1,33 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P174 Operator Evidence Return Fast Path Artifact Attestation
+
+P168 defined the operator-only fast path for returning Data API evidence, and
+P169 made the contract visible as a Pages artifact. That still left a weak
+release posture: a future run could prove the artifact existed without proving
+the uploaded JSON still contained the expected sequence and boundary flags.
+
+Engineering rule:
+
+1. Operator handoff artifacts that affect launch confidence should not remain
+   presence-only once they are part of the release chain.
+2. P168 remains the generator for the safe fast-path contract; P174 owns
+   current-run downloaded content attestation.
+3. The P174 check must preserve the blocker: it does not run the operator-only
+   prepare command, does not read local values, and keeps
+   `operator-assignment-evidence-intake` as the selected next loop.
+4. P107, P16, P43 and P169 must all describe the same split: P168 generates,
+   P174 download-attests.
+
+Verification:
+
+```bash
+npm run check:operator-evidence-return-fast-path
+npm run check:operator-evidence-return-fast-path-artifact
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+```
+
 ## 2026-06-25 P173 Kernel Constraint Legal Privacy Loop
 
 P111/P127/P139 already protect representative-work privacy, but the active
@@ -104,8 +132,9 @@ reading those older runbooks.
 Implementation notes:
 
 1. Added `check:operator-operations-continuity` as P170 and placed it in root
-   `npm run test` after `check:operator-evidence-return-fast-path` and before
-   `check:loop-next-goal-ledger`.
+   `npm run test` after the P168 fast-path contract and before
+   `check:loop-next-goal-ledger`. P174 later inserted a download-attestation
+   layer between P168 and P170.
 2. P170 verifies that P134/P135/P136 still cover direct `health_probe`
    keep-alive, `.env.local.sync` password-manager/encrypted backup, and
    `novels_history` manual recovery.

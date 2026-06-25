@@ -79,8 +79,8 @@ assert(
   'package.json must expose check:operator-operations-continuity-artifact',
 )
 assert(
-  testScript.includes('npm run check:operator-evidence-return-fast-path && npm run check:operator-operations-continuity && npm run check:operator-operations-continuity-artifact && npm run check:loop-next-goal-ledger'),
-  'root npm run test must run P170 then P172 after P168 and before P121',
+  testScript.includes('npm run check:operator-evidence-return-fast-path && npm run check:operator-evidence-return-fast-path-artifact && npm run check:operator-operations-continuity && npm run check:operator-operations-continuity-artifact && npm run check:loop-next-goal-ledger'),
+  'root npm run test must run P174, P170 and P172 after P168 and before P121',
 )
 
 assertIncludes(files.p134, [

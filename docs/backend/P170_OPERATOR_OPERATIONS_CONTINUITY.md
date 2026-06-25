@@ -30,9 +30,10 @@ npm run check:operator-operations-continuity
 ```
 
 Root `npm run test` runs P170 after `check:operator-evidence-return-fast-path`
-and before `check:loop-next-goal-ledger`. That order keeps P168's return command
-contract visible before P121 selects the next goal, while ensuring the
-operator-facing continuity rules cannot drift.
+and `check:operator-evidence-return-fast-path-artifact`, then before
+`check:loop-next-goal-ledger`. That order keeps P168's return command contract
+visible and P174 download-attested before P121 selects the next goal, while
+ensuring the operator-facing continuity rules cannot drift.
 
 ## What This Gate Checks
 
@@ -67,7 +68,7 @@ P170 is intentionally narrow:
 ## Acceptance
 
 1. `package.json` exposes `check:operator-operations-continuity`.
-2. Root `npm run test` runs P170 after P168 and before P121.
+2. Root `npm run test` runs P170 after P168/P174 and before P121.
 3. `docs/baseline/RELEASE_SYNC_MANIFEST.json` syncs this document and the P170
    script to the source workspace.
 4. P147 and P168 mention P134/P135/P136, `health_probe`, `.env.local.sync`,

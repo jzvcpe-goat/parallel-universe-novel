@@ -535,6 +535,13 @@ jobs:
           CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
         run: npm run check:operator-assignment-current-head-coherence
 
+      - name: Check operator evidence return fast path artifact content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_OPERATOR_EVIDENCE_RETURN_FAST_PATH_ARTIFACT_REQUIRED: true
+          CHECK_CURRENT_GITHUB_RUN_ARTIFACTS: true
+        run: npm run check:operator-evidence-return-fast-path-artifact
+
       - name: Check operator operations continuity artifact content
         env:
           GH_TOKEN: ${{ github.token }}
