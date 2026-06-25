@@ -6434,3 +6434,45 @@ npm run check:edge-only-data-api-evidence-card
 npm run check:edge-only-data-api-evidence-readiness
 npm run check:edge-only-data-api-strict-intake
 ```
+
+## 2026-06-25 Remote Assignment Compiler v3.1 Current Blocker Check
+
+Remote Assignment Compiler v3.1 was rechecked against the current release head
+after the Narrative OKF artifact attestation push. The important operational
+lesson is that the previous "fill eight REMOTE_* fields" blocker must not be
+interpreted as a requirement to invent a cloud Agent runtime for the edge-only
+Reader path.
+
+Verification notes:
+
+1. `check:runtime-assignment-compiler` and
+   `check:remote-assignment-compiler-coherence` pass with `edge-only` topology.
+2. Current-run Pages artifact verification for run `28203230890` passed on
+   head `ecf850f474ccaaf2724273f3c19d36e0e08a21ae`.
+3. The current `remote-health-evidence` artifact is intentionally
+   `waiting_for_remote_health_evidence`; this is honest and must not be
+   converted into a fake pass.
+4. After refreshing P72 image evidence and the ignored assignment draft,
+   `check:remote-assignment-env-dry-run` no longer fails on stale current-head
+   image evidence.
+5. The remaining blocker is only managed Data API evidence:
+   `data-api-service-id`, `data-api-origin`, `data-api-configured` and
+   `data-api-health-ready`.
+6. `REMOTE_AGENT_SERVICE_ID`, `REMOTE_AGENT_ORIGIN` and
+   `REMOTE_AGENT_SECRETS_CONFIGURED=true` are not required in edge-only mode;
+   remote Agent absence is explicit boundary evidence.
+
+Verification:
+
+```bash
+npm run check:runtime-assignment-compiler
+npm run check:remote-assignment-compiler-coherence
+npm run check:remote-health-evidence-artifact
+CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true CHECK_GITHUB_ARTIFACTS_RUN_ID=28203230890 npm run check:github-actions-artifacts
+CHECK_REMOTE_HEALTH_EVIDENCE_ARTIFACT_REQUIRED=true CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true CHECK_GITHUB_ARTIFACTS_RUN_ID=28203230890 npm run check:remote-health-evidence-artifact
+npm run check:runtime-image-publish-evidence
+REMOTE_ASSIGNMENT_DRAFT_FORCE=true npm run prepare:remote-assignment-local
+npm run check:remote-assignment-env-dry-run
+npm run check:remote-runtime-assignment-intake
+npm run check:edge-only-data-api-evidence-readiness
+```
