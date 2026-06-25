@@ -1,5 +1,35 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-25 P171 Operator Operations Continuity Artifact Coverage
+
+P170 made the zero-cost Reader operations continuity rules executable, but it
+initially lived only inside root `npm run test`. That is not enough for the
+release evidence chain: Pages must leave a downloadable current-run artifact
+for the same proof, otherwise the next operator has to infer the result from CI
+logs.
+
+Engineering rule:
+
+1. Every root-test gate that becomes part of the operator handoff should either
+   have a current-run artifact or be explicitly documented as non-artifact
+   evidence.
+2. `operator-operations-continuity` is a pre-upload generator artifact: P170
+   generates and validates the JSON before Pages uploads it.
+3. P43 owns artifact metadata, P107 owns coverage classification, and P16 owns
+   the release-facing proof language.
+4. This does not change the blocked launch state. The selected loop goal remains
+   `operator-assignment-evidence-intake` until real external Data API evidence
+   returns through the strict gates.
+
+Verification:
+
+```bash
+npm run check:operator-operations-continuity
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+npm run check:github-actions-artifacts
+```
+
 ## 2026-06-25 P170 Operator Operations Continuity
 
 P134/P135/P136 already documented the three easy-to-miss zero-cost Reader

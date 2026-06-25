@@ -264,8 +264,17 @@ assert(
     && workflow.includes('artifacts/runtime/operator-evidence-return-fast-path-contract-*.json')
     && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Run runtime checks')
     && workflow.indexOf('Upload operator evidence return fast path') > workflow.indexOf('Upload operator assignment current-head coherence')
-    && workflow.indexOf('Upload operator evidence return fast path') < workflow.indexOf('Upload operator assignment transition fixture'),
+    && workflow.indexOf('Upload operator evidence return fast path') < workflow.indexOf('Upload operator operations continuity'),
   'Pages workflow must upload the operator evidence return fast path contract after current-head coherence and before transition fixture',
+)
+assert(
+  workflow.includes('Upload operator operations continuity')
+    && workflow.includes('operator-operations-continuity')
+    && workflow.includes('artifacts/runtime/operator-operations-continuity-*.json')
+    && workflow.indexOf('Upload operator operations continuity') > workflow.indexOf('Run runtime checks')
+    && workflow.indexOf('Upload operator operations continuity') > workflow.indexOf('Upload operator evidence return fast path')
+    && workflow.indexOf('Upload operator operations continuity') < workflow.indexOf('Upload operator assignment transition fixture'),
+  'Pages workflow must upload the operator operations continuity artifact after P168 fast path evidence and before transition fixture',
 )
 assert(
   workflow.includes('Upload operator assignment transition fixture')
@@ -1001,6 +1010,8 @@ console.log(JSON.stringify({
   operatorAssignmentCurrentHeadCoherenceContent: 'check:operator-assignment-current-head-coherence',
   operatorEvidenceReturnFastPath: 'operator-evidence-return-fast-path',
   operatorEvidenceReturnFastPathContent: 'check:operator-evidence-return-fast-path',
+  operatorOperationsContinuity: 'operator-operations-continuity',
+  operatorOperationsContinuityContent: 'check:operator-operations-continuity',
   operatorAssignmentTransitionFixture: 'operator-assignment-transition-fixture',
   operatorAssignmentTransitionFixtureContent: 'check:operator-assignment-transition-fixture-artifact',
   runtimeImageLocalSmoke: 'runtime-image-local-smoke',

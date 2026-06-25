@@ -52,6 +52,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 | `operator-assignment-loop-command-consistency` | `download_content_gate` | `check:operator-assignment-loop-command-consistency` | `check:operator-assignment-loop-command-consistency-artifact` | `P131_OPERATOR_ASSIGNMENT_COMMAND_CONSISTENCY_ARTIFACT_ATTESTATION` |
 | `operator-assignment-current-head-coherence` | `download_content_gate` | `check:operator-assignment-current-head-coherence` | `check:operator-assignment-current-head-coherence` | `P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE` |
 | `operator-evidence-return-fast-path` | `pre_upload_generator_gate` | `check:operator-evidence-return-fast-path` | `check:operator-evidence-return-fast-path` | `P168_OPERATOR_EVIDENCE_RETURN_FAST_PATH` |
+| `operator-operations-continuity` | `pre_upload_generator_gate` | `check:operator-operations-continuity` | `check:operator-operations-continuity` | `P170_OPERATOR_OPERATIONS_CONTINUITY` |
 | `operator-assignment-transition-fixture` | `download_content_gate` | `check:operator-assignment-transition-fixture` | `check:operator-assignment-transition-fixture-artifact` | `P133_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE_ATTESTATION` |
 | `runtime-image-local-smoke` | `download_content_gate` | `check:runtime-image-local-smoke` | `check:runtime-image-local-smoke-artifact` | `P115_RUNTIME_IMAGE_LOCAL_SMOKE_ARTIFACT_ATTESTATION` |
 | `zero-cost-reader-edge-sync` | `download_content_gate` | `check:zero-cost-reader-edge-sync` | `check:zero-cost-reader-edge-sync-artifact` | `P136_ZERO_COST_READER_EDGE_SYNC_ARTIFACT_ATTESTATION` |
@@ -68,7 +69,7 @@ artifacts/runtime/ci-artifact-content-coverage-*.json
 
 The gate verifies that:
 
-- P43 metadata coverage still includes all thirty-two Pages artifacts.
+- P43 metadata coverage still includes all thirty-three Pages artifacts.
 - Every artifact has exactly one explicit coverage class.
 - Download-attested artifacts have a package script, root-test wiring, Pages
   workflow step and human-readable documentation.

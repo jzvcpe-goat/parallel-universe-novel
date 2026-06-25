@@ -1,0 +1,86 @@
+# P171 Operator Operations Continuity Artifact Coverage
+
+Status: active release evidence gate  
+Boundary: artifact coverage only, no runtime capability change  
+Owner: release engineering  
+Date: 2026-06-25
+
+## Purpose
+
+P170 made the P134/P135/P136 operational continuity rules executable in root
+`npm run test`: GitHub Actions keep-alive must remain manually/monthly
+observable, `.env.local.sync` must stay local-only and backed up outside Git,
+and `novels_history` remains manual SQL recovery material.
+
+P171 makes that same P170 proof visible in the current GitHub Pages run. The
+Pages workflow now uploads:
+
+```text
+operator-operations-continuity
+artifacts/runtime/operator-operations-continuity-*.json
+```
+
+This closes the release-evidence gap where P170 could pass inside root test but
+not appear as a downloadable current-run artifact.
+
+## Coverage Contract
+
+`operator-operations-continuity` is a `pre_upload_generator_gate` artifact:
+
+- `check:operator-operations-continuity` generates the JSON.
+- Root `npm run test` runs P170 before `check:loop-next-goal-ledger`.
+- Pages uploads the generated JSON after `operator-evidence-return-fast-path`
+  and before `operator-assignment-transition-fixture`.
+- P43 current-run metadata requires the artifact to exist, be non-empty and not
+  expired.
+- P107 classifies the artifact so it is not merely uploaded and forgotten.
+
+P171 deliberately does not add a separate download-content gate. P170 already
+checks the artifact content before upload, and the artifact is intentionally
+small: booleans, gate labels, status and `valuesIncluded: false`.
+
+## Public Boundary
+
+The P171 artifact must not include:
+
+- Data API values, Supabase keys, writer passwords or local env values;
+- provider prompt plumbing, system prompts or model keys;
+- profile ids, kernel ids, source refs or representative-work mappings;
+- candidate story text, raw runtime state or canon write claims;
+- live runtime promotion, service creation or GitHub variable mutation claims.
+
+## Commands
+
+```bash
+npm run check:operator-operations-continuity
+npm run check:ci-artifact-content-coverage
+npm run check:pages-live-release-gate
+npm run check:github-actions-artifacts
+```
+
+The strict current-run artifact proof remains:
+
+```bash
+CHECK_GITHUB_ACTIONS_ARTIFACTS_REQUIRED=true \
+CHECK_CURRENT_GITHUB_RUN_ARTIFACTS=true \
+npm run check:github-actions-artifacts
+```
+
+## Acceptance
+
+1. `.github/workflows/pages.yml` uploads `operator-operations-continuity`.
+2. `scripts/check-github-actions-artifacts.mjs` requires
+   `operator-operations-continuity` in current-run mode.
+3. P107 classifies `operator-operations-continuity` as
+   `pre_upload_generator_gate`.
+4. P16 and P43 mention the artifact and the P170 ownership boundary.
+5. The selected loop goal remains `operator-assignment-evidence-intake` until
+   real external Data API evidence is returned and accepted by the existing
+   strict gates.
+
+## Non-Goals
+
+P171 does not create Supabase/Data API resources, does not read
+`.env.local.sync`, does not back up secrets, does not automate chapter rollback,
+does not download private reference vault material, and does not mark live
+runtime ready.
