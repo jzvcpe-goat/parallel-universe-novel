@@ -11,13 +11,13 @@ P168 closes the handoff gap after P164. P164 refreshes the current-head
 `operator-assignment-evidence-intake` proof chain while Data API evidence is
 still missing. P168 defines the safe single command to run after the deployment
 operator has filled the local Data API assignment evidence and the local
-publishable-key file.
+publishable/anon key file.
 
 The command is intentionally a wrapper around existing gates. It does not add a
 second compiler, does not create cloud services, does not set GitHub variables
 or secrets, does not store provider keys, and does not write canon. It only runs
-the existing local-secret guard, assignment compiler, health check, strict
-intake and current-head refresh in one ordered path.
+the existing P156 local Data API boundary guard, assignment compiler, health
+check, strict intake and current-head refresh in one ordered path.
 
 ## Operational Continuity
 
@@ -104,7 +104,8 @@ P168 does not:
 
 - create, provision or configure managed Data API services;
 - set GitHub variables or secrets;
-- store provider keys, writer passwords, publishable keys or service-role keys;
+- store full publishable/anon key values, provider keys, writer passwords,
+  secret keys or service-role keys in Git, logs or evidence artifacts;
 - expose provider, system prompt, source reference, profile id or kernel id
   plumbing;
 - promote live runtime;

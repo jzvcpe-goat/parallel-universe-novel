@@ -77,10 +77,10 @@ P149 is intentionally narrow:
 
 1. `package.json` exposes `prepare:runtime-assignment-intent-env-local`.
 2. `package.json` exposes `check:runtime-assignment-intent-env-local-bootstrap`.
-3. Root `npm run test` runs the P149 check, then P156 local secret guard, then
-   P163 evidence-card vocabulary, then P150 and P146, so local env bootstrap,
-   local health-input hygiene, Data API handoff vocabulary, evidence readiness
-   and template validation stay in one sequence.
+3. Root `npm run test` runs the P149 check, then P156 local Data API boundary
+   guard, then P163 evidence-card vocabulary, then P150 and P146, so local env
+   bootstrap, local health-input hygiene, Data API handoff vocabulary, evidence
+   readiness and template validation stay in one sequence.
 4. P146, P147 and development notes point to the P149 command instead of
    manual template copying as the current operator path.
 5. The tracked template contains the P140 edge-only key set and no secrets,

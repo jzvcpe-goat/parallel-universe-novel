@@ -1,7 +1,7 @@
 # P156 Edge-Only Data API Local Secret Guard
 
 Status: active local guard  
-Boundary: local Data API evidence hygiene, no remote call  
+Boundary: local Data API publishable/anon evidence hygiene, forbidden-secret exclusion, no remote call
 Owner: release engineering + deployment operator  
 Date: 2026-06-21
 
@@ -17,9 +17,16 @@ P156 sits before those checks and answers a narrower question:
 Can the local files that `remote-health:check` will read be safely used for
 edge-only Data API evidence?
 
-The guard checks shape and boundary only. It does not create Supabase projects,
-does not query the Data API, does not print values, does not upload local env
-files, and does not mark P142 complete.
+The historical gate name says "secret guard", but the gate must not treat a
+Supabase publishable key or legacy anon key as a private secret. Those keys are
+browser-allowed client credentials whose security boundary is RLS plus least
+privilege grants. P156 checks that a publishable/anon key exists locally when
+strict mode is requested, that true secrets such as `service_role`/`secret` keys
+are absent, and that local files all point at the same Supabase project.
+
+The guard checks shape, consistency and boundary only. It does not create
+Supabase projects, does not query the Data API, does not print values, does not
+upload local env files, and does not mark P142 complete.
 
 ## Command
 
@@ -52,13 +59,20 @@ The intent env file may contain non-secret deployment evidence:
 - `RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED=true`;
 - `health_probe` / `reader` probe configuration.
 
-The `.env.local` / `.env.local.sync` files may contain only the local
-publishable or legacy anon key needed by `remote-health:check`:
+The `.env.local` / `.env.local.sync` files may contain the browser-allowed
+Supabase URL plus the local publishable or legacy anon key needed by
+`remote-health:check`:
 
+- `VITE_SUPABASE_URL`
+- `SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_ANON_KEY`
+
+Keeping these values in ignored local files is still required. That prevents
+environment mix-ups and prevents logs or evidence artifacts from copying full
+keys, even though publishable/anon keys are not private secrets.
 
 ## Forbidden Local Inputs
 
@@ -77,6 +91,23 @@ files must not contain:
 If any forbidden key class appears, P156 fails even in default mode. That keeps
 the local Data API health path from quietly becoming a general secret dump.
 
+## Cross-File Consistency
+
+When local files exist, P156 also checks that they describe one Supabase target:
+
+- `RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID` equals `SUPABASE_PROJECT_REF`;
+- `RUNTIME_ASSIGNMENT_DATA_API_ORIGIN` equals `SUPABASE_URL`;
+- for default Supabase domains, the `*.supabase.co` hostname prefix equals the
+  project ref;
+- `.env.local` and `.env.local.sync` Supabase URLs match the intent origin;
+- publishable/anon key type and `sha256(...).slice(0, 12)` fingerprint match
+  across local files when both are present;
+- `.env.local`, `.env.local.sync` and the local intent env remain ignored and do
+  not appear in Git history.
+
+This avoids a false green where the intent points at project A, the frontend
+points at project B, and `remote-health:check` proves the wrong database.
+
 ## Output
 
 P156 emits:
@@ -89,13 +120,18 @@ The artifact is redacted. It contains only booleans and counts:
 
 - local intent env present and ignored by Git;
 - local `.env.local` / `.env.local.sync` present and ignored by Git;
+- local evidence files absent from Git history;
 - Data API id/origin/configuration/probe booleans;
 - publishable key presence boolean;
+- optional publishable/anon key type and short fingerprint;
+- same-project consistency result;
 - forbidden material presence boolean;
 - next command.
 
-No service id, origin, key, password, provider payload, prompt, source ref,
-representative-work name or candidate prose may appear in the artifact.
+No full service id, origin, key, password, provider payload, prompt, source ref,
+representative-work name or candidate prose may appear in the artifact. A short
+key fingerprint is allowed because it proves local consistency without exposing
+the key value.
 
 ## Acceptance
 
@@ -107,10 +143,12 @@ representative-work name or candidate prose may appear in the artifact.
    writer-password, database-URL, provider-key or prompt-plumbing material.
 5. P156 strict mode fails until non-secret Data API fields, configuration
    confirmation and a local publishable/anon key are present.
-6. P156 does not perform network IO and does not run `remote-health:check`.
-7. P156 does not replace P142, P145, P150 or P151; it only prevents local
+6. P156 fails when present local inputs point at different Supabase projects or
+   when local evidence files appear in Git history.
+7. P156 does not perform network IO and does not run `remote-health:check`.
+8. P156 does not replace P142, P145, P150 or P151; it only prevents local
    operator evidence from entering those gates in an unsafe shape.
-8. When P156 is still waiting for local Data API evidence, its artifact
+9. When P156 is still waiting for local Data API evidence, its artifact
    `nextCommand` points forward to
    `npm run check:edge-only-data-api-evidence-readiness`, not back to the P149
    bootstrap command.

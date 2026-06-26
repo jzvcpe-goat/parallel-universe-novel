@@ -98,9 +98,9 @@ The artifact contains only boolean/boundary status and checked doc paths.
 7. The template and docs all keep the primary path edge-only: no remote Agent
    Runtime requirement, no cloud AI generation, no reader-triggered cloud AI
    generation.
-8. The checker rejects real URLs, Supabase project origins, JWT-like
-   publishable keys, service-role/writer-password/provider-key names with
-   values, database URLs, prompt plumbing, representative work references,
+8. The checker rejects real URLs, Supabase project origins, full JWT-like
+   publishable/anon key values, service-role/writer-password/provider-key names
+   with values, database URLs, prompt plumbing, representative work references,
    profile ids, kernel ids and `sourceRefs`.
 
 ## Non-Goals

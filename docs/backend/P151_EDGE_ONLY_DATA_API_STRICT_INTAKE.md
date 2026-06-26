@@ -128,9 +128,11 @@ P151 is ready only when all of these are true:
    semantic intent JSON or the generated contract.
 2. The local assignment input has Data API service id, production HTTPS origin,
    configured=true, `health_probe` and `reader`.
-3. P156 local secret guard is satisfied: `.env.local`, `.env.local.sync` and
-   the ignored intent env have no service-role, writer-password, provider-key,
-   database URL or prompt-plumbing material.
+3. P156 local Data API boundary guard is satisfied: `.env.local`,
+   `.env.local.sync` and the ignored intent env point at the same Supabase
+   project, expose only a publishable/anon client key for health checks, have no
+   service-role, writer-password, provider-key, database URL or prompt-plumbing
+   material, and do not leak full key values into artifacts.
 4. A publishable/anon key is present locally for `remote-health:check`.
 5. The prepared intent and compiled contract are `edge-only`.
 6. The compiled contract does not require a remote Agent service, origin,
@@ -154,8 +156,8 @@ P151 is ready only when all of these are true:
 
 - Do not create Supabase projects or tables.
 - Do not set GitHub variables.
-- Do not store publishable keys, service-role keys, writer passwords or model
-  provider keys in Git.
+- Do not store full publishable/anon key values, service-role keys, writer
+  passwords or model provider keys in Git, logs or evidence artifacts.
 - Do not introduce remote Agent Runtime requirements into the edge-only path.
 - Do not promote live runtime, write canon, or claim P142 complete from fixture
   evidence.

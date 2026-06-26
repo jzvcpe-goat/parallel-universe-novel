@@ -71,9 +71,9 @@ artifacts/runtime/runtime-assignment-intent-first-projection-*.json
 ```
 
 The artifact includes only booleans and stage names. It must not contain
-Supabase URLs, service ids, publishable keys, service-role keys, writer
-passwords, provider keys, prompt plumbing, source refs, profile ids or kernel
-ids.
+Supabase URLs, service ids, full publishable/anon key values, service-role keys,
+writer passwords, provider keys, prompt plumbing, source refs, profile ids or
+kernel ids.
 
 ## Acceptance
 

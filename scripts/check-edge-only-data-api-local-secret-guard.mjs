@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
@@ -16,6 +17,7 @@ const supportedPublishableKeys = [
   'SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_ANON_KEY',
 ]
+const supportedUrlKeys = ['VITE_SUPABASE_URL', 'SUPABASE_URL']
 const readyNextCommand = 'npm run remote-health:check'
 const waitingNextCommand = 'npm run check:edge-only-data-api-evidence-readiness'
 const requiredIntentKeys = [
@@ -71,6 +73,20 @@ function gitIgnored(rel) {
   }
 }
 
+function gitHistoryContains(rel) {
+  try {
+    const out = execFileSync('git', ['log', '--all', '--format=%H', '--', rel], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 8000,
+    }).trim()
+    return out.length > 0
+  } catch {
+    return false
+  }
+}
+
 function isPlaceholder(value) {
   return !String(value || '').trim() || /<[^>]+>|REPLACE_ME|YOUR_|TODO_|FILL_|unknown|example/i.test(String(value || ''))
 }
@@ -91,6 +107,51 @@ function isHttpsProductionOrigin(value) {
   } catch {
     return false
   }
+}
+
+function normalizeOrigin(value) {
+  if (isPlaceholder(value)) return ''
+  try {
+    return new URL(String(value).trim()).origin
+  } catch {
+    return ''
+  }
+}
+
+function valueFingerprint(value) {
+  if (isPlaceholder(value)) return null
+  return `sha256:${createHash('sha256').update(String(value).trim()).digest('hex').slice(0, 12)}`
+}
+
+function keyTypeFor(key, value) {
+  const raw = String(value || '').trim()
+  if (/ANON/.test(key) || raw.startsWith('eyJ')) return 'legacy_anon'
+  if (/PUBLISHABLE/.test(key) || raw.startsWith('sb_publishable_')) return 'publishable'
+  return 'publishable_or_legacy_anon'
+}
+
+function collectPresentKeys(parsed) {
+  if (!parsed.present) return []
+  return supportedPublishableKeys
+    .filter(key => !isPlaceholder(parsed.values[key]))
+    .map(key => ({
+      file: parsed.rel,
+      key,
+      type: keyTypeFor(key, parsed.values[key]),
+      fingerprint: valueFingerprint(parsed.values[key]),
+    }))
+}
+
+function collectPresentOrigins(parsed) {
+  if (!parsed.present) return []
+  return supportedUrlKeys
+    .filter(key => !isPlaceholder(parsed.values[key]))
+    .map(key => ({
+      file: parsed.rel,
+      key,
+      origin: normalizeOrigin(parsed.values[key]),
+    }))
+    .filter(entry => entry.origin)
 }
 
 function parseEnvFile(rel) {
@@ -235,10 +296,51 @@ const localSecretFiles = localEnvRels.map(parseEnvFile)
 const allParsed = [intentLocal, ...localSecretFiles]
 const forbiddenHits = allParsed.flatMap(parsed => forbiddenHitsForEnv(parsed.rel, parsed))
 const unignoredFiles = allParsed.filter(parsed => parsed.present && !parsed.ignoredByGit).map(parsed => parsed.rel)
+const historyTrackedLocalFiles = [intentEnvRel, ...localEnvRels].filter(gitHistoryContains)
 const missingTemplateKeys = requiredIntentKeys.filter(key => !intentTemplate.keys.includes(key))
 const missingIntentKeys = intentLocal.present
   ? requiredIntentKeys.filter(key => !intentLocal.keys.includes(key))
   : requiredIntentKeys
+const intentServiceId = intentLocal.values.RUNTIME_ASSIGNMENT_DATA_API_SERVICE_ID
+const intentProjectRef = intentLocal.values.SUPABASE_PROJECT_REF
+const intentOrigin = normalizeOrigin(intentLocal.values.RUNTIME_ASSIGNMENT_DATA_API_ORIGIN)
+const intentSupabaseUrl = normalizeOrigin(intentLocal.values.SUPABASE_URL)
+const canonicalServiceId = isPlaceholder(intentServiceId) ? intentProjectRef : intentServiceId
+const canonicalOrigin = intentOrigin || intentSupabaseUrl
+const localOriginEntries = localSecretFiles.flatMap(collectPresentOrigins)
+const keyEntries = localSecretFiles.flatMap(collectPresentKeys)
+const uniqueLocalOriginValues = [...new Set(localOriginEntries.map(entry => entry.origin))]
+const uniqueKeyFingerprints = [...new Set(keyEntries.map(entry => entry.fingerprint).filter(Boolean))]
+const uniqueKeyTypes = [...new Set(keyEntries.map(entry => entry.type))]
+const consistencyIssues = []
+if (!isPlaceholder(intentServiceId) && !isPlaceholder(intentProjectRef) && intentServiceId !== intentProjectRef) {
+  consistencyIssues.push('intent-service-id-must-match-supabase-project-ref')
+}
+if (intentOrigin && intentSupabaseUrl && intentOrigin !== intentSupabaseUrl) {
+  consistencyIssues.push('intent-origin-must-match-supabase-url')
+}
+if (!isPlaceholder(canonicalServiceId) && canonicalOrigin) {
+  try {
+    const host = new URL(canonicalOrigin).hostname
+    if (host.endsWith('.supabase.co') && host.split('.')[0] !== canonicalServiceId) {
+      consistencyIssues.push('supabase-default-host-prefix-must-match-project-ref')
+    }
+  } catch {
+    consistencyIssues.push('data-api-origin-must-be-valid-url')
+  }
+}
+if (uniqueLocalOriginValues.length > 1) {
+  consistencyIssues.push('local-env-supabase-url-values-must-match')
+}
+if (canonicalOrigin && uniqueLocalOriginValues.some(origin => origin !== canonicalOrigin)) {
+  consistencyIssues.push('local-env-supabase-url-must-match-intent-origin')
+}
+if (uniqueKeyFingerprints.length > 1) {
+  consistencyIssues.push('local-publishable-or-anon-key-fingerprints-must-match')
+}
+if (uniqueKeyTypes.length > 1) {
+  consistencyIssues.push('local-publishable-or-anon-key-types-must-match')
+}
 const localIntentDataApi = {
   present: intentLocal.present,
   ignoredByGit: intentLocal.ignoredByGit,
@@ -248,11 +350,15 @@ const localIntentDataApi = {
   configuredFlagTrue: intentLocal.values.RUNTIME_ASSIGNMENT_DATA_API_CONFIGURED === 'true',
   probeTableHealthProbe: (intentLocal.values.RUNTIME_ASSIGNMENT_DATA_PROBE_TABLE || 'health_probe') === 'health_probe',
   probeIdReader: (intentLocal.values.RUNTIME_ASSIGNMENT_DATA_PROBE_ID || 'reader') === 'reader',
+  sameProjectAcrossLocalInputs: consistencyIssues.length === 0,
+  consistencyIssues,
   valuesIncluded: false,
 }
-const publishableKeyPresent = localSecretFiles.some(file => supportedPublishableKeys.some(key => !isPlaceholder(file.values[key])))
+const publishableKeyPresent = keyEntries.length > 0
 const ready = forbiddenHits.length === 0
   && unignoredFiles.length === 0
+  && historyTrackedLocalFiles.length === 0
+  && consistencyIssues.length === 0
   && missingTemplateKeys.length === 0
   && missingIntentKeys.length === 0
   && localIntentDataApi.serviceIdPresent
@@ -269,6 +375,8 @@ if (!localIntentDataApi.serviceIdPresent) missingStages.push('data-api-service-i
 if (!localIntentDataApi.originLooksProductionHttps) missingStages.push('data-api-origin')
 if (!localIntentDataApi.configuredFlagTrue) missingStages.push('data-api-configured')
 if (!publishableKeyPresent) missingStages.push('publishable-key-local')
+if (consistencyIssues.length) missingStages.push('local-data-api-consistency')
+if (historyTrackedLocalFiles.length) missingStages.push('local-env-git-history-boundary')
 if (forbiddenHits.length) missingStages.push('forbidden-secret-key')
 if (unignoredFiles.length) missingStages.push('local-env-git-boundary')
 
@@ -280,6 +388,12 @@ if (forbiddenHits.length) {
 }
 if (unignoredFiles.length) {
   throw new Error(`P156 local evidence files must stay ignored by Git: ${unignoredFiles.join(', ')}`)
+}
+if (historyTrackedLocalFiles.length) {
+  throw new Error(`P156 local evidence files must not appear in Git history: ${historyTrackedLocalFiles.join(', ')}`)
+}
+if (consistencyIssues.length) {
+  throw new Error(`P156 local Data API evidence points at inconsistent Supabase targets: ${consistencyIssues.join(', ')}`)
 }
 if (readyRequired && !ready) {
   throw new Error(`P156 strict mode requires local Data API evidence before remote-health:check: ${missingStages.join(', ')}`)
@@ -302,13 +416,28 @@ const payload = {
   localFiles: {
     intentEnv: publicProjection(intentLocal),
     dotenvFiles: localSecretFiles.map(publicProjection),
+    gitHistoryTracked: false,
+    gitHistoryTrackedCount: 0,
     valuesIncluded: false,
   },
   dataApiEvidence: localIntentDataApi,
   publishableKey: {
     present: publishableKeyPresent,
     supportedKeyCount: supportedPublishableKeys.length,
+    keyType: uniqueKeyTypes.length === 1 ? uniqueKeyTypes[0] : null,
+    keyFingerprint: uniqueKeyFingerprints.length === 1 ? uniqueKeyFingerprints[0] : null,
+    consistentAcrossLocalFiles: uniqueKeyFingerprints.length <= 1 && uniqueKeyTypes.length <= 1,
     valuesIncluded: false,
+  },
+  credentialBoundary: {
+    publishableOrAnonKeyRequired: true,
+    publishableOrAnonKeyPresent: publishableKeyPresent,
+    publishableOrAnonKeyIsBrowserAllowedWithRls: true,
+    secretKeyPresent: false,
+    serviceRolePresent: false,
+    fullKeyValuesIncluded: false,
+    keyType: uniqueKeyTypes.length === 1 ? uniqueKeyTypes[0] : null,
+    keyFingerprint: uniqueKeyFingerprints.length === 1 ? uniqueKeyFingerprints[0] : null,
   },
   forbiddenSecretMaterial: {
     present: false,

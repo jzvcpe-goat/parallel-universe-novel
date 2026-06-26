@@ -33,7 +33,8 @@ npm run check:remote-health-evidence-artifact
 ```
 
 Operator-ready strict mode, after local `.env.local.sync` or `.env.local`
-contains the publishable Data API key:
+contains the browser-allowed publishable/anon Data API key and no
+`secret`/`service_role` key:
 
 ```bash
 REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true \
@@ -80,9 +81,10 @@ When `remote-health:check` has succeeded, P145 validates and projects:
 
 The P145 artifact may include public-safe Data API origin, table name, probe id,
 probe status, remote-agent-not-required flag, and a digest of stable public
-evidence. It must not include:
+evidence. It may record key type or a short fingerprint for consistency, but it
+must not include:
 
-- publishable/anon key values;
+- full publishable/anon key values;
 - service-role keys;
 - writer passwords;
 - database URLs;

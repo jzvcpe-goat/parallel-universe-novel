@@ -29,9 +29,9 @@ strict_command: npm run prepare:edge-only-data-api-strict-intake
 # Edge-Only Data API Evidence Card
 
 This is an operator-local evidence template. It is safe to commit because it
-contains no service id, origin, publishable key, writer password, service-role
-key, database URL, provider key, prompt plumbing, representative work name,
-candidate prose or health payload value.
+contains no service id, origin, full publishable/anon key value, writer
+password, service-role key, database URL, provider key, prompt plumbing,
+representative work name, candidate prose or health payload value.
 
 ## Fill Locations
 
@@ -41,15 +41,17 @@ Put non-secret assignment evidence in:
 deploy/runtime-production/runtime-assignment.intent.env.local
 ```
 
-Put the publishable or anon key only in one of these local files:
+Put the publishable or anon key only in one of these ignored local files:
 
 ```text
 .env.local
 .env.local.sync
 ```
 
-Do not paste publishable keys into the assignment env, Markdown docs,
-artifacts, GitHub Pages variables or Git-tracked files.
+Do not paste full publishable/anon key values into the assignment env, Markdown
+docs, artifacts, GitHub Pages variables or Git-tracked files. They are
+browser-allowed client keys, but evidence artifacts should only record presence,
+type or a short fingerprint.
 
 ## Required Evidence
 

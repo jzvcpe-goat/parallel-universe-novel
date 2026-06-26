@@ -80,9 +80,9 @@ remote-health evidence.
 9. P148 removes older P145 fixture attestations so the public
    `remote-health-evidence` artifact contains exactly one current waiting
    attestation.
-10. P148 does not leak publishable keys, service-role keys, writer passwords,
-   model keys, provider prompt plumbing, source refs, profile ids, kernel ids,
-   candidate text, or private reference material.
+10. P148 does not leak full publishable/anon key values, service-role keys,
+   writer passwords, model keys, provider prompt plumbing, source refs, profile
+   ids, kernel ids, candidate text, or private reference material.
 
 ## Relationship To P142
 

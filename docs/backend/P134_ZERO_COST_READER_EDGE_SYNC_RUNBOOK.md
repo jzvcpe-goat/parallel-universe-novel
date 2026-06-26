@@ -57,19 +57,23 @@ Operational rule:
 
 ### 2. `.env.local.sync` is a single point of failure
 
-The local sync file contains the writer password and Supabase publishable key.
-It must stay off GitHub, Vercel and public artifacts, but it also must not live
-only inside the project directory.
+The local sync file contains the writer password and Supabase publishable/anon
+client configuration. The publishable/anon key is browser-allowed and is not a
+private secret; the real security boundary is RLS plus least privilege grants.
+It still must stay off GitHub, Vercel and public artifacts to avoid environment
+confusion and full-key leakage. The writer password is a true secret and must not
+live only inside the project directory.
 
 Operational rule:
 
 - Store `.env.local.sync` in a trusted password manager or encrypted personal
   backup location.
-- If it is lost, recover by reading the Supabase publishable key from the
+- If it is lost, recover by reading the Supabase publishable/anon key from the
   Supabase Dashboard, resetting the writer password, and recreating the local
   file.
 - Never store `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY`, writer
-  password or AI API keys in Vercel frontend variables.
+  password or AI API keys in Vercel frontend variables. `service_role` and
+  secret keys bypass RLS and are not allowed in browser-facing config.
 
 ### 3. `novels_history` supports recovery, not one-click rollback
 
