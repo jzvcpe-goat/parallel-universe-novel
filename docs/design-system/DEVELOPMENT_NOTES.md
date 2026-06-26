@@ -686,6 +686,33 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-26 Zero-Cost Reader QA Mode Split
+
+P0 PMF launch mode now treats public Reader QA and cloud/live Runtime QA as
+different release checks. `qa:live-runtime-local` remains the workflow step
+name for historical artifact continuity, but the script is mode-aware:
+
+1. When `VITE_PUBLIC_RUNTIME_MODE=live`, it still starts FastAPI, Mastra and the
+   legacy live Creator smoke path.
+2. When the mode is absent or `disabled`, it builds the Reader surface, opens
+   the home page and story page, verifies the reader request panel, and proves
+   the public UI does not expose Creator service status or provider plumbing.
+3. The visual evidence keeps the existing
+   `artifacts/visual-qa/p15-live-runtime-e2e-*.png` path so the CI artifact
+   contract does not lose continuity.
+4. This prevents a zero-cost Reader deployment from being blocked by a
+   disabled cloud AI Runtime while still preserving the live Runtime gate for a
+   future managed runtime launch.
+
+Verification:
+
+```bash
+npm run qa:live-runtime-local
+npm run check:live-runtime-smoke
+npm run check:pages-live-release-gate
+npm run check:ci-artifact-content-coverage
+```
+
 ## 2026-06-25 Vite Supabase Client Boundary
 
 The Supabase quick-start snippet received during edge-only Data API setup was a

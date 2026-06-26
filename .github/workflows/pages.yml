@@ -68,6 +68,8 @@ jobs:
         run: npm run test
 
       - name: Run local live runtime browser QA
+        env:
+          VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}
         run: npm run qa:live-runtime-local
 
       - name: Upload local live runtime visual QA

@@ -242,6 +242,7 @@
     "scripts/audit-live-runtime-readiness.mjs",
     "scripts/browser-creator-e2e.mjs",
     "scripts/browser-live-runtime-e2e.mjs",
+    "scripts/browser-live-runtime-local-e2e.mjs",
     "scripts/browser-pages-preview-e2e.mjs",
     "scripts/check-agent-eval-publish-decision.mjs",
     "scripts/check-backward-consistency-sweep.mjs",
