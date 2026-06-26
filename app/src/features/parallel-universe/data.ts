@@ -772,7 +772,7 @@ export const capabilityAlignments: CapabilityAlignment[] = [
     frontendEntry: '/settings',
     productSurface: ['/v1/account/snapshot', '/v1/account/merge/preview', '/v1/account/merge/confirm', '/v1/account/data/export', '/v1/account/delete/preview', '/v1/account/delete/confirm', '/v1/reader/subscription', '/v1/reader/checkout/start', '/v1/reader/checkout/{checkout_session_id}/status', '/v1/reader/checkout/return'],
     mode: 'service_contract',
-    readerPromise: '读者可以查看当前权益、阅读次数、创作额度、阅读进度和创作草稿，并管理自己的账号数据。',
+    readerPromise: '读者可以查看当前权益、阅读次数、互动请求、阅读进度和书架档案，并管理自己的账号数据。',
     implementationBoundary: '页面只展示可恢复动作、档案状态、导出和删除账号，不展示支付服务字段、迁移状态或运营排障信息。',
   },
   {

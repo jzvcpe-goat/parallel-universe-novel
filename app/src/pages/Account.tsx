@@ -40,15 +40,15 @@ const BROWSER_CREATOR_ID = 'web_creator'
 
 function tierDisplayName(tierId?: string | null) {
   if (tierId === 'play_pass') return '阅读会员'
-  if (tierId === 'creator_pass') return '创作会员'
-  if (tierId === 'studio_pass') return '工作室会员'
+  if (tierId === 'creator_pass') return '互动会员'
+  if (tierId === 'studio_pass') return '书架会员'
   return '免费体验'
 }
 
 function tierShortDescription(tier: SubscriptionTier) {
   if (tier.tier_id === 'play_pass') return '适合持续阅读和互动选择。'
-  if (tier.tier_id === 'creator_pass') return '适合边读边创作，保留更多创作额度。'
-  if (tier.tier_id === 'studio_pass') return '适合团队批量运营世界和章节。'
+  if (tier.tier_id === 'creator_pass') return '适合更频繁地请求分支和更新。'
+  if (tier.tier_id === 'studio_pass') return '适合管理更多书架、分支和提醒。'
   return tier.description
 }
 
@@ -61,7 +61,7 @@ function walletBalance(subscription: SubscriptionStatus | null, key: string) {
 }
 
 function checkoutMessage(checkout: CheckoutSession | null, subscription: SubscriptionStatus | null) {
-  if (subscription?.subscription?.status === 'active') return '会员已开通，阅读次数和创作额度已经刷新。'
+  if (subscription?.subscription?.status === 'active') return '会员已开通，阅读次数和互动请求已经刷新。'
   if (!checkout) return '选择一个方案后，会在这里看到开通请求。'
   if (checkout.status === 'completed') return '开通已完成，权益会自动刷新到账户。'
   if (checkout.status === 'expired') return '本次开通已过期，可以重新选择方案。'
@@ -283,16 +283,16 @@ export default function Account() {
               管理你的阅读权益
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--ink-muted)] md:text-base">
-              这里统一查看阅读次数、创作额度、阅读进度和创作草稿。本机记录可以合并到登录账号，之后继续阅读和继续创作。
+              这里统一查看阅读次数、互动请求、阅读进度和书架档案。本机记录可以合并到登录账号，之后继续阅读并查看请求状态。
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button variant="gold" onClick={() => navigate('/story')}>
                 <BookOpen size={16} />
                 继续阅读
               </Button>
-              <Button variant="outline" onClick={() => navigate('/create')}>
+              <Button variant="outline" onClick={() => navigate('/story')}>
                 <PenLine size={16} />
-                去创作
+                去请求更新
               </Button>
               <Button variant="ghost" onClick={() => loadSubscription(activeAccountId)} disabled={isLoading}>
                 <RefreshCcw size={16} />
@@ -320,7 +320,7 @@ export default function Account() {
               {isAuthenticated
                 ? `阅读档案保存在 ${activeAccountId}。`
                 : subscription?.subscription?.status === 'active'
-                  ? '会员权益可用于继续阅读和创作。'
+                  ? '会员权益可用于继续阅读和互动请求。'
                   : '可先阅读公开章节，开通后获得更多互动阅读次数。'}
             </p>
           </Panel>
@@ -334,15 +334,15 @@ export default function Account() {
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">阅读次数</h2>
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--ink-paper)]">{storyCredits}</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">用于继续阅读和生成下一幕。</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">用于继续阅读公开章节和分支内容。</p>
         </Panel>
         <Panel className="p-5">
           <div className="flex items-center gap-2">
             <Sparkles className="text-[var(--manuscript-gold)]" size={18} />
-            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">创作额度</h2>
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">互动请求</h2>
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--ink-paper)]">{studioCredits}</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">用于创作助手和章节打磨。</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">用于请求下一章、IF 支线和收藏反馈。</p>
         </Panel>
         <Panel className="p-5">
           <div className="flex items-center gap-2">
@@ -354,7 +354,7 @@ export default function Account() {
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
             {snapshot?.account.requires_login_for_cross_device === false
-              ? '你的阅读和创作记录可随账户恢复。'
+              ? '你的阅读和请求记录可随账户恢复。'
               : '书架和页码会先保留在当前浏览器，登录后可合并。'}
           </p>
         </Panel>
@@ -369,8 +369,8 @@ export default function Account() {
             </div>
             <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
               {isAuthenticated
-                ? '检查当前浏览器里的阅读进度和创作草稿，确认后合并到你的账号。'
-                : '先登录或注册，再把当前浏览器里的阅读进度和创作草稿合并到账号。'}
+                ? '检查当前浏览器里的阅读进度和互动记录，确认后合并到你的账号。'
+                : '先登录或注册，再把当前浏览器里的阅读进度和互动记录合并到账号。'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -449,7 +449,7 @@ export default function Account() {
                 </p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-                <p className="text-xs tracking-[0.12em] text-[var(--ink-dim)]">创作草稿</p>
+                <p className="text-xs tracking-[0.12em] text-[var(--ink-dim)]">互动记录</p>
                 <p className="mt-2 text-3xl font-semibold text-[var(--ink-paper)]">
                   {mergePreview?.summary.creator_draft_count ?? 0}
                 </p>
@@ -493,7 +493,7 @@ export default function Account() {
               <h2 className="text-2xl font-semibold text-[var(--ink-paper)]">账号与数据</h2>
             </div>
             <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-              登录后可以导出自己的阅读进度、创作草稿和会员记录。删除账号前会先显示影响范围，需要再次确认。
+              登录后可以导出自己的阅读进度、互动记录和会员记录。删除账号前会先显示影响范围，需要再次确认。
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -531,7 +531,7 @@ export default function Account() {
                     : '先查看影响范围'}
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-                删除会清除阅读进度和创作草稿，并退出当前登录。会员记录会按账务要求保留。
+                删除会清除阅读进度和互动记录，并退出当前登录。会员记录会按账务要求保留。
               </p>
               <Button className="mt-4" variant="ghost" disabled={!isAuthenticated || isDataBusy} onClick={() => void handlePreviewDelete()}>
                 <Trash2 size={16} />
@@ -604,22 +604,22 @@ export default function Account() {
         <Panel className="p-5">
           <div className="flex items-center gap-2">
             <PenLine className="text-[var(--manuscript-gold)]" size={18} />
-            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">创作草稿</h2>
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">读者请求</h2>
           </div>
           <p className="mt-4 text-2xl font-semibold text-[var(--ink-paper)]">
-            {latestDraft ? latestDraft.title : '还没有创作草稿'}
+            {latestDraft ? latestDraft.title : '还没有请求记录'}
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
             {latestDraft
-              ? `${latestDraft.turn_count} 轮对话，继续把它写成下一段。`
-              : '从一句故事种子开始，创作助手会先写正文。'}
+              ? `${latestDraft.turn_count} 条记录，后续会收敛为请求状态。`
+              : '在阅读页可以请求下一章或 IF 支线。'}
           </p>
           <Button
             variant="outline"
             className="mt-4"
-            onClick={() => navigate(latestDraft ? `/create?session=${encodeURIComponent(latestDraft.session_id)}` : '/create')}
+            onClick={() => navigate('/story')}
           >
-            继续创作
+            查看请求入口
             <ChevronRight size={16} />
           </Button>
         </Panel>
@@ -633,7 +633,7 @@ export default function Account() {
             {snapshot?.account.requires_login_for_cross_device === false ? '已开启' : '待登录开启'}
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-            {snapshotError || '登录后，当前浏览器里的阅读进度和创作草稿会合并到你的账户。'}
+            {snapshotError || '登录后，当前浏览器里的阅读进度和互动记录会合并到你的账户。'}
           </p>
           <Button variant="ghost" className="mt-4" onClick={() => void loadAccountSnapshot()}>
             检查档案
@@ -650,7 +650,7 @@ export default function Account() {
               <h2 className="text-2xl font-semibold text-[var(--ink-paper)]">选择会员方案</h2>
             </div>
             <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-              阅读会员适合读者，创作会员适合写作者，工作室会员适合团队运营多个世界。
+              阅读会员适合追更读者，互动会员适合高频请求分支，书架会员适合管理更多阅读档案。
             </p>
           </div>
           {error && <Badge variant="collapse">{error}</Badge>}
@@ -662,7 +662,7 @@ export default function Account() {
               name={tierDisplayName(tier.tier_id)}
               price={moneyLabel(tier.price_usd_monthly)}
               description={tierShortDescription(tier)}
-              features={[`阅读次数 ${tier.monthly_story_credits}`, `创作额度 ${tier.monthly_studio_credits}`]}
+              features={[`阅读次数 ${tier.monthly_story_credits}`, `互动请求 ${tier.monthly_studio_credits}`]}
               highlighted={tier.tier_id === 'play_pass'}
               badge={activeTier === tier.tier_id ? '当前方案' : undefined}
               cta={activeTier === tier.tier_id ? '已开通' : '开通这个方案'}
@@ -693,7 +693,7 @@ export default function Account() {
         </div>
         <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.025] p-4">
           <p className="text-sm leading-6 text-[var(--ink-muted)]">
-            开通后会自动刷新权益。登录后，阅读进度和创作草稿会合并到同一个账户。
+            开通后会自动刷新权益。登录后，阅读进度和互动记录会合并到同一个账户。
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             {checkout && subscription?.subscription?.status !== 'active' && (

@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, HashRouter } from 'react-router'
 import './i18n'
-import App from './App'
+import App from '@app-surface'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 

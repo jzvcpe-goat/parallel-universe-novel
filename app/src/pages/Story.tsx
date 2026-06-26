@@ -21,6 +21,7 @@ import { Button } from '@/components/primitives/Button'
 import { ChoiceCard } from '@/components/design-system/ChoiceCard'
 import { Panel } from '@/components/design-system/Panel'
 import { ReadingPaper } from '@/components/design-system/ReadingPaper'
+import { ReaderRequestPanel } from '@/apps/reader/ReaderRequestPanel'
 import { runtimeApi, settingsApi, storyApi } from '@/api'
 import { runtimeConfig } from '@/api/client'
 import type { ReaderRuntimeSnapshot, SceneAdvanceResponse } from '@/api/runtime'
@@ -40,6 +41,7 @@ import {
   simulateTimeline,
 } from '@/features/parallel-universe/simulator'
 import type { CandidateScene, WorldBranch, WorldChoice } from '@/features/parallel-universe/types'
+import { pmfMainBranchId } from '@/features/pmf/types'
 
 type ReaderRuntimeState = {
   mode: 'demo' | 'connecting' | 'service' | 'advancing' | 'unavailable'
@@ -154,8 +156,8 @@ function runtimeModeBadge(runtimeState: ReaderRuntimeState) {
 function storyMembershipLabel(membership: ReaderMembershipState) {
   const tier = membership.subscription?.effective_tier || membership.subscription?.subscription?.tier_id
   if (tier === 'play_pass') return '阅读会员'
-  if (tier === 'creator_pass') return '创作会员'
-  if (tier === 'studio_pass') return '工作室会员'
+  if (tier === 'creator_pass') return '互动会员'
+  if (tier === 'studio_pass') return '书架会员'
   if (membership.status === 'loading') return '权益读取中'
   return '免费体验'
 }
@@ -949,6 +951,13 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
               </div>
             )}
           </Panel>
+
+          <ReaderRequestPanel
+            workId={template.id}
+            branchId={pmfMainBranchId(template.id)}
+            titleText={template.title}
+            selectedChoiceLabel={selectedChoice?.label}
+          />
 
           <section className="mt-4 grid w-full gap-3 md:grid-cols-3">
             {memory.slice(-3).map(item => (

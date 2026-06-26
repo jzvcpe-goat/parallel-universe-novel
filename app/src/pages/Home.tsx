@@ -5,7 +5,6 @@ import {
   BookMarked,
   BookOpen,
   Clock3,
-  Edit3,
   Feather,
   Flame,
   Library,
@@ -159,10 +158,6 @@ export default function Home() {
                 <BookMarked size={15} />
                 继续阅读
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/create?template=${flagship.id}`)}>
-                <Feather size={15} />
-                创作助手
-              </Button>
             </div>
           </header>
 
@@ -234,10 +229,6 @@ export default function Home() {
                     <Button variant="outline" onClick={() => navigate('/library')}>
                       <BookMarked size={17} />
                       进入书城
-                    </Button>
-                    <Button variant="ghost" onClick={() => navigate(`/create?template=${flagship.id}`)}>
-                      <Edit3 size={17} />
-                      开始创作
                     </Button>
                   </div>
                   <div className="commercial-hero-stats">
@@ -345,16 +336,16 @@ export default function Home() {
         <Panel as="aside" className="commercial-section-panel">
           <div className="flex items-center gap-2">
             <UserRound className="text-[var(--worldline-cyan)]" size={18} />
-            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">创作助手</h2>
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">作者更新</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
-            写一句画面，系统先写出可读开场，再用一两个问题帮你把故事往下推进。
+            公网阅读端只负责阅读、请求和更新状态；作者会在本机处理高热请求后发布。
           </p>
           <div className="mt-4 grid gap-2">
-            <Button className="justify-between" variant="outline" onClick={() => navigate(`/create?template=${flagship.id}`)}>
+            <Button className="justify-between" variant="outline" onClick={() => navigate('/story?world=beacon-beyond')}>
               <span className="flex items-center gap-2">
                 <Feather size={16} />
-                写下故事种子
+                查看请求入口
               </span>
               <ArrowRight size={16} />
             </Button>

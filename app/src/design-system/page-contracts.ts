@@ -85,7 +85,7 @@ export const pageSurfaceContracts: Record<
   settings: {
     route: '/settings',
     audience: 'account',
-    purpose: '展示会员权益、阅读次数、创作额度和开通请求状态。',
+    purpose: '展示会员权益、阅读次数、互动请求和开通状态。',
     requiredPatterns: ['ParallelUniverseShell', 'PageHeader', 'Panel', 'PlanCard'],
     primaryAction: '开通会员',
     liveWhen: '权益和开通请求连接真实合同；支付实现字段不进入页面。',

@@ -7,6 +7,7 @@ packages/*/node_modules/
 
 # Build outputs
 app/dist/
+app/dist-creator/
 packages/*/dist/
 backend/dist/
 backend/build/

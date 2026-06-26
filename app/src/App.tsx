@@ -9,8 +9,6 @@ import { WorkspaceNav } from '@/components/patterns/WorkspaceNav'
 import Home from '@/pages/Home'
 import Story from '@/pages/Story'
 import Library from '@/pages/Library'
-import Create from '@/pages/Create'
-import Studio from '@/pages/Studio'
 import Account from '@/pages/Account'
 import { ErrorBoundary } from '@/components/patterns/ErrorBoundary'
 
@@ -24,7 +22,6 @@ function AppLayout() {
     if (path === '/') return 'soul'
     if (path.startsWith('/story')) return 'story'
     if (path.startsWith('/library')) return 'library'
-    if (path.startsWith('/create')) return 'create'
     if (path.startsWith('/settings')) return 'member'
     return 'soul'
   }
@@ -35,7 +32,6 @@ function AppLayout() {
     { id: 'soul', icon: 'soul', label: t('nav.soul'), href: '/' },
     { id: 'story', icon: 'story', label: t('nav.story'), href: '/story' },
     { id: 'library', icon: 'library', label: t('nav.library'), href: '/library' },
-    { id: 'create', icon: 'create', label: t('nav.create'), href: '/create' },
     { id: 'member', icon: 'member', label: '会员', href: '/settings' },
   ]
 
@@ -54,9 +50,9 @@ function AppLayout() {
           <Route path="/welcome" element={<Home />} />
           <Route path="/story" element={<Story />} />
           <Route path="/library" element={<Library />} />
-          <Route path="/create" element={<Create />} />
           <Route path="/settings" element={<Account />} />
-          <Route path="/studio" element={<Studio />} />
+          <Route path="/create" element={<Navigate to="/library" replace />} />
+          <Route path="/studio" element={<Navigate to="/library" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

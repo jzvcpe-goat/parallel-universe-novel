@@ -7,7 +7,6 @@ import {
   Clock3,
   Filter,
   Search,
-  Sparkles,
   Trophy,
 } from 'lucide-react'
 import { Badge } from '@/components/primitives/Badge'
@@ -160,10 +159,6 @@ export default function Library() {
                         <BookOpen size={16} />
                         继续阅读
                       </Button>
-                      <Button variant="outline" onClick={() => navigate(`/create?template=${flagship.id}`)}>
-                        <Sparkles size={16} />
-                        用这个方向创作
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -205,15 +200,6 @@ export default function Library() {
                           ctaLabel="阅读"
                           onOpen={() => navigate(`/story?world=${world.id}`)}
                         />
-                        <Button
-                          className="mt-2 w-full justify-between"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/create?template=${world.id}`)}
-                        >
-                          用这个方向创作
-                          <Sparkles size={14} />
-                        </Button>
                       </div>
                     )
                   })}
