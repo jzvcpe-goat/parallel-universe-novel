@@ -209,14 +209,55 @@ const p119 = latestArtifact(
     && (payload.headSha === headSha || sourceWorkspaceNoGit),
   'current P119 operator readiness packet',
 )
-const p121 = latestArtifact(
+const currentP121 = latestArtifact(
   'loop-next-goal-ledger-',
   payload => payload.gate === 'P121_LOOP_NEXT_GOAL_LEDGER'
-    && payload.selectedGoal?.id === 'operator-assignment-evidence-intake'
-    && (payload.headSha === headSha || sourceWorkspaceNoGit)
-    && payload.sourceEvidence?.operatorReadinessPacket?.file === relative(root, p119.file),
+    && (payload.headSha === headSha || sourceWorkspaceNoGit),
   'current P121 operator-assignment ledger',
 )
+if (currentP121.payload.selectedGoal?.id !== 'operator-assignment-evidence-intake') {
+  const payload = {
+    version: 1,
+    gate: 'P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY',
+    status: 'skipped_not_current_goal',
+    generatedAt: new Date().toISOString(),
+    selectedGoal: currentP121.payload.selectedGoal?.id || null,
+    reason: 'P121 has advanced beyond operator-assignment-evidence-intake',
+    sourceReadinessPacketArtifact: relative(root, p119.file),
+    sourceLedgerArtifact: relative(root, currentP121.file),
+    commandProfile: 'edge-only-runtime-assignment-compiler',
+    commandCount: 0,
+    legacyFragmentCount: forbiddenPrimaryFragments.length,
+    boundaries: {
+      writesLocalAssignment: false,
+      createsRemoteServices: false,
+      setsGitHubVariables: false,
+      storesProviderSecrets: false,
+      promotesLiveRuntime: false,
+      emitsConcreteServiceIds: false,
+      emitsConcreteOrigins: false,
+      emitsPromptPlumbing: false,
+      emitsPrivateTitleMaterial: false,
+    },
+  }
+  const privateHits = scanNoPrivateTerms(payload)
+  assert(privateHits.length === 0, `P130 artifact leaked private terms: ${privateHits.join(', ')}`)
+  mkdirSync(artifactDir, { recursive: true })
+  const artifactPath = join(artifactDir, `operator-assignment-loop-command-consistency-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+  writeFileSync(artifactPath, `${JSON.stringify(payload, null, 2)}\n`)
+  console.log(JSON.stringify({
+    status: payload.status,
+    gate: payload.gate,
+    selectedGoal: payload.selectedGoal,
+    artifactPath: relative(root, artifactPath),
+  }, null, 2))
+  process.exit(0)
+}
+assert(
+  currentP121.payload.sourceEvidence?.operatorReadinessPacket?.file === relative(root, p119.file),
+  'current P121 operator-assignment ledger must point at current P119 readiness packet',
+)
+const p121 = currentP121
 for (const [label, artifact] of [['P118', p118], ['P119', p119]]) {
   const normalized = normalizeCommandSurface(JSON.stringify(artifact.payload))
   for (const fragment of forbiddenPrimaryFragments) {

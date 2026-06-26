@@ -254,6 +254,55 @@ const localIntentEnv = statusFromLocalIntentEnv()
 const templateKeys = parseEnvKeys(templateRel)
 const legacyKeys = parseEnvKeys(legacyFullRemoteEnvRel)
 const blockedStages = Array.isArray(p123.payload.blockedStages) ? p123.payload.blockedStages : []
+if (p123.payload.status === 'skipped_not_current_goal') {
+  const packet = {
+    version: 1,
+    gate: 'P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET',
+    status: 'skipped_not_current_goal',
+    decision: 'edge_only_operator_packet_not_current_loop_goal',
+    generatedAt: new Date().toISOString(),
+    repository: repo,
+    headSha,
+    selectedGoal: p123.payload.selectedGoal || null,
+    sourceEvidence: {
+      operatorAssignmentEvidenceIntake: {
+        file: relative(root, p123.file),
+        gate: p123.payload.gate,
+        status: p123.payload.status,
+      },
+    },
+    boundary: {
+      writesLocalAssignment: false,
+      createsRemoteServices: false,
+      setsGitHubVariables: false,
+      storesProviderSecrets: false,
+      storesSupabaseKeys: false,
+      promotesLiveRuntime: false,
+      treatsLegacyFullRemoteEnvAsPrimary: false,
+      requiresRemoteAgentRuntime: false,
+      containsSecrets: false,
+      containsPrivateResearchMaterial: false,
+      exposesProviderPlumbing: false,
+      containsCandidateText: false,
+    },
+  }
+  const privateHits = scanNoPrivateTerms(packet)
+  assert(privateHits.length === 0, `P147 skipped packet leaked private terms: ${privateHits.join(', ')}`)
+  mkdirSync(artifactDir, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const jsonPath = join(artifactDir, `edge-only-operator-evidence-packet-${stamp}.json`)
+  const mdPath = join(artifactDir, `edge-only-operator-evidence-packet-${stamp}.md`)
+  writeFileSync(jsonPath, `${JSON.stringify(packet, null, 2)}\n`)
+  writeFileSync(mdPath, `# P147 Edge-Only Operator Evidence Packet\n\nStatus: \`${packet.status}\`\n\nSelected goal: \`${packet.selectedGoal}\`\n\nThe loop has advanced beyond operator assignment evidence; continue with the current Data API health evidence goal.\n`)
+  console.log(JSON.stringify({
+    status: packet.status,
+    gate: packet.gate,
+    decision: packet.decision,
+    artifactPath: relative(root, jsonPath),
+    markdownArtifactPath: relative(root, mdPath),
+  }, null, 2))
+  process.exit(0)
+}
 assert(p123.payload.runtimeTopology === 'edge-only-preferred', 'P147 requires P123 edge-only topology')
 assert(blockedStages.some(stage => String(stage).startsWith('data-api-')), 'P147 must preserve Data API blockers')
 assert(!blockedStages.some(stage => /^agent-/i.test(stage)), 'P147 must not preserve legacy remote Agent blockers as primary path')

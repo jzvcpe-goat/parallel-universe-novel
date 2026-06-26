@@ -348,6 +348,49 @@ const p105 = latestArtifact(
   'P105 fill plan',
 )
 
+if (p121.payload.selectedGoal?.id !== 'operator-assignment-evidence-intake') {
+  const skipped = {
+    version: 1,
+    gate: 'P123_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE',
+    status: 'skipped_not_current_goal',
+    generatedAt: new Date().toISOString(),
+    headSha,
+    selectedGoal: p121.payload.selectedGoal?.id || null,
+    expectedGoal: 'operator-assignment-evidence-intake',
+    reason: 'P121 advanced the loop to a different next goal; P123 must not reinterpret remote-health evidence as operator assignment evidence.',
+    sourceEvidence: {
+      loopNextGoalLedger: summarize(p121),
+    },
+    boundary: {
+      writesLocalAssignment: false,
+      createsRemoteServices: false,
+      setsGitHubVariables: false,
+      storesProviderSecrets: false,
+      promotesLiveRuntime: false,
+      containsSecrets: false,
+      containsPrivateResearchMaterial: false,
+      exposesProviderPlumbing: false,
+      containsCandidateText: false,
+    },
+  }
+  const privateHits = scanNoPrivateTerms(skipped)
+  assert(privateHits.length === 0, `P123 skipped artifact leaked private terms: ${[...new Set(privateHits)].join(', ')}`)
+  mkdirSync(artifactDir, { recursive: true })
+  const suffix = new Date().toISOString().replace(/[:.]/g, '-')
+  const jsonPath = join(artifactDir, `operator-assignment-evidence-intake-${suffix}.json`)
+  const markdownPath = join(artifactDir, `operator-assignment-evidence-intake-${suffix}.md`)
+  writeFileSync(jsonPath, `${JSON.stringify(skipped, null, 2)}\n`)
+  writeFileSync(markdownPath, `# P123 Operator Assignment Evidence Intake\n\nStatus: \`${skipped.status}\`\n\nSelected goal: \`${skipped.selectedGoal}\`\n\nReason: ${skipped.reason}\n`)
+  console.log(JSON.stringify({
+    status: skipped.status,
+    gate: skipped.gate,
+    selectedGoal: skipped.selectedGoal,
+    artifactPath: relative(root, jsonPath),
+    markdownArtifactPath: relative(root, markdownPath),
+  }, null, 2))
+  process.exit(0)
+}
+
 assert(p121.payload.selectedGoal?.id === 'operator-assignment-evidence-intake', 'P123 only runs when P121 selects operator-assignment-evidence-intake')
 assert(p121.payload.sourceEvidence?.operatorReturnIntake?.file === relative(root, p120.file), 'P123 requires P121 to reference the current P120 operator return intake')
 assert(p121.payload.sourceEvidence?.imageDrift?.file === relative(root, p113.file), 'P123 requires P121 to reference the current P113 image drift evidence')

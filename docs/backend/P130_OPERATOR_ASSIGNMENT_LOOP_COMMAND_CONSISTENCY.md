@@ -18,6 +18,12 @@ tracked template path, or full-remote Agent Runtime command from reappearing as
 the primary next-goal artifact. P128/P129 still cover the legacy full-remote
 env/apply path, but that path is fallback compatibility only.
 
+P130 is active only while P121 selects
+`operator-assignment-evidence-intake`. After the loop advances to a later goal
+such as `strict-live-activation-proof`, P130 writes
+`skipped_not_current_goal` evidence that points at the current P121 ledger and
+does not re-run the old operator-assignment handoff path.
+
 P130 does not deploy anything. It does not write
 `deploy/runtime-production/remote-assignment.local.json`, does not create
 remote services, does not set GitHub variables, does not store provider
@@ -105,6 +111,8 @@ npm run check:operator-assignment-current-head-coherence
    ids, kernel ids or `sourceRefs`.
 12. P131 validates the uploaded P130 artifact content in the current Pages run.
 13. P132 validates that P130 points at current-head P119 and P121 artifacts.
+14. If P121 has advanced beyond `operator-assignment-evidence-intake`, P130 and
+    P131 accept `skipped_not_current_goal` with no write/deploy side effects.
 
 ## Failure Modes
 

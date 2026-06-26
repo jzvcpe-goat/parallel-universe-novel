@@ -106,8 +106,9 @@ Forbidden in P118 artifacts:
 ## Local vs CI Blockers
 
 Local runs may have the ignored P112 assignment draft, so
-`remote-assignment-file-present` can be ready while
-`remote-assignment-health-ready` remains blocked.
+`remote-assignment-file-present` can be ready. `remote-assignment-health-ready`
+follows the latest P75/P85 Data API health proof instead of being forced
+blocked.
 
 CI intentionally does not own that ignored local file. A current-run GitHub
 artifact may preserve `remote-assignment-file-present` as blocked. The P118
@@ -117,8 +118,9 @@ to disappear until strict live cutover gates pass.
 For the current `edge-only` clean-checkout topology, P85 can prove that the
 tracked `runtime-assignment.intent.example.json` is the selected projection. In
 that case the current-run P118 artifact must not reintroduce
-`remote-assignment-file-present`; it must keep the Data API, assignment health,
-live-readiness and activation blockers visible instead.
+`remote-assignment-file-present`; it must keep Data API health status truthful
+and keep live-readiness and activation blockers visible until their own strict
+evidence passes.
 
 ## Acceptance
 

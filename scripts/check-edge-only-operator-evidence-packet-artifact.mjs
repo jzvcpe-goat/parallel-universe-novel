@@ -264,6 +264,42 @@ try {
 
   const payload = JSON.parse(readFileSync(packetPath, 'utf8'))
   const markdownText = readFileSync(markdownPath, 'utf8')
+  if (payload.status === 'skipped_not_current_goal' && !required) {
+    const artifactPayload = {
+      version: 1,
+      gate: 'P147_EDGE_ONLY_OPERATOR_EVIDENCE_PACKET_ATTESTATION',
+      status: 'skipped_not_current_goal',
+      mode,
+      runId,
+      runUrl,
+      expectedHeadSha,
+      decision: payload.decision || 'edge_only_operator_packet_not_current_loop_goal',
+      selectedGoal: payload.selectedGoal || null,
+      sourcePacket: {
+        jsonFile: relative(root, packetPath),
+        markdownFile: relative(root, markdownPath),
+      },
+      boundary: {
+        containsSecrets: false,
+        containsPrivateResearchMaterial: false,
+        exposesProviderPlumbing: false,
+        requiresRemoteAgentRuntime: false,
+      },
+    }
+    const privateMatches = scanNoPrivateText(JSON.stringify(artifactPayload))
+    assert(privateMatches.length === 0, `P147 skipped attestation leaked private terms: ${privateMatches.join(', ')}`)
+    const artifactPath = writeAttestationArtifact(artifactPayload)
+    console.log(JSON.stringify({
+      status: artifactPayload.status,
+      gate: artifactPayload.gate,
+      mode,
+      runId,
+      selectedGoal: artifactPayload.selectedGoal,
+      artifactPath: relative(root, artifactPath),
+    }, null, 2))
+    process.exit(0)
+  }
+
   const summary = validatePacket(payload, markdownText, expectedHeadSha)
   const artifactPayload = {
     version: 1,

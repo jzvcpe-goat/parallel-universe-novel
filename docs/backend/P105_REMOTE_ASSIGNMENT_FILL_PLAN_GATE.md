@@ -94,15 +94,16 @@ REQUIRE_REMOTE_RUNTIME_BLOCKERS_READY=true npm run check:remote-runtime-blockers
   fill-plan artifact check.
 - Pages workflow uploads `remote-assignment-fill-plan`.
 - The generated artifact is operator-safe and redacted.
-- The gate keeps current P85 blockers visible instead of declaring remote
-  runtime ready. If a P112 local draft exists, only
-  `remote-assignment-file-present` may become ready; assignment health, origin,
-  live readiness, live trace, cutover and activation blockers must remain.
+- The gate keeps current P85 status visible instead of declaring remote runtime
+  ready. If a P112 local draft exists, `remote-assignment-file-present` may
+  become ready, and assignment health may also be ready only when P75/P85 carry
+  current Data API health proof; origin, live readiness, live trace, cutover and
+  activation blockers must remain until their own evidence passes.
 - In a clean checkout for the current `edge-only` topology, P85 may use the
   committed `runtime-assignment.intent.example.json` as projection evidence. In
-  that case `remote-assignment-file-present` is not a current blocker, but the
-  Data API / health / activation blockers must remain visible until operator
-  evidence exists.
+  that case `remote-assignment-file-present` is not a current blocker, and Data
+  API health follows the latest P75/P85 proof instead of being forced blocked;
+  activation blockers must remain visible until operator evidence exists.
 - P105 records the selected runtime assignment projection metadata in
   `upstreamEvidence.blockerLedger.runtimeAssignment` so P106 can validate the
   same clean-checkout edge-only boundary from the emitted artifact alone.

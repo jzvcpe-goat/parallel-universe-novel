@@ -686,6 +686,43 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-25 Vite Supabase Client Boundary
+
+The Supabase quick-start snippet received during edge-only Data API setup was a
+Next.js App Router example. The current public frontend remains Vite/React, so
+the implementation must not add `page.tsx`, Next middleware, `@supabase/ssr`,
+or `NEXT_PUBLIC_*` variables.
+
+Implementation notes:
+
+1. Added a Vite-only browser helper at `app/src/lib/supabase.ts` using
+   `@supabase/supabase-js`.
+2. Public examples use `VITE_SUPABASE_URL` and
+   `VITE_SUPABASE_PUBLISHABLE_KEY` placeholders only.
+3. Real project URL and publishable key stay in ignored local files:
+   `.env.local`, `.env.local.sync`, and
+   `deploy/runtime-production/runtime-assignment.intent.env.local`.
+4. The publishable key is browser-allowed configuration, not a private secret;
+   RLS and least-privilege grants are the real boundary. The local files remain
+   ignored to prevent environment mix-ups and artifact/log leakage.
+5. `remote-health:check` currently fails honestly if Supabase REST cannot find
+   `public.health_probe`. That is a remote Data API schema/setup breakpoint,
+   not a frontend integration failure.
+6. Any future Supabase SSR/session work must first move the app architecture to
+   a server-rendered framework. Until then, do not import `@supabase/ssr`.
+
+Verification:
+
+```bash
+npm --prefix app run lint
+npm --prefix app run build
+REQUIRE_EDGE_ONLY_DATA_API_LOCAL_SECRET_GUARD_READY=true npm run check:edge-only-data-api-local-secret-guard
+RUNTIME_ASSIGNMENT_INTENT_ENV_FILE=deploy/runtime-production/runtime-assignment.intent.env.local RUNTIME_ASSIGNMENT_INTENT_FORCE=true npm run prepare:runtime-assignment-intent
+npm run remote-assignment:prepare
+npm run remote-health:check
+npm run check:release-sync-manifest
+```
+
 ## 2026-06-21 P155 Strict Intake Artifact Content Attestation
 
 P154 把 sealed strict-intake 命令推进了 operator-facing handoff，但复盘 current-run

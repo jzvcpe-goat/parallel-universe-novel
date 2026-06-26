@@ -313,6 +313,24 @@ try {
     process.exit(0)
   }
 
+  if (payload?.status === 'skipped_not_current_goal' && !required) {
+    const artifactPath = writeAttestationArtifact({
+      status: 'skipped_not_current_goal',
+      gate: 'P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION',
+      reason: payload.reason || 'P123 is not the current loop goal',
+      required,
+      expectedHeadSha,
+      selectedGoal: payload.selectedGoal || null,
+      packetPath: source === 'github' ? artifactName : relative(root, packetPath),
+    })
+    console.log(JSON.stringify({
+      status: 'skipped_not_current_goal',
+      gate: 'P124_OPERATOR_ASSIGNMENT_EVIDENCE_INTAKE_ATTESTATION',
+      artifactPath: relative(root, artifactPath),
+    }, null, 2))
+    process.exit(0)
+  }
+
   const validation = validatePacket(payload, readFileSync(markdownPath, 'utf8'), expectedHeadSha)
   const result = {
     version: 1,

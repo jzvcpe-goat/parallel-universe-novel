@@ -81,8 +81,20 @@ assert(p85AgentBlockers.length === 0, `P85 current edge-only blocker ledger must
 assert(p85AgentInputs.length === 0, `P85 current edge-only required inputs must not ask for remote Agent proof: ${p85AgentInputs.join(', ')}`)
 assert(p85AgentEnvKeys.length === 0, `P85 current edge-only artifact must not ask for REMOTE_AGENT_* variables: ${p85AgentEnvKeys.join(', ')}`)
 assert(assignmentHealth, 'P85 must include remote-assignment-health-ready stage')
-for (const expected of ['data-api-service-id', 'data-api-origin', 'data-api-secrets-ready', 'data-api-health-ready']) {
-  assert(array(assignmentHealth.blocked).includes(expected), `P85 edge-only assignment health must expose ${expected}`)
+assert(
+  assignmentHealth.status === 'ready' || array(assignmentHealth.blocked).includes('data-api-health-ready'),
+  'P85 edge-only assignment health must preserve data-api-health-ready status',
+)
+for (const expected of [
+  'data API service id',
+  'data API HTTPS origin',
+  'publishable/RLS configuration attestation',
+  'data API health proof',
+]) {
+  assert(
+    array(assignmentHealth.requiredInputs).includes(expected),
+    `P85 edge-only assignment health must expose required input: ${expected}`,
+  )
 }
 
 const artifact = {

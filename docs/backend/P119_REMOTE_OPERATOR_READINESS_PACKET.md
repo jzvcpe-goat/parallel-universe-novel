@@ -87,7 +87,10 @@ The packet keeps these as operator-owned, out-of-repo inputs:
    mode.
 6. P107 counts `remote-operator-readiness-packet` as a downloaded content gate.
 7. P20/P45/P52 development docs include P119 in the remote activation chain.
-8. P119 preserves remote blockers instead of calling the runtime ready.
+8. P119 preserves remote blockers instead of calling the runtime ready. For the
+   current edge-only path, assignment/Data API health may be ready; origin,
+   live-readiness, trace, cutover and activation blockers remain until their own
+   evidence passes.
 9. P119 artifact flags prove no writes, service creation, GitHub variable
    mutation, credential storage, live promotion or fixture promotion.
 

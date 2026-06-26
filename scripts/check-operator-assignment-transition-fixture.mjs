@@ -183,6 +183,58 @@ assertIncludes('.github/workflows/pages.yml', [
 const headSha = currentHead()
 assert(headSha !== 'source-workspace-no-git', 'P133 requires git head in release repo mode')
 
+const currentP121 = latestArtifact(
+  'loop-next-goal-ledger-',
+  payload => payload.gate === 'P121_LOOP_NEXT_GOAL_LEDGER'
+    && (payload.headSha === headSha || !payload.headSha),
+  'current P121 loop next-goal ledger',
+)
+if (currentP121.payload.selectedGoal?.id !== 'operator-assignment-evidence-intake') {
+  const artifact = {
+    version: 1,
+    gate: 'P133_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE',
+    status: 'skipped_not_current_goal',
+    generatedAt: new Date().toISOString(),
+    repository: repo,
+    headSha,
+    selectedGoal: currentP121.payload.selectedGoal?.id || null,
+    reason: 'P121 has advanced beyond operator-assignment-evidence-intake',
+    sourceEvidence: {
+      loopNextGoalLedger: {
+        file: relative(root, currentP121.file),
+        selectedGoal: currentP121.payload.selectedGoal?.id || null,
+      },
+    },
+    transition: {
+      expectedNextGoalAfterOperatorReturn: 'not-required-current-goal-advanced',
+    },
+    boundary: {
+      writesProductionAssignment: false,
+      temporaryAssignmentOnly: false,
+      temporaryEnvOnly: false,
+      tempFilesRemoved: true,
+      createsRemoteServices: false,
+      setsGitHubVariables: false,
+      storesProviderSecrets: false,
+      promotesLiveRuntime: false,
+      treatsFixtureAsReady: false,
+      valuesIncluded: false,
+    },
+  }
+  const privateHits = scanNoPrivateTerms(artifact)
+  assert(privateHits.length === 0, `P133 artifact leaked private terms: ${privateHits.join(', ')}`)
+  mkdirSync(artifactDir, { recursive: true })
+  const artifactPath = join(artifactDir, `operator-assignment-transition-fixture-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+  writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)
+  console.log(JSON.stringify({
+    status: artifact.status,
+    gate: artifact.gate,
+    selectedGoal: artifact.selectedGoal,
+    artifactPath: relative(root, artifactPath),
+  }, null, 2))
+  process.exit(0)
+}
+
 const productionBefore = fingerprint(productionAssignmentPath)
 cleanup()
 mkdirSync(artifactDir, { recursive: true })

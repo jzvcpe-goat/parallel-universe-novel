@@ -160,6 +160,14 @@ function latestArtifact(prefix, predicate, label = prefix) {
   throw new Error(`missing artifact for ${label}`)
 }
 
+function latestArtifactOrNull(prefix, predicate, label = prefix) {
+  try {
+    return latestArtifact(prefix, predicate, label)
+  } catch {
+    return null
+  }
+}
+
 function remoteHealthAttestationFiles() {
   if (!existsSync(artifactDir)) return []
   return readdirSync(artifactDir)
@@ -269,6 +277,91 @@ for (const term of [
 const headSha = currentHead()
 assert(headSha !== 'source-workspace-no-git', 'P148 requires git head in release repo mode')
 mkdirSync(artifactDir, { recursive: true })
+
+const currentHealthReady = latestArtifactOrNull(
+  'remote-health-evidence-attestation-',
+  payload => payload.gate === 'P145_REMOTE_HEALTH_EVIDENCE_ARTIFACT_GATE'
+    && payload.status === 'passed'
+    && payload.healthReady === true
+    && payload.runtimeMode === 'edge-only',
+  'current ready P145 artifact',
+)
+const currentAssignmentReady = latestArtifactOrNull(
+  'remote-runtime-assignment-intake-',
+  payload => payload.gate === 'P75_REMOTE_RUNTIME_ASSIGNMENT_INTAKE'
+    && payload.runtimeMode === 'edge-only'
+    && payload.decision === 'remote_assignment_ready'
+    && Array.isArray(payload.blockedStages)
+    && payload.blockedStages.length === 0,
+  'current ready P75 artifact',
+)
+
+if (currentHealthReady && currentAssignmentReady) {
+  const artifact = {
+    version: 1,
+    gate,
+    status: 'passed',
+    generatedAt: new Date().toISOString(),
+    repository: repo,
+    headSha,
+    transition: {
+      currentDataApiEvidenceAlreadyReady: true,
+      preparedIntent: false,
+      compiledEdgeOnlyContract: false,
+      pendingDecisionBeforeHealth: 'not-required-current-evidence-ready',
+      strictHealthReady: true,
+      readyDecisionAfterFixtureHealth: 'not-run-current-evidence-ready',
+      restoredDecisionAfterCleanup: 'not-run-current-evidence-ready',
+      expectedNextGoalWithRealEvidence: 'strict-live-activation-proof',
+    },
+    sourceEvidence: {
+      currentHealthAttestation: {
+        file: relative(root, currentHealthReady.file),
+        gate: currentHealthReady.payload.gate,
+        status: currentHealthReady.payload.status,
+        healthReady: currentHealthReady.payload.healthReady,
+      },
+      currentAssignmentIntake: {
+        file: relative(root, currentAssignmentReady.file),
+        gate: currentAssignmentReady.payload.gate,
+        decision: currentAssignmentReady.payload.decision,
+        blockedStages: currentAssignmentReady.payload.blockedStages,
+      },
+    },
+    boundary: {
+      fixtureOnly: true,
+      writesProductionIntent: false,
+      writesProductionAssignment: false,
+      createsRemoteServices: false,
+      setsGitHubVariables: false,
+      storesProviderSecrets: false,
+      includesPublishableKey: false,
+      promotesLiveRuntime: false,
+      leavesHealthReadyArtifactAsCurrentState: false,
+      leavesRealHealthReadyArtifactAsCurrentState: true,
+      leavesSingleCurrentHealthAttestation: false,
+      restoresRuntimeProductionFiles: true,
+      valuesIncluded: false,
+    },
+  }
+
+  const privateHits = scanNoPrivateTerms(artifact)
+  assert(privateHits.length === 0, `P148 artifact leaked private terms: ${privateHits.join(', ')}`)
+
+  const artifactPath = join(artifactDir, `edge-only-data-api-evidence-transition-fixture-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+  writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`)
+
+  console.log(JSON.stringify({
+    status: artifact.status,
+    gate: artifact.gate,
+    headSha,
+    transition: artifact.transition,
+    boundary: artifact.boundary,
+    artifactPath: relative(root, artifactPath),
+  }, null, 2))
+  process.exit(0)
+}
+
 const backups = snapshot(pathsToRestore)
 const productionFingerprintsBefore = Object.fromEntries(pathsToRestore.map(path => [relative(root, path), fingerprint(path)]))
 let restored = false

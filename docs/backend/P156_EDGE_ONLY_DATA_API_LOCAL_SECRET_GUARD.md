@@ -74,6 +74,11 @@ Keeping these values in ignored local files is still required. That prevents
 environment mix-ups and prevents logs or evidence artifacts from copying full
 keys, even though publishable/anon keys are not private secrets.
 
+The public frontend is currently Vite/React, not Next.js. Supabase setup
+examples must therefore be translated to `VITE_*` variables plus a browser
+client helper. Do not add Next App Router files, middleware, `@supabase/ssr`, or
+`NEXT_PUBLIC_*` variables unless the frontend architecture changes first.
+
 ## Forbidden Local Inputs
 
 Because `remote-health:check` loads `.env.local` and `.env.local.sync`, these

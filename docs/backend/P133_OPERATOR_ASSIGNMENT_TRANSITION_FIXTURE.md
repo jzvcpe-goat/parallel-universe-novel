@@ -20,6 +20,12 @@ the temporary files. The fixture uses safe synthetic service ids and remote
 HTTPS origins; it must stop at `remote_assignment_pending_health` and must not
 claim live runtime readiness.
 
+P133 is active only while P121 selects
+`operator-assignment-evidence-intake`. After the loop advances to a later goal
+such as `strict-live-activation-proof`, P133 writes
+`skipped_not_current_goal` evidence and does not create the temporary env or
+assignment files.
+
 ## Commands
 
 ```bash
@@ -88,3 +94,6 @@ P133 verifies that:
 5. P133 preserves the health boundary and expected next goal:
    `remote-health-evidence-intake`.
 6. Pages uploads and validates the current-run P133 artifact.
+7. If P121 has advanced beyond `operator-assignment-evidence-intake`, P133 and
+   its artifact checker accept `skipped_not_current_goal` with no temporary or
+   production assignment writes.

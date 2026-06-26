@@ -127,6 +127,25 @@ function validatePacket(payload, expectedHeadSha) {
 
   assert(payload.version === 1, 'P133 artifact version must be 1')
   assert(payload.gate === 'P133_OPERATOR_ASSIGNMENT_TRANSITION_FIXTURE', 'P133 artifact gate mismatch')
+  if (payload.status === 'skipped_not_current_goal') {
+    assert(payload.repository === repo, 'P133 repository mismatch')
+    assert(payload.headSha === expectedHeadSha, `P133 headSha must match expected head ${expectedHeadSha}`)
+    assert(payload.selectedGoal && payload.selectedGoal !== 'operator-assignment-evidence-intake', 'P133 skipped artifact must name the advanced selected goal')
+    assert(payload.reason === 'P121 has advanced beyond operator-assignment-evidence-intake', 'P133 skipped reason mismatch')
+    assert(payload.sourceEvidence?.loopNextGoalLedger?.selectedGoal === payload.selectedGoal, 'P133 skipped ledger selected goal mismatch')
+    assert(payload.boundary?.writesProductionAssignment === false, 'P133 must not write production assignment')
+    assert(payload.boundary?.temporaryAssignmentOnly === false, 'P133 skipped path must not write temporary assignment')
+    assert(payload.boundary?.temporaryEnvOnly === false, 'P133 skipped path must not write temporary env')
+    assert(payload.boundary?.tempFilesRemoved === true, 'P133 temp files must be absent after skipped path')
+    assert(payload.boundary?.createsRemoteServices === false, 'P133 must not create remote services')
+    assert(payload.boundary?.setsGitHubVariables === false, 'P133 must not set GitHub variables')
+    assert(payload.boundary?.storesProviderSecrets === false, 'P133 must not store provider secrets')
+    assert(payload.boundary?.promotesLiveRuntime === false, 'P133 must not promote live runtime')
+    assert(payload.boundary?.treatsFixtureAsReady === false, 'P133 must not treat fixture as readiness')
+    assert(payload.boundary?.valuesIncluded === false, 'P133 must redact fixture values')
+    assert(privateMatches.length === 0, `P133 artifact leaked private terms: ${privateMatches.join(', ')}`)
+    return
+  }
   assert(payload.status === 'passed', 'P133 artifact status mismatch')
   assert(payload.repository === repo, 'P133 repository mismatch')
   assert(payload.headSha === expectedHeadSha, `P133 headSha must match expected head ${expectedHeadSha}`)

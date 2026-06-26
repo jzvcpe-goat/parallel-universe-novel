@@ -147,7 +147,8 @@ P85 artifacts must not include:
   after P89 without requiring remote assignment to be complete.
 - `check:edge-only-current-blocker-projection` validates that P85's current
   edge-only ledger does not reintroduce remote Agent blocker ids or
-  `REMOTE_AGENT_*` requirements.
+  `REMOTE_AGENT_*` requirements, and that Data API health status follows the
+  latest P75/P145/P150 proof instead of being forced blocked.
 - P85 blocks stale P72 image evidence with
   `runtime-image-evidence-current-head` instead of treating it as ready.
 - P85 pairs P89 handoff content with the selected P72 image evidence head before

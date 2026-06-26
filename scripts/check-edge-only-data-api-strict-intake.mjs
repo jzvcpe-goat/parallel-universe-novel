@@ -321,6 +321,16 @@ function latestGateStatus(prefix, gateName) {
   }
 }
 
+function p150ReadinessReady(p150) {
+  return p150.present
+    && p150.missingStages.length === 0
+    && (
+      p150.status === 'passed'
+      || p150.status === 'passed_ready_for_p142_completion_checks'
+      || p150.decision === 'edge_only_data_api_evidence_ready_for_strict_p142_chain'
+    )
+}
+
 function writeArtifact(payload) {
   mkdirSync(artifactDir, { recursive: true })
   const artifactPath = join(artifactDir, `edge-only-data-api-strict-intake-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
@@ -568,7 +578,7 @@ if (contractStatus.present && !contractStatus.runtimeModeEdgeOnly) missingStages
 if (contractStatus.remoteAgentRequired || contractStatus.remoteAgentHealthRequired) missingStages.push('compiled-contract-agent-boundary')
 if (!healthStatus.ready) missingStages.push('remote-health-ready')
 if (!p145.present || p145.status !== 'passed' || !p145.healthReady) missingStages.push('p145-health-attestation-ready')
-if (!p150.present || p150.status !== 'passed' || p150.missingStages.length > 0) missingStages.push('p150-readiness-ready')
+if (!p150ReadinessReady(p150)) missingStages.push('p150-readiness-ready')
 if (!p75.present || p75.blockedStages.includes('data-api-service-id') || p75.blockedStages.includes('data-api-origin') || p75.blockedStages.includes('data-api-secrets-ready') || p75.blockedStages.includes('data-api-health-ready')) {
   missingStages.push('p75-data-api-blockers-cleared')
 }

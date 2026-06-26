@@ -20,6 +20,12 @@ does not create remote services, does not set GitHub variables, does not store
 provider secrets, does not promote live runtime and does not change the
 selected next goal.
 
+P132 is active only while P121 selects
+`operator-assignment-evidence-intake`. After the loop advances to a later goal
+such as `strict-live-activation-proof`, P132 writes
+`skipped_not_current_goal` evidence that cites the current P121 ledger and keeps
+the same no-write/no-deploy boundary.
+
 ## Command
 
 ```bash
@@ -101,3 +107,6 @@ P132 verifies that:
 5. P130 refuses to create command-consistency evidence unless it points at the
    current P119 and P121 artifacts.
 6. Pages uploads and validates the current-run P132 artifact before P133.
+7. If P121 has advanced beyond `operator-assignment-evidence-intake`, P132
+   accepts `skipped_not_current_goal` instead of forcing stale P119/P120/P123
+   operator-assignment evidence to reappear.

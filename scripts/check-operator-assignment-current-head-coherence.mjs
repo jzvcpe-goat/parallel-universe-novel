@@ -148,6 +148,21 @@ function scanNoPrivateTerms(value) {
 function validateCoherence(payload, expectedHeadSha) {
   assert(payload.version === 1, 'P132 artifact version must be 1')
   assert(payload.gate === 'P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE', 'P132 artifact gate mismatch')
+  if (payload.status === 'skipped_not_current_goal') {
+    assert(payload.repository === repo, 'P132 repository mismatch')
+    assert(payload.headSha === expectedHeadSha, `P132 headSha must match expected head ${expectedHeadSha}`)
+    assert(payload.selectedGoal && payload.selectedGoal !== 'operator-assignment-evidence-intake', 'P132 skipped artifact must name the advanced selected goal')
+    assert(payload.reason === 'P121 has advanced beyond operator-assignment-evidence-intake', 'P132 skipped reason mismatch')
+    assert(payload.evidence?.loopNextGoalLedger?.selectedGoal === payload.selectedGoal, 'P132 skipped ledger selected goal mismatch')
+    assert(payload.boundary?.writesLocalAssignment === false, 'P132 must not write local assignment')
+    assert(payload.boundary?.createsRemoteServices === false, 'P132 must not create remote services')
+    assert(payload.boundary?.setsGitHubVariables === false, 'P132 must not set GitHub variables')
+    assert(payload.boundary?.storesProviderSecrets === false, 'P132 must not store provider secrets')
+    assert(payload.boundary?.promotesLiveRuntime === false, 'P132 must not promote live runtime')
+    const privateHits = scanNoPrivateTerms(payload)
+    assert(privateHits.length === 0, `P132 artifact leaked private terms: ${privateHits.join(', ')}`)
+    return
+  }
   assert(payload.status === 'passed', 'P132 artifact status mismatch')
   assert(payload.repository === repo, 'P132 repository mismatch')
   assert(payload.headSha === expectedHeadSha, `P132 headSha must match expected head ${expectedHeadSha}`)
@@ -233,6 +248,45 @@ function assertStaticWiring() {
 function buildLocalCoherence() {
   const headSha = currentHead()
   assert(headSha !== 'source-workspace-no-git', 'P132 requires git head in release repo mode')
+  const currentP121 = latestArtifact(
+    'loop-next-goal-ledger-',
+    payload => payload.gate === 'P121_LOOP_NEXT_GOAL_LEDGER'
+      && (payload.headSha === headSha || !payload.headSha),
+    'current P121 loop next-goal ledger',
+  )
+  if (currentP121.payload.selectedGoal?.id !== 'operator-assignment-evidence-intake') {
+    const payload = {
+      version: 1,
+      gate: 'P132_OPERATOR_ASSIGNMENT_CURRENT_HEAD_COHERENCE',
+      status: 'skipped_not_current_goal',
+      generatedAt: new Date().toISOString(),
+      repository: repo,
+      headSha,
+      selectedGoal: currentP121.payload.selectedGoal?.id || null,
+      reason: 'P121 has advanced beyond operator-assignment-evidence-intake',
+      targetAssignmentPath,
+      evidence: {
+        loopNextGoalLedger: {
+          file: rel(currentP121.file),
+          selectedGoal: currentP121.payload.selectedGoal?.id || null,
+        },
+      },
+      boundary: {
+        writesLocalAssignment: false,
+        createsRemoteServices: false,
+        setsGitHubVariables: false,
+        storesProviderSecrets: false,
+        promotesLiveRuntime: false,
+        emitsProviderPromptPlumbing: false,
+        emitsPrivateTitleMaterial: false,
+      },
+    }
+    validateCoherence(payload, headSha)
+    mkdirSync(artifactDir, { recursive: true })
+    const path = join(artifactDir, `operator-assignment-current-head-coherence-${new Date().toISOString().replace(/[:.]/g, '-')}.json`)
+    writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`)
+    return { payload, path, mode: 'local', runId: null, runUrl: null }
+  }
 
   const runtimeImages = latestArtifact(
     'runtime-image-publish-evidence-',

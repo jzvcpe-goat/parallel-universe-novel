@@ -196,11 +196,9 @@ function validatePacket(payload, markdownText, expectedHeadSha) {
     assert(commandText.includes(fragment), `P119 operator task sequence must include ${fragment}`)
   }
   assert(blockedStages.includes('activation-control'), 'P119 packet must preserve activation-control blocker')
+  assert(blockedStages.includes('remote-origin-executed'), 'P119 packet must preserve remote-origin-executed blocker')
+  assert(blockedStages.includes('remote-origin-provisioned'), 'P119 packet must preserve remote-origin-provisioned blocker')
   assert(blockedStages.includes('live-readiness'), 'P119 packet must preserve live-readiness blocker')
-  assert(
-    blockedStages.includes('remote-assignment-health-ready') || blockedStages.includes('remote-assignment-file-present'),
-    'P119 packet must preserve remote assignment file or health blocker',
-  )
   assert(payload.sourceEvidence?.strictRunPackage?.gate === 'P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE', 'P119 must cite P118 strict-run package')
   assert(payload.sourceEvidence?.strictRunAttestation?.gate === 'P118_REMOTE_ASSIGNMENT_STRICT_RUN_PACKAGE_ATTESTATION', 'P119 must cite P118 attestation')
   assert(payload.sourceEvidence?.blockerLedger?.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'P119 must cite P85 blocker ledger')

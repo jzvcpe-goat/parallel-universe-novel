@@ -134,6 +134,33 @@ function validateCommandConsistency(payload) {
   const privateMatches = scanNoPrivateTerms(payload)
   assert(payload.version === 1, 'P130 artifact version must be 1')
   assert(payload.gate === 'P130_OPERATOR_ASSIGNMENT_LOOP_COMMAND_CONSISTENCY', 'P130 artifact gate mismatch')
+  if (payload.status === 'skipped_not_current_goal') {
+    assert(payload.selectedGoal && payload.selectedGoal !== 'operator-assignment-evidence-intake', 'P130 skipped artifact must name the advanced selected goal')
+    assert(payload.reason === 'P121 has advanced beyond operator-assignment-evidence-intake', 'P130 skipped reason mismatch')
+    assertRuntimeArtifactPointer(payload.sourceReadinessPacketArtifact, 'sourceReadinessPacketArtifact')
+    assertRuntimeArtifactPointer(payload.sourceLedgerArtifact, 'sourceLedgerArtifact')
+    for (const key of [
+      'writesLocalAssignment',
+      'createsRemoteServices',
+      'setsGitHubVariables',
+      'storesProviderSecrets',
+      'promotesLiveRuntime',
+      'emitsConcreteServiceIds',
+      'emitsConcreteOrigins',
+      'emitsPromptPlumbing',
+      'emitsPrivateTitleMaterial',
+    ]) {
+      assert(payload.boundaries?.[key] === false, `P130 boundaries.${key} must be false`)
+    }
+    assert(privateMatches.length === 0, `P130 command consistency artifact leaked private terms: ${privateMatches.join(', ')}`)
+    return {
+      status: payload.status,
+      checkedGoal: null,
+      selectedGoal: payload.selectedGoal,
+      commandCount: payload.commandCount || 0,
+      legacyFragmentCount: payload.legacyFragmentCount,
+    }
+  }
   assert(payload.status === 'passed', 'P130 artifact status mismatch')
   assert(payload.checkedGoal === 'operator-assignment-evidence-intake', 'P130 checked goal mismatch')
   assert(payload.commandProfile === 'edge-only-runtime-assignment-compiler', 'P130 command profile mismatch')
@@ -256,6 +283,7 @@ try {
     mode,
     runId,
     checkedGoal: validation.checkedGoal,
+    selectedGoal: validation.selectedGoal || null,
     commandCount: validation.commandCount,
     artifactPath: relative(root, artifactPath),
   }, null, 2))

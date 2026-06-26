@@ -262,10 +262,8 @@ const blockedStages = Array.isArray(blockerLedger.payload.blockedStages)
     ? p118.blockedStages
     : []
 assert(blockedStages.includes('activation-control'), 'P119 must preserve activation-control blocker')
-assert(
-  blockedStages.includes('remote-assignment-health-ready') || blockedStages.includes('remote-assignment-file-present'),
-  'P119 must preserve remote assignment file or health blocker',
-)
+assert(blockedStages.includes('remote-origin-executed'), 'P119 must preserve remote-origin-executed blocker')
+assert(blockedStages.includes('remote-origin-provisioned'), 'P119 must preserve remote-origin-provisioned blocker')
 assert(blockedStages.includes('live-readiness'), 'P119 must preserve live-readiness blocker')
 
 const commands = Array.isArray(p118.strictRunPackage) ? p118.strictRunPackage : []

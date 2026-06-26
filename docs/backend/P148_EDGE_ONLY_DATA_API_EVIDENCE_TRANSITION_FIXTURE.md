@@ -22,6 +22,12 @@ service evidence, the current scripts can:
 7. leave exactly one current waiting P145 attestation for the public
    `remote-health-evidence` Pages artifact.
 
+After real production Data API health evidence has already passed, P148 no
+longer forces the workspace back to the pre-health state. In that case it
+writes a `currentDataApiEvidenceAlreadyReady=true` proof that cites current
+P145/P75 readiness and preserves the real health-ready artifact as current
+state.
+
 This is a fixture-only gate. It does not run `remote-health:check`, does not
 query Supabase, does not create services, does not set GitHub variables, does
 not store provider secrets, does not write canon, and does not promote live
@@ -75,18 +81,20 @@ remote-health evidence.
    npm run check:remote-health-evidence-artifact` accepts the production-shaped
    health projection.
 7. P148 proves P75 becomes `remote_assignment_ready` only during the fixture.
-8. P148 restores runtime-production generated files and writes a fresh waiting
-   P145 attestation afterward.
-9. P148 removes older P145 fixture attestations so the public
-   `remote-health-evidence` artifact contains exactly one current waiting
-   attestation.
+8. In pre-health fixture mode, P148 restores runtime-production generated files
+   and writes a fresh waiting P145 attestation afterward.
+9. In pre-health fixture mode, P148 removes older P145 fixture attestations so
+   the public `remote-health-evidence` artifact contains exactly one current
+   waiting attestation. In current-ready mode, it keeps the real health-ready
+   attestation and records `leavesRealHealthReadyArtifactAsCurrentState=true`.
 10. P148 does not leak full publishable/anon key values, service-role keys,
    writer passwords, model keys, provider prompt plumbing, source refs, profile
    ids, kernel ids, candidate text, or private reference material.
 
 ## Relationship To P142
 
-P148 does not complete P142. P142 still requires the real operator-run
-`remote-health:check` result against the production Data API. P148 only proves
-that the chain will accept the returned evidence and that the fixture cannot
-masquerade as production readiness.
+Before real operator evidence exists, P148 does not complete P142. P142 still
+requires the real operator-run `remote-health:check` result against the
+production Data API. After that result exists, P148 becomes a backward
+consistency proof: it confirms the chain has accepted the returned evidence and
+does not demote the current ready state back to the historical fixture state.
