@@ -718,6 +718,36 @@ npm run check:public-reader-bundle-boundary
 npm --prefix app run lint
 ```
 
+## 2026-06-26 Zero-Cost PMF Live Schema Gate
+
+The public Reader can be deployed before the Supabase PMF tables exist, but the
+project must not confuse a clean static deployment with a complete PMF loop. The
+live schema gate probes only table readiness and never prints the Supabase URL,
+project ref, publishable key, service-role key, provider key, prompt or provider
+response.
+
+Implementation notes:
+
+1. `check:zero-cost-pmf-live-schema` probes `health_probe`, `works`,
+   `branches`, `chapters`, `reader_requests` and `feature_flags` through the
+   public Data API using the browser-allowed publishable key.
+2. Default mode records `blocked_zero_cost_pmf_live_schema` when tables return
+   `PGRST205`, writes a redacted artifact under `artifacts/runtime/`, and exits
+   successfully so CI can keep shipping the static Reader boundary.
+3. Strict mode is the P0 data-layer acceptance gate:
+   `REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true npm run check:zero-cost-pmf-live-schema`.
+   It fails until `deploy/supabase/zero_cost_pmf_loop.sql` has been applied in
+   the Supabase SQL Editor and the Data API can see the tables.
+4. This gate does not create Supabase resources and does not require or store
+   database passwords, service-role keys or provider credentials.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-live-schema
+REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true npm run check:zero-cost-pmf-live-schema
+```
+
 ## 2026-06-26 Zero-Cost Reader QA Mode Split
 
 P0 PMF launch mode now treats public Reader QA and cloud/live Runtime QA as

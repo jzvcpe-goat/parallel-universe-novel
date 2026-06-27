@@ -43,6 +43,7 @@ const requiredFiles = [
   'app/src/features/pmf/types.ts',
   'deploy/supabase/zero_cost_pmf_loop.sql',
   'docs/backend/P170_ZERO_COST_PMF_LOOP.md',
+  'scripts/check-zero-cost-pmf-live-schema.mjs',
 ]
 
 requiredFiles.forEach(assertFile)
@@ -53,8 +54,10 @@ assertIncludes('app/package.json', '"dev:creator"', 'creator dev script')
 assertIncludes('app/package.json', '"build:reader"', 'reader build script')
 assertIncludes('app/package.json', '"build:creator"', 'creator build script')
 assertIncludes('package.json', '"check:zero-cost-pmf-loop"', 'root PMF check script')
+assertIncludes('package.json', '"check:zero-cost-pmf-live-schema"', 'root PMF live schema check script')
 assertIncludes('package.json', '"check:public-reader-bundle-boundary"', 'root Reader bundle boundary script')
 assertIncludes('package.json', 'npm run check:zero-cost-pmf-loop', 'root test chain includes PMF check')
+assertIncludes('package.json', 'npm run check:zero-cost-pmf-live-schema', 'root test chain includes PMF live schema check')
 assertIncludes('package.json', 'npm run check:public-reader-bundle-boundary', 'root test chain includes Reader bundle boundary check')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_URL', 'Pages Reader build receives Supabase URL')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'Pages Reader build receives Supabase publishable key')
