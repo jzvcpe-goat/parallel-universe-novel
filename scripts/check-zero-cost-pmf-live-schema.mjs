@@ -7,6 +7,7 @@ const strict = process.env.REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA === 'true'
 
 const requiredTables = [
   'health_probe',
+  'creator_authorizations',
   'works',
   'branches',
   'chapters',

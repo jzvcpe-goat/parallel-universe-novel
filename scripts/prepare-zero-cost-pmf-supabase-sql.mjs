@@ -53,6 +53,7 @@ function assertNoForbiddenTerms(text, label) {
 assert(existsSync(join(root, sqlRel)), `missing SQL file: ${sqlRel}`)
 const sql = readFileSync(join(root, sqlRel), 'utf8')
 assert(sql.includes('create table if not exists public.works'), 'SQL must create public.works')
+assert(sql.includes('create table if not exists public.creator_authorizations'), 'SQL must create public.creator_authorizations')
 assert(sql.includes('create table if not exists public.branches'), 'SQL must create public.branches')
 assert(sql.includes('create table if not exists public.chapters'), 'SQL must create public.chapters')
 assert(sql.includes('create table if not exists public.reader_requests'), 'SQL must create public.reader_requests')
@@ -65,6 +66,8 @@ assert(sql.includes("id in ('beacon-beyond', 'rain-bridge', 'jade-contract')"), 
 assert(sql.includes('with check') && sql.includes('author_id = (select auth.uid())'), 'starter work claim must write ownership to the current creator')
 assert(sql.includes("auth.jwt()) ->> 'is_anonymous'"), 'SQL must distinguish anonymous readers from non-anonymous creators')
 assert(sql.includes('Reader request/vote flows may be anonymous, but creator privileges require'), 'SQL must document the anonymous reader vs creator boundary')
+assert(sql.includes('creator authorizations self select'), 'SQL must expose creator authorizations only to the current authorized user')
+assert(sql.includes('creator_authorizations a where a.user_id = (select auth.uid())'), 'SQL must gate creator profile elevation through the creator_authorizations allowlist')
 assertNoForbiddenTerms(sql, sqlRel)
 
 let copiedToClipboard = false

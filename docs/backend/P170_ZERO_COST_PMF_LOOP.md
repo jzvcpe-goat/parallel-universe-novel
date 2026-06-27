@@ -26,8 +26,10 @@ This is the current P0 product goal for the beta release.
 - `check:zero-cost-pmf-loop`
 - `check:zero-cost-reader-edge-sync`
 - `check:zero-cost-pmf-supabase-sql`
+- `check:zero-cost-pmf-authenticated-boundary`
 - `check:zero-cost-pmf-live-schema`
 - `check:zero-cost-pmf-live-e2e`
+- `check:zero-cost-pmf-live-author-trace`
 - `check:edge-only-data-api-local-secret-guard`
 - `check:public-projection-privacy`
 - `scan:reference-privacy`
@@ -60,3 +62,36 @@ also use the `authenticated` Postgres role, so creator policies must check
 `auth.jwt()->>'is_anonymous'` before allowing profile role `creator`, starter
 work claiming, branch/chapter writes, request status mutation,
 `publish_events`, or `creator_clients`.
+
+Safety rule: `authenticated` is a transport role, not proof that the visitor is
+a trusted author. Reader-only policies may allow anonymous sessions to create
+their own pending request and vote once. Any creator or publication policy must
+bind ownership to `auth.uid()`, explicitly reject
+`(auth.jwt()->>'is_anonymous')::boolean = true`, and require the user to be in
+`creator_authorizations` before `role=creator` can be written or a localhost
+creator heartbeat can be accepted. The
+`check:zero-cost-pmf-authenticated-boundary` gate enforces this distinction.
+
+## Local Creator Author Trace
+
+The full P0 live proof requires one non-anonymous and allowlisted Local Creator
+author account. Before running the proof, create the Supabase auth user and add
+its `auth.users.id` to `public.creator_authorizations` from the Supabase SQL
+Editor. Do not use service-role keys or cloud AI credentials for this proof.
+Store the author email/password only in an ignored local env file or password
+manager, then run:
+
+```bash
+RUN_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true \
+REQUIRE_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true \
+ZERO_COST_PMF_CREATOR_EMAIL=<local-author-email> \
+ZERO_COST_PMF_CREATOR_PASSWORD=<local-author-password> \
+npm run check:zero-cost-pmf-live-author-trace
+```
+
+This gate creates a temporary published work, accepts an anonymous reader
+request, syncs it through a non-anonymous localhost creator heartbeat, publishes
+a chapter, writes `publish_events`, updates the request to `published`, and
+verifies the reader can see the published chapter. It stores only
+`local_draft_ref`, never prompt text, provider responses, model keys, or draft
+history.

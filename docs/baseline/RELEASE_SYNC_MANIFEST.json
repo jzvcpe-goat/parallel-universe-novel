@@ -370,6 +370,8 @@
     "scripts/check-time-engine-contract.mjs",
     "scripts/check-time-engine-telemetry-fit.mjs",
     "scripts/check-world-instance-writeback.mjs",
+    "scripts/check-zero-cost-pmf-authenticated-boundary.mjs",
+    "scripts/check-zero-cost-pmf-live-author-trace.mjs",
     "scripts/check-zero-cost-pmf-live-e2e.mjs",
     "scripts/check-zero-cost-pmf-live-schema.mjs",
     "scripts/check-zero-cost-pmf-loop.mjs",

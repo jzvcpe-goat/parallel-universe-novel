@@ -10,6 +10,12 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.creator_authorizations (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  note text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.works (
   id text primary key,
   author_id uuid references public.profiles(id) on delete set null,
@@ -121,6 +127,7 @@ create index if not exists idx_publish_events_request on public.publish_events(r
 create index if not exists idx_creator_clients_creator_seen on public.creator_clients(creator_id, last_seen_at desc);
 
 alter table public.profiles enable row level security;
+alter table public.creator_authorizations enable row level security;
 alter table public.works enable row level security;
 alter table public.branches enable row level security;
 alter table public.chapters enable row level security;
@@ -137,14 +144,24 @@ grant select (id, work_id, branch_id, chapter_no, title, content, status, publis
 grant select (id, work_id, branch_id, chapter_id, request_type, request_text, status, vote_count, published_chapter_id, published_branch_id, publish_event_id, created_at, updated_at) on public.reader_requests to anon, authenticated;
 grant select (id, reader_request_id, work_id, branch_id, published_chapter_id, published_branch_id, local_draft_ref, event_type, created_at) on public.publish_events to authenticated;
 grant select on public.feature_flags to anon, authenticated;
+grant select (user_id, created_at) on public.creator_authorizations to authenticated;
 grant select, insert, update on public.profiles, public.creator_clients to authenticated;
 grant insert, update on public.works, public.branches, public.chapters, public.reader_requests to authenticated;
 grant insert on public.request_votes, public.publish_events to authenticated;
 
 -- Supabase Anonymous Sign-Ins use the authenticated Postgres role too.
 -- Reader request/vote flows may be anonymous, but creator privileges require a
--- non-anonymous author session from the Local Creator App.
+-- non-anonymous and explicitly allowlisted author session from the Local Creator App.
 -- See auth.jwt()->>'is_anonymous'.
+
+drop policy if exists "creator authorizations self select" on public.creator_authorizations;
+create policy "creator authorizations self select"
+on public.creator_authorizations for select
+to authenticated
+using (
+  user_id = (select auth.uid())
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+);
 
 drop policy if exists "profiles self select" on public.profiles;
 create policy "profiles self select"
@@ -160,7 +177,10 @@ with check (
   (select auth.uid()) = id
   and (
     role <> 'creator'
-    or not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+    or (
+      not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+      and exists (select 1 from public.creator_authorizations a where a.user_id = (select auth.uid()))
+    )
   )
 );
 
@@ -173,7 +193,10 @@ with check (
   (select auth.uid()) = id
   and (
     role <> 'creator'
-    or not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+    or (
+      not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+      and exists (select 1 from public.creator_authorizations a where a.user_id = (select auth.uid()))
+    )
   )
 );
 
@@ -331,11 +354,19 @@ to authenticated
 using (
   creator_id = (select auth.uid())
   and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (
+    select 1 from public.profiles p
+    where p.id = (select auth.uid()) and p.role = 'creator'
+  )
 )
 with check (
   creator_id = (select auth.uid())
   and app_mode = 'localhost'
   and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (
+    select 1 from public.profiles p
+    where p.id = (select auth.uid()) and p.role = 'creator'
+  )
 );
 
 drop policy if exists "public feature flags are readable" on public.feature_flags;

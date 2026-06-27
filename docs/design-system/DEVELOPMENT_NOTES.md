@@ -686,6 +686,45 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-27 Zero-Cost PMF Authenticated Boundary
+
+Supabase Anonymous Sign-Ins solved the low-friction reader identity problem, but
+they also made one product/security rule non-negotiable: `authenticated` is only
+a Postgres/API transport role. It is not proof that a visitor is a trusted
+author; even a non-anonymous email user still needs explicit Local Creator
+authorization.
+
+Implementation notes:
+
+1. Reader identity can be anonymous for request creation and vote aggregation.
+   Those policies must bind rows to `auth.uid()` and keep request rows pending
+   with all creator/publish fields null.
+2. Creator privileges must explicitly reject anonymous sessions with
+   `auth.jwt()->>'is_anonymous'` and require `creator_authorizations` before
+   allowing creator profile elevation or localhost creator heartbeat. Starter
+   work claiming, branch/chapter writes, request status mutation, and
+   `publish_events` still bind to creator-owned works.
+3. `check:zero-cost-pmf-authenticated-boundary` now scans the PMF SQL and fails
+   if privileged `TO authenticated` policies omit the anonymous-user exclusion
+   or ownership/creator-authorization binding.
+4. `check:zero-cost-pmf-live-e2e` now reports reader request lifecycle state as
+   `requestStatus`, so gate status cannot be accidentally overwritten by the
+   business value `pending`.
+5. `check:zero-cost-pmf-live-author-trace` is the explicit live proof for the
+   second half of the PMF loop. It requires a non-anonymous Local Creator author
+   login from an ignored local env file plus an allowlist row in
+   `creator_authorizations`, then proves request sync, heartbeat, chapter
+   publish, request writeback, and `publish_events` trace without service-role
+   keys or cloud AI credentials.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-authenticated-boundary
+RUN_ZERO_COST_PMF_LIVE_E2E=true REQUIRE_ZERO_COST_PMF_LIVE_E2E=true npm run check:zero-cost-pmf-live-e2e
+RUN_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true REQUIRE_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true npm run check:zero-cost-pmf-live-author-trace
+```
+
 ## 2026-06-27 Zero-Cost PMF Anonymous Reader Boundary
 
 After applying the P0 Supabase schema in the live project, the strict schema
@@ -700,10 +739,11 @@ Implementation notes:
    sessions as reader-only. Anonymous users may create reader requests and vote,
    but creator profile creation, starter-work claiming, branch/chapter writes,
    request status mutation, publish-event writes and `creator_clients`
-   heartbeats require `auth.jwt()->>'is_anonymous'` to be false.
+   heartbeats require `auth.jwt()->>'is_anonymous'` to be false and, for author
+   elevation/heartbeat, a matching `creator_authorizations` row.
 2. `prepare:zero-cost-pmf-supabase-sql` and `check:zero-cost-pmf-loop` now
    assert that the SQL documents and enforces the anonymous-reader versus
-   non-anonymous-creator boundary.
+   allowlisted-creator boundary.
 3. Added `check:zero-cost-pmf-live-e2e`. It is included in root `npm run test`
    as a non-mutating opt-in gate, and only writes live Supabase test data when
    `RUN_ZERO_COST_PMF_LIVE_E2E=true` is explicitly set.
@@ -711,8 +751,9 @@ Implementation notes:
    reader request creation, vote aggregation, and rejection of anonymous
    escalation into creator profile/work-claim/creator-client heartbeat paths.
 5. This does not replace the human author-login publish proof. The remaining
-   product proof still requires a non-anonymous Local Creator session to handle
-   a request, publish a chapter or IF branch, and write `publish_events`.
+   product proof still requires a non-anonymous, allowlisted Local Creator
+   session to handle a request, publish a chapter or IF branch, and write
+   `publish_events`.
 
 Verification:
 

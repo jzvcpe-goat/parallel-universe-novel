@@ -131,7 +131,7 @@ try {
     throw new Error('reader request exposed publish fields before author confirmation')
   }
   requestId = request.id
-  steps.push(step('reader_request_create', 'passed', { requestId, status: request.status }))
+  steps.push(step('reader_request_create', 'passed', { requestId, requestStatus: request.status }))
 
   const { error: voteError } = await supabase
     .from('request_votes')
@@ -198,7 +198,7 @@ try {
   if (publicStatusError || publicStatus?.status !== 'pending') {
     throw new Error(`public request status not readable: ${redact(publicStatusError || 'missing status')}`)
   }
-  steps.push(step('reader_request_status_read', 'passed', { status: publicStatus.status }))
+  steps.push(step('reader_request_status_read', 'passed', { requestStatus: publicStatus.status }))
 } catch (error) {
   status = 'blocked_zero_cost_pmf_live_e2e'
   nextAction = redact(error)
