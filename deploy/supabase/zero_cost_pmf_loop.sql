@@ -141,6 +141,11 @@ grant select, insert, update on public.profiles, public.creator_clients to authe
 grant insert, update on public.works, public.branches, public.chapters, public.reader_requests to authenticated;
 grant insert on public.request_votes, public.publish_events to authenticated;
 
+-- Supabase Anonymous Sign-Ins use the authenticated Postgres role too.
+-- Reader request/vote flows may be anonymous, but creator privileges require a
+-- non-anonymous author session from the Local Creator App.
+-- See auth.jwt()->>'is_anonymous'.
+
 drop policy if exists "profiles self select" on public.profiles;
 create policy "profiles self select"
 on public.profiles for select
@@ -151,14 +156,26 @@ drop policy if exists "profiles self upsert" on public.profiles;
 create policy "profiles self upsert"
 on public.profiles for insert
 to authenticated
-with check ((select auth.uid()) = id);
+with check (
+  (select auth.uid()) = id
+  and (
+    role <> 'creator'
+    or not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  )
+);
 
 drop policy if exists "profiles self update" on public.profiles;
 create policy "profiles self update"
 on public.profiles for update
 to authenticated
 using ((select auth.uid()) = id)
-with check ((select auth.uid()) = id);
+with check (
+  (select auth.uid()) = id
+  and (
+    role <> 'creator'
+    or not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  )
+);
 
 drop policy if exists "published works are public" on public.works;
 create policy "published works are public"
@@ -172,6 +189,7 @@ on public.works for insert
 to authenticated
 with check (
   author_id = (select auth.uid())
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
   and exists (
     select 1 from public.profiles p
     where p.id = (select auth.uid()) and p.role = 'creator'
@@ -183,17 +201,23 @@ create policy "creators update own works"
 on public.works for update
 to authenticated
 using (
-  author_id = (select auth.uid())
-  or (
-    author_id is null
-    and id in ('beacon-beyond', 'rain-bridge', 'jade-contract')
-    and exists (
-      select 1 from public.profiles p
-      where p.id = (select auth.uid()) and p.role = 'creator'
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and (
+    author_id = (select auth.uid())
+    or (
+      author_id is null
+      and id in ('beacon-beyond', 'rain-bridge', 'jade-contract')
+      and exists (
+        select 1 from public.profiles p
+        where p.id = (select auth.uid()) and p.role = 'creator'
+      )
     )
   )
 )
-with check (author_id = (select auth.uid()));
+with check (
+  author_id = (select auth.uid())
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+);
 
 drop policy if exists "published branches are public" on public.branches;
 create policy "published branches are public"
@@ -208,8 +232,14 @@ drop policy if exists "creators write own branches" on public.branches;
 create policy "creators write own branches"
 on public.branches for all
 to authenticated
-using (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())))
-with check (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())));
+using (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+)
+with check (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+);
 
 drop policy if exists "published chapters are public" on public.chapters;
 create policy "published chapters are public"
@@ -224,8 +254,14 @@ drop policy if exists "creators write own chapters" on public.chapters;
 create policy "creators write own chapters"
 on public.chapters for all
 to authenticated
-using (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())))
-with check (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())));
+using (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+)
+with check (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+);
 
 drop policy if exists "public request status is readable" on public.reader_requests;
 create policy "public request status is readable"
@@ -254,8 +290,14 @@ drop policy if exists "creators update requests for own works" on public.reader_
 create policy "creators update requests for own works"
 on public.reader_requests for update
 to authenticated
-using (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())))
-with check (exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid())));
+using (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+)
+with check (
+  not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+  and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
+);
 
 drop policy if exists "readers vote once" on public.request_votes;
 create policy "readers vote once"
@@ -278,6 +320,7 @@ on public.publish_events for insert
 to authenticated
 with check (
   published_by = (select auth.uid())
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
   and exists (select 1 from public.works w where w.id = work_id and w.author_id = (select auth.uid()))
 );
 
@@ -285,8 +328,15 @@ drop policy if exists "creators manage own clients" on public.creator_clients;
 create policy "creators manage own clients"
 on public.creator_clients for all
 to authenticated
-using (creator_id = (select auth.uid()))
-with check (creator_id = (select auth.uid()) and app_mode = 'localhost');
+using (
+  creator_id = (select auth.uid())
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+)
+with check (
+  creator_id = (select auth.uid())
+  and app_mode = 'localhost'
+  and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false)
+);
 
 drop policy if exists "public feature flags are readable" on public.feature_flags;
 create policy "public feature flags are readable"

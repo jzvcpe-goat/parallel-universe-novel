@@ -62,7 +62,9 @@ assert(sql.includes('grant usage on schema public to anon, authenticated'), 'SQL
 assert(sql.includes("('cloud_ai_runtime_enabled', false"), 'SQL must keep cloud AI runtime disabled')
 assert(sql.includes('author_id is null'), 'SQL must allow the first creator to claim unowned starter works')
 assert(sql.includes("id in ('beacon-beyond', 'rain-bridge', 'jade-contract')"), 'starter work claim policy must be scoped to P0 seed works')
-assert(sql.includes('with check (author_id = (select auth.uid()))'), 'starter work claim must write ownership to the current creator')
+assert(sql.includes('with check') && sql.includes('author_id = (select auth.uid())'), 'starter work claim must write ownership to the current creator')
+assert(sql.includes("auth.jwt()) ->> 'is_anonymous'"), 'SQL must distinguish anonymous readers from non-anonymous creators')
+assert(sql.includes('Reader request/vote flows may be anonymous, but creator privileges require'), 'SQL must document the anonymous reader vs creator boundary')
 assertNoForbiddenTerms(sql, sqlRel)
 
 let copiedToClipboard = false

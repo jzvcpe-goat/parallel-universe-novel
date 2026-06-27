@@ -97,6 +97,8 @@ for (const table of [
 assertIncludes(sqlFile, 'grant select (id, work_id, branch_id, chapter_id, request_type, request_text, status, vote_count', 'reader_requests column-level public grant')
 assertIncludes(sqlFile, "('cloud_ai_runtime_enabled', false", 'cloud AI runtime disabled flag')
 assertIncludes(sqlFile, 'private.bump_reader_request_vote_count', 'private vote count trigger')
+assertIncludes(sqlFile, "auth.jwt()) ->> 'is_anonymous'", 'anonymous readers must be separated from creator privileges')
+assertIncludes(sqlFile, 'Reader request/vote flows may be anonymous, but creator privileges require', 'SQL must document Local Creator author-session boundary')
 assertNotIncludes(sqlFile, 'service_role', 'service role must not appear in PMF SQL')
 assertNotIncludes(sqlFile, 'provider_response', 'provider response must not be stored')
 assertNotIncludes(sqlFile, 'system_prompt', 'system prompt must not be stored')
@@ -109,6 +111,8 @@ assertNotIncludes('app/src/lib/pmfSupabase.ts', 'service_role', 'service role mu
 assertIncludes('app/src/lib/pmfSupabaseReader.ts', 'signInAnonymously', 'reader lightweight identity in reader wrapper')
 assertNotIncludes('app/src/lib/pmfSupabaseReader.ts', 'creator_clients', 'reader wrapper must not touch creator client heartbeats')
 assertNotIncludes('app/src/lib/pmfSupabaseReader.ts', 'LOCAL_AI_SETTINGS_KEY', 'reader wrapper must not touch local AI settings')
+assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', 'Enable `Allow anonymous sign-ins`', 'P170 must include Supabase Auth anonymous setup')
+assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', "auth.jwt()->>'is_anonymous'", 'P170 must document anonymous reader vs creator RLS boundary')
 
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', 'localhost mode', 'Local Creator localhost boundary')
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '人工确认并发布', 'manual publish confirmation')

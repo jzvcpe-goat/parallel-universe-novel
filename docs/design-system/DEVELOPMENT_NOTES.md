@@ -686,6 +686,43 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-27 Zero-Cost PMF Anonymous Reader Boundary
+
+After applying the P0 Supabase schema in the live project, the strict schema
+probe passed. The next boundary issue was not table creation, but identity
+semantics: Supabase Anonymous Sign-Ins also use the `authenticated` Postgres
+role, so RLS policies must not equate `to authenticated` with "real author
+login".
+
+Implementation notes:
+
+1. `deploy/supabase/zero_cost_pmf_loop.sql` now explicitly treats anonymous
+   sessions as reader-only. Anonymous users may create reader requests and vote,
+   but creator profile creation, starter-work claiming, branch/chapter writes,
+   request status mutation, publish-event writes and `creator_clients`
+   heartbeats require `auth.jwt()->>'is_anonymous'` to be false.
+2. `prepare:zero-cost-pmf-supabase-sql` and `check:zero-cost-pmf-loop` now
+   assert that the SQL documents and enforces the anonymous-reader versus
+   non-anonymous-creator boundary.
+3. Added `check:zero-cost-pmf-live-e2e`. It is included in root `npm run test`
+   as a non-mutating opt-in gate, and only writes live Supabase test data when
+   `RUN_ZERO_COST_PMF_LIVE_E2E=true` is explicitly set.
+4. The live E2E validates public flags, published starter content, anonymous
+   reader request creation, vote aggregation, and rejection of anonymous
+   escalation into creator profile/work-claim/creator-client heartbeat paths.
+5. This does not replace the human author-login publish proof. The remaining
+   product proof still requires a non-anonymous Local Creator session to handle
+   a request, publish a chapter or IF branch, and write `publish_events`.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-loop
+npm run check:zero-cost-pmf-supabase-sql
+REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true npm run check:zero-cost-pmf-live-schema
+RUN_ZERO_COST_PMF_LIVE_E2E=true REQUIRE_ZERO_COST_PMF_LIVE_E2E=true npm run check:zero-cost-pmf-live-e2e
+```
+
 ## 2026-06-26 Public Reader Bundle Boundary
 
 The Reader/Creator split must be verified at the built artifact level, not only
