@@ -194,7 +194,9 @@
     "check:operator-operations-continuity": "node scripts/check-operator-operations-continuity.mjs",
     "check:operator-operations-continuity-artifact": "node scripts/check-operator-operations-continuity-artifact.mjs",
     "prepare:zero-cost-pmf-supabase-sql": "node scripts/prepare-zero-cost-pmf-supabase-sql.mjs --copy --open",
-    "check:zero-cost-pmf-supabase-sql": "node scripts/prepare-zero-cost-pmf-supabase-sql.mjs --check"
+    "check:zero-cost-pmf-supabase-sql": "node scripts/prepare-zero-cost-pmf-supabase-sql.mjs --check",
+    "prepare:zero-cost-pmf-author-boundary-sql": "node scripts/prepare-zero-cost-pmf-author-boundary-sql.mjs --copy --open",
+    "check:zero-cost-pmf-author-boundary-sql": "node scripts/prepare-zero-cost-pmf-author-boundary-sql.mjs --check"
   },
   "keywords": [],
   "author": "",

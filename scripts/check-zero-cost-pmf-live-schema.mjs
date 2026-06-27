@@ -75,6 +75,17 @@ const missingTables = tableResults.filter(result => result.code === 'PGRST205').
 const failedTables = tableResults.filter(result => !result.ok).map(result => result.table)
 const ready = !missingConfig && failedTables.length === 0
 const status = ready ? 'passed_zero_cost_pmf_live_schema' : 'blocked_zero_cost_pmf_live_schema'
+const onlyMissingCreatorAuthorizations =
+  !missingConfig
+  && missingTables.length === 1
+  && missingTables[0] === 'creator_authorizations'
+  && failedTables.length === 1
+  && failedTables[0] === 'creator_authorizations'
+const nextAction = ready
+  ? 'Reader request / Local Creator sync / publish trace E2E can proceed.'
+  : onlyMissingCreatorAuthorizations
+    ? 'Run npm run prepare:zero-cost-pmf-author-boundary-sql, apply the copied delta in the Supabase SQL Editor, then rerun with REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true.'
+    : 'Apply deploy/supabase/zero_cost_pmf_loop.sql in the Supabase SQL Editor, then rerun with REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true.'
 
 const artifact = {
   gate: 'ZERO_COST_PMF_LIVE_SCHEMA',
@@ -88,9 +99,7 @@ const artifact = {
     failedTables,
     tableResults,
   },
-  nextAction: ready
-    ? 'Reader request / Local Creator sync / publish trace E2E can proceed.'
-    : 'Apply deploy/supabase/zero_cost_pmf_loop.sql in the Supabase SQL Editor, then rerun with REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true.',
+  nextAction,
 }
 
 mkdirSync(join(process.cwd(), 'artifacts/runtime'), { recursive: true })

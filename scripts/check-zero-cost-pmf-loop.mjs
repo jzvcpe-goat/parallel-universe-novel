@@ -42,8 +42,10 @@ const requiredFiles = [
   'app/src/lib/pmfSupabaseReader.ts',
   'app/src/features/pmf/types.ts',
   'deploy/supabase/zero_cost_pmf_loop.sql',
+  'deploy/supabase/zero_cost_pmf_author_boundary_delta.sql',
   'docs/backend/P170_ZERO_COST_PMF_LOOP.md',
   'scripts/prepare-zero-cost-pmf-supabase-sql.mjs',
+  'scripts/prepare-zero-cost-pmf-author-boundary-sql.mjs',
   'scripts/check-zero-cost-pmf-live-schema.mjs',
 ]
 
@@ -57,6 +59,8 @@ assertIncludes('app/package.json', '"build:creator"', 'creator build script')
 assertIncludes('package.json', '"check:zero-cost-pmf-loop"', 'root PMF check script')
 assertIncludes('package.json', '"prepare:zero-cost-pmf-supabase-sql"', 'root PMF Supabase SQL prepare script')
 assertIncludes('package.json', '"check:zero-cost-pmf-supabase-sql"', 'root PMF Supabase SQL check script')
+assertIncludes('package.json', '"prepare:zero-cost-pmf-author-boundary-sql"', 'root PMF author boundary SQL prepare script')
+assertIncludes('package.json', '"check:zero-cost-pmf-author-boundary-sql"', 'root PMF author boundary SQL check script')
 assertIncludes('package.json', '"check:zero-cost-pmf-live-schema"', 'root PMF live schema check script')
 assertIncludes('package.json', '"check:public-reader-bundle-boundary"', 'root Reader bundle boundary script')
 assertIncludes('package.json', 'npm run check:zero-cost-pmf-loop', 'root test chain includes PMF check')
@@ -105,6 +109,16 @@ assertNotIncludes(sqlFile, 'service_role', 'service role must not appear in PMF 
 assertNotIncludes(sqlFile, 'provider_response', 'provider response must not be stored')
 assertNotIncludes(sqlFile, 'system_prompt', 'system prompt must not be stored')
 assertNotIncludes(sqlFile, 'api_key', 'provider key must not be stored')
+
+const deltaSqlFile = 'deploy/supabase/zero_cost_pmf_author_boundary_delta.sql'
+assertIncludes(deltaSqlFile, 'create table if not exists public.creator_authorizations', 'delta creates creator authorizations')
+assertIncludes(deltaSqlFile, 'alter table public.creator_authorizations enable row level security', 'delta enables authorizations RLS')
+assertIncludes(deltaSqlFile, 'creator_authorizations a where a.user_id = (select auth.uid())', 'delta gates creator elevation by allowlist')
+assertIncludes(deltaSqlFile, 'creators manage own clients', 'delta hardens creator heartbeat')
+assertNotIncludes(deltaSqlFile, 'service_role', 'service role must not appear in PMF delta SQL')
+assertNotIncludes(deltaSqlFile, 'provider_response', 'provider response must not be stored in PMF delta SQL')
+assertNotIncludes(deltaSqlFile, 'system_prompt', 'system prompt must not be stored in PMF delta SQL')
+assertNotIncludes(deltaSqlFile, 'api_key', 'provider key must not be stored in PMF delta SQL')
 
 assertIncludes('app/src/lib/pmfSupabase.ts', 'signInAnonymously', 'reader lightweight identity')
 assertIncludes('app/src/lib/pmfSupabase.ts', 'LOCAL_AI_SETTINGS_KEY', 'local-only AI settings')

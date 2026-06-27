@@ -706,7 +706,10 @@ Implementation notes:
    `publish_events` still bind to creator-owned works.
 3. `check:zero-cost-pmf-authenticated-boundary` now scans the PMF SQL and fails
    if privileged `TO authenticated` policies omit the anonymous-user exclusion
-   or ownership/creator-authorization binding.
+   or ownership/creator-authorization binding. It also classifies every
+   `TO authenticated` policy as public read, reader-owned anonymous write,
+   self-scoped read, or creator-privileged write so new broad policies cannot
+   slip in silently.
 4. `check:zero-cost-pmf-live-e2e` now reports reader request lifecycle state as
    `requestStatus`, so gate status cannot be accidentally overwritten by the
    business value `pending`.
@@ -724,6 +727,30 @@ npm run check:zero-cost-pmf-authenticated-boundary
 RUN_ZERO_COST_PMF_LIVE_E2E=true REQUIRE_ZERO_COST_PMF_LIVE_E2E=true npm run check:zero-cost-pmf-live-e2e
 RUN_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true REQUIRE_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true npm run check:zero-cost-pmf-live-author-trace
 ```
+
+## 2026-06-27 Zero-Cost PMF Author Boundary Delta
+
+After the public Reader and anonymous request path were live, the strict schema
+gate was blocked only by `creator_authorizations`. In that state, rerunning the
+entire PMF schema is unnecessary operator risk: it is safer to provide a minimal
+idempotent delta that adds the allowlist table and replaces only the affected
+RLS policies.
+
+Implementation notes:
+
+1. `deploy/supabase/zero_cost_pmf_author_boundary_delta.sql` is the current
+   smallest live unblock. It creates `creator_authorizations`, enables RLS,
+   grants self-select access, gates `role=creator` profile writes through the
+   allowlist, and hardens Local Creator heartbeat to require an existing creator
+   profile.
+2. `prepare:zero-cost-pmf-author-boundary-sql` copies that delta to the
+   clipboard and opens the Supabase SQL Editor. The check mode verifies the SQL
+   contains no service-role, provider key, prompt, or provider-response markers.
+3. `check:zero-cost-pmf-loop` treats the delta as a first-class operator packet
+   while the full schema remains the clean first-install path.
+4. This does not complete P0 by itself. After applying the delta, the required
+   proof chain is strict live schema, anonymous reader E2E, then non-anonymous
+   allowlisted Local Creator author trace.
 
 ## 2026-06-27 Zero-Cost PMF Anonymous Reader Boundary
 

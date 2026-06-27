@@ -38,6 +38,18 @@ This is the current P0 product goal for the beta release.
 
 Apply `deploy/supabase/zero_cost_pmf_loop.sql` to the beta Supabase project before using the live PMF loop. The SQL explicitly enables RLS and grants Data API access for `anon` and `authenticated`, because new Supabase projects may not expose SQL-created tables automatically.
 
+If the live project already has the first PMF schema and strict schema is blocked
+only by `creator_authorizations`, use the smaller operator packet:
+
+```bash
+npm run prepare:zero-cost-pmf-author-boundary-sql
+```
+
+That copies `deploy/supabase/zero_cost_pmf_author_boundary_delta.sql` to the
+clipboard and opens the Supabase SQL Editor. The delta only adds the explicit
+creator allowlist table and replaces the related RLS policies; it does not touch
+seed works, chapters, reader requests, or feature flags.
+
 ## Supabase Auth
 
 Reader requests use Supabase Anonymous Sign-Ins as the P0 lightweight identity
@@ -71,6 +83,10 @@ bind ownership to `auth.uid()`, explicitly reject
 `creator_authorizations` before `role=creator` can be written or a localhost
 creator heartbeat can be accepted. The
 `check:zero-cost-pmf-authenticated-boundary` gate enforces this distinction.
+
+One-line rule: `authenticated` means the request has an identity context; trusted
+creator access still requires non-anonymous auth, explicit creator authorization,
+and row ownership.
 
 ## Local Creator Author Trace
 

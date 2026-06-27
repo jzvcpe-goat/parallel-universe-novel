@@ -172,14 +172,76 @@ if (publicReaderFailures.length > 0) {
   fail('public reader select policies must be explicit anon/authenticated policies', { publicReaderFailures })
 }
 
+const authenticatedPolicyNames = [...policies.entries()]
+  .filter(([, block]) => /\bto\s+(?:anon,\s*)?authenticated\b/i.test(block))
+  .map(([name]) => name)
+
+const selfScopedAuthenticatedPolicies = [
+  'creator authorizations self select',
+  'profiles self select',
+  'publish events are public trace',
+]
+const anonymousReaderWritePolicies = ['readers create own requests', 'readers vote once']
+const classifiedAuthenticatedPolicies = new Set([
+  ...creatorPrivilegedPolicies,
+  ...publicReaderPolicies,
+  ...selfScopedAuthenticatedPolicies,
+  ...anonymousReaderWritePolicies,
+])
+const unclassifiedAuthenticatedPolicies = authenticatedPolicyNames.filter(name => !classifiedAuthenticatedPolicies.has(name))
+if (unclassifiedAuthenticatedPolicies.length > 0) {
+  fail('every TO authenticated policy must be explicitly classified as public read, reader-owned anonymous write, self-scoped read, or creator-privileged write', {
+    unclassifiedAuthenticatedPolicies,
+  })
+}
+
+const selfScopedFailures = selfScopedAuthenticatedPolicies
+  .map(name => {
+    const block = policies.get(name)
+    return {
+      name,
+      bindsToAuthUid: block.includes('(select auth.uid())'),
+      hasDirectPublicAnonClause: /\bto\s+anon,\s*authenticated\b/i.test(block),
+    }
+  })
+  .filter(result => !result.bindsToAuthUid || result.hasDirectPublicAnonClause)
+if (selfScopedFailures.length > 0) {
+  fail('self-scoped authenticated policies must bind to auth.uid() and must not be public anon/authenticated reads', {
+    selfScopedFailures,
+  })
+}
+
+const anonymousReaderPolicyFailures = anonymousReaderWritePolicies
+  .map(name => {
+    const block = policies.get(name)
+    return {
+      name,
+      allowsAuthenticatedTransportRole: /\bto\s+authenticated\b/i.test(block),
+      bindsToAuthUid: block.includes('(select auth.uid())'),
+      excludesAnonymous: block.includes("auth.jwt()) ->> 'is_anonymous'"),
+    }
+  })
+  .filter(result => !result.allowsAuthenticatedTransportRole || !result.bindsToAuthUid || result.excludesAnonymous)
+if (anonymousReaderPolicyFailures.length > 0) {
+  fail('anonymous reader write policies must stay narrowly reader-owned and must not be confused with trusted creator policies', {
+    anonymousReaderPolicyFailures,
+  })
+}
+
 const artifact = {
   gate: 'ZERO_COST_PMF_AUTHENTICATED_BOUNDARY',
   status: 'passed',
   sqlPath,
   checkedPolicyCount: policies.size,
+  authenticatedPolicyCategories: {
+    publicReaderPolicies,
+    selfScopedAuthenticatedPolicies,
+    anonymousReaderWritePolicies,
+    creatorPrivilegedPolicies,
+  },
   creatorPrivilegedPolicies,
   creatorAuthorizationPolicy: 'creator authorizations self select',
-  anonymousReaderWritePolicies: ['readers create own requests', 'readers vote once'],
+  anonymousReaderWritePolicies,
   publicReaderPolicies,
   principle: 'authenticated is a transport role, not proof of a trusted allowlisted creator',
 }
