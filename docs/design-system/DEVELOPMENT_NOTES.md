@@ -733,6 +733,12 @@ The keep-alive workflow now accepts either `vars.*` or `secrets.*` values for
 Do not add service-role, secret, writer, provider, or model keys to the Reader
 build.
 
+Important gotcha: the final Pages artifact is produced by the later
+`Build Creator Studio` workflow step, not by the earlier browser QA build. Both
+the QA step and final build step must receive the same `VITE_SUPABASE_*`
+variables, or the public page can pass visual QA while shipping an unconfigured
+Reader.
+
 Verification:
 
 ```bash

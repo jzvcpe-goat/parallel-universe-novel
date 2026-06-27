@@ -21,6 +21,14 @@ function assertNotIncludes(file, text, label = text) {
   }
 }
 
+function assertMinOccurrences(file, text, minimum, label = text) {
+  const body = read(file)
+  const count = body.split(text).length - 1
+  if (count < minimum) {
+    throw new Error(`${file} expected at least ${minimum} occurrences of ${label}; found ${count}`)
+  }
+}
+
 function assertFile(file) {
   if (!fs.existsSync(path.join(root, file))) {
     throw new Error(`Missing required file: ${file}`)
@@ -47,6 +55,8 @@ assertIncludes('package.json', '"check:zero-cost-pmf-loop"', 'root PMF check scr
 assertIncludes('package.json', 'npm run check:zero-cost-pmf-loop', 'root test chain includes PMF check')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_URL', 'Pages Reader build receives Supabase URL')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'Pages Reader build receives Supabase publishable key')
+assertMinOccurrences('.github/workflows/pages.yml', 'VITE_SUPABASE_URL:', 4, 'VITE_SUPABASE_URL env binding')
+assertMinOccurrences('.github/workflows/pages.yml', 'VITE_SUPABASE_PUBLISHABLE_KEY:', 4, 'VITE_SUPABASE_PUBLISHABLE_KEY env binding')
 assertIncludes('.github/workflows/keep-supabase-alive.yml', 'vars.VITE_SUPABASE_URL', 'keep-alive accepts repository variables')
 assertIncludes('.github/workflows/keep-supabase-alive.yml', 'vars.VITE_SUPABASE_PUBLISHABLE_KEY', 'keep-alive accepts repository variables')
 
