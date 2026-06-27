@@ -9,7 +9,7 @@ import {
   requestStatusLabel,
   requestTypeLabel,
   voteForRequest,
-} from '@/lib/pmfSupabase'
+} from '@/lib/pmfSupabaseReader'
 import type { PmfReaderRequest, PmfRequestType } from '@/features/pmf/types'
 
 interface ReaderRequestPanelProps {
@@ -95,7 +95,7 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
           </div>
           <h2 className="mt-1 text-xl font-semibold text-[var(--ink-paper)]">想让作者继续写哪里？</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-muted)]">
-            请求会进入作者电脑上的 Local Creator App，不会触发云端 AI 生成。
+            请求会进入作者处理台，作者确认后更新正文或支线。
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={loadRequests}>

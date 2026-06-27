@@ -686,6 +686,38 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-26 Public Reader Bundle Boundary
+
+The Reader/Creator split must be verified at the built artifact level, not only
+at the route level. A public route can redirect `/create` or `/studio`, while
+the JavaScript bundle still accidentally contains localhost Creator code,
+creator-only table names, local AI settings copy, or publish workflow labels.
+
+Implementation notes:
+
+1. Reader requests now import `app/src/lib/pmfSupabaseReader.ts`, a reader-only
+   wrapper that can create anonymous reader identity, submit requests, read
+   public request status and vote. It does not touch `creator_clients`, local
+   AI settings, local drafts, publish events or author-only state mutation.
+2. Local Creator keeps using `app/src/lib/pmfSupabase.ts` for localhost-only
+   sync, draft and publish workflow.
+3. `check:public-reader-bundle-boundary` builds the Reader bundle and scans
+   `app/dist` for Creator-only markers such as Local Creator naming,
+   `creator_clients`, local AI settings, publish-page labels and `/creator/*`
+   routes.
+4. The Pages workflow runs the same bundle scan after its final build and
+   before uploading the GitHub Pages artifact. This catches the specific class
+   of bugs where an earlier QA build is clean but a later artifact build
+   overwrites `app/dist`.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-loop
+npm run check:public-reader-bundle-boundary
+npm --prefix app run lint
+```
+
 ## 2026-06-26 Zero-Cost Reader QA Mode Split
 
 P0 PMF launch mode now treats public Reader QA and cloud/live Runtime QA as

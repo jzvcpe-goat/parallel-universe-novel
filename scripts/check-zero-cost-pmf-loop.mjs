@@ -39,6 +39,7 @@ const requiredFiles = [
   'app/src/apps/creator/LocalCreatorApp.tsx',
   'app/src/apps/reader/ReaderRequestPanel.tsx',
   'app/src/lib/pmfSupabase.ts',
+  'app/src/lib/pmfSupabaseReader.ts',
   'app/src/features/pmf/types.ts',
   'deploy/supabase/zero_cost_pmf_loop.sql',
   'docs/backend/P170_ZERO_COST_PMF_LOOP.md',
@@ -52,7 +53,9 @@ assertIncludes('app/package.json', '"dev:creator"', 'creator dev script')
 assertIncludes('app/package.json', '"build:reader"', 'reader build script')
 assertIncludes('app/package.json', '"build:creator"', 'creator build script')
 assertIncludes('package.json', '"check:zero-cost-pmf-loop"', 'root PMF check script')
+assertIncludes('package.json', '"check:public-reader-bundle-boundary"', 'root Reader bundle boundary script')
 assertIncludes('package.json', 'npm run check:zero-cost-pmf-loop', 'root test chain includes PMF check')
+assertIncludes('package.json', 'npm run check:public-reader-bundle-boundary', 'root test chain includes Reader bundle boundary check')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_URL', 'Pages Reader build receives Supabase URL')
 assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'Pages Reader build receives Supabase publishable key')
 assertMinOccurrences('.github/workflows/pages.yml', 'VITE_SUPABASE_URL:', 4, 'VITE_SUPABASE_URL env binding')
@@ -65,6 +68,9 @@ assertNotIncludes('app/src/App.tsx', "import Studio from '@/pages/Studio'", 'Rea
 assertNotIncludes('app/src/pages/Home.tsx', '/create', 'public Home must not link to Creator')
 assertNotIncludes('app/src/pages/Library.tsx', '/create', 'public Library must not link to Creator')
 assertNotIncludes('app/src/pages/Account.tsx', '/create', 'public Account must not link to Creator')
+assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '@/lib/pmfSupabaseReader', 'Reader must use reader-only Supabase wrapper')
+assertNotIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', "@/lib/pmfSupabase'", 'Reader must not import creator-capable Supabase wrapper')
+assertNotIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', 'Local Creator App', 'Reader copy must not expose internal app name')
 
 const sqlFile = 'deploy/supabase/zero_cost_pmf_loop.sql'
 for (const table of [
@@ -93,9 +99,12 @@ assertIncludes('app/src/lib/pmfSupabase.ts', 'signInAnonymously', 'reader lightw
 assertIncludes('app/src/lib/pmfSupabase.ts', 'LOCAL_AI_SETTINGS_KEY', 'local-only AI settings')
 assertIncludes('app/src/lib/pmfSupabase.ts', 'local_draft_ref', 'local draft ref trace')
 assertNotIncludes('app/src/lib/pmfSupabase.ts', 'service_role', 'service role must not appear in client')
+assertIncludes('app/src/lib/pmfSupabaseReader.ts', 'signInAnonymously', 'reader lightweight identity in reader wrapper')
+assertNotIncludes('app/src/lib/pmfSupabaseReader.ts', 'creator_clients', 'reader wrapper must not touch creator client heartbeats')
+assertNotIncludes('app/src/lib/pmfSupabaseReader.ts', 'LOCAL_AI_SETTINGS_KEY', 'reader wrapper must not touch local AI settings')
 
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', 'localhost mode', 'Local Creator localhost boundary')
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '人工确认并发布', 'manual publish confirmation')
-assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '不会触发云端 AI', 'Reader no-cloud-AI copy')
+assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '作者确认后更新正文或支线', 'Reader request handoff copy')
 
 console.log('zero-cost PMF loop gate passed')

@@ -408,6 +408,7 @@ jobs:
 
       - name: Scan built Pages privacy
         run: |
+          PUBLIC_READER_BUNDLE_SKIP_BUILD=true npm run check:public-reader-bundle-boundary
           npm run scan:reference-privacy
           PUBLIC_PROJECTION_PRIVACY_SKIP_BUILD=true npm run check:public-projection-privacy
           npm run check:reference-work-encryption-completion
