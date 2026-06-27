@@ -740,10 +740,18 @@ Implementation notes:
    the Supabase SQL Editor and the Data API can see the tables.
 4. This gate does not create Supabase resources and does not require or store
    database passwords, service-role keys or provider credentials.
+5. `prepare:zero-cost-pmf-supabase-sql` is the operator handoff command for the
+   current blocked state. It validates the SQL boundary, copies
+   `deploy/supabase/zero_cost_pmf_loop.sql` to the clipboard, opens the Supabase
+   SQL Editor, and writes a redacted preparation artifact. CI uses the paired
+   `check:zero-cost-pmf-supabase-sql` command instead, so automated release
+   gates never open a browser or mutate Supabase.
 
 Verification:
 
 ```bash
+npm run check:zero-cost-pmf-supabase-sql
+npm run prepare:zero-cost-pmf-supabase-sql
 npm run check:zero-cost-pmf-live-schema
 REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true npm run check:zero-cost-pmf-live-schema
 ```
