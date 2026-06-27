@@ -125,8 +125,8 @@ function CreatorFrame({
             <div className="relative flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="gold">Local Creator App</Badge>
-                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? 'localhost mode' : '非本机入口'}</Badge>
+                  <Badge variant="gold">本地创作端</Badge>
+                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? '本机模式' : '非本机入口'}</Badge>
                   <Badge variant="outline">Cloud AI disabled</Badge>
                 </div>
                 <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-paper)] md:text-4xl">

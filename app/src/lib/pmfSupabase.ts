@@ -176,7 +176,7 @@ export async function upsertCreatorProfile(displayName: string): Promise<PmfResu
   const { data, error } = await supabase.auth.getUser()
   if (error) return errorResult(error, '作者身份读取失败。')
   const userId = data.user?.id
-  if (!userId) return { ok: false, message: '请先登录 Local Creator App。', code: 'creator_session_missing' }
+  if (!userId) return { ok: false, message: '请先登录本地创作端。', code: 'creator_session_missing' }
   const { error: profileError } = await supabase.from('profiles').upsert({
     id: userId,
     role: 'creator',
@@ -187,13 +187,13 @@ export async function upsertCreatorProfile(displayName: string): Promise<PmfResu
   return { ok: true, data: { userId } }
 }
 
-export async function syncCreatorClient(clientLabel = 'Local Creator App'): Promise<PmfResult<PmfCreatorClient>> {
+export async function syncCreatorClient(clientLabel = 'Creator App'): Promise<PmfResult<PmfCreatorClient>> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return clientUnavailable()
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError) return errorResult(userError, '作者身份读取失败。')
   const creatorId = userData.user?.id
-  if (!creatorId) return { ok: false, message: '请先登录 Local Creator App。', code: 'creator_session_missing' }
+  if (!creatorId) return { ok: false, message: '请先登录本地创作端。', code: 'creator_session_missing' }
 
   const now = new Date().toISOString()
   const { data, error } = await supabase.from('creator_clients')
@@ -201,8 +201,8 @@ export async function syncCreatorClient(clientLabel = 'Local Creator App'): Prom
       id: getLocalCreatorClientId(),
       creator_id: creatorId,
       client_label: clientLabel,
-      app_mode: 'localhost',
-      version: import.meta.env.VITE_APP_VERSION || 'p0-localhost',
+      app_mode: 'local',
+      version: import.meta.env.VITE_APP_VERSION || 'local-v1',
       online_status: 'online',
       last_seen_at: now,
       last_sync_at: now,
@@ -226,7 +226,7 @@ export async function ensureStarterWork(input: PmfStarterWorkInput): Promise<Pmf
     title: input.title,
     summary: input.summary,
     cover_url: input.coverUrl || null,
-    author_notice: input.authorNotice || '本作品正在 0 元内测中，读者请求会同步到作者本地创作端。',
+    author_notice: input.authorNotice || '读者请求会同步到作者端，作者确认后再发布更新。',
     status: 'published',
     updated_at: new Date().toISOString(),
   }
@@ -340,7 +340,7 @@ export async function publishChapter(input: PmfPublishInput): Promise<PmfResult<
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError) return errorResult(userError, '作者身份读取失败。')
   const creatorId = userData.user?.id
-  if (!creatorId) return { ok: false, message: '请先登录 Local Creator App。', code: 'creator_session_missing' }
+  if (!creatorId) return { ok: false, message: '请先登录本地创作端。', code: 'creator_session_missing' }
 
   const branchId = input.branchId || pmfMainBranchId(input.workId)
   const { error: branchError } = await supabase.from('branches').upsert({

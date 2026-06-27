@@ -57,8 +57,11 @@ assert(sql.includes('alter table public.creator_authorizations enable row level 
 assert(sql.includes('creator authorizations self select'), 'delta must add self-select policy')
 assert(sql.includes('creator_authorizations a where a.user_id = (select auth.uid())'), 'delta must gate creator profile elevation through allowlist')
 assert(sql.includes("auth.jwt()) ->> 'is_anonymous'"), 'delta must distinguish anonymous sessions')
-assert(sql.includes('creators manage own clients'), 'delta must harden Local Creator heartbeat policy')
+assert(sql.includes('creators manage own clients'), 'delta must harden creator heartbeat policy')
 assert(sql.includes("p.role = 'creator'"), 'delta must require creator profile before heartbeat')
+assert(sql.includes("app_mode = 'local'"), 'delta must use local app mode')
+assert(sql.includes("alter column app_mode set default 'local'"), 'delta must normalize local app mode default')
+assert(!sql.includes("and app_mode = 'localhost'"), 'delta policy must not allow legacy localhost app mode')
 assertNoForbiddenTerms(sql, sqlRel)
 
 let copiedToClipboard = false

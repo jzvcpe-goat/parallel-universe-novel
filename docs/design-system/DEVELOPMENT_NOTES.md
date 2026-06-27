@@ -686,6 +686,50 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-27 Supabase Production Schema Closure
+
+The Supabase PMF schema was tightened so production schema and demo data no
+longer share the same file. `deploy/supabase/zero_cost_pmf_loop.sql` is now the
+product schema only: tables, grants, RLS, constraints, triggers and baseline
+feature flags. Demo works moved to
+`deploy/supabase/seeds/demo_works.sql`, which is explicitly local-development
+only.
+
+Implementation notes:
+
+1. The production SQL must not hard-code starter work ids, cover paths, or the
+   old unowned-work claim compatibility path. A creator can create and update
+   only creator-owned works.
+2. Creator client storage now uses neutral database values:
+   `client_label = 'Creator App'`, `app_mode = 'local'`, and
+   `version = 'local-v1'`. The author-boundary delta keeps the compatibility
+   migration for existing rows, but the clean schema does not depend on legacy
+   values.
+3. `reader_requests` insert and update grants are column-scoped. Reader inserts
+   can write only request input fields, while creator updates can write only
+   processing/publish state fields.
+4. Reader request creation now validates that `work_id`, `branch_id`, and
+   `chapter_id` belong together and point at published public content.
+5. Public chapter reads now require the containing branch to be published.
+6. Publish-event writes now check creator role, work ownership, and
+   work/branch/chapter/request consistency.
+7. Backfill-risk FKs for branch parent chapters, chapter source requests,
+   request creator clients, and request publish events are added as `not valid`
+   so they constrain new writes without blocking existing dirty rows.
+8. `private.touch_updated_at()` now keeps mutable tables' `updated_at` columns
+   consistent.
+9. Live E2E no longer assumes demo works exist in production; it uses any
+   published work/branch and reports a clean blocker if no public content has
+   been published yet.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-supabase-sql
+npm run check:zero-cost-pmf-loop
+npm run check:zero-cost-pmf-authenticated-boundary
+```
+
 ## 2026-06-27 Zero-Cost PMF Authenticated Boundary
 
 Supabase Anonymous Sign-Ins solved the low-friction reader identity problem, but

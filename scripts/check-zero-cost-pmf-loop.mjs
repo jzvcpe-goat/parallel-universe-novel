@@ -43,6 +43,7 @@ const requiredFiles = [
   'app/src/features/pmf/types.ts',
   'deploy/supabase/zero_cost_pmf_loop.sql',
   'deploy/supabase/zero_cost_pmf_author_boundary_delta.sql',
+  'deploy/supabase/seeds/demo_works.sql',
   'docs/backend/P170_ZERO_COST_PMF_LOOP.md',
   'scripts/prepare-zero-cost-pmf-supabase-sql.mjs',
   'scripts/prepare-zero-cost-pmf-author-boundary-sql.mjs',
@@ -101,20 +102,43 @@ for (const table of [
 
 assertIncludes(sqlFile, 'grant select (id, work_id, branch_id, chapter_id, request_type, request_text, status, vote_count', 'reader_requests column-level public grant')
 assertIncludes(sqlFile, "('cloud_ai_runtime_enabled', false", 'cloud AI runtime disabled flag')
+assertIncludes(sqlFile, "('creator_app_enabled', true", 'neutral creator app feature flag')
+assertNotIncludes(sqlFile, "('local_creator_app_enabled'", 'legacy local creator feature flag must not remain in baseline flags')
 assertIncludes(sqlFile, 'private.bump_reader_request_vote_count', 'private vote count trigger')
+assertIncludes(sqlFile, 'private.touch_updated_at', 'updated_at trigger')
+assertIncludes(sqlFile, 'branches_parent_chapter_id_fkey', 'branches parent chapter FK')
+assertIncludes(sqlFile, 'chapters_source_request_id_fkey', 'chapters source request FK')
+assertIncludes(sqlFile, 'reader_requests_creator_client_id_fkey', 'reader request creator client FK')
+assertIncludes(sqlFile, 'reader_requests_publish_event_id_fkey', 'reader request publish event FK')
+assertIncludes(sqlFile, 'grant insert (work_id, branch_id, chapter_id, request_type, request_text)', 'reader request insert column grant')
+assertIncludes(sqlFile, 'grant update (\n  status,', 'reader request update column grant')
 assertIncludes(sqlFile, "auth.jwt()) ->> 'is_anonymous'", 'anonymous readers must be separated from creator privileges')
-assertIncludes(sqlFile, 'Reader request/vote flows may be anonymous, but creator privileges require', 'SQL must document Local Creator author-session boundary')
+assertIncludes(sqlFile, 'Reader request and vote flows may be anonymous, but creator privileges', 'SQL must document author-session boundary')
 assertIncludes(sqlFile, 'creator_authorizations', 'creator privileges must require an explicit author allowlist')
+assertNotIncludes(sqlFile, "id in ('beacon-beyond', 'rain-bridge', 'jade-contract')", 'production SQL must not hard-code demo work ids')
+assertNotIncludes(sqlFile, 'author_id is null', 'production SQL must not allow unowned demo work claiming')
+assertNotIncludes(sqlFile, '/parallel-assets/covers', 'production SQL must not contain demo cover paths')
+assertNotIncludes(sqlFile, "app_mode = 'localhost'", 'production SQL must not allow legacy localhost app mode')
+assertNotIncludes(sqlFile, "default 'localhost'", 'production SQL must not default to legacy localhost app mode')
+assertNotIncludes(sqlFile, 'p0-localhost', 'production SQL must not contain legacy P0 creator version')
 assertNotIncludes(sqlFile, 'service_role', 'service role must not appear in PMF SQL')
 assertNotIncludes(sqlFile, 'provider_response', 'provider response must not be stored')
 assertNotIncludes(sqlFile, 'system_prompt', 'system prompt must not be stored')
 assertNotIncludes(sqlFile, 'api_key', 'provider key must not be stored')
+
+assertIncludes('deploy/supabase/seeds/demo_works.sql', 'Do not run this seed in production.', 'demo seed must be marked non-production')
+assertIncludes('deploy/supabase/seeds/demo_works.sql', 'beacon-beyond', 'demo work seed must live outside production SQL')
+assertIncludes('deploy/supabase/seeds/demo_works.sql', '/parallel-assets/covers', 'demo cover paths must live outside production SQL')
 
 const deltaSqlFile = 'deploy/supabase/zero_cost_pmf_author_boundary_delta.sql'
 assertIncludes(deltaSqlFile, 'create table if not exists public.creator_authorizations', 'delta creates creator authorizations')
 assertIncludes(deltaSqlFile, 'alter table public.creator_authorizations enable row level security', 'delta enables authorizations RLS')
 assertIncludes(deltaSqlFile, 'creator_authorizations a where a.user_id = (select auth.uid())', 'delta gates creator elevation by allowlist')
 assertIncludes(deltaSqlFile, 'creators manage own clients', 'delta hardens creator heartbeat')
+assertIncludes(deltaSqlFile, "app_mode = 'local'", 'delta must use local app mode')
+assertIncludes(deltaSqlFile, "version = 'local-v1'", 'delta must normalize local creator version')
+assertNotIncludes(deltaSqlFile, "and app_mode = 'localhost'", 'delta policy must not allow legacy localhost app mode')
+assertNotIncludes(deltaSqlFile, "default 'localhost'", 'delta default must not use legacy localhost app mode')
 assertNotIncludes(deltaSqlFile, 'service_role', 'service role must not appear in PMF delta SQL')
 assertNotIncludes(deltaSqlFile, 'provider_response', 'provider response must not be stored in PMF delta SQL')
 assertNotIncludes(deltaSqlFile, 'system_prompt', 'system prompt must not be stored in PMF delta SQL')
@@ -131,7 +155,7 @@ assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', 'Enable `Allow anonymo
 assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', "auth.jwt()->>'is_anonymous'", 'P170 must document anonymous reader vs creator RLS boundary')
 assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', 'creator_authorizations', 'P170 must document explicit creator authorization')
 
-assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', 'localhost mode', 'Local Creator localhost boundary')
+assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '本机模式', 'Creator App local boundary')
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '人工确认并发布', 'manual publish confirmation')
 assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '作者确认后更新正文或支线', 'Reader request handoff copy')
 

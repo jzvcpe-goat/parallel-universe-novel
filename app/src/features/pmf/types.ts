@@ -72,7 +72,7 @@ export interface PmfCreatorClient {
   id: string
   creator_id: string
   client_label: string
-  app_mode: 'localhost'
+  app_mode: 'local'
   version: string
   online_status: 'online' | 'offline'
   last_seen_at: string
@@ -92,4 +92,3 @@ export interface PmfLocalDraft {
 export function pmfMainBranchId(workId: string) {
   return `${workId}:main`
 }
-

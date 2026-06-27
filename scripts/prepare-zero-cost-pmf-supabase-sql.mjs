@@ -6,6 +6,7 @@ import { join, relative, resolve } from 'node:path'
 
 const root = resolve(new URL('..', import.meta.url).pathname)
 const sqlRel = 'deploy/supabase/zero_cost_pmf_loop.sql'
+const demoSeedRel = 'deploy/supabase/seeds/demo_works.sql'
 const artifactDir = join(root, 'artifacts/runtime')
 const sqlEditorUrl = 'https://supabase.com/dashboard/project/ubvufgzojztmxlltsegn/sql/new'
 const checkOnly = process.argv.includes('--check')
@@ -51,7 +52,9 @@ function assertNoForbiddenTerms(text, label) {
 }
 
 assert(existsSync(join(root, sqlRel)), `missing SQL file: ${sqlRel}`)
+assert(existsSync(join(root, demoSeedRel)), `missing demo seed file: ${demoSeedRel}`)
 const sql = readFileSync(join(root, sqlRel), 'utf8')
+const demoSeed = readFileSync(join(root, demoSeedRel), 'utf8')
 assert(sql.includes('create table if not exists public.works'), 'SQL must create public.works')
 assert(sql.includes('create table if not exists public.creator_authorizations'), 'SQL must create public.creator_authorizations')
 assert(sql.includes('create table if not exists public.branches'), 'SQL must create public.branches')
@@ -61,14 +64,29 @@ assert(sql.includes('create table if not exists public.feature_flags'), 'SQL mus
 assert(sql.includes('alter table public.reader_requests enable row level security'), 'SQL must enable RLS on reader_requests')
 assert(sql.includes('grant usage on schema public to anon, authenticated'), 'SQL must grant Data API schema usage')
 assert(sql.includes("('cloud_ai_runtime_enabled', false"), 'SQL must keep cloud AI runtime disabled')
-assert(sql.includes('author_id is null'), 'SQL must allow the first creator to claim unowned starter works')
-assert(sql.includes("id in ('beacon-beyond', 'rain-bridge', 'jade-contract')"), 'starter work claim policy must be scoped to P0 seed works')
-assert(sql.includes('with check') && sql.includes('author_id = (select auth.uid())'), 'starter work claim must write ownership to the current creator')
+assert(sql.includes("('creator_app_enabled', true"), 'SQL must use neutral creator app feature flag')
+assert(sql.includes("app_mode = 'local'"), 'SQL must use local app mode')
+assert(sql.includes("version set default 'local-v1'"), 'SQL must normalize local creator version')
+assert(!sql.includes('author_id is null'), 'production SQL must not allow unowned demo work claiming')
+assert(!sql.includes("id in ('beacon-beyond', 'rain-bridge', 'jade-contract')"), 'production SQL must not hard-code demo work ids')
+assert(!sql.includes('/parallel-assets/covers'), 'production SQL must not seed demo cover paths')
+assert(!sql.includes('p0-localhost'), 'production SQL must not contain legacy p0-localhost value')
+assert(!sql.includes("app_mode = 'localhost'"), 'production SQL policy must not allow legacy localhost app mode')
+assert(!sql.includes("default 'localhost'"), 'production SQL default must not use legacy localhost mode')
+assert(!sql.includes("default 'Local Creator App'"), 'production SQL default must not use internal app label')
+assert(sql.includes('with check') && sql.includes('author_id = (select auth.uid())'), 'creator work writes must bind ownership to the current creator')
 assert(sql.includes("auth.jwt()) ->> 'is_anonymous'"), 'SQL must distinguish anonymous readers from non-anonymous creators')
-assert(sql.includes('Reader request/vote flows may be anonymous, but creator privileges require'), 'SQL must document the anonymous reader vs creator boundary')
+assert(sql.includes('Reader request and vote flows may be anonymous, but creator privileges'), 'SQL must document the anonymous reader vs creator boundary')
 assert(sql.includes('creator authorizations self select'), 'SQL must expose creator authorizations only to the current authorized user')
 assert(sql.includes('creator_authorizations a where a.user_id = (select auth.uid())'), 'SQL must gate creator profile elevation through the creator_authorizations allowlist')
+assert(sql.includes('reader_requests_creator_client_id_fkey'), 'SQL must add creator client FK consistency')
+assert(sql.includes('reader_requests_publish_event_id_fkey'), 'SQL must add publish event FK consistency')
+assert(sql.includes('private.touch_updated_at'), 'SQL must define updated_at trigger function')
+assert(sql.includes('grant insert (work_id, branch_id, chapter_id, request_type, request_text)'), 'SQL must column-scope reader request insert grant')
+assert(sql.includes('grant update (\n  status,'), 'SQL must column-scope reader request update grant')
 assertNoForbiddenTerms(sql, sqlRel)
+assert(demoSeed.includes('beacon-beyond'), 'demo seed must carry starter work data outside production SQL')
+assert(demoSeed.includes('Do not run this seed in production.'), 'demo seed must be marked non-production')
 
 let copiedToClipboard = false
 let openedSqlEditor = false

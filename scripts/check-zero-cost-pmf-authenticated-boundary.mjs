@@ -82,6 +82,9 @@ const creatorPolicyFailures = creatorPrivilegedPolicies
       hasAuthenticatedClause: /\bto\s+authenticated\b/i.test(block),
       excludesAnonymous: block.includes("auth.jwt()) ->> 'is_anonymous'") && /not\s+coalesce/i.test(block),
       bindsToAuthUid: block.includes('(select auth.uid())'),
+      requiresCreatorProfile:
+        ['profiles self upsert', 'profiles self update'].includes(name)
+        || block.includes("p.role = 'creator'"),
       requiresCreatorAuthorization:
         !['profiles self upsert', 'profiles self update'].includes(name)
         || block.includes('creator_authorizations'),
@@ -92,11 +95,12 @@ const creatorPolicyFailures = creatorPrivilegedPolicies
       !result.hasAuthenticatedClause
       || !result.excludesAnonymous
       || !result.bindsToAuthUid
+      || !result.requiresCreatorProfile
       || !result.requiresCreatorAuthorization,
   )
 
 if (creatorPolicyFailures.length > 0) {
-  fail('creator-privileged authenticated policies must reject anonymous users, bind ownership, and gate creator elevation through allowlist', {
+  fail('creator-privileged authenticated policies must reject anonymous users, bind ownership, require a creator profile, and gate creator elevation through allowlist', {
     creatorPolicyFailures,
   })
 }
@@ -142,6 +146,10 @@ const requestWriteNeedles = [
   'published_chapter_id is null',
   'published_branch_id is null',
   'publish_event_id is null',
+  'w.status = \'published\'',
+  'b.work_id = work_id',
+  'c.work_id = work_id',
+  'c.branch_id = branch_id',
 ]
 if (!includesAll(readerRequestPolicy, requestWriteNeedles)) {
   fail('anonymous reader request creation must be constrained to reader-owned pending requests without internal fields', {
@@ -150,11 +158,35 @@ if (!includesAll(readerRequestPolicy, requestWriteNeedles)) {
 }
 
 const readerVotePolicy = policies.get('readers vote once')
-if (!includesAll(readerVotePolicy, ['(select auth.uid()) is not null', 'reader_id = (select auth.uid())'])) {
+if (!includesAll(readerVotePolicy, ['(select auth.uid()) is not null', 'reader_id = (select auth.uid())', 'w.status = \'published\''])) {
   fail('anonymous reader vote policy must bind votes to auth.uid()', {
-    missingNeedles: ['(select auth.uid()) is not null', 'reader_id = (select auth.uid())'].filter(
+    missingNeedles: ['(select auth.uid()) is not null', 'reader_id = (select auth.uid())', 'w.status = \'published\''].filter(
       needle => !readerVotePolicy.includes(needle),
     ),
+  })
+}
+
+const publishedChaptersPolicy = policies.get('published chapters are public')
+const chapterPublicNeedles = ['b.id = branch_id', 'b.work_id = work_id', "b.status = 'published'"]
+if (!includesAll(publishedChaptersPolicy, chapterPublicNeedles)) {
+  fail('public chapter reads must require the containing branch to be published and work-consistent', {
+    missingNeedles: chapterPublicNeedles.filter(needle => !publishedChaptersPolicy.includes(needle)),
+  })
+}
+
+const publishEventPolicy = policies.get('creators write publish events for own works')
+const publishEventNeedles = [
+  "p.role = 'creator'",
+  'b.id = branch_id',
+  'b.work_id = work_id',
+  'rr.work_id = work_id',
+  'rr.branch_id = branch_id',
+  'published_chapter_id is null',
+  'published_branch_id is null',
+]
+if (!includesAll(publishEventPolicy, publishEventNeedles)) {
+  fail('publish event writes must be creator-owned and work/branch/chapter/request consistent', {
+    missingNeedles: publishEventNeedles.filter(needle => !publishEventPolicy.includes(needle)),
   })
 }
 

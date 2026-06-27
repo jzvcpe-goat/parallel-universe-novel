@@ -83,30 +83,32 @@ try {
   const { data: flags, error: flagsError } = await supabase
     .from('feature_flags')
     .select('key,enabled')
-    .in('key', ['cloud_ai_runtime_enabled', 'reader_requests_enabled', 'local_creator_app_enabled'])
+    .in('key', ['cloud_ai_runtime_enabled', 'reader_requests_enabled', 'creator_app_enabled'])
   if (flagsError) throw new Error(`feature flags blocked: ${redact(flagsError)}`)
   const flagMap = new Map((flags || []).map(item => [item.key, item.enabled]))
   if (flagMap.get('cloud_ai_runtime_enabled') !== false) throw new Error('cloud AI runtime flag must stay disabled')
   if (flagMap.get('reader_requests_enabled') !== true) throw new Error('reader requests flag must be enabled')
-  if (flagMap.get('local_creator_app_enabled') !== true) throw new Error('local creator flag must be enabled')
+  if (flagMap.get('creator_app_enabled') !== true) throw new Error('creator app flag must be enabled')
   steps.push(step('feature_flags', 'passed', { cloudAiRuntimeEnabled: false }))
 
-  const { data: work, error: workError } = await supabase
+  const { data: works, error: workError } = await supabase
     .from('works')
     .select('id,title,status')
-    .eq('id', 'beacon-beyond')
     .eq('status', 'published')
-    .single()
-  if (workError || !work?.id) throw new Error(`published starter work blocked: ${redact(workError || 'missing work')}`)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+  const work = works?.[0]
+  if (workError || !work?.id) throw new Error(`published work blocked: ${redact(workError || 'no published work; publish content or run a non-production demo seed')}`)
   steps.push(step('published_work_read', 'passed', { workId: work.id }))
 
-  const { data: branch, error: branchError } = await supabase
+  const { data: branches, error: branchError } = await supabase
     .from('branches')
     .select('id,work_id,status')
-    .eq('id', 'beacon-beyond:main')
+    .eq('work_id', work.id)
     .eq('status', 'published')
-    .single()
-  if (branchError || !branch?.id) throw new Error(`published main branch blocked: ${redact(branchError || 'missing branch')}`)
+    .limit(1)
+  const branch = branches?.[0]
+  if (branchError || !branch?.id) throw new Error(`published branch blocked: ${redact(branchError || 'no published branch for selected work')}`)
   steps.push(step('published_branch_read', 'passed', { branchId: branch.id }))
 
   const { data: authData, error: authError } = await supabase.auth.signInAnonymously()
@@ -177,7 +179,7 @@ try {
     .insert({
       creator_id: anonymousUserId,
       client_label: 'anonymous heartbeat probe',
-      app_mode: 'localhost',
+      app_mode: 'local',
       version: 'p0-live-e2e',
       online_status: 'online',
       last_seen_at: new Date().toISOString(),
