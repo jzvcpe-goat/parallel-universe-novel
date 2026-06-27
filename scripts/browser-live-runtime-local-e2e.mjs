@@ -11,6 +11,7 @@ const artifactDir = join(root, 'artifacts', 'visual-qa')
 const tempDir = mkdtempSync(join(tmpdir(), 'narrativeos-live-local-'))
 const children = []
 const logs = []
+let activeBrowser = null
 
 function logLine(prefix, chunk) {
   const text = chunk.toString()
@@ -182,6 +183,7 @@ async function runZeroCostReaderQa(mode) {
     launchOptions.executablePath = executablePath
   }
   const browser = await playwright.chromium.launch(launchOptions)
+  activeBrowser = browser
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
 
   await page.goto(`${appBaseUrl}/?qa=zero-cost-local-runtime`, { waitUntil: 'domcontentloaded' })
@@ -190,7 +192,7 @@ async function runZeroCostReaderQa(mode) {
 
   await page.goto(`${appBaseUrl}/#/story?qa=zero-cost-local-runtime`, { waitUntil: 'domcontentloaded' })
   await page.getByText('想让作者继续写哪里？').waitFor({ timeout: 15000 })
-  await page.getByText('不会触发云端 AI 生成').waitFor({ timeout: 15000 })
+  await page.getByText('作者确认后更新正文或支线').waitFor({ timeout: 15000 })
   await page.getByRole('button', { name: /发送请求/ }).waitFor({ timeout: 15000 })
 
   const bodyText = await page.locator('body').innerText()
@@ -202,6 +204,7 @@ async function runZeroCostReaderQa(mode) {
   const screenshotPath = join(artifactDir, `p15-live-runtime-e2e-${new Date().toISOString().replace(/[:.]/g, '-')}.png`)
   await page.screenshot({ path: screenshotPath, fullPage: true })
   await browser.close()
+  activeBrowser = null
 
   console.log(JSON.stringify({
     status: 'passed_zero_cost_reader',
@@ -222,6 +225,17 @@ function shutdown() {
     }
   }
   rmSync(tempDir, { recursive: true, force: true })
+}
+
+async function closeActiveBrowser() {
+  if (!activeBrowser) return
+  try {
+    await activeBrowser.close()
+  } catch {
+    // Best-effort cleanup; process shutdown still handles service children.
+  } finally {
+    activeBrowser = null
+  }
 }
 
 process.on('SIGINT', () => {
@@ -288,5 +302,6 @@ try {
   }
   process.exitCode = 1
 } finally {
+  await closeActiveBrowser()
   shutdown()
 }
