@@ -746,6 +746,11 @@ Implementation notes:
    SQL Editor, and writes a redacted preparation artifact. CI uses the paired
    `check:zero-cost-pmf-supabase-sql` command instead, so automated release
    gates never open a browser or mutate Supabase.
+6. P0 starter works are seeded without a known author. The SQL must let the
+   first authenticated creator claim only the fixed seed work ids, and the
+   `WITH CHECK` clause must force `author_id = auth.uid()`. Without this, the
+   Reader can submit requests but the Local Creator cannot bind the work or
+   publish chapters under RLS.
 
 Verification:
 

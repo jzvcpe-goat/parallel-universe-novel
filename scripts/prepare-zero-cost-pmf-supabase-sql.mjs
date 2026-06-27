@@ -60,6 +60,9 @@ assert(sql.includes('create table if not exists public.feature_flags'), 'SQL mus
 assert(sql.includes('alter table public.reader_requests enable row level security'), 'SQL must enable RLS on reader_requests')
 assert(sql.includes('grant usage on schema public to anon, authenticated'), 'SQL must grant Data API schema usage')
 assert(sql.includes("('cloud_ai_runtime_enabled', false"), 'SQL must keep cloud AI runtime disabled')
+assert(sql.includes('author_id is null'), 'SQL must allow the first creator to claim unowned starter works')
+assert(sql.includes("id in ('beacon-beyond', 'rain-bridge', 'jade-contract')"), 'starter work claim policy must be scoped to P0 seed works')
+assert(sql.includes('with check (author_id = (select auth.uid()))'), 'starter work claim must write ownership to the current creator')
 assertNoForbiddenTerms(sql, sqlRel)
 
 let copiedToClipboard = false

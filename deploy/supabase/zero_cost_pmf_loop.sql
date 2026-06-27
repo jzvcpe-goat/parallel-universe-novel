@@ -182,7 +182,17 @@ drop policy if exists "creators update own works" on public.works;
 create policy "creators update own works"
 on public.works for update
 to authenticated
-using (author_id = (select auth.uid()))
+using (
+  author_id = (select auth.uid())
+  or (
+    author_id is null
+    and id in ('beacon-beyond', 'rain-bridge', 'jade-contract')
+    and exists (
+      select 1 from public.profiles p
+      where p.id = (select auth.uid()) and p.role = 'creator'
+    )
+  )
+)
 with check (author_id = (select auth.uid()));
 
 drop policy if exists "published branches are public" on public.branches;
