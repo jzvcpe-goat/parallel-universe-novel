@@ -16,6 +16,10 @@ const allowedRuntimeVariables = new Set([
   'REMOTE_AGENT_SERVICE_ID',
   'REMOTE_API_SECRETS_CONFIGURED',
   'REMOTE_AGENT_SECRETS_CONFIGURED',
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_PUBLISHABLE_KEY',
+  'SUPABASE_URL',
+  'SUPABASE_PUBLISHABLE_KEY',
 ])
 
 function read(rel) {
@@ -104,7 +108,7 @@ function secretValueMatches(value) {
 
 function secretNameReason(name) {
   if (allowedRuntimeVariables.has(name)) return null
-  if (/(DATABASE|PASSWORD|PRIVATE|TOKEN|API_KEY|OPENAI|DEEPSEEK|MOONSHOT|KIMI|ANTHROPIC|SECRET)/i.test(name)) {
+  if (/(DATABASE|PASSWORD|PRIVATE|TOKEN|API_KEY|OPENAI|DEEPSEEK|MOONSHOT|KIMI|ANTHROPIC|SECRET|SERVICE_ROLE|WRITER)/i.test(name)) {
     return 'secret_like_repository_variable_name'
   }
   return null
@@ -122,6 +126,8 @@ function validateVariable(variable) {
   if (allowedRuntimeVariables.has(name)) {
     if (name === 'VITE_PUBLIC_RUNTIME_MODE' && !['disabled', 'live'].includes(value)) issues.push('invalid_runtime_mode')
     if (['VITE_API_ORIGIN', 'VITE_API_BASE_URL', 'VITE_AGENT_RUNTIME_BASE_URL'].includes(name) && value && !isRemoteHttps(value)) issues.push('invalid_public_https_origin')
+    if (['VITE_SUPABASE_URL', 'SUPABASE_URL'].includes(name) && value && !isRemoteHttps(value)) issues.push('invalid_supabase_https_origin')
+    if (['VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY'].includes(name) && value && !/^sb_publishable_[A-Za-z0-9_-]+$/.test(value)) issues.push('invalid_supabase_publishable_key')
     if (['REMOTE_API_SERVICE_ID', 'REMOTE_AGENT_SERVICE_ID'].includes(name) && isPlaceholder(value)) issues.push('placeholder_service_id')
     if (['REMOTE_API_SECRETS_CONFIGURED', 'REMOTE_AGENT_SECRETS_CONFIGURED'].includes(name) && value && !['true', 'false'].includes(value)) issues.push('invalid_secret_store_flag')
   }
@@ -156,18 +162,23 @@ assertIncludes('.github/workflows/pages.yml', [
   'REMOTE_AGENT_SERVICE_ID',
   'REMOTE_API_SECRETS_CONFIGURED',
   'REMOTE_AGENT_SECRETS_CONFIGURED',
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_PUBLISHABLE_KEY',
 ])
 assertIncludes('docs/backend/P16_PAGES_LIVE_RELEASE_GATE.md', [
   'P109 GitHub Runtime Variable Boundary Guard',
   'Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.',
+  'Supabase URL and publishable key are allowed public Data API variables when RLS is enabled.',
 ])
 assertIncludes('docs/backend/P20_REMOTE_RUNTIME_ACTIVATION_RUNBOOK.md', [
   'P109 GitHub Runtime Variable Boundary Guard',
   'never store database URLs, Tool Bridge token values, model keys or provider API tokens in repository variables',
+  'Supabase publishable keys are public client configuration, not service-role secrets.',
 ])
 assertIncludes('docs/backend/P76_LIVE_CUTOVER_ATTESTATION_GATE.md', [
   'P109 GitHub Runtime Variable Boundary Guard',
   'must not contain database URLs, Tool Bridge token values, model keys, private keys, provider API tokens',
+  'VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY may be present for the zero-cost Reader Data API.',
 ])
 
 const repoVars = tryGhVariables()

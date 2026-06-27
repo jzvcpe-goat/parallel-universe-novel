@@ -45,6 +45,10 @@ assertIncludes('app/package.json', '"build:reader"', 'reader build script')
 assertIncludes('app/package.json', '"build:creator"', 'creator build script')
 assertIncludes('package.json', '"check:zero-cost-pmf-loop"', 'root PMF check script')
 assertIncludes('package.json', 'npm run check:zero-cost-pmf-loop', 'root test chain includes PMF check')
+assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_URL', 'Pages Reader build receives Supabase URL')
+assertIncludes('.github/workflows/pages.yml', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'Pages Reader build receives Supabase publishable key')
+assertIncludes('.github/workflows/keep-supabase-alive.yml', 'vars.VITE_SUPABASE_URL', 'keep-alive accepts repository variables')
+assertIncludes('.github/workflows/keep-supabase-alive.yml', 'vars.VITE_SUPABASE_PUBLISHABLE_KEY', 'keep-alive accepts repository variables')
 
 assertNotIncludes('app/src/App.tsx', "import Create from '@/pages/Create'", 'Reader App must not import Create page')
 assertNotIncludes('app/src/App.tsx', "import Studio from '@/pages/Studio'", 'Reader App must not import Studio page')
@@ -85,4 +89,3 @@ assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '人工确认并发�
 assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '不会触发云端 AI', 'Reader no-cloud-AI copy')
 
 console.log('zero-cost PMF loop gate passed')
-

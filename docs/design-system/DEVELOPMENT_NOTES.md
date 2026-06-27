@@ -713,6 +713,33 @@ npm run check:pages-live-release-gate
 npm run check:ci-artifact-content-coverage
 ```
 
+## 2026-06-26 Zero-Cost Supabase Build Variables
+
+The public Reader can pass visual QA while still being unable to create reader
+requests if the Pages build does not receive Supabase's public client
+configuration. The publishable key is browser-safe when RLS and column grants
+are correct, but it still belongs in GitHub repository variables or secrets so
+environment-specific configuration does not drift into source code.
+
+Required Pages build variables:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+```
+
+The keep-alive workflow now accepts either `vars.*` or `secrets.*` values for
+`SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` and the Vite-prefixed equivalents.
+Do not add service-role, secret, writer, provider, or model keys to the Reader
+build.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-loop
+gh variable list --repo jzvcpe-goat/parallel-universe-novel
+```
+
 ## 2026-06-25 Vite Supabase Client Boundary
 
 The Supabase quick-start snippet received during edge-only Data API setup was a

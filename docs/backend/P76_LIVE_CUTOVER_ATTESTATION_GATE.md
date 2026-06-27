@@ -42,6 +42,7 @@ P109 GitHub Runtime Variable Boundary Guard validates this repository-variable
 surface. GitHub repository variables must not contain database URLs, Tool Bridge
 token values, model keys, private keys, provider API tokens, system prompts, raw
 state, or reference-vault contents.
+VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY may be present for the zero-cost Reader Data API.
 
 For the current `edge-only` topology, P76 must prefer the P75 runtime intent,
 committed public edge-only example, or generated edge-only contract over later

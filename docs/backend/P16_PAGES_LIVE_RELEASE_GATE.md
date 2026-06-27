@@ -166,6 +166,7 @@ This proves:
   limited to public runtime configuration and non-secret attestation. Do not put
   database URLs, Tool Bridge token values, model keys, private keys or provider
   API tokens in repository variables.
+  Supabase URL and publishable key are allowed public Data API variables when RLS is enabled.
   Do not put database URLs, Tool Bridge token values, model keys, private keys or provider API tokens in repository variables.
 - P110 Runtime Placeholder Sentinel Guard proves `FILL_*`, `REPLACE_ME`,
   `YOUR_*`, `TODO_*` and `<...>` placeholders cannot pass as real remote

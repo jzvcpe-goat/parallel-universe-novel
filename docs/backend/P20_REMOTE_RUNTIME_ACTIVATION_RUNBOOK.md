@@ -276,6 +276,7 @@ attestation: `REMOTE_API_SERVICE_ID`, `REMOTE_AGENT_SERVICE_ID`,
 `REMOTE_AGENT_SECRETS_CONFIGURED=true`. These are flags and service ids only;
 never store database URLs, Tool Bridge token values, model keys or provider API
 tokens in repository variables.
+Supabase publishable keys are public client configuration, not service-role secrets.
 never store database URLs, Tool Bridge token values, model keys or provider API tokens in repository variables.
 
 Use `deploy/runtime-production/origin.env.example` as the operator checklist.
