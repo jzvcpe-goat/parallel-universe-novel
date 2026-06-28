@@ -55,7 +55,7 @@ export interface LocalAiSettings {
 function clientUnavailable<T>(): PmfResult<T> {
   return {
     ok: false,
-    message: 'Supabase 尚未配置。请先设置 VITE_SUPABASE_URL 和 VITE_SUPABASE_PUBLISHABLE_KEY。',
+    message: '同步服务暂未开启，请稍后再试。',
     code: 'supabase_unconfigured',
   }
 }
@@ -164,7 +164,7 @@ export async function ensureAnonymousReader(): Promise<PmfResult<{ userId: strin
     return { ok: true, data: { userId: sessionData.session.user.id } }
   }
   const { data, error } = await supabase.auth.signInAnonymously()
-  if (error) return errorResult(error, '读者轻量身份创建失败。请确认 Supabase Anonymous Sign-Ins 已启用。')
+  if (error) return errorResult(error, '读者轻量身份创建失败，请刷新后再试。')
   const userId = data.user?.id
   if (!userId) return { ok: false, message: '读者轻量身份创建失败。', code: 'anonymous_user_missing' }
   return { ok: true, data: { userId } }
@@ -236,7 +236,7 @@ export async function ensureStarterWork(input: PmfStarterWorkInput): Promise<Pmf
     .select('id,title,summary,cover_url,status,author_notice,updated_at')
     .single()
 
-  if (error) return errorResult(error, '作品绑定失败。请确认当前账号是该作品作者，或先在 Supabase 执行 P0 schema。')
+  if (error) return errorResult(error, '作品绑定失败，请确认当前账号拥有作品管理权限。')
 
   const branchId = pmfMainBranchId(input.id)
   const { error: branchError } = await supabase.from('branches').upsert({
@@ -271,7 +271,7 @@ export async function createReaderRequest(input: PmfReaderRequestInput): Promise
     .select('id,work_id,branch_id,chapter_id,request_type,request_text,status,vote_count,published_chapter_id,published_branch_id,publish_event_id,created_at,updated_at')
     .single()
 
-  if (error) return errorResult(error, '请求提交失败。请确认 P0 Supabase schema 已执行，并启用 Anonymous Sign-Ins。')
+  if (error) return errorResult(error, '请求提交失败，请稍后再试。')
   return { ok: true, data: data as PmfReaderRequest }
 }
 
@@ -393,7 +393,7 @@ export async function publishChapter(input: PmfPublishInput): Promise<PmfResult<
     .select('id,reader_request_id,work_id,branch_id,published_chapter_id,published_branch_id,local_draft_ref,event_type,created_at')
     .single()
 
-  if (eventError) return errorResult(eventError, '发布 trace 写入失败。章节已创建，请在 Supabase 中核对 publish_events。')
+  if (eventError) return errorResult(eventError, '发布记录写入失败。章节已创建，请稍后核对发布状态。')
 
   if (input.requestId) {
     const { error: requestError } = await supabase.from('reader_requests')
@@ -408,7 +408,7 @@ export async function publishChapter(input: PmfPublishInput): Promise<PmfResult<
         updated_at: new Date().toISOString(),
       })
       .eq('id', input.requestId)
-    if (requestError) return errorResult(requestError, '请求发布状态回写失败。章节和 trace 已创建。')
+    if (requestError) return errorResult(requestError, '请求状态更新失败。章节已创建，请稍后刷新请求队列。')
   }
 
   return { ok: true, data: { chapter: chapter as PmfChapter, event: event as PmfPublishEvent } }

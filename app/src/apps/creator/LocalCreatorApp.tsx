@@ -60,6 +60,10 @@ function statusTone(status: PmfReaderRequest['status']) {
   return 'outline'
 }
 
+function workTitleForId(workId: string) {
+  return worldTemplates.find(template => template.id === workId)?.title || workId
+}
+
 function useCreatorSession() {
   const [session, setSession] = useState<CreatorSessionState>({ status: 'loading' })
 
@@ -101,10 +105,10 @@ function CreatorFrame({
   const activePath = location.pathname
   const isLocal = isLocalCreatorHost()
   const navItems = [
-    { id: 'creator-home', icon: 'studio', label: '工作台', href: '/creator' },
-    { id: 'creator-requests', icon: 'settings', label: '请求', href: '/creator/requests' },
-    { id: 'creator-editor', icon: 'create', label: '编辑', href: '/creator/editor' },
-    { id: 'creator-settings', icon: 'member', label: '设置', href: '/creator/settings' },
+    { id: 'creator-home', icon: 'studio', label: '总览', href: '/creator' },
+    { id: 'creator-requests', icon: 'settings', label: '请求队列', href: '/creator/requests' },
+    { id: 'creator-editor', icon: 'create', label: '草稿发布', href: '/creator/editor' },
+    { id: 'creator-settings', icon: 'member', label: '本机设置', href: '/creator/settings' },
   ]
 
   async function logout() {
@@ -114,26 +118,27 @@ function CreatorFrame({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--void)]">
+    <div className="local-creator-app flex h-screen overflow-hidden bg-[var(--void)]">
       <WorkspaceNav
         items={navItems.map(item => ({ ...item, active: activePath === item.href }))}
         onNavigate={href => navigate(href)}
       />
       <main className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-24 pt-4 md:ml-20 md:p-6">
         <div className="narrative-page space-y-5">
-          <header className="cosmic-board p-4 md:p-5">
+          <header className="local-creator-topbar p-4 md:p-5">
             <div className="relative flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="gold">本地创作端</Badge>
-                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? '本机模式' : '非本机入口'}</Badge>
-                  <Badge variant="outline">Cloud AI disabled</Badge>
+                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? '本机运行' : '入口异常'}</Badge>
+                  <Badge variant="outline">作者确认发布</Badge>
                 </div>
-                <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-paper)] md:text-4xl">
-                  本地作者工作台
+                <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-paper)] md:text-4xl lg:text-5xl">
+                  作者本机创作台
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--ink-muted)]">
-                  同步读者请求，在本机生成或手写草稿，人工确认后发布到 Supabase。模型 key、prompt 和本地草稿不会上传到云端。
+                  作者电脑上的请求处理台：同步读者请求，在本机生成或手写草稿，人工确认后发布章节和 IF 支线。
+                  授权信息、创作过程和未发布草稿都只留在作者电脑上。
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -164,9 +169,74 @@ function CreatorFrame({
   )
 }
 
+const localLoopCards = [
+  {
+    title: '读者请求',
+    detail: '阅读端提交下一章、支线和续写请求，进入作者队列。',
+    scope: '读者可见',
+    icon: Bell,
+  },
+  {
+    title: '本机同步',
+    detail: '确认作者端在线，并同步最新的读者请求。',
+    scope: '作者可见',
+    icon: Radio,
+  },
+  {
+    title: '本地草稿',
+    detail: '手写或本机生成，发布前不进入公开阅读端。',
+    scope: '本机保存',
+    icon: Save,
+  },
+  {
+    title: '发布回写',
+    detail: '人工确认后，章节和支线会同步到阅读端。',
+    scope: '公开更新',
+    icon: Send,
+  },
+]
+
+function LocalCreatorLoopPanel() {
+  return (
+    <Panel className="local-creator-loop p-5">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={18} className="text-[var(--manuscript-gold)]" />
+            <h2 className="text-xl font-semibold text-[var(--ink-paper)]">从请求到更新</h2>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
+            这里展示读者请求从阅读端进入作者本机、再回到阅读端更新的完整流程。
+            未发布内容只在本机保留，读者只会看到已确认发布的章节和支线。
+          </p>
+        </div>
+        <Badge variant="stasis">读者请求 → 本机处理 → 阅读端更新</Badge>
+      </div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-4">
+        {localLoopCards.map((card, index) => {
+          const Icon = card.icon
+          return (
+            <div key={card.title} className="local-creator-loop-card">
+              <div className="flex items-center justify-between gap-3">
+                <span className="local-creator-loop-index">{index + 1}</span>
+                <Icon size={17} className="text-[var(--worldline-cyan)]" />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-[var(--ink-paper)]">{card.title}</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{card.detail}</p>
+              <p className="mt-3 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-[11px] text-[var(--ink-dim)]">
+                {card.scope}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </Panel>
+  )
+}
+
 function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) {
   const [email, setEmail] = useState('')
-  const [notice, setNotice] = useState('使用 Supabase Magic Link 登录作者身份。')
+  const [notice, setNotice] = useState('输入作者邮箱，接收登录链接。')
   const [sending, setSending] = useState(false)
 
   async function sendLink() {
@@ -186,7 +256,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
             <h2 className="text-xl font-semibold text-[var(--ink-paper)]">作者登录</h2>
           </div>
           <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">
-            作者端只在本机运行。登录只用于 Supabase RLS 判断作品归属和发布权限，不会把本地模型配置带到云端。
+            作者端只在本机运行。登录用于确认你可以管理哪些作品，不会把本机创作设置带到公开阅读端。
           </p>
           <div className="mt-5 space-y-3">
             <Input
@@ -211,7 +281,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
         <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">本机边界</p>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
-            <li>模型 key 只保存在作者电脑，不写入 Supabase。</li>
+            <li>模型授权信息只保存在作者电脑。</li>
             <li>草稿先保存本地，发布前必须人工确认。</li>
             <li>公网阅读端只能看到已发布章节和请求状态。</li>
           </ul>
@@ -260,6 +330,7 @@ function DashboardPage() {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-4">
+        <LocalCreatorLoopPanel />
         <Panel className="p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -404,9 +475,9 @@ function RequestsPage() {
                   <Badge variant="outline">{requestTypeLabel(request.request_type)}</Badge>
                   <Badge variant="outline">{request.vote_count} 票</Badge>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[var(--ink-paper)]">{request.work_id}</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--ink-paper)]">{workTitleForId(request.work_id)}</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{request.request_text}</p>
-                <p className="mt-2 text-xs text-[var(--ink-dim)]">request_id: {request.id}</p>
+                <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(request.created_at).toLocaleString()}</p>
               </div>
               <div className="flex flex-wrap gap-2 lg:justify-end">
                 <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'acknowledged')}>已看到</Button>
@@ -482,7 +553,7 @@ function EditorPage() {
     }
     upsertLocalDraft(draft)
     setDrafts(readLocalDrafts())
-    setNotice(`已保存本地草稿：${draft.localDraftRef}`)
+    setNotice('已保存本地草稿。')
   }
 
   async function publish() {
@@ -499,7 +570,7 @@ function EditorPage() {
       content,
       localDraftRef: draftRef,
     })
-    setNotice(result.ok ? `已发布：${result.data.chapter.title}，trace=${result.data.event.id}` : result.message)
+    setNotice(result.ok ? `已发布：${result.data.chapter.title}，发布记录已生成。` : result.message)
     if (result.ok) {
       setDrafts(readLocalDrafts())
       await load()
@@ -514,7 +585,7 @@ function EditorPage() {
           <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本地草稿编辑</h2>
         </div>
         <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-          本页只在 localhost 使用。你可以接入本地模型，也可以直接手写；点击发布前不会写入公网阅读端。
+          本页只在作者电脑上使用。你可以接入本地模型，也可以直接手写；点击发布前不会写入公网阅读端。
         </p>
         <div className="mt-4 grid gap-3">
           <Input value={title} onChange={event => setTitle(event.target.value)} aria-label="章节标题" />
@@ -545,7 +616,7 @@ function EditorPage() {
             <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.025] p-3">
               <Badge variant={statusTone(selectedRequest.status)}>{requestStatusLabel(selectedRequest.status)}</Badge>
               <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{selectedRequest.request_text}</p>
-              <p className="mt-2 text-xs text-[var(--ink-dim)]">{selectedRequest.id}</p>
+              <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(selectedRequest.created_at).toLocaleString()}</p>
             </div>
           ) : (
             <p className="mt-3 text-sm text-[var(--ink-muted)]">暂无请求。</p>
@@ -562,11 +633,11 @@ function EditorPage() {
                 onClick={() => {
                   setTitle(draft.title)
                   setContent(draft.content)
-                  setNotice(`已打开本地草稿：${draft.localDraftRef}`)
+                  setNotice('已打开本地草稿。')
                 }}
               >
                 <span className="block font-semibold text-[var(--ink-paper)]">{draft.title}</span>
-                <span className="mt-1 block">{draft.localDraftRef}</span>
+                <span className="mt-1 block">{new Date(draft.updatedAt).toLocaleString()}</span>
               </button>
             ))}
             {!drafts.length && <p className="text-sm text-[var(--ink-dim)]">暂无本地草稿。</p>}
@@ -579,11 +650,11 @@ function EditorPage() {
 
 function SettingsPage() {
   const [settings, setSettings] = useState<LocalAiSettings>(() => readLocalAiSettings())
-  const [notice, setNotice] = useState('本页只保存本机连接偏好，不保存模型 key 明文。')
+  const [notice, setNotice] = useState('本页只保存本机连接偏好，不保存授权信息明文。')
 
   function save() {
     writeLocalAiSettings(settings)
-    setNotice('本机设置已保存。API key 请保存在你的本机密码管理器或本地模型工具中。')
+    setNotice('本机设置已保存。授权信息请保存在你的密码管理器或本地模型工具中。')
   }
 
   return (
@@ -591,7 +662,7 @@ function SettingsPage() {
       <Panel className="p-5">
         <div className="flex items-center gap-2">
           <Settings size={18} className="text-[var(--worldline-cyan)]" />
-          <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本地 AI 与同步设置</h2>
+          <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本机创作与同步设置</h2>
         </div>
         <div className="mt-4 grid gap-3">
           <label className="grid gap-2 text-sm text-[var(--ink-muted)]">
@@ -602,16 +673,16 @@ function SettingsPage() {
               onChange={event => setSettings(previous => ({ ...previous, provider: event.target.value as LocalAiSettings['provider'] }))}
             >
               <option value="manual">手写 / 外部工具粘贴</option>
-              <option value="local_endpoint">本地模型 endpoint</option>
-              <option value="openai_compatible">作者自带 OpenAI-compatible endpoint</option>
+              <option value="local_endpoint">本地模型服务</option>
+              <option value="openai_compatible">作者自带兼容服务</option>
             </select>
           </label>
           <label className="grid gap-2 text-sm text-[var(--ink-muted)]">
-            Base URL
-            <Input value={settings.baseUrl} onChange={event => setSettings(previous => ({ ...previous, baseUrl: event.target.value }))} placeholder="http://127.0.0.1:11434 或作者自带 endpoint" />
+            本机服务地址
+            <Input value={settings.baseUrl} onChange={event => setSettings(previous => ({ ...previous, baseUrl: event.target.value }))} placeholder="http://127.0.0.1:11434 或你的本机服务地址" />
           </label>
           <label className="grid gap-2 text-sm text-[var(--ink-muted)]">
-            Model
+            模型名称
             <Input value={settings.model} onChange={event => setSettings(previous => ({ ...previous, model: event.target.value }))} placeholder="本机模型名称" />
           </label>
           <label className="flex items-center gap-2 text-sm text-[var(--ink-muted)]">
@@ -620,7 +691,7 @@ function SettingsPage() {
               checked={settings.hasKey}
               onChange={event => setSettings(previous => ({ ...previous, hasKey: event.target.checked }))}
             />
-            我已在本机工具中配置作者自己的 key
+            我已在本机工具中配置创作授权信息
           </label>
           <Button variant="gold" onClick={save}>
             <CheckCircle2 size={15} />
@@ -632,13 +703,13 @@ function SettingsPage() {
       <Panel className="p-5">
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} className="text-[var(--manuscript-gold)]" />
-          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">边界证明</h2>
+          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">发布边界</h2>
         </div>
         <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
-          <li>公网 Reader build 不包含 Local Creator 入口。</li>
-          <li>Supabase 只保存发布结果、请求状态和 trace。</li>
-          <li>本机草稿、prompt、provider response、模型 key 不上传。</li>
-          <li>云端 AI Runtime 在 P0 明确关闭。</li>
+          <li>公网阅读端不提供创作入口。</li>
+          <li>平台只展示已发布内容、请求状态和发布记录。</li>
+          <li>本机草稿、创作过程和授权信息不会上传。</li>
+          <li>作者确认前，任何内容都不会公开给读者。</li>
         </ul>
       </Panel>
     </div>

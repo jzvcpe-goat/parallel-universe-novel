@@ -25,6 +25,13 @@ function defaultRequestText(type: PmfRequestType, choice?: string) {
   return '想看下一章。'
 }
 
+const readerFlow = [
+  { title: '提交请求', detail: '记录你想看的下一章或支线' },
+  { title: '投票聚合', detail: '重复想法会合并成热度' },
+  { title: '作者处理', detail: '同步到作者本机工作台' },
+  { title: '发布更新', detail: '确认后回到阅读端' },
+]
+
 export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoiceLabel }: ReaderRequestPanelProps) {
   const [requests, setRequests] = useState<PmfReaderRequest[]>([])
   const [requestType, setRequestType] = useState<PmfRequestType>(selectedChoiceLabel ? 'if_branch' : 'next_chapter')
@@ -106,6 +113,17 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
+          <div className="reader-request-flow mb-4">
+            {readerFlow.map((step, index) => (
+              <div key={step.title} className="reader-request-flow-step">
+                <span className="reader-request-flow-index">{index + 1}</span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-semibold text-[var(--ink-paper)]">{step.title}</span>
+                  <span className="mt-1 block text-[11px] leading-4 text-[var(--ink-dim)]">{step.detail}</span>
+                </span>
+              </div>
+            ))}
+          </div>
           <div className="flex flex-wrap gap-2">
             {(['next_chapter', 'if_branch', 'continue_branch'] as PmfRequestType[]).map(type => (
               <button

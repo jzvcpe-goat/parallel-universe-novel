@@ -1,5 +1,41 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-28 Reader / Creator Product Copy Boundary
+
+The Reader Web and Local Creator App now have separate product surfaces, but a
+UI split is not complete if engineering vocabulary leaks into visible copy.
+Backend capability mapping must be translated into product language before it
+appears on screen.
+
+Product UI rules:
+
+1. Reader UI should only describe reader actions: read, request, vote, save,
+   check update status, and return to newly published chapters or branches.
+2. Local Creator UI should describe author actions: sync requests, write or
+   generate locally, save local drafts, confirm publication, and review
+   published updates.
+3. Visible product copy must not mention implementation terms such as
+   `Supabase`, `RLS`, `schema`, `prompt`, `provider response`, `trace`,
+   `reader_requests`, `creator_clients`, `publish_events`, `request_id`,
+   `fallback`, `Cloud AI`, or `P0`.
+4. Internal implementation terms can stay in code, docs, scripts and evidence
+   artifacts, but they must be projected into reader- or author-facing language
+   before reaching UI.
+5. When backend functions are added, update the product affordance first:
+   what the reader can do, what the author can do, and what state becomes
+   visible. Do not expose table names, route names, provider plumbing or gate
+   names as a substitute for UX.
+
+Verification:
+
+```bash
+npm --prefix app run lint
+npm run build:reader
+npm run build:creator
+npm run scan:public-ui-boundary
+npm run check:public-reader-bundle-boundary
+```
+
 ## 2026-06-25 P178 Edge-Only Data API Evidence Completion Boundary
 
 After P177, the current release head is provider-neutral and the privacy gates
