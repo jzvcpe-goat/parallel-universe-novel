@@ -155,7 +155,7 @@ assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', 'Enable `Allow anonymo
 assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', "auth.jwt()->>'is_anonymous'", 'P170 must document anonymous reader vs creator RLS boundary')
 assertIncludes('docs/backend/P170_ZERO_COST_PMF_LOOP.md', 'creator_authorizations', 'P170 must document explicit creator authorization')
 
-assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '本机模式', 'Creator App local boundary')
+assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '本机运行', 'Creator App local boundary')
 assertIncludes('app/src/apps/creator/LocalCreatorApp.tsx', '人工确认并发布', 'manual publish confirmation')
 assertIncludes('app/src/apps/reader/ReaderRequestPanel.tsx', '作者确认后更新正文或支线', 'Reader request handoff copy')
 

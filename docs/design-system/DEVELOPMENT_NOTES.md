@@ -756,6 +756,40 @@ npm run check:runtime-assignment-intent-env-local-bootstrap
 npm run check:edge-only-data-api-evidence-readiness
 ```
 
+## 2026-06-28 Local Creator App Release Artifact
+
+The author-side UI is part of the zero-cost PMF release, but it must not become
+a public web author dashboard. The release workflow now builds the Local
+Creator App separately and uploads it as a GitHub Actions artifact while GitHub
+Pages continues to deploy the public Reader bundle.
+
+Implementation notes:
+
+1. `.github/workflows/pages.yml` builds `npm --prefix app run build:creator`
+   before the public Reader build and uploads `app/dist-creator` as the
+   `local-creator-app` artifact.
+2. `local-creator-app` is required only in current-run artifact checks, so older
+   successful Pages runs do not break local diagnostics before the first new
+   artifact exists.
+3. `check:zero-cost-pmf-loop` now verifies the Local Creator boundary through
+   the product-facing `本机运行` state instead of forcing old implementation copy
+   such as `本机模式` into the UI.
+4. Public Reader deployment still uploads only `app/dist`; the creator artifact
+   is for localhost distribution and QA, not a public backend surface.
+
+Verification:
+
+```bash
+npm run check:zero-cost-pmf-loop
+npm run build:creator
+npm run build:reader
+npm run check:release-workflow-ordering
+npm run check:pages-live-release-gate
+npm run check:public-reader-bundle-boundary
+npm run scan:public-ui-boundary
+npm run check:ci-artifact-content-coverage
+```
+
 ## 2026-06-27 Supabase Production Schema Closure
 
 The Supabase PMF schema was tightened so production schema and demo data no

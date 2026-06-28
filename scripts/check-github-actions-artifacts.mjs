@@ -15,6 +15,7 @@ if (checkCurrentRun) {
   defaultArtifacts.splice(
     1,
     0,
+    'local-creator-app',
     'live-cutover-attestation',
     'live-rollback-rehearsal',
     'remote-runtime-activation-control',

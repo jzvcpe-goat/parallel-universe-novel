@@ -392,6 +392,23 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Build Local Creator App
+        env:
+          VITE_ROUTER_MODE: hash
+          VITE_PUBLIC_RUNTIME_MODE: disabled
+          VITE_ALLOW_LOCAL_CREATOR_FALLBACK: false
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || vars.SUPABASE_URL || secrets.VITE_SUPABASE_URL || secrets.SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: npm --prefix app run build:creator
+
+      - name: Upload Local Creator App
+        uses: actions/upload-artifact@v7
+        with:
+          name: local-creator-app
+          path: app/dist-creator
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Creator Studio
         env:
           VITE_ROUTER_MODE: hash
