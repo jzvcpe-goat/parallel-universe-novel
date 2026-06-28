@@ -103,12 +103,22 @@ Store the author email/password only in an ignored local env file or password
 manager, then run:
 
 ```bash
+ZERO_COST_PMF_CREATOR_EMAIL=<local-author-email> \
+npm run prepare:zero-cost-pmf-creator-authorization-sql
+
 RUN_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true \
 REQUIRE_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true \
 ZERO_COST_PMF_CREATOR_EMAIL=<local-author-email> \
 ZERO_COST_PMF_CREATOR_PASSWORD=<local-author-password> \
 npm run check:zero-cost-pmf-live-author-trace
 ```
+
+`prepare:zero-cost-pmf-creator-authorization-sql` copies a minimal allowlist SQL
+packet to the clipboard and opens the Supabase SQL Editor. The command reads the
+author email from local env, but its terminal output and artifact do not print
+the email or password. The SQL only maps an existing Supabase Auth user into
+`creator_authorizations`; it does not change RLS policies, content tables, model
+configuration, prompts, provider responses, or cloud runtime state.
 
 This gate creates a temporary published work, accepts an anonymous reader
 request, syncs it through a non-anonymous local creator heartbeat, publishes a

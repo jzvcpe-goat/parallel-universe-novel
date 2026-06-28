@@ -796,6 +796,45 @@ Implementation notes:
    proof chain is strict live schema, anonymous reader E2E, then non-anonymous
    allowlisted Local Creator author trace.
 
+## 2026-06-28 Zero-Cost PMF Live Flag And Author Prep
+
+The live schema and anonymous Reader request path are now machine-proven against
+the production Supabase project. A drift in the live `feature_flags` row kept the
+runtime on the legacy `local_creator_app_enabled` key even after the schema was
+ready. The live E2E gate correctly blocked until the public flag projection
+contained `creator_app_enabled = true` and `cloud_ai_runtime_enabled = false`.
+
+Implementation notes:
+
+1. Do not infer SQL success from the Supabase SQL Editor result panel alone.
+   Verify live state through the same publishable Data API path used by the
+   Reader before claiming a gate is green.
+2. The accepted live flag projection is now:
+   `cloud_ai_runtime_enabled=false`, `reader_requests_enabled=true`, and
+   `creator_app_enabled=true`. The old `local_creator_app_enabled` key should
+   not remain in live `feature_flags`.
+3. `check:zero-cost-pmf-live-e2e` passed after the flag projection was fixed. It
+   proved anonymous readers can create and vote on requests, while anonymous
+   sessions cannot create creator profiles, claim works, or write Local Creator
+   heartbeats.
+4. `check:zero-cost-pmf-live-author-trace` is still intentionally blocked until
+   a non-anonymous author account exists, its `auth.users.id` is added to
+   `creator_authorizations`, and the local ignored env provides
+   `ZERO_COST_PMF_CREATOR_EMAIL` plus `ZERO_COST_PMF_CREATOR_PASSWORD`.
+5. `prepare:zero-cost-pmf-creator-authorization-sql` prepares that allowlist SQL
+   from local env without printing the email/password to terminal output or
+   artifacts. It only maps an existing Auth user to `creator_authorizations`;
+   it does not write content, prompts, provider responses, or model keys.
+
+Verification:
+
+```bash
+REQUIRE_ZERO_COST_PMF_LIVE_SCHEMA=true npm run check:zero-cost-pmf-live-schema
+RUN_ZERO_COST_PMF_LIVE_E2E=true npm run check:zero-cost-pmf-live-e2e
+ZERO_COST_PMF_CREATOR_EMAIL=<local-author-email> npm run prepare:zero-cost-pmf-creator-authorization-sql
+RUN_ZERO_COST_PMF_LIVE_AUTHOR_TRACE=true npm run check:zero-cost-pmf-live-author-trace
+```
+
 ## 2026-06-27 Zero-Cost PMF Anonymous Reader Boundary
 
 After applying the P0 Supabase schema in the live project, the strict schema

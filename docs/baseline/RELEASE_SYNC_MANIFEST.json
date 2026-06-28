@@ -384,6 +384,7 @@
     "scripts/prepare-loop-next-goal-local.mjs",
     "scripts/prepare-operator-evidence-return-fast-path.mjs",
     "scripts/prepare-zero-cost-pmf-author-boundary-sql.mjs",
+    "scripts/prepare-zero-cost-pmf-creator-authorization-sql.mjs",
     "scripts/prepare-zero-cost-pmf-supabase-sql.mjs",
     "scripts/prepare-remote-assignment-local.mjs",
     "scripts/prepare-runtime-assignment-intent-env-local.mjs",
