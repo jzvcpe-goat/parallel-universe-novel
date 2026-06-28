@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import {
   Bell,
@@ -6,8 +6,11 @@ import {
   CheckCircle2,
   Cpu,
   Edit3,
+  GitBranch,
   HeartPulse,
+  ListFilter,
   LogOut,
+  Megaphone,
   Radio,
   RefreshCw,
   Save,
@@ -23,7 +26,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { worldTemplates } from '@/features/parallel-universe/data'
 import type { WorldTemplate } from '@/features/parallel-universe/types'
-import { pmfMainBranchId, type PmfLocalDraft, type PmfReaderRequest } from '@/features/pmf/types'
+import { pmfMainBranchId, type PmfLocalDraft, type PmfReaderRequest, type PmfRequestStatus, type PmfRequestType } from '@/features/pmf/types'
 import {
   createLocalDraftRef,
   ensureStarterWork,
@@ -52,6 +55,10 @@ interface CreatorSessionState {
 }
 
 const starterWorks = worldTemplates.slice(0, 6)
+type RequestStatusFilter = 'all' | PmfRequestStatus
+type RequestTypeFilter = 'all' | PmfRequestType
+type RequestSort = 'heat' | 'newest' | 'status'
+type PublishMode = 'main' | 'if'
 
 function statusTone(status: PmfReaderRequest['status']) {
   if (status === 'published') return 'stasis'
@@ -62,6 +69,26 @@ function statusTone(status: PmfReaderRequest['status']) {
 
 function workTitleForId(workId: string) {
   return worldTemplates.find(template => template.id === workId)?.title || workId
+}
+
+function workSummaryForId(workId: string) {
+  return worldTemplates.find(template => template.id === workId)?.audiencePromise || '等待作者补充作品说明。'
+}
+
+function requestActionHint(request: PmfReaderRequest) {
+  if (request.status === 'published') return '已经更新，可复盘回访。'
+  if (request.status === 'rejected') return '已暂缓，可在公告里解释节奏。'
+  if (request.status === 'in_progress') return '建议进入草稿页继续处理。'
+  if (request.request_type === 'if_branch') return '适合先确定支线挂点和第一章标题。'
+  if (request.request_type === 'continue_branch') return '适合补足上一段的承诺和收束。'
+  return '适合直接起下一章。'
+}
+
+function branchIdForPublish(workId: string, mode: PublishMode, request: PmfReaderRequest | null) {
+  if (mode === 'main') return pmfMainBranchId(workId)
+  if (request?.branch_id && !request.branch_id.endsWith(':main')) return request.branch_id
+  const suffix = (request?.id || 'manual').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 18) || 'manual'
+  return `${workId}:if:${suffix}`
 }
 
 function useCreatorSession() {
@@ -108,6 +135,7 @@ function CreatorFrame({
     { id: 'creator-home', icon: 'studio', label: '总览', href: '/creator' },
     { id: 'creator-requests', icon: 'settings', label: '请求队列', href: '/creator/requests' },
     { id: 'creator-editor', icon: 'create', label: '草稿发布', href: '/creator/editor' },
+    { id: 'creator-works', icon: 'library', label: '作品支线', href: '/creator/works' },
     { id: 'creator-settings', icon: 'member', label: '本机设置', href: '/creator/settings' },
   ]
 
@@ -130,7 +158,7 @@ function CreatorFrame({
               <div>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="gold">本地创作端</Badge>
-                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? '本机运行' : '入口异常'}</Badge>
+                  <Badge variant={isLocal ? 'stasis' : 'destructive'}>{isLocal ? '本机运行' : '请在本机打开'}</Badge>
                   <Badge variant="outline">作者确认发布</Badge>
                 </div>
                 <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-paper)] md:text-4xl lg:text-5xl">
@@ -184,7 +212,7 @@ const localLoopCards = [
   },
   {
     title: '本地草稿',
-    detail: '手写或本机生成，发布前不进入公开阅读端。',
+    detail: '手写或本机生成，发布前不进入读者阅读端。',
     scope: '本机保存',
     icon: Save,
   },
@@ -256,7 +284,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
             <h2 className="text-xl font-semibold text-[var(--ink-paper)]">作者登录</h2>
           </div>
           <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">
-            作者端只在本机运行。登录用于确认你可以管理哪些作品，不会把本机创作设置带到公开阅读端。
+            作者端只在本机运行。登录用于确认你可以管理哪些作品，不会把本机创作设置带到读者阅读端。
           </p>
           <div className="mt-5 space-y-3">
             <Input
@@ -279,11 +307,11 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
           </div>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-          <p className="text-sm font-semibold text-[var(--ink-paper)]">本机边界</p>
+          <p className="text-sm font-semibold text-[var(--ink-paper)]">本机规则</p>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
             <li>模型授权信息只保存在作者电脑。</li>
             <li>草稿先保存本地，发布前必须人工确认。</li>
-            <li>公网阅读端只能看到已发布章节和请求状态。</li>
+            <li>读者阅读端只能看到已发布章节和请求状态。</li>
           </ul>
         </div>
       </div>
@@ -366,7 +394,7 @@ function DashboardPage() {
         <Panel className="p-5">
           <div className="flex items-center gap-2">
             <Radio size={18} className="text-[var(--manuscript-gold)]" />
-            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">本地端心跳</h2>
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">连接状态</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">{clientStatus}</p>
         </Panel>
@@ -376,7 +404,7 @@ function DashboardPage() {
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">生成边界</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
-            当前版本不会创建云端生成任务。你可以手写正文，或在设置中配置本机模型连接后自行生成草稿。
+            当前版本只在作者电脑上写作。你可以手写正文，也可以在本机工具里生成后粘贴到草稿。
           </p>
         </Panel>
       </aside>
@@ -422,10 +450,111 @@ function StarterWorksPanel() {
   )
 }
 
+function WorksPage() {
+  const [notice, setNotice] = useState('选择作品，补充给读者看的更新说明。')
+  const [authorNotices, setAuthorNotices] = useState<Record<string, string>>(() => Object.fromEntries(
+    starterWorks.map(template => [
+      template.id,
+      `本周优先处理《${template.title}》的高热请求。IF 支线会在作者确认后开放。`,
+    ]),
+  ))
+
+  async function bindWithNotice(template: WorldTemplate) {
+    const result = await ensureStarterWork({
+      id: template.id,
+      title: template.title,
+      summary: template.tagline,
+      coverUrl: template.coverImage,
+      authorNotice: authorNotices[template.id],
+    })
+    setNotice(result.ok ? `《${result.data.title}》已准备接收读者请求。` : result.message)
+  }
+
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="space-y-3">
+        <Panel className="p-5">
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} className="text-[var(--manuscript-gold)]" />
+            <h2 className="text-xl font-semibold text-[var(--ink-paper)]">作品与支线</h2>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
+        </Panel>
+        {starterWorks.map(template => (
+          <Panel key={template.id} className="p-5">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+              <div className="min-w-0">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="gold">{template.genre}</Badge>
+                  <Badge variant="outline">{template.choiceCount} 个选择</Badge>
+                  <Badge variant="outline">{template.chapterCount}</Badge>
+                </div>
+                <h3 className="mt-3 text-2xl font-semibold text-[var(--ink-paper)]">{template.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{template.tagline}</p>
+                <div className="mt-4 grid gap-2 md:grid-cols-3">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+                    <p className="text-xs text-[var(--ink-dim)]">主线</p>
+                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">默认连载线</p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+                    <p className="text-xs text-[var(--ink-dim)]">IF 支线</p>
+                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">按读者请求开放</p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+                    <p className="text-xs text-[var(--ink-dim)]">发布方式</p>
+                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">作者确认后公开</p>
+                  </div>
+                </div>
+              </div>
+              <Button variant="gold" onClick={() => bindWithNotice(template)}>
+                <CheckCircle2 size={15} />
+                启用作品
+              </Button>
+            </div>
+            <label className="mt-4 grid gap-2 text-sm text-[var(--ink-muted)]">
+              作者公告
+              <Textarea
+                className="min-h-[92px]"
+                value={authorNotices[template.id] || ''}
+                onChange={event => setAuthorNotices(previous => ({ ...previous, [template.id]: event.target.value }))}
+              />
+            </label>
+          </Panel>
+        ))}
+      </section>
+      <aside className="space-y-4">
+        <Panel className="p-5">
+          <div className="flex items-center gap-2">
+            <Megaphone size={18} className="text-[var(--worldline-cyan)]" />
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">公告怎么用</h2>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
+            公告用来告诉读者本周更新节奏、优先处理的支线和暂缓原因。它是作者运营作品的入口，不是使用说明书。
+          </p>
+        </Panel>
+        <Panel className="p-5">
+          <div className="flex items-center gap-2">
+            <GitBranch size={18} className="text-[var(--manuscript-gold)]" />
+            <h2 className="text-lg font-semibold text-[var(--ink-paper)]">支线规则</h2>
+          </div>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
+            <li>主线用于正常连载。</li>
+            <li>IF 支线来自读者请求或作者主动开放。</li>
+            <li>发布前可以保存本机草稿，发布后读者端才会看到更新。</li>
+          </ul>
+        </Panel>
+      </aside>
+    </div>
+  )
+}
+
 function RequestsPage() {
   const navigate = useNavigate()
   const [requests, setRequests] = useState<PmfReaderRequest[]>([])
   const [notice, setNotice] = useState('正在同步请求队列...')
+  const [statusFilter, setStatusFilter] = useState<RequestStatusFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<RequestTypeFilter>('all')
+  const [sortBy, setSortBy] = useState<RequestSort>('heat')
 
   async function load() {
     const result = await listCreatorRequests()
@@ -450,6 +579,19 @@ function RequestsPage() {
     return () => window.clearTimeout(timer)
   }, [])
 
+  const visibleRequests = useMemo(() => {
+    const filtered = requests.filter(request => {
+      const statusMatched = statusFilter === 'all' || request.status === statusFilter
+      const typeMatched = typeFilter === 'all' || request.request_type === typeFilter
+      return statusMatched && typeMatched
+    })
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      if (sortBy === 'status') return requestStatusLabel(a.status).localeCompare(requestStatusLabel(b.status), 'zh-Hans-CN')
+      return b.vote_count - a.vote_count || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }, [requests, sortBy, statusFilter, typeFilter])
+
   return (
     <Panel className="p-5">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -465,8 +607,56 @@ function RequestsPage() {
           同步
         </Button>
       </div>
+      <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.025] p-3">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--ink-paper)]">
+          <ListFilter size={16} className="text-[var(--worldline-cyan)]" />
+          先处理最有价值的请求
+        </div>
+        <div className="grid gap-3 lg:grid-cols-3">
+          <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+            处理状态
+            <select
+              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+              value={statusFilter}
+              onChange={event => setStatusFilter(event.target.value as RequestStatusFilter)}
+            >
+              <option value="all">全部状态</option>
+              <option value="pending">已收到</option>
+              <option value="acknowledged">作者已看到</option>
+              <option value="in_progress">作者处理中</option>
+              <option value="published">已发布</option>
+              <option value="rejected">暂不处理</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+            请求类型
+            <select
+              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+              value={typeFilter}
+              onChange={event => setTypeFilter(event.target.value as RequestTypeFilter)}
+            >
+              <option value="all">全部类型</option>
+              <option value="next_chapter">请求下一章</option>
+              <option value="if_branch">请求 IF 支线</option>
+              <option value="continue_branch">请求继续这条支线</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+            排序
+            <select
+              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+              value={sortBy}
+              onChange={event => setSortBy(event.target.value as RequestSort)}
+            >
+              <option value="heat">按热度</option>
+              <option value="newest">按最新</option>
+              <option value="status">按状态</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <div className="mt-4 space-y-3">
-        {requests.map(request => (
+        {visibleRequests.map(request => (
           <div key={request.id} className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
             <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-start">
               <div className="min-w-0">
@@ -476,8 +666,12 @@ function RequestsPage() {
                   <Badge variant="outline">{request.vote_count} 票</Badge>
                 </div>
                 <p className="mt-3 text-sm font-semibold text-[var(--ink-paper)]">{workTitleForId(request.work_id)}</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--ink-dim)]">{workSummaryForId(request.work_id)}</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{request.request_text}</p>
                 <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(request.created_at).toLocaleString()}</p>
+                <p className="mt-2 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs leading-5 text-[var(--ink-muted)]">
+                  {requestActionHint(request)}
+                </p>
               </div>
               <div className="flex flex-wrap gap-2 lg:justify-end">
                 <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'acknowledged')}>已看到</Button>
@@ -491,9 +685,9 @@ function RequestsPage() {
             </div>
           </div>
         ))}
-        {!requests.length && (
+        {!visibleRequests.length && (
           <p className="rounded-lg border border-dashed border-white/10 p-6 text-sm text-[var(--ink-muted)]">
-            还没有请求。请先在公网阅读端提交“想看下一章”或“想看 IF 支线”。
+            当前筛选下没有请求。可以切回全部状态，或先在读者阅读端提交“想看下一章”“想看 IF 支线”。
           </p>
         )}
       </div>
@@ -510,8 +704,10 @@ function EditorPage() {
   const selectedRequest = requests.find(item => item.id === requestId) || requests[0] || null
   const [title, setTitle] = useState('新章节')
   const [content, setContent] = useState('')
+  const [publishMode, setPublishMode] = useState<PublishMode>('main')
+  const [branchTitle, setBranchTitle] = useState('读者 IF 支线')
   const workId = selectedRequest?.work_id || starterWorks[0]?.id || 'beacon-beyond'
-  const branchId = selectedRequest?.branch_id || pmfMainBranchId(workId)
+  const branchId = branchIdForPublish(workId, publishMode, selectedRequest)
 
   async function load() {
     const result = await listCreatorRequests()
@@ -535,6 +731,8 @@ function EditorPage() {
       const timer = window.setTimeout(() => {
         setTitle(`${requestTypeLabel(selectedRequest.request_type)} · ${new Date().toLocaleDateString()}`)
         setContent(`【读者请求】${selectedRequest.request_text}\n\n这里写入作者本地生成或手写后的正文。发布前请删除这行提示。`)
+        setPublishMode(selectedRequest.request_type === 'next_chapter' ? 'main' : 'if')
+        setBranchTitle(selectedRequest.request_type === 'next_chapter' ? '主线' : `${workTitleForId(selectedRequest.work_id)} · IF 支线`)
       }, 0)
       return () => window.clearTimeout(timer)
     }
@@ -566,11 +764,12 @@ function EditorPage() {
       requestId: selectedRequest?.id || null,
       workId,
       branchId,
+      branchTitle: publishMode === 'main' ? '主线' : branchTitle,
       chapterTitle: title,
       content,
       localDraftRef: draftRef,
     })
-    setNotice(result.ok ? `已发布：${result.data.chapter.title}，发布记录已生成。` : result.message)
+    setNotice(result.ok ? `已发布：${result.data.chapter.title}，读者阅读端可以看到更新。` : result.message)
     if (result.ok) {
       setDrafts(readLocalDrafts())
       await load()
@@ -584,9 +783,9 @@ function EditorPage() {
           <Edit3 size={18} className="text-[var(--worldline-cyan)]" />
           <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本地草稿编辑</h2>
         </div>
-        <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
-          本页只在作者电脑上使用。你可以接入本地模型，也可以直接手写；点击发布前不会写入公网阅读端。
-        </p>
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
+          本页只在作者电脑上使用。你可以接入本地模型，也可以直接手写；点击发布前不会进入读者阅读端。
+          </p>
         <div className="mt-4 grid gap-3">
           <Input value={title} onChange={event => setTitle(event.target.value)} aria-label="章节标题" />
           <Textarea
@@ -610,6 +809,32 @@ function EditorPage() {
       </Panel>
 
       <aside className="space-y-4">
+        <Panel className="p-5">
+          <p className="text-sm font-semibold text-[var(--ink-paper)]">发布去向</p>
+          <div className="mt-3 grid gap-2">
+            <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+              作品
+              <Input value={workTitleForId(workId)} readOnly aria-label="发布作品" />
+            </label>
+            <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+              章节去向
+              <select
+                className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+                value={publishMode}
+                onChange={event => setPublishMode(event.target.value as PublishMode)}
+              >
+                <option value="main">主线连载</option>
+                <option value="if">IF 支线</option>
+              </select>
+            </label>
+            {publishMode === 'if' && (
+              <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
+                支线标题
+                <Input value={branchTitle} onChange={event => setBranchTitle(event.target.value)} aria-label="支线标题" />
+              </label>
+            )}
+          </div>
+        </Panel>
         <Panel className="p-5">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">当前请求</p>
           {selectedRequest ? (
@@ -703,10 +928,10 @@ function SettingsPage() {
       <Panel className="p-5">
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} className="text-[var(--manuscript-gold)]" />
-          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">发布边界</h2>
+          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">发布规则</h2>
         </div>
         <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
-          <li>公网阅读端不提供创作入口。</li>
+          <li>读者阅读端不提供创作入口。</li>
           <li>平台只展示已发布内容、请求状态和发布记录。</li>
           <li>本机草稿、创作过程和授权信息不会上传。</li>
           <li>作者确认前，任何内容都不会公开给读者。</li>
@@ -727,6 +952,7 @@ export default function LocalCreatorApp() {
         <Route path="/creator" element={<RequireCreator session={session}><DashboardPage /></RequireCreator>} />
         <Route path="/creator/requests" element={<RequireCreator session={session}><RequestsPage /></RequireCreator>} />
         <Route path="/creator/editor" element={<RequireCreator session={session}><EditorPage /></RequireCreator>} />
+        <Route path="/creator/works" element={<RequireCreator session={session}><WorksPage /></RequireCreator>} />
         <Route path="/creator/settings" element={<RequireCreator session={session}><SettingsPage /></RequireCreator>} />
         <Route path="*" element={<Navigate to="/creator" replace />} />
       </Routes>

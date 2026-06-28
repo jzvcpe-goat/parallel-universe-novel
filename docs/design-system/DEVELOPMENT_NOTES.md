@@ -1,5 +1,39 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-28 Local Creator Workbench Product Mapping
+
+The Local Creator App must feel like an author workstation, not a database
+console. Reference products such as structured novel workbenches and AI chapter
+writers converge on the same pattern: project context stays visible, heavy
+actions require confirmation, and the author works through a queue, an editor,
+and a publish destination instead of filling backend-shaped forms.
+
+Product UI rules:
+
+1. Map backend capabilities to author objects: reader requests, work/branch
+   management, author notices, local drafts, publish destinations, and update
+   status.
+2. Do not expose implementation nouns in public or author UI. A table, RPC,
+   trace, provider, or gate must become a product action before it appears on
+   screen.
+3. Request handling needs filters and sorting by status, type, heat, and time
+   so the author can decide what to process next.
+4. Draft publishing must show the target work and whether the chapter goes to
+   the main line or an IF branch before the author confirms.
+5. Work and branch management must include author-facing notices; early PMF
+   depends on explaining update rhythm and why some branches are delayed.
+6. Local generation settings are configuration only until a real local model
+   action is wired. Do not imply cloud generation or hidden automation.
+
+Current implementation notes:
+
+- Local Creator now has separate routes for overview, request queue, draft
+  publishing, work/branch management, and local settings.
+- The work/branch page can enable starter works and edit reader-facing author
+  notices without adding new backend tables.
+- The request queue has filters, sorting, and action hints; the draft editor has
+  an explicit publish destination.
+
 ## 2026-06-28 Reader / Creator Product Copy Boundary
 
 The Reader Web and Local Creator App now have separate product surfaces, but a

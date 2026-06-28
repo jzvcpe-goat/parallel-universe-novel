@@ -339,7 +339,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">作者更新</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
-            公网阅读端只负责阅读、请求和更新状态；作者会在本机处理高热请求后发布。
+            读者可以边看边请求更新；作者会优先处理高热请求，再发布新章节或 IF 支线。
           </p>
           <div className="mt-4 grid gap-2">
             <Button className="justify-between" variant="outline" onClick={() => navigate('/story?world=beacon-beyond')}>

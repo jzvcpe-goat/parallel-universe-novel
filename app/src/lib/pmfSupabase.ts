@@ -210,7 +210,7 @@ export async function syncCreatorClient(clientLabel = 'Creator App'): Promise<Pm
     .select('id,creator_id,client_label,app_mode,version,online_status,last_seen_at,last_sync_at')
     .single()
 
-  if (error) return errorResult(error, '本地创作端心跳同步失败。')
+  if (error) return errorResult(error, '本地创作端连接状态同步失败。')
   return { ok: true, data: data as PmfCreatorClient }
 }
 
