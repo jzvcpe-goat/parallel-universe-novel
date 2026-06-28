@@ -21,6 +21,7 @@ import { Button } from '@/components/primitives/Button'
 import { ChoiceCard } from '@/components/design-system/ChoiceCard'
 import { Panel } from '@/components/design-system/Panel'
 import { ReadingPaper } from '@/components/design-system/ReadingPaper'
+import { LiquidGlassMetric } from '@/components/ui/liquid-glass'
 import { ReaderRequestPanel } from '@/apps/reader/ReaderRequestPanel'
 import { runtimeApi, settingsApi, storyApi } from '@/api'
 import { runtimeConfig } from '@/api/client'
@@ -192,20 +193,13 @@ function RuntimeSyncPanel({
       </div>
       <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">{runtimeState.notice}</p>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-          <p className="text-lg font-semibold text-[var(--ink-paper)]">{pageLabel}</p>
-          <p className="mt-1 text-[11px] text-[var(--ink-dim)]">页码</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-          <p className="text-lg font-semibold text-[var(--ink-paper)]">{saved ? '已加入' : '未加入'}</p>
-          <p className="mt-1 text-[11px] text-[var(--ink-dim)]">书架</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-          <p className="text-lg font-semibold text-[var(--ink-paper)]">
-            {choiceLabel ? '已选择' : qualityGate?.candidate_status === 'canon_ready' ? '可继续' : '待选择'}
-          </p>
-          <p className="mt-1 text-[11px] text-[var(--ink-dim)]">下一幕</p>
-        </div>
+        <LiquidGlassMetric label="页码" value={pageLabel} className="text-center" />
+        <LiquidGlassMetric label="书架" value={saved ? '已加入' : '未加入'} className="text-center" />
+        <LiquidGlassMetric
+          label="下一幕"
+          value={choiceLabel ? '已选择' : qualityGate?.candidate_status === 'canon_ready' ? '可继续' : '待选择'}
+          className="text-center"
+        />
       </div>
       {choiceLabel && <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">已选择：{choiceLabel}</p>}
       {worldline && <p className="mt-3 text-[11px] text-[var(--ink-dim)]">你的选择会用于整理后续章节。</p>}

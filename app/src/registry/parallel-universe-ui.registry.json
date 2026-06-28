@@ -7,11 +7,27 @@
       "name": "parallel-universe-shell",
       "type": "registry:component",
       "title": "Parallel Universe Shell",
-      "description": "Unified public product shell with the rail: 发现, 阅读, 书城, 创作, 会员. Studio and operator settings stay direct or backstage.",
+      "description": "Unified public product shell with the rail: 发现, 阅读, 书城, 会员. Local Creator and operator settings stay direct or backstage.",
       "files": [
         {
           "path": "src/components/design-system/ParallelUniverseShell.tsx",
           "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "liquid-glass",
+      "type": "registry:ui",
+      "title": "Liquid Glass",
+      "description": "Parallel Universe liquid-glass surface primitive built in shadcn style with tone, depth, padding and metric helpers.",
+      "files": [
+        {
+          "path": "src/components/ui/liquid-glass.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "src/styles/parallel-universe-tokens.css",
+          "type": "registry:style"
         }
       ]
     },

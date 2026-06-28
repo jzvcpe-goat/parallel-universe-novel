@@ -32,6 +32,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { LiquidGlass, LiquidGlassMetric } from '@/components/ui/liquid-glass'
 import { worldTemplates } from '@/features/parallel-universe/data'
 import type { WorldTemplate } from '@/features/parallel-universe/types'
 import { pmfMainBranchId, type PmfLocalDraft, type PmfReaderRequest, type PmfRequestStatus, type PmfRequestType } from '@/features/pmf/types'
@@ -103,11 +104,7 @@ function CreatorSelect<T extends string>({
 
 function MetricCard({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
-    <Card variant="glass" padding="sm">
-      <p className="text-2xl font-semibold text-[var(--ink-paper)]">{value}</p>
-      <p className="mt-1 text-xs font-medium text-[var(--ink-dim)]">{label}</p>
-      {detail ? <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{detail}</p> : null}
-    </Card>
+    <LiquidGlassMetric label={label} value={value} detail={detail} />
   )
 }
 
@@ -204,7 +201,7 @@ function CreatorFrame({
       />
       <main className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-24 pt-4 md:ml-20 md:p-6">
         <div className="narrative-page space-y-5">
-          <header className="local-creator-topbar p-4 md:p-5">
+          <LiquidGlass as="header" tone="cyan" depth="floating" className="local-creator-topbar p-4 md:p-5">
             <div className="relative flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div>
                 <div className="flex flex-wrap gap-2">
@@ -240,7 +237,7 @@ function CreatorFrame({
                 )}
               </div>
             </div>
-          </header>
+          </LiquidGlass>
           {children}
         </div>
       </main>

@@ -48,6 +48,10 @@ assert(
   registryText.includes('CreatorConversationPanel'),
   'Design-system registry must include CreatorConversationPanel.',
 )
+assert(
+  registryText.includes('LiquidGlass') && registryText.includes('@/components/ui/liquid-glass'),
+  'Design-system registry must include the shadcn-compatible LiquidGlass primitive.',
+)
 for (const pattern of ['CreatorDialogueThread', 'CreatorReasoningMap', 'CreatorStoryNotes']) {
   assert(
     registryText.includes(pattern),
@@ -94,12 +98,20 @@ assert(
   pageContractsText.includes('普通用户主导航只保留发现、阅读、书城、会员'),
   'Page contracts must document the public navigation boundary.',
 )
+assert(
+  pageContractsText.includes('LiquidGlass') && pageContractsText.includes('页面不得手写新的玻璃面板体系'),
+  'Page contracts must document the LiquidGlass component boundary.',
+)
 
 const registryJsonPath = join(root, 'app/src/registry/parallel-universe-ui.registry.json')
 const registryJson = JSON.parse(readFileSync(registryJsonPath, 'utf8'))
 assert(
   registryJson.items?.some(item => item.name === 'creator-conversation-panel'),
   'shadcn registry JSON must export creator-conversation-panel.',
+)
+assert(
+  registryJson.items?.some(item => item.name === 'liquid-glass'),
+  'shadcn registry JSON must export liquid-glass.',
 )
 for (const itemName of ['creator-dialogue-thread', 'creator-reasoning-map', 'creator-story-notes']) {
   assert(
@@ -232,6 +244,20 @@ for (const file of [
 }
 
 const styleText = read('app/src/index.css')
+const tokenText = read('app/src/styles/parallel-universe-tokens.css')
+const panelText = read('app/src/components/design-system/Panel.tsx')
+const liquidGlassPath = join(root, 'app/src/components/ui/liquid-glass.tsx')
+assert(
+  existsSync(liquidGlassPath),
+  'LiquidGlass component file must exist.',
+)
+assert(
+  panelText.includes('LiquidGlass') && !panelText.includes('pu-surface') && !panelText.includes('bg-[var(--pu-cyan-500)]/10'),
+  'Panel must compose LiquidGlass instead of hand-rolling glass surface classes.',
+)
+for (const required of ['.pu-liquid-glass', '.pu-liquid-glass-cyan', '.pu-liquid-depth-floating', '.pu-liquid-interactive']) {
+  assert(tokenText.includes(required), `Parallel universe tokens must include LiquidGlass style hook: ${required}`)
+}
 assert(
   styleText.includes('.creator-thread-empty') && styleText.includes('overflow: visible'),
   'Creator empty-state layout must use natural page flow instead of nested clipping scroll.',

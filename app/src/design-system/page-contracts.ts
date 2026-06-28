@@ -105,6 +105,7 @@ export const pageSurfaceContracts: Record<
 export const shadcnImplementationRules = [
   '页面优先组合 design-system patterns；若必须新增业务卡片样式，先抽成 pattern 再落页面。',
   '交互控件从 components/ui 取 Button、Badge、Card、Input、Textarea、Dialog、Select、Tabs、Table、Alert、Checkbox、ScrollArea。',
+  '液态玻璃表面统一使用 components/ui/LiquidGlass 与 Panel/Card 的 glass 语义；页面不得手写新的玻璃面板体系。',
   '新颜色必须先进入 parallel-universe-tokens.css，再进入 variant 或 pattern。',
   '读者页只能出现故事、阅读、选择和反馈语言；创作室才可以出现发布检查和运营语言。',
   '创作页主路径优先自然语言对话；内部结构只能产品化为创作脉络和故事笔记，不显示系统字段解释或原始思维链。',

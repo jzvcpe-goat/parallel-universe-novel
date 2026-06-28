@@ -1,5 +1,38 @@
 # 平行宇宙小说设计系统开发经验
 
+## 2026-06-28 Liquid Glass Component Boundary
+
+Liquid glass is now a design-system primitive, not a page-level visual trick.
+Reader Web and Local Creator App should use the same surface grammar so the
+product feels coherent while the two apps remain functionally separate.
+
+Implementation rules:
+
+1. Use `components/ui/liquid-glass.tsx` for translucent product surfaces,
+   metric cards and elevated shell chrome.
+2. `Panel` composes `LiquidGlass`; new product sections should use `Panel`
+   unless they need a lower-level shadcn primitive.
+3. `Card variant="glass"` maps to the same liquid-glass token layer. Do not
+   reintroduce page-local `rounded-lg border bg-white/[...] backdrop-blur`
+   glass panels for new work.
+4. Liquid-glass tone is semantic: `quiet` for dense workbench surfaces, `cyan`
+   for active navigation and sync context, `gold` for confirmed or premium
+   actions, and `paper` only for reader manuscript-adjacent surfaces.
+5. Public Reader UI must still avoid internal words. A beautiful glass surface
+   does not make implementation vocabulary acceptable.
+6. Keep the effect restrained: no decorative blobs, no huge gradient hero
+   patches, no nested card-in-card glass stacks.
+
+Verification:
+
+```bash
+npm --prefix app run lint -- --max-warnings=0
+npm --prefix app run build:reader
+npm --prefix app run build:creator
+npm run check:design-system
+npm run scan:public-ui-boundary
+```
+
 ## 2026-06-28 Local Creator Workbench Product Mapping
 
 The Local Creator App must feel like an author workstation, not a database

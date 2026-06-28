@@ -13,6 +13,7 @@ export const parallelUniverseDesignSystemRegistry = {
     { name: 'Input', path: '@/components/ui/input', source: 'shadcn-compatible' },
     { name: 'Textarea', path: '@/components/ui/textarea', source: 'shadcn-compatible' },
     { name: 'Label', path: '@/components/ui/label', source: 'shadcn-compatible' },
+    { name: 'LiquidGlass', path: '@/components/ui/liquid-glass', source: 'shadcn-compatible-custom' },
     { name: 'Dialog', path: '@/components/ui/dialog', source: 'radix-shadcn-compatible' },
     { name: 'Alert', path: '@/components/ui/alert', source: 'shadcn-cli' },
     { name: 'Checkbox', path: '@/components/ui/checkbox', source: 'shadcn-cli' },
@@ -25,7 +26,7 @@ export const parallelUniverseDesignSystemRegistry = {
     { name: 'Tooltip', path: '@/components/ui/tooltip', source: 'shadcn-cli' },
   ],
   patterns: [
-    { name: 'Panel', path: '@/components/design-system/Panel', surfaces: ['all'] },
+    { name: 'Panel', path: '@/components/design-system/Panel', surfaces: ['all'], uses: ['LiquidGlass'] },
     { name: 'PageHeader', path: '@/components/design-system/PageHeader', surfaces: ['discover', 'library', 'creator', 'studio', 'settings', 'billing'] },
     { name: 'BookCard', path: '@/components/design-system/BookCard', surfaces: ['discover', 'library', 'template-detail'] },
     { name: 'TopicFilterBar', path: '@/components/design-system/TopicFilterBar', surfaces: ['discover', 'library'] },

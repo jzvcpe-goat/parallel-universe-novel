@@ -17,6 +17,7 @@ export const buttonVariants = cva(
         link: 'text-[var(--pu-cyan-500)] underline-offset-4 hover:underline',
         generation: 'bg-gradient-to-r from-[var(--pu-cyan-500)] to-[var(--pu-cyan-600)] text-[var(--pu-void-950)] hover:brightness-110 shadow-[var(--pu-shadow-cyan)]',
         gold: 'bg-gradient-to-r from-[var(--pu-gold-500)] to-[var(--pu-gold-300)] text-[var(--pu-void-950)] hover:brightness-105 shadow-[var(--pu-shadow-gold)]',
+        liquid: 'pu-liquid-glass pu-liquid-glass-cyan pu-liquid-depth-flat text-[var(--pu-ink-100)] hover:text-white',
         void: 'border border-[var(--pu-danger-500)]/35 bg-[var(--pu-danger-500)]/10 text-[var(--pu-danger-500)] hover:bg-[var(--pu-danger-500)]/16',
       },
       size: {

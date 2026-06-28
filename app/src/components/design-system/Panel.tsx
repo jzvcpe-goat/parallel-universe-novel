@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { LiquidGlass } from '@/components/ui/liquid-glass'
 
 interface PanelProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'section' | 'article' | 'aside' | 'div'
@@ -8,14 +9,11 @@ interface PanelProps extends React.HTMLAttributes<HTMLElement> {
 
 export function Panel({ as: Comp = 'section', tone = 'default', className, ...props }: PanelProps) {
   return (
-    <Comp
-      className={cn(
-        tone === 'default' && 'pu-surface',
-        tone === 'muted' && 'pu-surface-muted',
-        tone === 'gold' && 'rounded-lg border border-[var(--pu-gold-500)]/28 bg-[var(--pu-gold-500)]/10',
-        tone === 'cyan' && 'rounded-lg border border-[var(--pu-cyan-500)]/28 bg-[var(--pu-cyan-500)]/10',
-        className,
-      )}
+    <LiquidGlass
+      as={Comp}
+      tone={tone === 'muted' ? 'quiet' : tone}
+      depth={tone === 'muted' ? 'flat' : 'raised'}
+      className={cn(className)}
       {...props}
     />
   )

@@ -7,6 +7,7 @@ import {
   Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LiquidGlass } from '@/components/ui/liquid-glass'
 
 export type ParallelUniverseSection =
   | 'discover'
@@ -46,7 +47,7 @@ export function ParallelUniverseShell({
 }: ParallelUniverseShellProps) {
   return (
     <div className={cn('min-h-screen bg-[var(--pu-void-900)] text-[var(--pu-ink-100)]', className)}>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[104px] border-r border-[var(--pu-line-700)] bg-[var(--pu-void-950)]/92 px-4 py-5 lg:block">
+      <LiquidGlass as="aside" tone="quiet" depth="flat" className="fixed inset-y-0 left-0 z-30 hidden w-[104px] rounded-none border-y-0 border-l-0 px-4 py-5 lg:block">
         <div className="mb-8 grid h-14 w-14 place-items-center rounded-lg border border-[var(--pu-cyan-500)]/35 bg-[var(--pu-panel-900)]">
           <img src="/parallel-assets/brand/parallel-universe-mark.svg" alt="平行宇宙小说" className="h-9 w-9" />
         </div>
@@ -71,10 +72,10 @@ export function ParallelUniverseShell({
             )
           })}
         </nav>
-      </aside>
+      </LiquidGlass>
 
       <div className="lg:pl-[104px]">
-        <header className="sticky top-0 z-20 border-b border-[var(--pu-line-700)]/70 bg-[var(--pu-void-950)]/88 px-4 py-3 backdrop-blur-xl md:px-6">
+        <LiquidGlass as="header" tone="quiet" depth="flat" className="sticky top-0 z-20 rounded-none border-x-0 border-t-0 px-4 py-3 md:px-6">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--pu-ink-100)]">{title}</p>
@@ -88,7 +89,7 @@ export function ParallelUniverseShell({
               />
             </label>
           </div>
-        </header>
+        </LiquidGlass>
         <main className="mx-auto max-w-[1440px] px-4 py-5 md:px-6">{children}</main>
       </div>
     </div>

@@ -32,6 +32,11 @@
     --pu-shadow-panel: 0 24px 70px rgba(0, 0, 0, 0.28);
     --pu-shadow-gold: 0 14px 34px rgba(246, 179, 21, 0.22);
     --pu-shadow-cyan: 0 14px 34px rgba(69, 216, 255, 0.14);
+    --pu-liquid-fill: rgba(7, 16, 26, 0.68);
+    --pu-liquid-tint: rgba(69, 216, 255, 0.08);
+    --pu-liquid-rim: rgba(214, 238, 255, 0.18);
+    --pu-liquid-sheen: rgba(255, 255, 255, 0.11);
+    --pu-liquid-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
   }
 }
 
@@ -44,6 +49,110 @@
       rgba(7, 16, 26, 0.82);
     box-shadow: var(--pu-shadow-panel);
     backdrop-filter: blur(18px);
+  }
+
+  .pu-liquid-glass {
+    --pu-liquid-fill-local: var(--pu-liquid-fill);
+    --pu-liquid-tint-local: var(--pu-liquid-tint);
+    --pu-liquid-rim-local: var(--pu-liquid-rim);
+    --pu-liquid-sheen-local: var(--pu-liquid-sheen);
+    isolation: isolate;
+    border-color: color-mix(in srgb, var(--pu-liquid-rim-local) 78%, transparent);
+    background:
+      linear-gradient(118deg, var(--pu-liquid-sheen-local), transparent 18% 72%, rgba(255, 255, 255, 0.04)),
+      linear-gradient(145deg, var(--pu-liquid-tint-local), transparent 42%),
+      color-mix(in srgb, var(--pu-liquid-fill-local) 90%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
+      var(--pu-liquid-shadow);
+    backdrop-filter: blur(24px) saturate(138%);
+    -webkit-backdrop-filter: blur(24px) saturate(138%);
+  }
+
+  .pu-liquid-glass::before {
+    pointer-events: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(105deg, transparent 0 22%, rgba(255, 255, 255, 0.095) 34%, transparent 46% 100%),
+      repeating-linear-gradient(128deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 18px);
+    opacity: 0.46;
+    mix-blend-mode: screen;
+  }
+
+  .pu-liquid-glass::after {
+    pointer-events: none;
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 26px rgba(255, 255, 255, 0.025);
+  }
+
+  .pu-liquid-glass > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pu-liquid-glass-quiet {
+    --pu-liquid-fill-local: rgba(10, 20, 32, 0.64);
+    --pu-liquid-tint-local: rgba(154, 168, 186, 0.055);
+    --pu-liquid-rim-local: rgba(154, 168, 186, 0.17);
+    --pu-liquid-sheen-local: rgba(255, 255, 255, 0.075);
+  }
+
+  .pu-liquid-glass-cyan {
+    --pu-liquid-fill-local: rgba(5, 18, 30, 0.66);
+    --pu-liquid-tint-local: rgba(69, 216, 255, 0.13);
+    --pu-liquid-rim-local: rgba(69, 216, 255, 0.28);
+    --pu-liquid-sheen-local: rgba(185, 242, 255, 0.12);
+  }
+
+  .pu-liquid-glass-gold {
+    --pu-liquid-fill-local: rgba(24, 19, 10, 0.64);
+    --pu-liquid-tint-local: rgba(246, 179, 21, 0.12);
+    --pu-liquid-rim-local: rgba(246, 179, 21, 0.28);
+    --pu-liquid-sheen-local: rgba(255, 224, 154, 0.12);
+  }
+
+  .pu-liquid-glass-danger {
+    --pu-liquid-fill-local: rgba(28, 12, 16, 0.64);
+    --pu-liquid-tint-local: rgba(239, 119, 111, 0.12);
+    --pu-liquid-rim-local: rgba(239, 119, 111, 0.26);
+  }
+
+  .pu-liquid-glass-paper {
+    --pu-liquid-fill-local: rgba(232, 236, 226, 0.78);
+    --pu-liquid-tint-local: rgba(69, 216, 255, 0.08);
+    --pu-liquid-rim-local: rgba(69, 216, 255, 0.36);
+    --pu-liquid-sheen-local: rgba(255, 255, 255, 0.24);
+    color: var(--pu-paper-ink);
+  }
+
+  .pu-liquid-depth-flat {
+    --pu-liquid-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+  }
+
+  .pu-liquid-depth-raised {
+    --pu-liquid-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+  }
+
+  .pu-liquid-depth-floating {
+    --pu-liquid-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
+  }
+
+  .pu-liquid-interactive:hover {
+    border-color: color-mix(in srgb, var(--pu-liquid-rim-local) 94%, white 6%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 26px 78px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
   }
 
   .pu-surface-muted {
