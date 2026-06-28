@@ -183,7 +183,7 @@ function RuntimeSyncPanel({
   const worldline = runtimeState.snapshot?.worldline || runtimeState.advance?.raw_continue
 
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <CheckCircle2 className={isService ? 'text-teal-300' : 'text-[var(--ink-dim)]'} size={18} />
@@ -203,7 +203,7 @@ function RuntimeSyncPanel({
       </div>
       {choiceLabel && <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">已选择：{choiceLabel}</p>}
       {worldline && <p className="mt-3 text-[11px] text-[var(--ink-dim)]">你的选择会用于整理后续章节。</p>}
-    </section>
+    </Panel>
   )
 }
 
@@ -219,7 +219,7 @@ function MembershipPromptPanel({
   const isMember = Boolean(membership.subscription?.effective_tier || membership.subscription?.subscription)
 
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CreditCard className="text-[var(--manuscript-gold)]" size={18} />
@@ -236,7 +236,7 @@ function MembershipPromptPanel({
         <CreditCard size={16} />
         {isMember ? '查看会员权益' : '查看会员方案'}
       </Button>
-    </section>
+    </Panel>
   )
 }
 
@@ -322,7 +322,7 @@ function BranchFocusPanel({
 }) {
   const branchCode = branch.id === 'mainline' ? 'Ω-17' : branch.id === 'public-signal' ? 'Ω-17-A' : 'Ω-17-B'
   return (
-    <section className="narrative-panel overflow-hidden p-5">
+    <Panel className="narrative-panel overflow-hidden p-5" motion="reveal">
       <div className="relative">
         <div className="absolute -right-16 -top-24 h-52 w-52 rounded-full border border-[var(--worldline-cyan)]/15 shadow-[inset_0_0_60px_rgba(90,178,214,0.08)]" />
         <div className="relative flex items-start justify-between gap-3">
@@ -364,27 +364,27 @@ function BranchFocusPanel({
           </div>
         </div>
 
-        <Button className="mt-4 w-full" variant={saved ? 'secondary' : 'gold'} onClick={onSave}>
+        <Button className="pu-motion-lift mt-4 w-full" variant={saved ? 'secondary' : 'gold'} onClick={onSave}>
           <Save size={16} />
           {saved ? '已加入书架' : '加入书架'}
         </Button>
         <p className="mt-3 text-center text-xs leading-5 text-[var(--ink-dim)]">{readerSaveHint(saveState)}</p>
       </div>
-    </section>
+    </Panel>
   )
 }
 
 function EventRhythmPanel({ branch, choice }: { branch: WorldBranch; choice?: WorldChoice }) {
   const timeline = simulateTimeline(branch.templateId, branch.id, choice?.id)
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center gap-2">
         <Clock3 className="text-[var(--manuscript-gold)]" size={18} />
         <h2 className="text-lg font-semibold text-[var(--ink-paper)]">剧情节奏</h2>
       </div>
       <div className="mt-4 space-y-3">
         {timeline.map((event, index) => (
-          <div key={event.id} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+          <div key={event.id} className="pu-motion-lift rounded-lg border border-white/10 bg-white/[0.025] p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-[var(--ink-paper)]">第 {index + 1} 拍 / {event.label}</p>
               <Badge variant={event.type === 'burst' ? 'collapse' : event.type === 'aftershock' ? 'flux' : 'outline'}>
@@ -398,7 +398,7 @@ function EventRhythmPanel({ branch, choice }: { branch: WorldBranch; choice?: Wo
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -430,7 +430,7 @@ function StabilityDial({ score }: { score: number }) {
 function QualityPanel({ choice }: { choice?: WorldChoice }) {
   const quality = qualityForChoice(choice)
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="text-teal-300" size={18} />
@@ -444,7 +444,7 @@ function QualityPanel({ choice }: { choice?: WorldChoice }) {
       </div>
       <div className="mt-4 grid gap-2">
         {quality.metrics.map(metric => (
-          <div key={metric.label} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+          <div key={metric.label} className="pu-motion-lift rounded-lg border border-white/10 bg-white/[0.025] p-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-[var(--ink-paper)]">{metric.label}</span>
               <span className="text-[var(--ink-paper)]">{metric.value}%</span>
@@ -455,7 +455,7 @@ function QualityPanel({ choice }: { choice?: WorldChoice }) {
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -487,7 +487,7 @@ function CharacterMemoryPanel({ choice }: { choice?: WorldChoice }) {
       ]
 
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center gap-2">
         <HeartHandshake className="text-[var(--worldline-cyan)]" size={18} />
         <h2 className="text-lg font-semibold text-[var(--ink-paper)]">角色记忆反馈</h2>
@@ -511,7 +511,7 @@ function CharacterMemoryPanel({ choice }: { choice?: WorldChoice }) {
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 

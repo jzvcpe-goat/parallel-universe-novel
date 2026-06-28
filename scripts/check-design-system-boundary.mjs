@@ -258,6 +258,14 @@ assert(
 for (const required of ['.pu-liquid-glass', '.pu-liquid-glass-cyan', '.pu-liquid-depth-floating', '.pu-liquid-interactive']) {
   assert(tokenText.includes(required), `Parallel universe tokens must include LiquidGlass style hook: ${required}`)
 }
+for (const required of ['.pu-motion-reveal', '.pu-motion-lift', '.pu-motion-pulse', 'prefers-reduced-motion: reduce']) {
+  assert(tokenText.includes(required), `Parallel universe tokens must include motion boundary hook: ${required}`)
+}
+const liquidGlassText = read('app/src/components/ui/liquid-glass.tsx')
+assert(
+  liquidGlassText.includes('motion:') && liquidGlassText.includes('pu-motion-reveal'),
+  'LiquidGlass must expose motion variants instead of page-local animation systems.',
+)
 assert(
   styleText.includes('.creator-thread-empty') && styleText.includes('overflow: visible'),
   'Creator empty-state layout must use natural page flow instead of nested clipping scroll.',
@@ -276,6 +284,9 @@ if (existsSync(docsPath)) {
   const docsText = readFileSync(docsPath, 'utf8')
 	for (const required of ['2026-06-12', '/create', 'CreatorConversationPanel', 'CreatorReasoningMap', '普通用户主导航', '页面自然滚动', '自然语言对话', '创作脉络', '故事笔记', 'Vite + React + TypeScript', '子 agent 审批', '坚决不做重复开发', 'P16 热门题材扫描要有适配器边界', 'MarketTrendSourceAdapter', 'P17 质量检查必须分层组合', 'QualityGateResult', 'production_gate', 'P18 支付完成与账号同步', '预览闭环和生产回调', 'P19 发布候选', 'NARRATIVEOS_ALLOWED_ORIGIN_REGEX', 'RC preview', 'P20 账号快照', '/v1/account/snapshot', '跨设备恢复不能伪装完成', 'P21 生产支付硬化', '/v1/reader/checkout/return', 'provider callback 单独走', 'HMAC 验签', 'P22 账号合并', '/v1/account/merge/preview', '/v1/account/merge/confirm', '发现本机档案', '合并到账号', 'P23 账号数据治理', '/v1/account/data/export', '/v1/account/delete/preview', '/v1/account/delete/confirm', '导出我的数据', '删除账号', '账号已删除', 'P24 上线验收', 'scripts/check-launch-readiness.sh', 'package-vercel-preview.sh', 'package-vercel-backend-api.sh', 'production blocker', 'artifacts/visual-qa/p24-launch-routes', 'P25 部署执行', 'preview / staging deployment rehearsal', 'artifacts/integration/p25-deployment-execution', 'restore dry-run', 'recovery drill', 'P26 生产发布门禁', 'public production release gate', 'decision: blocked', 'check-production-release-gate.mjs', 'X-Content-Type-Options', 'P27 blocked launch handoff', 'check-blocked-launch-handoff.mjs', 'public_paid_production_launch: blocked', '单一可传输交付物', 'P28 blocked launch review', 'owner card', 'production resource intake', 'check-launch-review-intake.mjs', 'P29 blocked launch governance dashboard', 'evidence ledger', 'check-blocked-launch-governance.mjs', 'P30 owner escalation', 'escalation matrix', 'check-owner-escalation.mjs', 'P31 acceptance artifact template pack', 'p31-acceptance-templates', 'check-acceptance-templates.mjs', 'P32 acceptance artifact intake validator', 'missing artifacts are not a script failure', 'check-acceptance-intake.mjs', 'P33 external owner follow-up log', 'waiting_on_owner', 'check-owner-follow-up.mjs']) {
     assert(docsText.includes(required), `Development notes are missing required learning: ${required}`)
+  }
+  for (const required of ['Shadcn Motion Polish', 'LiquidGlass motion variants', 'prefers-reduced-motion']) {
+    assert(docsText.includes(required), `Development notes are missing motion-system learning: ${required}`)
   }
 }
 

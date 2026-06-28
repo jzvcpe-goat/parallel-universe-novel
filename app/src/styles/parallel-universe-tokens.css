@@ -68,6 +68,7 @@
       var(--pu-liquid-shadow);
     backdrop-filter: blur(24px) saturate(138%);
     -webkit-backdrop-filter: blur(24px) saturate(138%);
+    transform: translateZ(0);
   }
 
   .pu-liquid-glass::before {
@@ -80,8 +81,11 @@
     background:
       linear-gradient(105deg, transparent 0 22%, rgba(255, 255, 255, 0.095) 34%, transparent 46% 100%),
       repeating-linear-gradient(128deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 18px);
+    background-position: -72% 0, 0 0;
+    background-size: 190% 100%, 18px 18px;
     opacity: 0.46;
     mix-blend-mode: screen;
+    transition: background-position 520ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease;
   }
 
   .pu-liquid-glass::after {
@@ -153,6 +157,104 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
       0 26px 78px rgba(0, 0, 0, 0.3);
     transform: translateY(-1px);
+  }
+
+  .pu-liquid-interactive:hover::before {
+    background-position: 92% 0, 0 0;
+    opacity: 0.62;
+  }
+
+  .pu-motion-reveal {
+    animation: pu-reveal-up 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .pu-motion-delay-1 {
+    animation-delay: 80ms;
+  }
+
+  .pu-motion-delay-2 {
+    animation-delay: 150ms;
+  }
+
+  .pu-motion-delay-3 {
+    animation-delay: 220ms;
+  }
+
+  .pu-motion-lift {
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .pu-motion-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .pu-motion-drift {
+    animation: pu-soft-drift 7s ease-in-out infinite;
+  }
+
+  .pu-motion-pulse {
+    animation: pu-soft-pulse 3.2s ease-in-out infinite;
+  }
+
+  @keyframes pu-reveal-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes pu-soft-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+      transform: translate3d(0, -3px, 0);
+    }
+  }
+
+  @keyframes pu-soft-pulse {
+    0%,
+    100% {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 rgba(69, 216, 255, 0);
+    }
+
+    50% {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 22px rgba(69, 216, 255, 0.12);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pu-motion-reveal,
+    .pu-motion-drift,
+    .pu-motion-pulse {
+      animation: none !important;
+    }
+
+    .pu-motion-lift,
+    .pu-liquid-glass,
+    .pu-liquid-glass::before {
+      transition: none !important;
+    }
+
+    .pu-motion-lift:hover,
+    .pu-liquid-interactive:hover {
+      transform: none !important;
+    }
   }
 
   .pu-surface-muted {

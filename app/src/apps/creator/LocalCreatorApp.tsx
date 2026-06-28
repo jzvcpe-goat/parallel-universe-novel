@@ -104,7 +104,7 @@ function CreatorSelect<T extends string>({
 
 function MetricCard({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
-    <LiquidGlassMetric label={label} value={value} detail={detail} />
+    <LiquidGlassMetric label={label} value={value} detail={detail} className="pu-motion-lift" />
   )
 }
 
@@ -201,7 +201,7 @@ function CreatorFrame({
       />
       <main className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-24 pt-4 md:ml-20 md:p-6">
         <div className="narrative-page space-y-5">
-          <LiquidGlass as="header" tone="cyan" depth="floating" className="local-creator-topbar p-4 md:p-5">
+          <LiquidGlass as="header" tone="cyan" depth="floating" motion="reveal" className="local-creator-topbar p-4 md:p-5">
             <div className="relative flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div>
                 <div className="flex flex-wrap gap-2">
@@ -274,7 +274,7 @@ const localLoopCards = [
 
 function LocalCreatorLoopPanel() {
   return (
-    <Panel className="local-creator-loop p-5">
+    <Panel className="local-creator-loop p-5" motion="reveal">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
         <div>
           <div className="flex items-center gap-2">
@@ -292,7 +292,7 @@ function LocalCreatorLoopPanel() {
         {localLoopCards.map((card, index) => {
           const Icon = card.icon
           return (
-            <div key={card.title} className="local-creator-loop-card">
+            <div key={card.title} className="local-creator-loop-card pu-motion-lift">
               <div className="flex items-center justify-between gap-3">
                 <span className="local-creator-loop-index">{index + 1}</span>
                 <Icon size={17} className="text-[var(--worldline-cyan)]" />
@@ -324,7 +324,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
   }
 
   return (
-    <Panel className="p-5">
+    <Panel className="p-5" motion="reveal">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
           <div className="flex items-center gap-2">
@@ -354,7 +354,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
             <p className="text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
           </div>
         </div>
-        <Card variant="glass" padding="sm">
+        <Card variant="glass" padding="sm" className="pu-motion-lift">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">本机规则</CardTitle>
             <CardDescription>作者端只保留必要的发布边界。</CardDescription>
@@ -372,7 +372,7 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
 
 function RequireCreator({ session, children }: { session: CreatorSessionState; children: React.ReactNode }) {
   if (session.status === 'loading') {
-    return <Panel className="p-5 text-sm text-[var(--ink-muted)]">正在读取作者身份...</Panel>
+    return <Panel className="p-5 text-sm text-[var(--ink-muted)]" motion="pulse">正在读取作者身份...</Panel>
   }
   if (session.status !== 'signed_in') return <Navigate to="/creator/login" replace />
   return <>{children}</>
@@ -410,7 +410,7 @@ function DashboardPage() {
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-4">
         <LocalCreatorLoopPanel />
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -437,14 +437,14 @@ function DashboardPage() {
       </section>
 
       <aside className="space-y-4">
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center gap-2">
             <Radio size={18} className="text-[var(--manuscript-gold)]" />
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">连接状态</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">{clientStatus}</p>
         </Panel>
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center gap-2">
             <Cpu size={18} className="text-[var(--worldline-cyan)]" />
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">生成边界</h2>
@@ -472,7 +472,7 @@ function StarterWorksPanel() {
   }
 
   return (
-    <Panel className="p-5">
+    <Panel className="p-5" motion="reveal">
       <div className="flex items-center gap-2">
         <BookOpen size={18} className="text-[var(--manuscript-gold)]" />
         <h2 className="text-xl font-semibold text-[var(--ink-paper)]">作品绑定</h2>
@@ -480,7 +480,7 @@ function StarterWorksPanel() {
       <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {starterWorks.map(template => (
-          <Card key={template.id} variant="glass" padding="sm">
+          <Card key={template.id} variant="glass" padding="sm" className="pu-motion-lift">
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -525,7 +525,7 @@ function WorksPage() {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-3">
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-[var(--manuscript-gold)]" />
             <h2 className="text-xl font-semibold text-[var(--ink-paper)]">作品与支线</h2>
@@ -533,7 +533,7 @@ function WorksPage() {
           <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
         </Panel>
         {starterWorks.map(template => (
-          <Panel key={template.id} className="p-5">
+          <Panel key={template.id} className="p-5" motion="reveal">
             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
               <div className="min-w-0">
                 <div className="flex flex-wrap gap-2">
@@ -566,7 +566,7 @@ function WorksPage() {
         ))}
       </section>
       <aside className="space-y-4">
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center gap-2">
             <Megaphone size={18} className="text-[var(--worldline-cyan)]" />
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">公告怎么用</h2>
@@ -575,7 +575,7 @@ function WorksPage() {
             公告用来告诉读者本周更新节奏、优先处理的支线和暂缓原因。它是作者运营作品的入口，不是使用说明书。
           </p>
         </Panel>
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <div className="flex items-center gap-2">
             <GitBranch size={18} className="text-[var(--manuscript-gold)]" />
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">支线规则</h2>
@@ -636,7 +636,7 @@ function RequestsPage() {
   }, [requests, sortBy, statusFilter, typeFilter])
 
   return (
-    <Panel className="p-5">
+    <Panel className="p-5" motion="reveal">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
           <div className="flex items-center gap-2">
@@ -650,7 +650,7 @@ function RequestsPage() {
           同步
         </Button>
       </div>
-      <Card variant="glass" padding="sm" className="mt-4">
+      <Card variant="glass" padding="sm" className="pu-motion-lift mt-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--ink-paper)]">
           <ListFilter size={16} className="text-[var(--worldline-cyan)]" />
           先处理最有价值的请求
@@ -842,7 +842,7 @@ function EditorPage() {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <Panel className="p-5">
+      <Panel className="p-5" motion="reveal">
         <div className="flex items-center gap-2">
           <Edit3 size={18} className="text-[var(--worldline-cyan)]" />
           <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本地草稿编辑</h2>
@@ -895,7 +895,7 @@ function EditorPage() {
       </Panel>
 
       <aside className="space-y-4">
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">发布去向</p>
           <div className="mt-3 grid gap-2">
             <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
@@ -921,10 +921,10 @@ function EditorPage() {
             )}
           </div>
         </Panel>
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">当前请求</p>
           {selectedRequest ? (
-            <Card variant="glass" padding="sm" className="mt-3">
+            <Card variant="glass" padding="sm" className="pu-motion-lift mt-3">
               <Badge variant={statusTone(selectedRequest.status)}>{requestStatusLabel(selectedRequest.status)}</Badge>
               <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{selectedRequest.request_text}</p>
               <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(selectedRequest.created_at).toLocaleString()}</p>
@@ -933,11 +933,11 @@ function EditorPage() {
             <p className="mt-3 text-sm text-[var(--ink-muted)]">暂无请求。</p>
           )}
         </Panel>
-        <Panel className="p-5">
+        <Panel className="p-5" motion="reveal">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">本地草稿缓存</p>
           <div className="mt-3 space-y-2">
             {drafts.slice(0, 5).map(draft => (
-              <Card key={draft.localDraftRef} variant="glass" padding="sm">
+              <Card key={draft.localDraftRef} variant="glass" padding="sm" className="pu-motion-lift">
                 <p className="text-sm font-semibold text-[var(--ink-paper)]">{draft.title}</p>
                 <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">{new Date(draft.updatedAt).toLocaleString()}</p>
                 <Button
@@ -973,7 +973,7 @@ function SettingsPage() {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <Panel className="p-5">
+      <Panel className="p-5" motion="reveal">
         <div className="flex items-center gap-2">
           <Settings size={18} className="text-[var(--worldline-cyan)]" />
           <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本机创作与同步设置</h2>
@@ -1013,7 +1013,7 @@ function SettingsPage() {
           <p className="text-sm text-[var(--ink-muted)]">{notice}</p>
         </div>
       </Panel>
-      <Panel className="p-5">
+      <Panel className="p-5" motion="reveal">
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} className="text-[var(--manuscript-gold)]" />
           <h2 className="text-lg font-semibold text-[var(--ink-paper)]">发布规则</h2>

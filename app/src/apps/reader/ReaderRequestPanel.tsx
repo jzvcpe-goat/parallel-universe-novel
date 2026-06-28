@@ -97,7 +97,7 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
   }
 
   return (
-    <Panel className="mt-4 w-full p-4">
+    <Panel className="mt-4 w-full p-4" motion="reveal">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
         <div>
           <div className="flex items-center gap-2">
@@ -116,10 +116,10 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card variant="glass" padding="sm">
+        <Card variant="glass" padding="sm" className="pu-motion-lift">
           <div className="reader-request-flow mb-4">
             {readerFlow.map((step, index) => (
-              <div key={step.title} className="reader-request-flow-step">
+              <div key={step.title} className="reader-request-flow-step pu-motion-lift">
                 <span className="reader-request-flow-index">{index + 1}</span>
                 <span className="min-w-0">
                   <span className="block text-xs font-semibold text-[var(--ink-paper)]">{step.title}</span>
@@ -156,7 +156,7 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
           <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">{status}</p>
         </Card>
 
-        <Card variant="glass" padding="sm">
+        <Card variant="glass" padding="sm" className="pu-motion-lift">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <GitBranch size={16} className="text-[var(--manuscript-gold)]" />
@@ -166,7 +166,7 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
           <CardContent>
           <div className="mt-3 space-y-2">
             {hotRequests.length ? hotRequests.map(item => (
-              <Card key={item.id} variant="default" padding="sm" className="bg-black/15">
+              <Card key={item.id} variant="default" padding="sm" className="pu-motion-lift bg-black/15">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant={item.status === 'published' ? 'stasis' : 'outline'}>
                     {requestStatusLabel(item.status)}
