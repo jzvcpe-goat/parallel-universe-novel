@@ -104,10 +104,10 @@ export const pageSurfaceContracts: Record<
 
 export const shadcnImplementationRules = [
   '页面优先组合 design-system patterns；若必须新增业务卡片样式，先抽成 pattern 再落页面。',
-  '交互控件从 components/ui 取 Button、Badge、Card、Input、Textarea、Dialog。',
+  '交互控件从 components/ui 取 Button、Badge、Card、Input、Textarea、Dialog、Select、Tabs、Table、Alert、Checkbox、ScrollArea。',
   '新颜色必须先进入 parallel-universe-tokens.css，再进入 variant 或 pattern。',
   '读者页只能出现故事、阅读、选择和反馈语言；创作室才可以出现发布检查和运营语言。',
   '创作页主路径优先自然语言对话；内部结构只能产品化为创作脉络和故事笔记，不显示系统字段解释或原始思维链。',
   '热门题材索引可以出现在首页、书城和创作页，但只能用产品语言；来源平台、绑定关系和底盘解释留在交接文档或 Studio。',
-  '普通用户主导航只保留发现、阅读、书城、创作、会员；Studio 和运营设置不进入主导航。',
+  '普通用户主导航只保留发现、阅读、书城、会员；Local Creator、Studio 和运营设置不进入公网主导航。',
 ] as const

@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Bell, CheckCircle2, GitBranch, RefreshCw, Send, ThumbsUp } from 'lucide-react'
-import { Badge } from '@/components/primitives/Badge'
-import { Button } from '@/components/primitives/Button'
 import { Panel } from '@/components/design-system/Panel'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import {
   createReaderRequest,
   listPublicRequests,
@@ -112,7 +116,7 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
+        <Card variant="glass" padding="sm">
           <div className="reader-request-flow mb-4">
             {readerFlow.map((step, index) => (
               <div key={step.title} className="reader-request-flow-step">
@@ -124,20 +128,17 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {(['next_chapter', 'if_branch', 'continue_branch'] as PmfRequestType[]).map(type => (
-              <button
-                key={type}
-                type="button"
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${requestType === type ? 'border-[var(--manuscript-gold)]/55 bg-[var(--manuscript-gold)]/12 text-[var(--manuscript-gold)]' : 'border-white/10 text-[var(--ink-muted)] hover:text-[var(--ink-paper)]'}`}
-                onClick={() => setRequestType(type)}
-              >
-                {requestTypeLabel(type)}
-              </button>
-            ))}
-          </div>
-          <textarea
-            className="mt-3 min-h-[108px] w-full rounded-lg border border-white/10 bg-black/20 px-3 py-3 text-sm leading-6 text-[var(--ink-paper)] outline-none placeholder:text-[var(--ink-dim)] focus:border-[var(--worldline-cyan)]/50"
+          <Tabs value={requestType} onValueChange={value => setRequestType(value as PmfRequestType)}>
+            <TabsList className="grid h-auto w-full grid-cols-3 bg-[var(--pu-panel-850)] text-[var(--ink-muted)]">
+              {(['next_chapter', 'if_branch', 'continue_branch'] as PmfRequestType[]).map(type => (
+                <TabsTrigger key={type} value={type} className="min-h-10 text-xs sm:text-sm">
+                  {requestTypeLabel(type)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <Textarea
+            className="mt-3 min-h-[108px]"
             value={requestText}
             maxLength={280}
             onChange={event => setRequestText(event.target.value)}
@@ -153,28 +154,27 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
             </Button>
           </div>
           <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">{status}</p>
-        </div>
+        </Card>
 
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-          <div className="flex items-center gap-2">
-            <GitBranch size={16} className="text-[var(--manuscript-gold)]" />
-            <h3 className="text-sm font-semibold text-[var(--ink-paper)]">热门请求</h3>
-          </div>
+        <Card variant="glass" padding="sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <GitBranch size={16} className="text-[var(--manuscript-gold)]" />
+              <CardTitle className="text-sm">热门请求</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
           <div className="mt-3 space-y-2">
             {hotRequests.length ? hotRequests.map(item => (
-              <div key={item.id} className="rounded-lg border border-white/10 bg-black/15 p-3">
+              <Card key={item.id} variant="default" padding="sm" className="bg-black/15">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant={item.status === 'published' ? 'stasis' : 'outline'}>
                     {requestStatusLabel(item.status)}
                   </Badge>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--worldline-cyan)]"
-                    onClick={() => vote(item.id)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => vote(item.id)}>
                     <ThumbsUp size={13} />
                     {item.vote_count}
-                  </button>
+                  </Button>
                 </div>
                 <p className="mt-2 text-xs font-semibold text-[var(--ink-paper)]">{requestTypeLabel(item.request_type)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--ink-muted)]">{item.request_text}</p>
@@ -184,14 +184,17 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
                     已回写到阅读端
                   </p>
                 )}
-              </div>
+              </Card>
             )) : (
-              <p className="rounded-lg border border-dashed border-white/10 p-4 text-xs leading-5 text-[var(--ink-dim)]">
-                暂无请求。提交后这里会显示聚合状态。
-              </p>
+              <Alert className="border-dashed border-white/10 bg-transparent text-[var(--ink-dim)]">
+                <Bell className="h-4 w-4" />
+                <AlertTitle>暂无请求</AlertTitle>
+                <AlertDescription>提交后这里会显示聚合状态。</AlertDescription>
+              </Alert>
             )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </Panel>
   )

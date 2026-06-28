@@ -2,7 +2,6 @@ import * as React from 'react'
 import {
   BookOpen,
   CreditCard,
-  Feather,
   Grid2X2,
   Home,
   Search,
@@ -13,8 +12,8 @@ export type ParallelUniverseSection =
   | 'discover'
   | 'library'
   | 'reader'
-  | 'creator'
   | 'member'
+  | 'creator'
   | 'studio'
   | 'settings'
   | 'billing'
@@ -23,7 +22,6 @@ const railItems: Array<{ id: ParallelUniverseSection; label: string; icon: React
   { id: 'discover', label: '发现', icon: <Home size={18} /> },
   { id: 'reader', label: '阅读', icon: <BookOpen size={18} /> },
   { id: 'library', label: '书城', icon: <Grid2X2 size={18} /> },
-  { id: 'creator', label: '创作', icon: <Feather size={18} /> },
   { id: 'member', label: '会员', icon: <CreditCard size={18} /> },
 ]
 

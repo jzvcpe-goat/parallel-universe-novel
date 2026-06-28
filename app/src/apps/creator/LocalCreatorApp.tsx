@@ -18,12 +18,20 @@ import {
   Settings,
   ShieldCheck,
 } from 'lucide-react'
-import { Badge } from '@/components/primitives/Badge'
-import { Button } from '@/components/primitives/Button'
 import { Panel } from '@/components/design-system/Panel'
 import { WorkspaceNav } from '@/components/patterns/WorkspaceNav'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { worldTemplates } from '@/features/parallel-universe/data'
 import type { WorldTemplate } from '@/features/parallel-universe/types'
 import { pmfMainBranchId, type PmfLocalDraft, type PmfReaderRequest, type PmfRequestStatus, type PmfRequestType } from '@/features/pmf/types'
@@ -59,6 +67,49 @@ type RequestStatusFilter = 'all' | PmfRequestStatus
 type RequestTypeFilter = 'all' | PmfRequestType
 type RequestSort = 'heat' | 'newest' | 'status'
 type PublishMode = 'main' | 'if'
+type SelectOption<T extends string> = {
+  value: T
+  label: string
+}
+
+function CreatorSelect<T extends string>({
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  className,
+}: {
+  value: T
+  onValueChange: (value: T) => void
+  options: SelectOption<T>[]
+  placeholder?: string
+  className?: string
+}) {
+  return (
+    <Select value={value} onValueChange={nextValue => onValueChange(nextValue as T)}>
+      <SelectTrigger className={className || 'h-10 border-[var(--pu-line-700)] bg-[var(--pu-void-950)] text-[var(--pu-ink-100)]'}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="border-[var(--pu-line-700)] bg-[var(--pu-panel-900)] text-[var(--pu-ink-100)]">
+        {options.map(option => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+function MetricCard({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
+  return (
+    <Card variant="glass" padding="sm">
+      <p className="text-2xl font-semibold text-[var(--ink-paper)]">{value}</p>
+      <p className="mt-1 text-xs font-medium text-[var(--ink-dim)]">{label}</p>
+      {detail ? <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{detail}</p> : null}
+    </Card>
+  )
+}
 
 function statusTone(status: PmfReaderRequest['status']) {
   if (status === 'published') return 'stasis'
@@ -306,14 +357,17 @@ function LoginPage({ refreshSession }: { refreshSession: () => Promise<void> }) 
             <p className="text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
           </div>
         </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-          <p className="text-sm font-semibold text-[var(--ink-paper)]">本机规则</p>
+        <Card variant="glass" padding="sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">本机规则</CardTitle>
+            <CardDescription>作者端只保留必要的发布边界。</CardDescription>
+          </CardHeader>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--ink-muted)]">
             <li>模型授权信息只保存在作者电脑。</li>
             <li>草稿先保存本地，发布前必须人工确认。</li>
             <li>读者阅读端只能看到已发布章节和请求状态。</li>
           </ul>
-        </div>
+        </Card>
       </div>
     </Panel>
   )
@@ -375,15 +429,10 @@ function DashboardPage() {
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {[
-              { label: '待处理', value: pending },
-              { label: '处理中', value: inProgress },
-              { label: '已发布', value: published },
-            ].map(item => (
-              <div key={item.label} className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-                <p className="text-2xl font-semibold text-[var(--ink-paper)]">{item.value}</p>
-                <p className="mt-1 text-xs text-[var(--ink-dim)]">{item.label}</p>
-              </div>
-            ))}
+              { label: '待处理', value: pending, detail: '需要确认是否进入写作。' },
+              { label: '处理中', value: inProgress, detail: '已经进入作者工作流。' },
+              { label: '已发布', value: published, detail: '读者端可以看到更新。' },
+            ].map(item => <MetricCard key={item.label} {...item} />)}
           </div>
         </Panel>
 
@@ -434,16 +483,22 @@ function StarterWorksPanel() {
       <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {starterWorks.map(template => (
-          <button
-            key={template.id}
-            type="button"
-            className="rounded-lg border border-white/10 bg-white/[0.025] p-4 text-left transition-colors hover:border-[var(--worldline-cyan)]/45"
-            onClick={() => bind(template)}
-          >
-            <p className="text-sm font-semibold text-[var(--ink-paper)]">{template.title}</p>
-            <p className="mt-1 text-xs text-[var(--ink-dim)]">{template.genre}</p>
-            <p className="mt-2 line-clamp-2 text-xs leading-5 text-[var(--ink-muted)]">{template.tagline}</p>
-          </button>
+          <Card key={template.id} variant="glass" padding="sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">{template.title}</CardTitle>
+                  <CardDescription>{template.genre}</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => bind(template)}>
+                  绑定
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="line-clamp-2 text-xs leading-5 text-[var(--ink-muted)]">{template.tagline}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </Panel>
@@ -492,18 +547,9 @@ function WorksPage() {
                 <h3 className="mt-3 text-2xl font-semibold text-[var(--ink-paper)]">{template.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{template.tagline}</p>
                 <div className="mt-4 grid gap-2 md:grid-cols-3">
-                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-                    <p className="text-xs text-[var(--ink-dim)]">主线</p>
-                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">默认连载线</p>
-                  </div>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-                    <p className="text-xs text-[var(--ink-dim)]">IF 支线</p>
-                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">按读者请求开放</p>
-                  </div>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-                    <p className="text-xs text-[var(--ink-dim)]">发布方式</p>
-                    <p className="mt-1 text-sm font-semibold text-[var(--ink-paper)]">作者确认后公开</p>
-                  </div>
+                  <MetricCard label="主线" value="默认连载线" />
+                  <MetricCard label="IF 支线" value="按请求开放" />
+                  <MetricCard label="发布方式" value="确认后公开" />
                 </div>
               </div>
               <Button variant="gold" onClick={() => bindWithNotice(template)}>
@@ -607,7 +653,7 @@ function RequestsPage() {
           同步
         </Button>
       </div>
-      <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.025] p-3">
+      <Card variant="glass" padding="sm" className="mt-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--ink-paper)]">
           <ListFilter size={16} className="text-[var(--worldline-cyan)]" />
           先处理最有价值的请求
@@ -615,82 +661,103 @@ function RequestsPage() {
         <div className="grid gap-3 lg:grid-cols-3">
           <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
             处理状态
-            <select
-              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+            <CreatorSelect
               value={statusFilter}
-              onChange={event => setStatusFilter(event.target.value as RequestStatusFilter)}
-            >
-              <option value="all">全部状态</option>
-              <option value="pending">已收到</option>
-              <option value="acknowledged">作者已看到</option>
-              <option value="in_progress">作者处理中</option>
-              <option value="published">已发布</option>
-              <option value="rejected">暂不处理</option>
-            </select>
+              onValueChange={setStatusFilter}
+              options={[
+                { value: 'all', label: '全部状态' },
+                { value: 'pending', label: '已收到' },
+                { value: 'acknowledged', label: '作者已看到' },
+                { value: 'in_progress', label: '作者处理中' },
+                { value: 'published', label: '已发布' },
+                { value: 'rejected', label: '暂不处理' },
+              ]}
+            />
           </label>
           <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
             请求类型
-            <select
-              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+            <CreatorSelect
               value={typeFilter}
-              onChange={event => setTypeFilter(event.target.value as RequestTypeFilter)}
-            >
-              <option value="all">全部类型</option>
-              <option value="next_chapter">请求下一章</option>
-              <option value="if_branch">请求 IF 支线</option>
-              <option value="continue_branch">请求继续这条支线</option>
-            </select>
+              onValueChange={setTypeFilter}
+              options={[
+                { value: 'all', label: '全部类型' },
+                { value: 'next_chapter', label: '请求下一章' },
+                { value: 'if_branch', label: '请求 IF 支线' },
+                { value: 'continue_branch', label: '请求继续这条支线' },
+              ]}
+            />
           </label>
           <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
             排序
-            <select
-              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+            <CreatorSelect
               value={sortBy}
-              onChange={event => setSortBy(event.target.value as RequestSort)}
-            >
-              <option value="heat">按热度</option>
-              <option value="newest">按最新</option>
-              <option value="status">按状态</option>
-            </select>
+              onValueChange={setSortBy}
+              options={[
+                { value: 'heat', label: '按热度' },
+                { value: 'newest', label: '按最新' },
+                { value: 'status', label: '按状态' },
+              ]}
+            />
           </label>
         </div>
-      </div>
-      <div className="mt-4 space-y-3">
-        {visibleRequests.map(request => (
-          <div key={request.id} className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
-            <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-start">
-              <div className="min-w-0">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant={statusTone(request.status)}>{requestStatusLabel(request.status)}</Badge>
-                  <Badge variant="outline">{requestTypeLabel(request.request_type)}</Badge>
-                  <Badge variant="outline">{request.vote_count} 票</Badge>
-                </div>
-                <p className="mt-3 text-sm font-semibold text-[var(--ink-paper)]">{workTitleForId(request.work_id)}</p>
-                <p className="mt-1 text-xs leading-5 text-[var(--ink-dim)]">{workSummaryForId(request.work_id)}</p>
-                <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{request.request_text}</p>
-                <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(request.created_at).toLocaleString()}</p>
-                <p className="mt-2 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs leading-5 text-[var(--ink-muted)]">
-                  {requestActionHint(request)}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 lg:justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'acknowledged')}>已看到</Button>
-                <Button variant="outline" size="sm" onClick={() => setStatus(request, 'in_progress')}>处理中</Button>
-                <Button variant="gold" size="sm" onClick={() => navigate(`/creator/editor?request=${request.id}`)}>
-                  <Edit3 size={14} />
-                  写草稿
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'rejected')}>暂不处理</Button>
-              </div>
-            </div>
-          </div>
-        ))}
-        {!visibleRequests.length && (
-          <p className="rounded-lg border border-dashed border-white/10 p-6 text-sm text-[var(--ink-muted)]">
-            当前筛选下没有请求。可以切回全部状态，或先在读者阅读端提交“想看下一章”“想看 IF 支线”。
-          </p>
+      </Card>
+      <Card variant="glass" padding="none" className="mt-4 overflow-hidden">
+        {visibleRequests.length ? (
+          <ScrollArea className="max-h-[620px]">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-white/10 hover:bg-transparent">
+                  <TableHead className="w-[24%] px-4 text-[var(--ink-dim)]">作品</TableHead>
+                  <TableHead className="w-[34%] text-[var(--ink-dim)]">请求内容</TableHead>
+                  <TableHead className="text-[var(--ink-dim)]">状态</TableHead>
+                  <TableHead className="text-[var(--ink-dim)]">热度</TableHead>
+                  <TableHead className="text-right text-[var(--ink-dim)]">处理</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleRequests.map(request => (
+                  <TableRow key={request.id} className="border-white/10 hover:bg-white/[0.035]">
+                    <TableCell className="px-4 align-top">
+                      <p className="text-sm font-semibold text-[var(--ink-paper)]">{workTitleForId(request.work_id)}</p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--ink-dim)]">{workSummaryForId(request.work_id)}</p>
+                      <p className="mt-2 text-[11px] text-[var(--ink-dim)]">{new Date(request.created_at).toLocaleString()}</p>
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline">{requestTypeLabel(request.request_type)}</Badge>
+                        <Badge variant={statusTone(request.status)}>{requestStatusLabel(request.status)}</Badge>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{request.request_text}</p>
+                      <p className="mt-2 text-xs leading-5 text-[var(--ink-dim)]">{requestActionHint(request)}</p>
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <Badge variant={statusTone(request.status)}>{requestStatusLabel(request.status)}</Badge>
+                    </TableCell>
+                    <TableCell className="align-top text-sm font-semibold text-[var(--ink-paper)]">{request.vote_count} 票</TableCell>
+                    <TableCell className="align-top">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'acknowledged')}>已看到</Button>
+                        <Button variant="outline" size="sm" onClick={() => setStatus(request, 'in_progress')}>处理中</Button>
+                        <Button variant="gold" size="sm" onClick={() => navigate(`/creator/editor?request=${request.id}`)}>
+                          <Edit3 size={14} />
+                          写草稿
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setStatus(request, 'rejected')}>暂缓</Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        ) : (
+          <Alert className="border-dashed border-white/10 bg-transparent text-[var(--ink-muted)]">
+            <Bell className="h-4 w-4" />
+            <AlertTitle>当前筛选下没有请求</AlertTitle>
+            <AlertDescription>可以切回全部状态，或先在读者阅读端提交“想看下一章”“想看 IF 支线”。</AlertDescription>
+          </Alert>
         )}
-      </div>
+      </Card>
     </Panel>
   )
 }
@@ -783,29 +850,51 @@ function EditorPage() {
           <Edit3 size={18} className="text-[var(--worldline-cyan)]" />
           <h2 className="text-xl font-semibold text-[var(--ink-paper)]">本地草稿编辑</h2>
         </div>
-          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
+        <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
           本页只在作者电脑上使用。你可以接入本地模型，也可以直接手写；点击发布前不会进入读者阅读端。
           </p>
-        <div className="mt-4 grid gap-3">
-          <Input value={title} onChange={event => setTitle(event.target.value)} aria-label="章节标题" />
-          <Textarea
-            className="min-h-[420px] font-serif text-base leading-8"
-            value={content}
-            onChange={event => setContent(event.target.value)}
-            aria-label="本地草稿正文"
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={saveDraft}>
-              <Save size={15} />
-              保存本地草稿
-            </Button>
+        <Tabs defaultValue="draft" className="mt-4">
+          <TabsList className="bg-[var(--pu-panel-850)] text-[var(--ink-muted)]">
+            <TabsTrigger value="draft">正文草稿</TabsTrigger>
+            <TabsTrigger value="publish">发布确认</TabsTrigger>
+          </TabsList>
+          <TabsContent value="draft" className="mt-4 space-y-3">
+            <Input value={title} onChange={event => setTitle(event.target.value)} aria-label="章节标题" />
+            <Textarea
+              className="min-h-[420px] font-serif text-base leading-8"
+              value={content}
+              onChange={event => setContent(event.target.value)}
+              aria-label="本地草稿正文"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={saveDraft}>
+                <Save size={15} />
+                保存本地草稿
+              </Button>
+              <Button variant="gold" onClick={publish}>
+                <Send size={15} />
+                人工确认并发布
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="publish" className="mt-4 space-y-3">
+            <Alert className="border-[var(--pu-gold-500)]/30 bg-[var(--pu-gold-500)]/10 text-[var(--ink-paper)]">
+              <ShieldCheck className="h-4 w-4" />
+              <AlertTitle>发布前确认</AlertTitle>
+              <AlertDescription>只有点击“人工确认并发布”后，读者端才会看到章节或 IF 支线更新。</AlertDescription>
+            </Alert>
+            <div className="grid gap-3 md:grid-cols-2">
+              <MetricCard label="发布作品" value={workTitleForId(workId)} />
+              <MetricCard label="发布线" value={publishMode === 'main' ? '主线连载' : branchTitle} />
+            </div>
             <Button variant="gold" onClick={publish}>
               <Send size={15} />
               人工确认并发布
             </Button>
-          </div>
-          <p className="text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
-        </div>
+          </TabsContent>
+        </Tabs>
+        <Separator className="my-4 bg-white/10" />
+        <p className="text-sm leading-6 text-[var(--ink-muted)]">{notice}</p>
       </Panel>
 
       <aside className="space-y-4">
@@ -818,14 +907,14 @@ function EditorPage() {
             </label>
             <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
               章节去向
-              <select
-                className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+              <CreatorSelect
                 value={publishMode}
-                onChange={event => setPublishMode(event.target.value as PublishMode)}
-              >
-                <option value="main">主线连载</option>
-                <option value="if">IF 支线</option>
-              </select>
+                onValueChange={setPublishMode}
+                options={[
+                  { value: 'main', label: '主线连载' },
+                  { value: 'if', label: 'IF 支线' },
+                ]}
+              />
             </label>
             {publishMode === 'if' && (
               <label className="grid gap-2 text-xs text-[var(--ink-dim)]">
@@ -838,11 +927,11 @@ function EditorPage() {
         <Panel className="p-5">
           <p className="text-sm font-semibold text-[var(--ink-paper)]">当前请求</p>
           {selectedRequest ? (
-            <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.025] p-3">
+            <Card variant="glass" padding="sm" className="mt-3">
               <Badge variant={statusTone(selectedRequest.status)}>{requestStatusLabel(selectedRequest.status)}</Badge>
               <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{selectedRequest.request_text}</p>
               <p className="mt-2 text-xs text-[var(--ink-dim)]">提交时间：{new Date(selectedRequest.created_at).toLocaleString()}</p>
-            </div>
+            </Card>
           ) : (
             <p className="mt-3 text-sm text-[var(--ink-muted)]">暂无请求。</p>
           )}
@@ -851,19 +940,22 @@ function EditorPage() {
           <p className="text-sm font-semibold text-[var(--ink-paper)]">本地草稿缓存</p>
           <div className="mt-3 space-y-2">
             {drafts.slice(0, 5).map(draft => (
-              <button
-                key={draft.localDraftRef}
-                type="button"
-                className="w-full rounded-lg border border-white/10 bg-white/[0.025] p-3 text-left text-xs leading-5 text-[var(--ink-muted)]"
-                onClick={() => {
-                  setTitle(draft.title)
-                  setContent(draft.content)
-                  setNotice('已打开本地草稿。')
-                }}
-              >
-                <span className="block font-semibold text-[var(--ink-paper)]">{draft.title}</span>
-                <span className="mt-1 block">{new Date(draft.updatedAt).toLocaleString()}</span>
-              </button>
+              <Card key={draft.localDraftRef} variant="glass" padding="sm">
+                <p className="text-sm font-semibold text-[var(--ink-paper)]">{draft.title}</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">{new Date(draft.updatedAt).toLocaleString()}</p>
+                <Button
+                  className="mt-3"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setTitle(draft.title)
+                    setContent(draft.content)
+                    setNotice('已打开本地草稿。')
+                  }}
+                >
+                  打开草稿
+                </Button>
+              </Card>
             ))}
             {!drafts.length && <p className="text-sm text-[var(--ink-dim)]">暂无本地草稿。</p>}
           </div>
@@ -892,15 +984,15 @@ function SettingsPage() {
         <div className="mt-4 grid gap-3">
           <label className="grid gap-2 text-sm text-[var(--ink-muted)]">
             生成方式
-            <select
-              className="h-10 rounded-lg border border-[var(--pu-line-700)] bg-[var(--pu-void-950)] px-3 text-sm text-[var(--pu-ink-100)]"
+            <CreatorSelect
               value={settings.provider}
-              onChange={event => setSettings(previous => ({ ...previous, provider: event.target.value as LocalAiSettings['provider'] }))}
-            >
-              <option value="manual">手写 / 外部工具粘贴</option>
-              <option value="local_endpoint">本地模型服务</option>
-              <option value="openai_compatible">作者自带兼容服务</option>
-            </select>
+              onValueChange={provider => setSettings(previous => ({ ...previous, provider: provider as LocalAiSettings['provider'] }))}
+              options={[
+                { value: 'manual', label: '手写 / 外部工具粘贴' },
+                { value: 'local_endpoint', label: '本地模型服务' },
+                { value: 'openai_compatible', label: '作者自带兼容服务' },
+              ]}
+            />
           </label>
           <label className="grid gap-2 text-sm text-[var(--ink-muted)]">
             本机服务地址
@@ -910,13 +1002,12 @@ function SettingsPage() {
             模型名称
             <Input value={settings.model} onChange={event => setSettings(previous => ({ ...previous, model: event.target.value }))} placeholder="本机模型名称" />
           </label>
-          <label className="flex items-center gap-2 text-sm text-[var(--ink-muted)]">
-            <input
-              type="checkbox"
+          <label className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.025] p-3 text-sm text-[var(--ink-muted)]">
+            <Checkbox
               checked={settings.hasKey}
-              onChange={event => setSettings(previous => ({ ...previous, hasKey: event.target.checked }))}
+              onCheckedChange={checked => setSettings(previous => ({ ...previous, hasKey: checked === true }))}
             />
-            我已在本机工具中配置创作授权信息
+            <span>我已在本机工具中配置创作授权信息</span>
           </label>
           <Button variant="gold" onClick={save}>
             <CheckCircle2 size={15} />

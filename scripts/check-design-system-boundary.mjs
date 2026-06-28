@@ -16,8 +16,8 @@ function assert(condition, message) {
 
 const appText = read('app/src/App.tsx')
 const navBlock = appText.match(/const navItems = \[([\s\S]*?)\n\s*\]/)?.[1] || ''
-const publicNavLabels = ['soul', 'story', 'library', 'create', 'member']
-const backstageNavLabels = ['studio', 'settings', 'billing']
+const publicNavLabels = ['soul', 'story', 'library', 'member']
+const backstageNavLabels = ['create', 'studio', 'settings', 'billing']
 
 for (const id of publicNavLabels) {
   assert(navBlock.includes(`id: '${id}'`), `App public nav is missing ${id}.`)
@@ -28,16 +28,16 @@ for (const id of backstageNavLabels) {
 
 const shellText = read('app/src/components/design-system/ParallelUniverseShell.tsx')
 const railBlock = shellText.match(/const railItems:[\s\S]*?= \[([\s\S]*?)\n\]/)?.[1] || ''
-for (const label of ['发现', '阅读', '书城', '创作', '会员']) {
+for (const label of ['发现', '阅读', '书城', '会员']) {
   assert(railBlock.includes(`label: '${label}'`), `ParallelUniverseShell public rail is missing ${label}.`)
 }
-for (const label of ['创作室', '设置', '支付']) {
+for (const label of ['创作', '创作室', '设置', '支付']) {
   assert(!railBlock.includes(`label: '${label}'`), `ParallelUniverseShell public rail must not include ${label}.`)
 }
 
 const registryText = read('app/src/design-system/registry.ts')
 assert(
-  registryText.includes("requiredRailOrder: ['发现', '阅读', '书城', '创作', '会员']"),
+  registryText.includes("requiredRailOrder: ['发现', '阅读', '书城', '会员']"),
   'Design-system registry must declare the current public rail order.',
 )
 assert(
@@ -91,7 +91,7 @@ for (const pattern of ["'StudioTrendOpsPanel'", "'CapabilityMapPanel'"]) {
   )
 }
 assert(
-  pageContractsText.includes('普通用户主导航只保留发现、阅读、书城、创作'),
+  pageContractsText.includes('普通用户主导航只保留发现、阅读、书城、会员'),
   'Page contracts must document the public navigation boundary.',
 )
 
@@ -172,7 +172,7 @@ for (const required of ['completeCheckout', '检查开通状态', '刷新权益'
     `Account membership page must keep P21 checkout status and refresh behavior: ${required}`,
   )
 }
-for (const required of ['accountApi.getSnapshot', '阅读档案', '创作草稿', '跨设备恢复']) {
+for (const required of ['accountApi.getSnapshot', '阅读档案', '读者请求', '跨设备恢复']) {
   assert(
     accountText.includes(required),
     `Account membership page must keep P20 account snapshot behavior: ${required}`,

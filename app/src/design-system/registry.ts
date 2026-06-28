@@ -3,8 +3,8 @@ export const parallelUniverseDesignSystemRegistry = {
   title: '平行宇宙小说 UI Design System',
   shell: {
     component: '@/components/design-system/ParallelUniverseShell',
-    requiredRailOrder: ['发现', '阅读', '书城', '创作', '会员'],
-    rule: 'Reader-facing product pages share the public rail. Studio and operator settings stay direct/backstage surfaces; member billing becomes public only through productized membership copy.',
+    requiredRailOrder: ['发现', '阅读', '书城', '会员'],
+    rule: 'Reader-facing product pages share the public rail. Local Creator App remains a localhost author surface and must not become a public web backend.',
   },
   primitives: [
     { name: 'Button', path: '@/components/ui/button', source: 'shadcn-compatible' },
@@ -14,6 +14,15 @@ export const parallelUniverseDesignSystemRegistry = {
     { name: 'Textarea', path: '@/components/ui/textarea', source: 'shadcn-compatible' },
     { name: 'Label', path: '@/components/ui/label', source: 'shadcn-compatible' },
     { name: 'Dialog', path: '@/components/ui/dialog', source: 'radix-shadcn-compatible' },
+    { name: 'Alert', path: '@/components/ui/alert', source: 'shadcn-cli' },
+    { name: 'Checkbox', path: '@/components/ui/checkbox', source: 'shadcn-cli' },
+    { name: 'ScrollArea', path: '@/components/ui/scroll-area', source: 'shadcn-cli' },
+    { name: 'Select', path: '@/components/ui/select', source: 'shadcn-cli' },
+    { name: 'Separator', path: '@/components/ui/separator', source: 'shadcn-cli' },
+    { name: 'Sheet', path: '@/components/ui/sheet', source: 'shadcn-cli' },
+    { name: 'Table', path: '@/components/ui/table', source: 'shadcn-cli' },
+    { name: 'Tabs', path: '@/components/ui/tabs', source: 'shadcn-cli' },
+    { name: 'Tooltip', path: '@/components/ui/tooltip', source: 'shadcn-cli' },
   ],
   patterns: [
     { name: 'Panel', path: '@/components/design-system/Panel', surfaces: ['all'] },
@@ -35,7 +44,7 @@ export const parallelUniverseDesignSystemRegistry = {
   pageContracts: {
     path: '@/design-system/page-contracts',
     rule: 'Each product route must declare a surface contract before UI migration or new feature work.',
-    liveNavRule: 'Public navigation is 发现 / 阅读 / 书城 / 创作 / 会员. Studio and operator settings remain direct/backstage surfaces.',
+    liveNavRule: 'Public navigation is 发现 / 阅读 / 书城 / 会员. Local Creator, Studio and operator settings remain direct/backstage surfaces.',
   },
   copyBoundary: {
     readerForbidden: ['API', 'OpenAPI', 'PRD', 'fallback', 'demo', 'provider', 'database', 'endpoint', '后台', '后端', '接口', '时间织机'],

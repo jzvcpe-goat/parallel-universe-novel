@@ -7038,3 +7038,40 @@ npm run check:remote-assignment-env-dry-run
 npm run check:remote-runtime-assignment-intake
 npm run check:edge-only-data-api-evidence-readiness
 ```
+
+## 2026-06-28 Shadcn Dual-Surface UI Pass
+
+Reader Web and Local Creator App were refined as separate product surfaces
+without changing the zero-cost PMF boundary. The important product lesson is
+that "shared codebase" must not become "shared interface": Reader remains a
+content and request surface, while Local Creator remains a localhost request
+handling, draft and publish surface.
+
+Implementation notes:
+
+1. Added shadcn CLI primitives for `Alert`, `Checkbox`, `ScrollArea`,
+   `Select`, `Separator`, `Sheet`, `Table`, `Tabs` and `Tooltip`.
+2. Registered those primitives in `app/src/design-system/registry.ts` and
+   expanded `shadcnImplementationRules` so future work reaches for
+   `components/ui/*` before hand-writing raw controls.
+3. Reworked Local Creator request handling into a shadcn-style workbench:
+   summary cards, Select filters, Table request queue, Tabs draft/publish flow,
+   Alert publish confirmation and Checkbox local settings.
+4. Reworked Reader request capture with Tabs for request type, Textarea for
+   reader intent and Card/Alert status surfaces. Public Reader copy still
+   avoids provider, system, fallback, backend/interface and prompt plumbing
+   language.
+5. Competitive references should stay in design notes and implementation
+   reasoning only. The public UI must not mention source platforms, internal
+   binding language or non-product implementation terms.
+
+Verification:
+
+```bash
+npm --prefix app run lint -- --max-warnings=0
+npm --prefix app run build:reader
+npm --prefix app run build:creator
+npm run check:zero-cost-pmf-loop
+npm run check:public-reader-bundle-boundary
+npm run scan:public-ui-boundary
+```
