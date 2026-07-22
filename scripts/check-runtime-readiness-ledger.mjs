@@ -44,6 +44,7 @@ const requiredTopLevel = [
   'required',
   'repo',
   'publicUrl',
+  'creatorCompatibilityUrl',
   'repoVariables',
   'runtimeConfig',
   'health',
@@ -62,8 +63,12 @@ assert(!Number.isNaN(Date.parse(ledger.generatedAt)), 'readiness ledger generate
 assert(typeof ledger.required === 'boolean', 'readiness ledger required must be boolean')
 assert(ledger.repo === 'jzvcpe-goat/parallel-universe-novel', `unexpected readiness repo: ${ledger.repo}`)
 assert(
-  ledger.publicUrl === 'https://jzvcpe-goat.github.io/parallel-universe-novel/#/create',
+  ledger.publicUrl === 'https://jzvcpe-goat.github.io/parallel-universe-novel/',
   `unexpected publicUrl: ${ledger.publicUrl}`,
+)
+assert(
+  ledger.creatorCompatibilityUrl === 'https://jzvcpe-goat.github.io/parallel-universe-novel/#/create',
+  `unexpected creatorCompatibilityUrl: ${ledger.creatorCompatibilityUrl}`,
 )
 assert(
   ledger.repoVariables && typeof ledger.repoVariables.checked === 'boolean',

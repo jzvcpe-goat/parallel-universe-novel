@@ -20,6 +20,7 @@ function isRemoteHttps(value) {
 
 const creatorApi = read('app/src/api/creator.ts')
 const createPage = read('app/src/pages/Create.tsx')
+const readerApp = read('app/src/App.tsx')
 const workflow = read('.github/workflows/pages.yml')
 const pagesQa = read('scripts/browser-pages-preview-e2e.mjs')
 const envExample = read('app/.env.example')
@@ -44,7 +45,13 @@ assert(
 )
 assert(
   createPage.includes('创作服务待连接') && createPage.includes('创作服务可用'),
-  'Creator page must present runtime connection as product-facing status',
+  'Dormant Creator compatibility page must keep product-facing runtime status while it remains in source',
+)
+assert(
+  !readerApp.includes("import Create from '@/pages/Create'")
+    && readerApp.includes('<Route path="/create" element={<Navigate to="/library" replace />} />')
+    && readerApp.includes('<Route path="/studio" element={<Navigate to="/library" replace />} />'),
+  'Reader App must keep Creator and Studio out of the public bundle and redirect retired routes to Library',
 )
 assert(
   workflow.includes("VITE_PUBLIC_RUNTIME_MODE: ${{ vars.VITE_PUBLIC_RUNTIME_MODE || 'disabled' }}"),
@@ -66,8 +73,20 @@ assert(
 )
 assert(
   pagesQa.includes("VITE_PUBLIC_RUNTIME_MODE: 'disabled'")
-    && pagesQa.includes("VITE_ALLOW_LOCAL_CREATOR_FALLBACK: 'false'"),
-  'Static pages QA must simulate the disabled public runtime boundary',
+    && pagesQa.includes("VITE_ALLOW_LOCAL_CREATOR_FALLBACK: 'false'")
+    && pagesQa.includes("publicSurface: 'reader'")
+    && pagesQa.includes("retiredCreateRedirect: '#/library'")
+    && pagesQa.includes("retiredStudioRedirect: '#/library'")
+    && pagesQa.includes("readerToolButtons: readerToolEvidence.length")
+    && pagesQa.includes("[data-reader-tool-button]")
+    && pagesQa.includes("storyScreenshotPath"),
+  'Static Pages QA must prove the disabled runtime and Reader-only route boundary',
+)
+assert(
+  !pagesQa.includes("getByTestId('creator-conversation-panel').waitFor")
+    && !pagesQa.includes("getByRole('button', { name: /^开始创作$/ })")
+    && pagesQa.includes("getByRole('heading', { name: '热门题材索引专区' })"),
+  'Static Pages QA must not restore the retired public Creator journey',
 )
 assert(
   envExample.includes('VITE_AGENT_RUNTIME_BASE_URL')
@@ -84,8 +103,11 @@ assert(
   'npm run test must include check:public-runtime-preview',
 )
 assert(
-  contract.includes('GitHub Pages') && contract.includes('candidate') && contract.includes('Idempotency-Key'),
-  'P13 contract must document GitHub Pages boundary, candidate status, and idempotent runtime writes',
+  contract.includes('GitHub Pages')
+    && contract.includes('Reader Web')
+    && contract.includes('`#/create` redirects to `#/library`')
+    && contract.includes('Idempotency-Key'),
+  'P13 contract must document the Reader-only Pages boundary and keep dormant write compatibility explicitly gated',
 )
 
 if (process.env.REQUIRE_PUBLIC_RUNTIME === 'true') {
@@ -108,6 +130,7 @@ console.log(JSON.stringify({
   checked: [
     'app/src/api/creator.ts',
     'app/src/pages/Create.tsx',
+    'app/src/App.tsx',
     '.github/workflows/pages.yml',
     'scripts/browser-pages-preview-e2e.mjs',
     'app/.env.example',

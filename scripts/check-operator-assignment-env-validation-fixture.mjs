@@ -55,6 +55,7 @@ function runDryRun(extraEnv, { strict = false } = {}) {
   const env = {
     ...process.env,
     ...extraEnv,
+    OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE: 'true',
   }
   if (strict) env.REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY = 'true'
   else delete env.REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY

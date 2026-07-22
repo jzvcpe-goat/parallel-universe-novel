@@ -73,8 +73,12 @@ assert(
   'Pages workflow must run live browser QA before live public builds',
 )
 assert(
-  p13.includes('Public live preview') && p16.includes('Required GitHub Repository Variables'),
-  'P13/P16 docs must describe public live runtime configuration',
+  p13.includes('Reader Live Data')
+    && p13.includes('qa:live-runtime-browser')
+    && p13.includes('remains a compatibility/runtime experiment')
+    && p13.includes('part of current Reader release acceptance')
+    && p16.includes('Required GitHub Repository Variables'),
+  'P13 must separate Reader live data from the compatibility runtime experiment while P16 retains operator configuration',
 )
 assert(
   packageJson.scripts['qa:live-runtime-browser'] && packageJson.scripts['check:public-runtime-preview'],

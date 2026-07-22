@@ -26,10 +26,19 @@ function assertIncludes(file, terms) {
 
 const packageJson = readJson('package.json')
 const testCommand = String(packageJson.scripts.test || '')
+const productRuntimeCoverageCommand = String(packageJson.scripts['check:product-runtime-coverage'] || '')
 
 assert(
-  packageJson.scripts['check:product-runtime-coverage'] === 'node scripts/check-product-runtime-coverage.mjs',
-  'package.json must expose check:product-runtime-coverage',
+  productRuntimeCoverageCommand.startsWith('node scripts/check-product-runtime-coverage.mjs'),
+  'package.json must execute the product-runtime coverage owner first',
+)
+assert(
+  productRuntimeCoverageCommand.includes('npm run check:capability-alignment'),
+  'check:product-runtime-coverage must include the current capability alignment gate',
+)
+assert(
+  packageJson.scripts['check:capability-alignment'] === 'node scripts/check-capability-alignment.mjs',
+  'package.json must expose check:capability-alignment',
 )
 assert(
   testCommand.includes('backend/tests/test_product_runtime_api.py'),

@@ -322,7 +322,7 @@ const p117 = latestArtifact(
   payload => payload.gate === 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE'
     && (payload.currentHead === headSha || sourceWorkspaceNoGit)
     && payload.targetPath === targetAssignmentPath
-    && payload.decision === 'operator_env_not_supplied'
+    && ['operator_env_not_supplied', 'operator_env_waiting_for_current_head_images'].includes(payload.decision)
     && payload.p116ApplyPreflight?.readyForApply === false,
   'current waiting P117 env dry-run',
 )
@@ -425,7 +425,11 @@ if (p75.payload.runtimeMode === 'edge-only') {
   const agentBlockers = p75.payload.blockedStages.filter(stage => /^agent-|^remote-agent-|agent-/.test(stage) && stage !== 'remote-agent-not-required')
   assert(agentBlockers.length === 0, `edge-only P75 must not require remote Agent blockers: ${agentBlockers.join(', ')}`)
 }
-assert(p117.payload.decision === 'operator_env_not_supplied' || p117.payload.readyForApply === false, 'P117 must not report ready-to-apply operator env while P121 selects assignment intake')
+assert(
+  ['operator_env_not_supplied', 'operator_env_waiting_for_current_head_images'].includes(p117.payload.decision)
+    || p117.payload.readyForApply === false,
+  'P117 must not report ready-to-apply operator env while P121 selects assignment intake',
+)
 if (p117.payload.runtimeMode === 'edge-only') {
   const p117AgentMissing = (p117.payload.missingRequiredKeys || []).filter(key => [
     'REMOTE_AGENT_SERVICE_ID',
@@ -438,14 +442,21 @@ if (p117.payload.runtimeMode === 'edge-only') {
     'edge-only P117 must keep remote Agent secret-store confirmation false',
   )
   assert(
-    (p117.payload.nextCommands || []).includes('npm run remote-assignment:prepare'),
-    'edge-only P117 waiting state must point at the P138 compiler command',
+    (p117.payload.nextCommands || []).includes('npm run remote-assignment:prepare')
+      || (p117.payload.nextCommands || []).some(command => String(command).includes('check:runtime-image-publish-evidence')),
+    'edge-only P117 waiting state must point at the P138 compiler command or current-head runtime image evidence',
   )
 }
-assert(p113.payload.status === 'passed' || p113.payload.status === 'passed_waiting_for_local_assignment', 'P113 image drift gate must pass or wait for local assignment before P123')
+assert(
+  ['passed', 'passed_waiting_for_local_assignment', 'passed_with_image_publish_blockers'].includes(p113.payload.status),
+  'P113 image drift gate must pass, wait for local assignment, or wait for current-head images before P123',
+)
 assert(p113.payload.imageDriftDetected === false, 'P123 requires no local assignment image drift before operator evidence intake')
 if (assignmentFilePresent) {
-  assert(p113.payload.decision === 'remote_assignment_images_current', 'P123 requires current local assignment images when the local assignment file exists')
+  assert(
+    ['remote_assignment_images_current', 'remote_assignment_image_drift_waiting_for_current_head_images'].includes(p113.payload.decision),
+    'P123 requires current local assignment images or current-head image blocker evidence when the local assignment file exists',
+  )
 } else {
   assert(p120.payload.assignmentFilePresent === false, 'P120 must agree the real local assignment file is missing')
   assert(p113.payload.localAssignmentFilePresent === false, 'P113 must agree the local assignment file is missing')

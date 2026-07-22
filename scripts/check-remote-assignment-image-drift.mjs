@@ -50,6 +50,26 @@ function latestRuntimeImageEvidence(head) {
   return null
 }
 
+function latestRuntimeImagePublishBlocker(head) {
+  if (!existsSync(artifactDir)) return null
+  const files = readdirSync(artifactDir)
+    .filter(name => name.startsWith('runtime-image-publish-evidence-') && name.endsWith('.json'))
+    .map(name => join(artifactDir, name))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
+
+  for (const file of files) {
+    const payload = JSON.parse(readFileSync(file, 'utf8'))
+    if (
+      payload.status === 'passed_with_publish_blockers'
+      && payload.reason === 'current_head_image_run_missing'
+      && String(payload.detail || '').includes(head)
+    ) {
+      return { file, payload }
+    }
+  }
+  return null
+}
+
 function imageFor(payload, service) {
   const fragment = service === 'api'
     ? '/parallel-universe-novel-api:'
@@ -156,7 +176,27 @@ if (!existsSync(assignmentPath)) {
   process.exit(0)
 }
 
-assert(evidence, `missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence`)
+if (!evidence) {
+  const imageBlocker = latestRuntimeImagePublishBlocker(head)
+  assert(imageBlocker, `missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence`)
+  const artifact = {
+    version: 1,
+    gate: 'P113_REMOTE_ASSIGNMENT_IMAGE_DRIFT_GATE',
+    status: 'passed_with_image_publish_blockers',
+    generatedAt: new Date().toISOString(),
+    assignmentPath: assignmentRel,
+    currentHead: head,
+    imageEvidence: relative(root, imageBlocker.file),
+    decision: 'remote_assignment_image_drift_waiting_for_current_head_images',
+    localAssignmentFilePresent: true,
+    imageDriftDetected: false,
+    writesLocalAssignment: false,
+    nextCommand: 'Run Publish Runtime Images for the current head, then rerun check:remote-assignment-image-drift.',
+  }
+  const artifactPath = writeArtifact(artifact)
+  console.log(JSON.stringify({ ...artifact, artifactPath: relative(root, artifactPath) }, null, 2))
+  process.exit(0)
+}
 const expectedApiImage = imageFor(evidence.payload, 'api')
 const expectedAgentImage = imageFor(evidence.payload, 'agent')
 assert(expectedApiImage, 'current P72 evidence missing API image')

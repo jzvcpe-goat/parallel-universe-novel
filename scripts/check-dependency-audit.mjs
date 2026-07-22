@@ -3,21 +3,29 @@ import { spawnSync } from 'node:child_process'
 
 const allowedVulnerabilities = new Map([
   ['@ai-sdk/provider-utils', {
-    severity: 'low',
+    maxSeverity: 'low',
     reason: 'transitive_dependency_of_mastra_core_without_fixed_stable_mastra_release',
   }],
   ['@mastra/core', {
-    severity: 'moderate',
+    maxSeverity: 'moderate',
     reason: 'direct_mastra_orchestration_dependency_waiting_on_upstream_fix',
   }],
   ['gray-matter', {
-    severity: 'moderate',
+    maxSeverity: 'moderate',
     reason: 'transitive_dependency_of_mastra_core_without_safe_override',
   }],
   ['js-yaml', {
-    severity: 'moderate',
+    maxSeverity: 'moderate',
     reason: 'transitive_dependency_of_gray_matter_under_mastra_core',
   }],
+])
+
+const severityRank = new Map([
+  ['info', 0],
+  ['low', 1],
+  ['moderate', 2],
+  ['high', 3],
+  ['critical', 4],
 ])
 
 function assert(condition, message) {
@@ -46,8 +54,14 @@ for (const [name, detail] of Object.entries(vulnerabilities)) {
     continue
   }
   const severity = String(detail.severity || '')
-  if (severity !== expected.severity) {
-    unexpected.push(`${name}: expected severity ${expected.severity}, got ${severity}`)
+  const currentRank = severityRank.get(severity)
+  const maxRank = severityRank.get(expected.maxSeverity)
+  if (currentRank === undefined || maxRank === undefined) {
+    unexpected.push(`${name}: unrecognized severity ${severity}`)
+    continue
+  }
+  if (currentRank > maxRank) {
+    unexpected.push(`${name}: expected severity at or below ${expected.maxSeverity}, got ${severity}`)
     continue
   }
   if (severity === 'high' || severity === 'critical') {
@@ -57,6 +71,7 @@ for (const [name, detail] of Object.entries(vulnerabilities)) {
   allowed.push({
     name,
     severity,
+    maxSeverity: expected.maxSeverity,
     reason: expected.reason,
   })
 }
@@ -79,6 +94,7 @@ console.log(JSON.stringify({
   policy: {
     highOrCritical: 'blocked',
     newModerateOrLow: 'blocked_until_classified',
+    knownAdvisorySeverityImprovement: 'allowed_when_at_or_below_classified_maximum',
     upstreamMastraChain: 'documented_and_monitored',
   },
 }, null, 2))

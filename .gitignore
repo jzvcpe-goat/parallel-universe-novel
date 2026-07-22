@@ -50,3 +50,18 @@ artifacts/
 .toolchain/
 .harness-baseline
 .harness-sources
+
+# Private Creator workspaces and locally generated evidence. Public review
+# evidence must be explicitly approved in docs/reviews/CREATOR_PUBLIC_EVIDENCE_ALLOWLIST.md.
+*.pufw
+*.pufw.zip
+*.workspace.zip
+creator-workspace/
+local-workspaces/
+opfs/
+indexeddb/
+playwright-report/
+test-results/
+validation/creator-rag/
+validation/creator-ui/
+validation/creator-writing/

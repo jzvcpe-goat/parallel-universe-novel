@@ -95,7 +95,6 @@ for (const file of [
   'app/src/pages/Library.tsx',
   'app/src/pages/Story.tsx',
   'app/src/pages/Create.tsx',
-  'app/src/pages/Welcome.tsx',
 ]) {
   const body = read(file)
   for (const term of forbiddenPublicUi) {

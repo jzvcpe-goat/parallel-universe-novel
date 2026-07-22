@@ -36,12 +36,12 @@ for (const file of [
   'backend/src/narrativeos/services/product_runtime.py',
   'backend/tests/test_product_runtime_api.py',
   'app/src/api/runtime.ts',
-  'app/src/pages/Studio.tsx',
+  'app/src/features/internal-ops/StudioOpsSurface.tsx',
   'docs/backend/P56_STUDIO_CANON_TRACE_GATE.md',
   'docs/backend/P47_RUNTIME_TRACE_CONTINUITY.md',
   'docs/backend/P45_RUNTIME_ENGINE_COMPLETION_AUDIT.md',
 ]) {
-  assert(existsSync(join(root, file)), `missing Studio canon trace file: ${file}`)
+  assert(existsSync(join(root, file)), `missing internal Studio ops trace file: ${file}`)
 }
 
 assertIncludes('backend/src/narrativeos/api/product_runtime.py', [
@@ -70,7 +70,7 @@ assertIncludes('app/src/api/runtime.ts', [
   'source_run_id?: string',
   'project_id?: string',
 ])
-assertIncludes('app/src/pages/Studio.tsx', [
+assertIncludes('app/src/features/internal-ops/StudioOpsSurface.tsx', [
   'studioRunId',
   'studio_trace',
   'source_run_id',

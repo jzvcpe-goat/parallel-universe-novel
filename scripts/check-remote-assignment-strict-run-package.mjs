@@ -219,11 +219,15 @@ const apiImage = fillPlan.payload.currentImages?.api || imageEvidence.payload.im
 const agentImage = fillPlan.payload.currentImages?.agent || imageEvidence.payload.images?.find(item => item.includes('/parallel-universe-novel-agent-runtime:'))
 assert(apiImage, 'P118 could not resolve API image')
 assert(agentImage, 'P118 could not resolve Agent Runtime image')
+const waitingForCurrentHeadImages =
+  imageDrift.payload.decision === 'remote_assignment_image_drift_waiting_for_current_head_images'
+  || imageEvidence.payload.status === 'passed_with_publish_blockers'
 assert(
   imageDrift.payload.decision === 'remote_assignment_images_current'
     || imageDrift.payload.decision === 'remote_assignment_local_absent'
+    || waitingForCurrentHeadImages
     || sourceWorkspaceNoGit,
-  'P118 requires current remote assignment image drift or explicit local-assignment-absent evidence',
+  'P118 requires current remote assignment image drift, explicit local-assignment-absent evidence, or current-head image blocker evidence',
 )
 assert(imageDrift.payload.imageDriftDetected === false || sourceWorkspaceNoGit, 'P118 requires no remote assignment image drift')
 assert(fillPlan.payload.decision === 'remote_assignment_fill_plan_ready', 'P118 requires P105 fill-plan readiness')
@@ -272,8 +276,10 @@ for (const command of [
 }
 
 assert(blockedStages.includes('activation-control'), 'P118 must preserve activation-control as blocked until strict remote cutover passes')
-if (!sourceWorkspaceNoGit) {
+if (!sourceWorkspaceNoGit && !waitingForCurrentHeadImages) {
   assert(!blockedStages.includes('runtime-images-published'), 'P118 release package must not keep runtime images blocked')
+} else if (!sourceWorkspaceNoGit) {
+  assert(blockedStages.includes('runtime-images-published'), 'P118 must keep runtime images blocked while waiting for current-head image evidence')
 }
 
 const artifact = {

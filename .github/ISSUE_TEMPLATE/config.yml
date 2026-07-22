@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security follow-up
+    url: https://github.com/jzvcpe-goat/parallel-universe-novel/security/advisories/new
+    about: Use a private advisory for credentials or sensitive Creator data.

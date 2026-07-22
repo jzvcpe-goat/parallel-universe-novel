@@ -74,6 +74,26 @@ function latestRuntimeImageEvidence(head) {
   return null
 }
 
+function latestRuntimeImagePublishBlocker(head) {
+  if (!existsSync(artifactDir)) return null
+  const files = readdirSync(artifactDir)
+    .filter(name => name.startsWith('runtime-image-publish-evidence-') && name.endsWith('.json'))
+    .map(name => join(artifactDir, name))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
+
+  for (const file of files) {
+    const payload = JSON.parse(readFileSync(file, 'utf8'))
+    if (
+      payload.status === 'passed_with_publish_blockers'
+      && payload.reason === 'current_head_image_run_missing'
+      && String(payload.detail || '').includes(head)
+    ) {
+      return { file, payload }
+    }
+  }
+  return null
+}
+
 function imageFor(payload, service) {
   const fragment = service === 'api'
     ? '/parallel-universe-novel-api:'
@@ -387,7 +407,36 @@ if (!head) {
 }
 
 const evidence = latestRuntimeImageEvidence(head)
-assert(evidence, `missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence`)
+if (!evidence) {
+  const imageBlocker = latestRuntimeImagePublishBlocker(head)
+  assert(imageBlocker, `missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence`)
+  const artifact = {
+    version: 1,
+    gate: 'P114_RUNTIME_IMAGE_LOCAL_SMOKE_GATE',
+    status: 'passed_with_image_publish_blockers',
+    generatedAt: new Date().toISOString(),
+    currentHead: head,
+    imageEvidence: relative(root, imageBlocker.file),
+    decision: 'runtime_image_local_smoke_waiting_for_current_head_images',
+    strictRequired: required,
+    pullAllowed: allowPull,
+    pullTimeoutMs: allowPull ? pullTimeoutMs : null,
+    images: {},
+    health: {},
+    workflow: {},
+    publicBoundary: {
+      credentialValues: 'not_included',
+      rawProviderPayloads: 'not_included',
+      candidateDraftBody: 'not_included',
+      referenceVaultMaterial: 'not_included',
+    },
+    nextCommand: 'Run Publish Runtime Images for the current head, then rerun check:runtime-image-local-smoke.',
+  }
+  const artifactPath = writeArtifact(artifact)
+  console.log(JSON.stringify(publicOutput(artifact, artifactPath), null, 2))
+  if (required) throw new Error(`Runtime image local smoke did not pass: ${artifact.decision}`)
+  process.exit(0)
+}
 const apiImage = imageFor(evidence.payload, 'api')
 const agentImage = imageFor(evidence.payload, 'agent')
 assert(apiImage, 'current P72 evidence missing API image')

@@ -88,6 +88,10 @@ function pageIncludes(fileName, value) {
   return readText(path.join(pagesDir, fileName)).includes(value)
 }
 
+function sourceSurfaceIncludes(fileName, value) {
+  return readText(path.join(appDir, 'src', fileName)).includes(value)
+}
+
 function smokeIncludes(value) {
   return readText(smokeScriptFile).includes(value)
 }
@@ -97,7 +101,7 @@ const requiredProductContracts = [
     id: 'reader-library-worlds',
     path: '/v1/reader/library/worlds',
     method: 'get',
-    apiFile: 'library.ts',
+    apiFile: 'story.ts',
     capabilitySurface: '/v1/reader/library/worlds',
     publicRoute: '/library',
   },
@@ -169,8 +173,8 @@ const requiredProductContracts = [
     method: 'post',
     apiFile: 'market.ts',
     capabilitySurface: '/v1/market/trends/scan',
-    pageFile: 'Studio.tsx',
-    pageSignal: 'marketApi.scanTrends',
+    sourceSurfaceFile: 'features/internal-ops/StudioOpsSurface.tsx',
+    sourceSurfaceSignal: 'marketApi.scanTrends',
     studioOnly: true,
   },
   {
@@ -258,7 +262,7 @@ const requiredProductContracts = [
     apiFile: 'settings.ts',
     capabilitySurface: '/v1/reader/checkout/{checkout_session_id}/status',
     pageFile: 'Account.tsx',
-    pageSignal: '检查开通状态',
+    pageSignal: 'ReaderCheckoutProgressPanel',
     smokeSignal: '/reader/checkout/{checkout_session_id}/status',
   },
   {
@@ -268,7 +272,7 @@ const requiredProductContracts = [
     apiFile: 'settings.ts',
     capabilitySurface: '/v1/reader/checkout/return',
     pageFile: 'Account.tsx',
-    pageSignal: '检查开通状态',
+    pageSignal: 'completeCheckout',
     smokeSignal: '/reader/checkout/return',
   },
   {
@@ -277,8 +281,8 @@ const requiredProductContracts = [
     method: 'post',
     apiFile: 'runtime.ts',
     capabilitySurface: '/v1/quality/evaluate',
-    pageFile: 'Studio.tsx',
-    pageSignal: 'runtimeApi.evaluateQuality',
+    sourceSurfaceFile: 'features/internal-ops/StudioOpsSurface.tsx',
+    sourceSurfaceSignal: 'runtimeApi.evaluateQuality',
     studioOnly: true,
   },
   {
@@ -287,8 +291,8 @@ const requiredProductContracts = [
     method: 'post',
     apiFile: 'runtime.ts',
     capabilitySurface: '/v1/canon/commit',
-    pageFile: 'Studio.tsx',
-    pageSignal: 'runtimeApi.commitCanon',
+    sourceSurfaceFile: 'features/internal-ops/StudioOpsSurface.tsx',
+    sourceSurfaceSignal: 'runtimeApi.commitCanon',
     studioOnly: true,
   },
 ]
@@ -310,6 +314,12 @@ for (const contract of requiredProductContracts) {
     assert(
       pageIncludes(contract.pageFile, contract.pageSignal),
       `Required contract ${contract.id} is not wired into ${contract.pageFile} (${contract.pageSignal}).`,
+    )
+  }
+  if (contract.sourceSurfaceFile && contract.sourceSurfaceSignal) {
+    assert(
+      sourceSurfaceIncludes(contract.sourceSurfaceFile, contract.sourceSurfaceSignal),
+      `Required contract ${contract.id} is not wired into ${contract.sourceSurfaceFile} (${contract.sourceSurfaceSignal}).`,
     )
   }
   if (contract.smokeSignal) {
@@ -365,7 +375,7 @@ for (const forbiddenPublicNav of ['studio', 'settings', 'billing']) {
   )
 }
 
-for (const requiredPublicNav of ['soul', 'story', 'library', 'create', 'member']) {
+for (const requiredPublicNav of ['soul', 'story', 'library', 'member']) {
   assert(
     navBlock.includes(`id: '${requiredPublicNav}'`),
     `Public nav is missing required product route id ${requiredPublicNav}.`,
@@ -382,11 +392,7 @@ for (const studioOnlySignal of ['marketApi.scanTrends', 'runtimeApi.evaluateQual
   )
 }
 
-const unsupportedApiText = [
-  readText(path.join(apiDir, 'settings.ts')),
-  readText(path.join(apiDir, 'studio.ts')),
-  readText(path.join(apiDir, 'soul.ts')),
-].join('\n')
+const unsupportedApiText = readText(path.join(apiDir, 'settings.ts'))
 assert(
   unsupportedApiText.includes('completeCheckout') && unsupportedApiText.includes('/reader/checkout/return'),
   'P21 checkout confirmation must use the public return/status product contract.',
@@ -398,8 +404,6 @@ assert(
 for (const unsupportedId of [
   'customer_portal_unavailable',
   'customer_export_unavailable',
-  'studio_unavailable',
-  'soul_unavailable',
 ]) {
   assert(
     unsupportedApiText.includes(unsupportedId),

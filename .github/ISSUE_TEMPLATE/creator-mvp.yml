@@ -1,0 +1,27 @@
+name: Creator MVP issue
+description: Report a bounded Creator behavior, quality-contract, or local persistence issue.
+title: "[Creator] "
+labels: [creator]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include unpublished prose, workspace exports, screenshots with author content, credentials, or browser-session data."
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: Describe the behavior using synthetic or redacted text only.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected contract
+      description: Name the route, domain invariant, or documented contract.
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: Safe evidence reference
+      description: Command, synthetic fixture ID, or a hash. Do not paste private content.

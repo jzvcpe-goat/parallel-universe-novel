@@ -53,7 +53,7 @@ assertIncludes('app/src/api/runtime.ts', [
   'rollback_plan',
 ])
 
-assertIncludes('app/src/pages/Studio.tsx', [
+assertIncludes('app/src/features/internal-ops/StudioOpsSurface.tsx', [
   'idempotencyKey',
   'studio-${scene.id}',
 ])

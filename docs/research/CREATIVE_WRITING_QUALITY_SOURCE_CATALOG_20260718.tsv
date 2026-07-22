@@ -1,0 +1,139 @@
+id	language	domain	evidence_level	year	title	source_type	url
+E01	English	long-form evaluation	A1	2025	What Matters in Evaluating Book-Length Stories? A Systematic Study of Long Story Evaluation	peer-reviewed ACL paper	https://aclanthology.org/2025.acl-long.799/
+E02	English	creative-writing evaluation	A1	2026	LitBench: A Benchmark and Dataset for Reliable Evaluation of Creative Writing	peer-reviewed EACL paper	https://aclanthology.org/2026.eacl-long.362/
+E03	English	long-form generation	A1	2022	Re3: Generating Longer Stories With Recursive Reprompting and Revision	peer-reviewed EMNLP paper	https://aclanthology.org/2022.emnlp-main.296/
+E04	English	outline and coherence	A1	2023	DOC: Improving Long Story Coherence With Detailed Outline Control	peer-reviewed ACL paper	https://aclanthology.org/2023.acl-long.190/
+E05	English	multi-critic review	A1	2024	Collective Critics for Creative Story Generation	peer-reviewed EMNLP paper	https://aclanthology.org/2024.emnlp-main.1046/
+E06	English	human-in-the-loop evaluation	A1	2020	STORIUM: A Dataset and Evaluation Platform for Machine-in-the-Loop Story Generation	peer-reviewed EMNLP paper	https://aclanthology.org/2020.emnlp-main.525/
+E07	English	human-AI workflow	A1	2019	Plan, Write, and Revise: an Interactive System for Open-Domain Story Generation	peer-reviewed NAACL paper	https://aclanthology.org/N19-4016/
+E08	English	Chinese creative-writing data	A2	2025	COIG-Writer: A High-Quality Dataset for Chinese Creative Writing with Thought Processes	preprint	https://arxiv.org/abs/2510.14763
+E09	English	creative-writing research	A1	2025	In2Writing 2025 Proceedings	peer-reviewed workshop proceedings	https://aclanthology.org/2025.in2writing-1.pdf
+E10	English	writing-mode control	A1	2023	Fiction-Writing Mode: An Effective Control for Human-Machine Collaborative Writing	peer-reviewed EACL paper	https://aclanthology.org/2023.eacl-main.128/
+E11	English	plot and character planning	A1	2010	Narrative Planning: Balancing Plot and Character	peer-reviewed JAIR paper	https://doi.org/10.1613/jair.2989
+E12	English	story structure	A1	2019	Strategies for Structuring Story Generation	peer-reviewed ACL paper	https://doi.org/10.18653/v1/P19-1254
+E13	English	character intention	A1	2004	An Intent-Driven Planner for Multi-Agent Story Generation	peer-reviewed conference paper	https://doi.org/10.1109/AAMAS.2004.63
+E14	English	local coherence	A1	2008	Modeling Local Coherence: An Entity-Based Approach	peer-reviewed Computational Linguistics paper	https://doi.org/10.1162/coli.2008.34.1.1
+E15	English	plot graphs	A1	2013	Story Generation with Crowdsourced Plot Graphs	peer-reviewed AAAI paper	https://doi.org/10.1609/aaai.v27i1.8649
+E16	English	controllable generation	A1	2018	Towards Controllable Story Generation	peer-reviewed ACL workshop paper	https://doi.org/10.18653/v1/W18-1505
+E17	English	scene generation	A1	2023	SceneCraft: Automating Interactive Narrative Scene Generation in Digital Games with Large Language Models	peer-reviewed AIIDE paper	https://doi.org/10.1609/aiide.v19i1.27504
+E18	English	visual narrative structure	A1	2012	Visual Narrative Structure	peer-reviewed Cognitive Science paper	https://doi.org/10.1111/cogs.12016
+E19	English	character-centered planning	A1	2003	Character-Focused Narrative Generation for Execution in Virtual Worlds	peer-reviewed conference paper	https://doi.org/10.1007/978-3-540-40014-1_6
+E20	English	discourse comprehension	A1	2014	Cognitive Models of Discourse Comprehension for Narrative Generation	peer-reviewed Digital Scholarship paper	https://doi.org/10.1093/llc/fqu056
+E21	English	constraint trajectories	A1	2009	Controlling Narrative Generation with Planning Trajectories: The Role of Constraints	peer-reviewed conference paper	https://doi.org/10.1007/978-3-642-10643-9_28
+E22	English	suspense generation	A1	2006	Narrative Generation for Suspense: Modeling and Evaluation	peer-reviewed conference paper	https://doi.org/10.1007/978-3-540-89454-4_21
+E23	English	character point of view	A1	2010	Narrative Generation Through Characters' Point of View	peer-reviewed conference paper	https://openalex.org/W2167687611
+E24	English	surprise	A1	2013	A Computational Model of Narrative Generation for Surprise Arousal	peer-reviewed IEEE paper	https://doi.org/10.1109/TCIAIG.2013.2290330
+E25	English	collaborative generation	A1	2015	A Computer-Based Model for Collaborative Narrative Generation	peer-reviewed Cognitive Systems Research paper	https://doi.org/10.1016/j.cogsys.2015.06.002
+E26	English	character relationships	A1	2013	NetworkING: Using Character Relationships for Interactive Narrative Generation	peer-reviewed conference paper	https://openalex.org/W27430671
+E27	English	intent-based planning	A1	2013	Efficient Intent-Based Narrative Generation Using Multiple Planning Agents	peer-reviewed conference paper	https://openalex.org/W83614081
+E28	English	crowd-authored narrative	A1	2015	Scheherazade: Crowd-Powered Interactive Narrative Generation	peer-reviewed AAAI paper	https://doi.org/10.1609/aaai.v29i1.9782
+E29	English	voice and focalization	A1	2023	How Literary Text Reading Is Influenced by Narrative Voice and Focalization: Evidence from Eye Movements	peer-reviewed Discourse Processes paper	https://doi.org/10.1080/0163853X.2023.2260247
+E30	English	voice and empathy	A1	2026	First- or Third-Person: The Impact of Narrative Voice and Reception Mode on Empathy, Identification, and Parasocial Interaction in Literary Engagement	peer-reviewed empirical paper	https://doi.org/10.1177/02762374261451144
+E31	English	first-person voice	A1	2004	The Impersonal Voice in First-Person Narrative Fiction	peer-reviewed Narrative paper	https://doi.org/10.1353/nar.2004.0002
+E32	English	focalization and empathy	A2	2010	Character-Focused Narration	academic book chapter	https://academic.oup.com/book/40065/chapter-abstract/340735356
+E33	English	narrative time	A1	2016	Dramatized Analepsis and Fadings in Verbal Narratives	peer-reviewed Narrative paper	https://doi.org/10.1353/nar.2016.0019
+E34	English	suspense and absorption	A1	2017	The Effect of Suspense Structure on Felt Suspense and Narrative Absorption in Literature and Film	peer-reviewed book chapter	https://doi.org/10.1075/lal.27.10bal
+E35	English	uncertainty and suspense	A1	2018	Confronting a Paradox: A New Perspective of the Impact of Uncertainty in Suspense	peer-reviewed Frontiers paper	https://doi.org/10.3389/fpsyg.2018.01392
+E36	English	reader prediction	A1	2015	Reading a Suspenseful Literary Text Activates Brain Areas Related to Social Cognition and Predictive Inference	peer-reviewed PLOS ONE paper	https://doi.org/10.1371/journal.pone.0124550
+E37	English	repeated suspense	A1	2020	Re-Living Suspense: Emotional and Cognitive Responses During Repeated Exposure to Suspenseful Film	peer-reviewed Frontiers paper	https://doi.org/10.3389/fpsyg.2020.558234
+E38	English	suspense craft	A2	2009	Creating Suspense and Surprise in Short Literary Fiction: A Stylistic and Narratological Approach	dissertation	https://openalex.org/W86212467
+E39	English	narrative empathy	A1	2004	Empathic Engagement with Narrative Fictions	peer-reviewed philosophy paper	https://doi.org/10.1111/j.1540-594X.2004.00147.x
+E40	English	reader response	A1	2020	Textual and Reader Factors in Narrative Empathy: An Empirical Reader Response Study Using Focus Groups	peer-reviewed Language and Literature paper	https://doi.org/10.1177/0963947020927134
+E41	English	identity and empathy	A1	2019	Memory of the Present: Empathy and Identity in Young Adult Fiction	peer-reviewed paper	https://doi.org/10.7202/1062101ar
+E42	English	character embodiment	A1	2019	Acting Oneself as Another: An Actor's Empathy for Her Character	peer-reviewed paper	https://doi.org/10.1007/s11245-018-9624-7
+E43	English	mental imagery	A1	2018	Mental Imagery and Fiction	peer-reviewed philosophy paper	https://doi.org/10.1080/00455091.2018.1442965
+E44	English	story cognition	A1	2017	The Evolution of Stories: From Mimesis to Language, from Fact to Fiction	peer-reviewed review	https://doi.org/10.1002/wcs.1444
+E45	English	literary reception	A1	2015	Neurocognitive Poetics: Methods and Models for Investigating the Cognitive-Affective Bases of Literature Reception	peer-reviewed Frontiers paper	https://doi.org/10.3389/fnhum.2015.00186
+E46	English	literary engagement	A1	2017	The Fictive Brain: Neurocognitive Correlates of Engagement in Literature	peer-reviewed review	https://doi.org/10.1037/gpr0000106
+E47	English	imagery and style	A1	2020	Eye Movements and Mental Imagery During Reading of Literary Texts with Different Narrative Styles	peer-reviewed eye-tracking paper	https://doi.org/10.16910/jemr.13.3.3
+E48	English	transformative reading	A1	2019	What Is Literature For? The Role of Transformative Reading	peer-reviewed paper	https://doi.org/10.1080/23311983.2019.1692532
+E49	English	computational style	A2	2022	Computational Stylistics in Poetry, Prose, and Drama	academic book	https://doi.org/10.1515/9783110781502
+E50	English	fiction craft	A2	1982	Writing Fiction: A Guide to Narrative Craft	professional craft text metadata	https://openalex.org/W1480494712
+E51	English	writing development	A1	2008	Training Writing Skills: A Cognitive Developmental Perspective	peer-reviewed Journal of Writing Research paper	https://doi.org/10.17239/jowr-2008.01.01.1
+E52	English	interactive-fiction pedagogy	A2	2018	Serious Interactive Fiction: Constraints, Interfaces, and Creative Writing Pedagogy	university journal article	https://scholarworks.rit.edu/jcws/vol3/iss1/10
+E53	English	revision craft	A1	2007	Tools to Shape Texts: What Creative Nonfiction Can Offer Ethnography	peer-reviewed paper	https://doi.org/10.1525/ahu.2007.32.2.130
+E54	English	character goals	B	undated	Writing Compelling Characters	university writing guide	https://owl.purdue.edu/owl/subject_specific_writing/creative_writing/writers/fiction-basics/characters_and_fiction_writing1/writing_compelling_characters.html
+E55	English	fiction elements	B	2026	How to Start Writing Fiction: The Six Core Elements	professional craft article	https://writers.com/how-to-start-writing-fiction
+E56	English	novel craft	B	2026	How to Write a Novel: The Complete Guide to Novel Writing	professional craft article	https://writers.com/how-to-write-a-novel
+E57	English	human-AI ideation	A1	2022	Wordcraft: Story Writing With Large Language Models	peer-reviewed CHI paper	https://doi.org/10.1145/3490099.3511105
+E58	English	professional co-writing evaluation	A1	2023	Co-Writing Screenplays and Theatre Scripts with Language Models: Evaluation by Industry Professionals	peer-reviewed CHI paper	https://doi.org/10.1145/3544548.3581225
+E59	English	author influence	A1	2023	Co-Writing with Opinionated Language Models Affects Users' Views	peer-reviewed CHI paper	https://doi.org/10.1145/3544548.3581196
+E60	English	transparent workflow	A1	2022	AI Chains: Transparent and Controllable Human-AI Interaction by Chaining Large Language Model Prompts	peer-reviewed CHI paper	https://doi.org/10.1145/3491102.3517582
+E61	English	co-writing scaffolding	A1	2024	Shaping Human-AI Collaboration: Varied Scaffolding Levels in Co-Writing with Language Models	peer-reviewed CHI paper	https://doi.org/10.1145/3613904.3642134
+E62	English	writing-assistant design	A1	2024	A Design Space for Intelligent and Interactive Writing Assistants	peer-reviewed CHI paper	https://doi.org/10.1145/3613904.3642697
+E63	English	steerable story ideation	A1	2022	TaleBrush: Sketching Stories with Generative Pretrained Language Models	peer-reviewed CHI paper	https://johnr0.github.io/publications/TaleBrush_CHI2022/
+E64	English	mixed-initiative control	A1	2022	Creative Wand: A System to Study Effects of Communications in Co-Creative Settings	peer-reviewed AIIDE paper	https://doi.org/10.1609/aiide.v18i1.21946
+E65	English	pairwise author preference	A1	2021	Choose Your Own Adventure: Paired Suggestions in Collaborative Writing for Evaluating Story Generation Models	peer-reviewed NAACL paper	https://aclanthology.org/2021.naacl-main.279/
+E66	English	creativity evaluation	A2	2024	Evaluating Creative Short Story Generation in Humans and Large Language Models	preprint	https://arxiv.org/abs/2411.02316
+E67	English	human narrative agency	A2	2026	Directional Alignment and Narrative Agency in Human-LLM Co-Writing	preprint	https://arxiv.org/abs/2604.23676
+E68	English	decomposed co-creation	A2	2026	StoryComposerAI: Supporting Human-AI Story Co-Creation Through Decomposition and Linking	preprint	https://arxiv.org/abs/2602.21486
+E69	English	authorial style	A1	2026	Capturing Classic Authorial Style in Long-Form Story Generation with GRPO Fine-Tuning	peer-reviewed CoNLL paper	https://aclanthology.org/2026.conll-main.31/
+E70	English	multi-agent drama	A1	2024	IBSEN: Director-Actor Agent Collaboration for Controllable and Interactive Drama Script Generation	peer-reviewed ACL paper	https://aclanthology.org/2024.acl-long.88/
+Z01	Chinese	创意写作全流程	B	2025	《小说写作教程》：心手合一讲故事	中国作家网专业评论	https://www.chinawriter.com.cn/n1/2025/0903/c404030-40556024.html
+Z02	Chinese	人物与细节	B	2024	《无声的细节》：一部大学“创意写作课”的工具书	中国作家网专业评论	https://www.chinawriter.com.cn/n1/2024/0813/c404030-40297924.html
+Z03	Chinese	视角声口节奏	B	2021	林培源：写小说从来不是一个泾渭分明的过程	中国作家网作家访谈	https://www.chinawriter.com.cn/n1/2021/0326/c437157-32061791.html
+Z04	Chinese	叙事视角	B	2022	李浩：小说的角度设计	中国作家网专业文章	https://www.chinawriter.com.cn/n1/2022/1103/c404030-32558141.html
+Z05	Chinese	视角与人称	B	2025	“罗生门”的语言迷宫和“聊斋志异”的鬼魅世界——谈小说的视角与人称	中国作家网转载学术文章	https://www.chinawriter.com.cn/n1/2025/0311/c404030-40436345.html
+Z06	Chinese	小说技艺体系	B	2025	李浩：小说技艺的“匠法”与“心术”	中国作家网专业评论	https://www.chinawriter.com.cn/n1/2025/0430/c404030-40471592.html
+Z07	Chinese	结构人物对话	B	2016	《故事技巧——叙事性非虚构文学写作指南》	中国作家网书目导读	https://www.chinawriter.com.cn/n1/2016/0627/c405068-28500682.html
+Z08	Chinese	人机协同写作	A2	2024	跨文化传播场域中人机协同创意写作研究	中国社会科学网研究文章	https://www.cssn.cn/skgz/bwyc/202406/t20240611_5757862.shtml
+Z09	Chinese	创意写作学科	A2	2018	《世界创意写作大会论文集》	上海大学学术论文集	https://cyxz.shu.edu.cn/Portals/501/%E4%B8%96%E7%95%8C%E5%8D%8E%E6%96%87%E5%88%9B%E6%84%8F%E5%86%99%E4%BD%9C%E7%A0%94%E7%A9%B6%E7%AC%AC%E4%B8%80%E8%BE%91.pdf
+Z10	Chinese	文学写作课程	A2	2026	《文学写作》课程大纲	中国社会科学院大学课程大纲	https://jw.ucass.edu.cn/kcdg/zyk/wxy/H3wenxuexiezuo.pdf
+Z11	Chinese	双语创意写作课程	A2	2022	《基础创意写作》课程大纲	中国社会科学院大学课程大纲	https://jw.ucass.edu.cn/kcdg/zyk/wgy/T6jichuchuangyixiezuo.pdf
+Z12	Chinese	叙事节奏	A2	2026	现代叙事学理论指导下读后续写叙述节奏使用策略	北京师范大学专业文章	https://flts.bnu.edu.cn/node/16909
+Z13	Chinese	数字创意写作	A2	2019	写作知识的革新——互联网背景下对创意写作的观察与思考	上海大学学术论文	https://cyxz.shu.edu.cn/Portals/501/%E5%86%99%E4%BD%9C%E7%9F%A5%E8%AF%86%E7%9A%84%E9%9D%A9%E6%96%B0_%E4%BA%92%E8%81%94%E7%BD%91%E8%83%8C%E6%99%AF%E4%B8%8B%E5%AF%B9%E5%88%9B%E6%84%8F%E5%86%99%E4%BD%9C%E7%9A%84%E8%A7%82%E5%AF%9F%E4%B8%8E%E6%80%9D%E8%80%83_%E6%B1%AA%E9%9B%A8%E8%90%8C.pdf
+Z14	Chinese	创意写作培养	A2	2024	文学院“创意写作”微专业招生简章	上海大学培养方案	https://jwb.shu.edu.cn/2024nianchuangyixiezuoweizhuanyezhaoshengjianzhang.pdf
+Z15	Chinese	小说写作教材	A2	2025	小说写作课程教材信息	高等教育出版社产品信息	https://xuanshu.hep.com.cn/front/h5Mobile/bookDetails?bookId=680bc64ee119ac97296fe9d4
+Z16	Chinese	创意写作教材	A2	2024	《创意写作课》	团结出版社图书介绍	https://www.tjpress.com/folder992/folder993/2024-01-30/11917.html
+Z17	Chinese	当代小小说创作	B	2026	写作就是发现、再现和实现	文艺报专业对话	https://wyb.chinawriter.com.cn/attachment/202603/20/6a38dbee-c6f2-4117-8f41-25dae0d9f89a.pdf
+Z18	Chinese	创意写作方法	A3	2016	当我们谈创意写作时，我们在谈什么？——论理解创意写作的基本方法	中文期刊元数据	http://www.cqvip.com/QK/80746X/201602/668112916.html
+Z19	Chinese	数字创意写作	A3	2020	创意写作的数字转向：背景、现状与问题	中文期刊元数据	http://www.cqvip.com/QK/82810A/202002/7101150608.html
+Z20	Chinese	创意写作学科	A3	2016	困境、重构与价值发现——美国创意写作学科发展问题研究	中文期刊元数据	http://www.cqvip.com/QK/81267X/201601/667735692.html
+Z21	Chinese	创意写作史	A3	2012	国族、国民与国际化——美国创意写作史的经验	中文期刊元数据	http://www.cqvip.com/QK/80096X/2012Z1/1003443246.html
+Z22	Chinese	创意写作训练	A3	2015	浅谈基础教育中的“创意写作”训练设计	中文期刊元数据	http://www.cqvip.com/QK/81937X/201501/663266194.html
+Z23	Chinese	创意写作教学	A3	2014	让每一枝笔都爱上写作——创意写作教学的四个“超越”	中文期刊元数据	http://www.cqvip.com/QK/80746X/201408/662703101.html
+Z24	Chinese	作者观	A3	2010	复活与解构：作者之死与拯救——创意写作应该做点什么？	中文期刊元数据	http://www.cqvip.com/QK/81349X/201006/34152869.html
+Z25	Chinese	MFA教育	A3	2010	作家能否批量生产——关于复旦开设“创意写作MFA”的探讨	中文期刊元数据	http://www.cqvip.com/QK/80295X/201009/35062794.html
+Z26	Chinese	大学创意写作	A3	2019	新的欲望，新的征服——关于中国大学创意写作的自问自答	中文期刊元数据	http://www.cqvip.com/QK/80077X/201904/7002508477.html
+Z27	Chinese	跨学科创意写作	A2	2025	作为方法的创意写作：文学与艺术教育的跨界融合研究	学术论文	https://doi.org/10.62639/sspse01.20250105
+Z28	Chinese	写作者培养	A3	2015	创意写作：你也可以成为“写作者”	中文期刊元数据	http://www.cqvip.com/QK/96909X/201501/663556274.html
+Z29	Chinese	国际创意写作教育	A3	2016	新西兰创意写作，英语够好你就来——专访作家 Anna Smaill	中文期刊元数据	http://www.cqvip.com/QK/71984X/201608/668523041.html
+Z30	Chinese	创意写作理论	A2	2025	关于创意写作理论建设分析	学术论文	https://doi.org/10.61369/eti.12142
+Z31	Chinese	小说创作技巧	A3	1997	小小说创作三技：奇、精、巧	中文期刊元数据	http://www.cqvip.com/QK/80496X/199710/3001073151.html
+Z32	Chinese	留白与叙述	A3	1994	小说创作中的“虚笔”效应	中文期刊元数据	http://www.cqvip.com/QK/86579X/199406/1005044204.html
+Z33	Chinese	素材转化	A3	1990	从“生活”到“小说”——小说创作札记	中文期刊元数据	http://www.cqvip.com/QK/81506X/199012/4001668149.html
+Z34	Chinese	小说创作理论	A3	2006	小说创作的“三境界说”——论金圣叹的小说创作理论	中文期刊元数据	http://www.cqvip.com/QK/83498A/200604/22869483.html
+Z35	Chinese	创作反思	A3	2007	关于《兄弟》和小说创作	中文期刊元数据	http://www.cqvip.com/QK/80096X/200711/1000881626.html
+Z36	Chinese	人物塑造	A3	2010	人物塑造的认知文体研究——兼谈《圣经》叙事的人物塑造	中文期刊元数据	http://www.cqvip.com/QK/91354X/201002/33300341.html
+Z37	Chinese	人物塑造	A3	2011	论《天行者》的人物塑造	中文期刊元数据	http://www.cqvip.com/QK/80584X/201110/1003434542.html
+Z38	Chinese	人物塑造	A3	2009	论《飘》中的人物塑造	中文期刊元数据	http://www.cqvip.com/QK/80331A/20092X/90897480504848574854485454.html
+Z39	Chinese	人物塑造	A3	1991	论《三国演义》的人物塑造	中文期刊元数据	http://www.cqvip.com/QK/81362X/199101/48453815.html
+Z40	Chinese	行动中的人物	A3	2008	从“武松打虎”看人物塑造	中文期刊元数据	http://www.cqvip.com/QK/80331A/200810Z/690897480200829061.html
+Z41	Chinese	小说结构	A3	2015	无边之“渡”——孙频的小说结构	中文期刊元数据	http://www.cqvip.com/QK/80374X/201511/666678614.html
+Z42	Chinese	实验结构	A3	1989	当代小说结构新潮——看“卡片体”小说	中文期刊元数据	http://www.cqvip.com/QK/80320X/198904/1003000091.html
+Z43	Chinese	短篇结构	A3	1991	错位：小小说结构的一个纽结	中文期刊元数据	http://www.cqvip.com/QK/81506X/199104/4001591588.html
+Z44	Chinese	复线结构	A3	1984	“经”“纬”交错的小说新结构——试论王蒙对小说结构的探索	中文期刊元数据	http://www.cqvip.com/QK/80665X/198401/1003158073.html
+Z45	Chinese	结构与人物	A3	2007	小说结构与人物意蕴：《马桥词典》的创新机制	中文期刊元数据	http://www.cqvip.com/qk/82858a/2007005/26872038.html
+Z46	Chinese	叙事视角	A3	2011	从热奈特叙事视角理论看《围城》的叙事视角艺术	中文期刊元数据	http://www.cqvip.com/QK/96388A/201106/40292368.html
+Z47	Chinese	叙事视角	A3	2009	杨绛《洗澡》的叙事视角	中文期刊元数据	http://www.cqvip.com/QK/80584X/200904/1003763751.html
+Z48	Chinese	多声部视角	A3	2013	莫里森《慈悲》的叙事视角	中文期刊元数据	http://www.cqvip.com/QK/88863X/201301/44800404.html
+Z49	Chinese	非常规视角	A3	2012	试析《偷书贼》的叙事视角	中文期刊元数据	http://www.cqvip.com/QK/82463X/201207/42439603.html
+Z50	Chinese	古典叙事视角	A3	2010	试论《左传》的叙事视角	中文期刊元数据	http://www.cqvip.com/QK/82573X/201010/33880867.html
+Z51	Chinese	叙事节奏	A3	2009	论《人与鼠》的叙事节奏	中文期刊元数据	http://www.cqvip.com/qk/80322X/200908/30133424.html
+Z52	Chinese	叙事节奏	A3	2014	论《洛丽塔》的叙事节奏	中文期刊元数据	http://www.cqvip.com/QK/88352X/201404/662126034.html
+Z53	Chinese	叙事节奏	A3	2010	论《白衣女人》的叙事节奏	中文期刊元数据	http://www.cqvip.com/QK/88613X/201032/36004695.html
+Z54	Chinese	长篇节奏	A3	2004	论历史小说《李自成》的叙事节奏	中文期刊元数据	http://www.cqvip.com/QK/82858X/200405/10665244.html
+Z55	Chinese	战争场面节奏	A3	2014	刍议《三国演义》赤壁之战的叙事节奏	中文期刊元数据	http://www.cqvip.com/QK/81315X/201404X/67676978504849524856485548.html
+Z56	Chinese	悬念机制	A3	2008	从金圣叹评点看《水浒传》叙事悬念形成机制	中文期刊元数据	http://www.cqvip.com/QK/97362A/200804/1000390072.html
+Z57	Chinese	悬念机制	A3	2008	柯南·道尔《血字的研究》中的叙事悬念	中文期刊元数据	http://www.cqvip.com/QK/71135X/201107/28835762.html
+Z58	Chinese	视角时序悬念	A3	2006	限制叙事视角和错综叙事时序——论《十二楼》独特的悬念技巧	中文期刊元数据	https://www.airitilibrary.com/Publication/Index/10037535-200607-2006-3-55-57-a
+Z59	Chinese	对话与人物	A3	2016	小说对话性意义探讨——《简·爱》中简·爱与罗彻斯特的对话赏析	中文期刊元数据	http://www.cqvip.com/QK/82495X/201602/667920183.html
+Z60	Chinese	对白潜台词	A3	2011	小说对话的语用推理与人物性格塑造	中文期刊元数据	http://www.cqvip.com/QK/89729X/201104/683686889201104020.html
+Z61	Chinese	对话语境	A3	2007	《重返巴比伦》中的对话空间——从顺应论角度对小说对话的动态分析	中文期刊元数据	http://www.cqvip.com/QK/89018A/200705/77908883504848554948485150.html
+Z62	Chinese	对话风格	A3	2018	顺应理论视域下的小说对话翻译研究——以《聊斋志异》中的人物对话英译为例	中文核心期刊页面	https://journal.bisu.edu.cn/CN/abstract/abstract245.shtml
+Z63	Chinese	读者共创	A3	2015	网络文学创作中的“他者”——读者介入对网络文学创作的影响研究	中文期刊元数据	http://www.cqvip.com/QK/80738X/201527/667181232.html
+Z64	Chinese	类型文学	A3	2013	井喷化·类型化·产业化·多元化——近年来网络文学创作实绩概述	中文期刊元数据	http://www.cqvip.com/QK/84632X/201304/48279620.html
+Z65	Chinese	跨文化网文	A2	2023	日本网络文学的概念辨析及创作特征——兼论中国网络文学在日本的译介与传播	大学机构库论文	https://hokuriku.repo.nii.ac.jp/records/2000066
+Z66	Chinese	隐喻文体	A3	2015	从《孩子们的巴赫》看隐喻的文体价值	中文期刊元数据	http://www.cqvip.com/QK/71545X/201509/666642541.html
+Z67	Chinese	意象生成	A3	2004	心物交融，象生于意——贾平凹文学意象生成论	中文期刊元数据	http://www.cqvip.com/QK/80320X/200402/9390826.html
+Z68	Chinese	主题意象演变	A3	2014	“吃人”叙事的历史变形记——从《狂人日记》到《酒国》	中文期刊元数据	http://www.cqvip.com/QK/80444X/201404/49279531.html

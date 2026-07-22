@@ -72,6 +72,7 @@ function runApply(extraEnv, { confirm = false } = {}) {
     ...process.env,
     ...extraEnv,
     REMOTE_RUNTIME_ASSIGNMENT_FILE: fixtureRel,
+    OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE: 'true',
   }
   if (confirm) env.REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM = 'true'
   else delete env.REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM

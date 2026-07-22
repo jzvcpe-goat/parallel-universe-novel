@@ -10,6 +10,8 @@ const targets = [
   'app/src/pages/Story.tsx',
   'app/src/pages/Create.tsx',
   'app/src/pages/Account.tsx',
+  'app/src/apps/creator/LocalCreatorApp.tsx',
+  'app/src/apps/reader/ReaderRequestPanel.tsx',
   'app/src/features/creator',
   'app/src/components/design-system',
 ]
@@ -63,6 +65,15 @@ const forbidden = [
   '命运核',
   '质量门禁',
   '可转正',
+  '本地演示模式',
+  '真实后端请求',
+  'local demo',
+  'demo mode',
+  '回写',
+  '作者本机',
+  '处理台',
+  '本机规则',
+  '生成边界',
 ]
 
 function collectFiles(path) {

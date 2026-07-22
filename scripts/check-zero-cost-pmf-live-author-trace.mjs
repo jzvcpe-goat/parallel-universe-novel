@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
+import { createHash } from 'node:crypto'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -110,6 +111,9 @@ let publishEventId = null
 let publishedChapterId = null
 let workId = `p0-author-trace-${Date.now()}`
 let branchId = `${workId}:main`
+let authorSignedIn = false
+let workCreated = false
+let cleanupPassed = false
 
 try {
   const { data: flags, error: flagsError } = await author
@@ -133,6 +137,7 @@ try {
   const jwt = decodeJwtPayload(signIn.session.access_token)
   if (jwt.is_anonymous === true) throw new Error('author session is still anonymous')
   const creatorId = signIn.user.id
+  authorSignedIn = true
   steps.push(step('non_anonymous_author_sign_in', 'passed', { userIdPrefix: creatorId.slice(0, 8), isAnonymous: false }))
 
   const { data: authorization, error: authorizationError } = await author
@@ -178,6 +183,7 @@ try {
     updated_at: new Date().toISOString(),
   })
   if (workError) throw new Error(`author work create blocked: ${redact(workError)}`)
+  workCreated = true
 
   const { error: branchError } = await author.from('branches').insert({
     id: branchId,
@@ -226,56 +232,46 @@ try {
   if (inProgressError) throw new Error(`creator request status update blocked: ${redact(inProgressError)}`)
   steps.push(step('creator_request_in_progress', 'passed'))
 
-  const localDraftRef = `local:${creatorClientId}:${randomUuid()}`
-  const { data: chapter, error: chapterError } = await author.from('chapters')
-    .insert({
-      work_id: workId,
-      branch_id: branchId,
-      chapter_no: 1,
-      title: 'P0 Trace Chapter',
-      content: 'This chapter was manually confirmed by the creator app live author trace gate.',
-      status: 'published',
-      source_request_id: requestId,
-      created_by: creatorId,
-      published_at: new Date().toISOString(),
-    })
-    .select('id,work_id,branch_id,chapter_no,title,status,published_at')
-    .single()
-  if (chapterError || !chapter?.id) throw new Error(`chapter publish blocked: ${redact(chapterError || 'missing chapter')}`)
-  publishedChapterId = chapter.id
-  steps.push(step('chapter_published', 'passed', { chapterId: publishedChapterId, chapterNo: chapter.chapter_no }))
+  const publicContent = 'This chapter was manually confirmed by the creator app live author trace gate.'
+  const contentChecksum = createHash('sha256').update(publicContent.trim(), 'utf8').digest('hex')
+  const bundleId = `publish-bundle:live:${randomUuid()}`
+  const idempotencyKey = createHash('sha256').update(`${bundleId}:${contentChecksum}`, 'utf8').digest('hex')
+  const { data: transaction, error: transactionError } = await author.rpc('publish_bundle_transaction', {
+    p_bundle_id: bundleId,
+    p_idempotency_key: idempotencyKey,
+    p_content_checksum: contentChecksum,
+    p_work_id: workId,
+    p_target_kind: 'mainline',
+    p_chapter_title: 'P0 Trace Chapter',
+    p_content: publicContent,
+    p_branch_id: branchId,
+    p_branch_title: '主线',
+    p_hook_chapter_id: null,
+    p_reader_request_ids: [requestId],
+    p_creator_client_id: creatorClientId,
+  })
+  if (transactionError || transaction?.status !== 'published' || !transaction?.receipt?.id) {
+    throw new Error(`publish transaction blocked: ${redact(transactionError || 'missing authoritative receipt')}`)
+  }
+  publishedChapterId = transaction.chapter?.id || null
+  publishEventId = transaction.event?.id || null
+  if (!publishedChapterId || !publishEventId) throw new Error('publish transaction response is incomplete')
+  steps.push(step('publish_bundle_transaction', 'passed', {
+    chapterId: publishedChapterId,
+    publishEventId,
+    receiptId: transaction.receipt.id,
+    replayed: transaction.replayed === true,
+    localDraftRefPresent: Boolean(transaction.event?.local_draft_ref),
+  }))
 
-  const { data: event, error: eventError } = await author.from('publish_events')
-    .insert({
-      reader_request_id: requestId,
-      work_id: workId,
-      branch_id: branchId,
-      published_chapter_id: publishedChapterId,
-      published_branch_id: branchId,
-      local_draft_ref: localDraftRef,
-      event_type: 'chapter_published',
-      published_by: creatorId,
-    })
-    .select('id,reader_request_id,work_id,branch_id,published_chapter_id,published_branch_id,local_draft_ref,event_type,created_at')
+  const { data: receipt, error: receiptError } = await author.from('publish_receipts')
+    .select('id,bundle_id,status,idempotency_key,content_checksum,chapter_id,publish_event_id')
+    .eq('id', transaction.receipt.id)
     .single()
-  if (eventError || !event?.id) throw new Error(`publish event blocked: ${redact(eventError || 'missing event')}`)
-  publishEventId = event.id
-  steps.push(step('publish_event_written', 'passed', { publishEventId, localDraftRefPresent: Boolean(event.local_draft_ref) }))
-
-  const { error: requestPublishError } = await author.from('reader_requests')
-    .update({
-      status: 'published',
-      published_chapter_id: publishedChapterId,
-      published_branch_id: branchId,
-      publish_event_id: publishEventId,
-      local_draft_ref: localDraftRef,
-      handled_by: creatorId,
-      creator_client_id: creatorClientId,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', requestId)
-  if (requestPublishError) throw new Error(`request publish writeback blocked: ${redact(requestPublishError)}`)
-  steps.push(step('request_publish_writeback', 'passed'))
+  if (receiptError || receipt?.bundle_id !== bundleId || receipt?.status !== 'published') {
+    throw new Error(`authoritative receipt not readable: ${redact(receiptError || 'receipt mismatch')}`)
+  }
+  steps.push(step('authoritative_publish_receipt', 'passed'))
 
   const { data: readerStatus, error: readerStatusError } = await reader.from('reader_requests')
     .select('id,status,published_chapter_id,published_branch_id,publish_event_id')
@@ -308,6 +304,22 @@ try {
   nextAction = redact(error)
 }
 
+if (authorSignedIn && workCreated) {
+  const { error: cleanupError } = await author
+    .from('works')
+    .update({ status: 'hidden', updated_at: new Date().toISOString() })
+    .eq('id', workId)
+  cleanupPassed = !cleanupError
+  steps.push(step('temporary_work_hidden', cleanupPassed ? 'passed' : 'failed', {
+    errorCode: cleanupError?.code || null,
+  }))
+  if (!cleanupPassed && status === 'passed_zero_cost_pmf_live_author_trace') {
+    status = 'blocked_zero_cost_pmf_live_author_trace'
+    nextAction = 'temporary live proof content could not be hidden'
+  }
+}
+await Promise.all([author.auth.signOut(), reader.auth.signOut()])
+
 const artifact = {
   gate: 'ZERO_COST_PMF_LIVE_AUTHOR_TRACE',
   status,
@@ -322,6 +334,7 @@ const artifact = {
     requestId,
     publishEventId,
     publishedChapterId,
+    cleanupPassed,
     steps,
     boundary: {
       cloudAiRuntimeDisabled: true,
@@ -329,8 +342,10 @@ const artifact = {
       authorMustBeAllowlisted: steps.some(item => item.name === 'creator_authorization_allowlist' && item.status === 'passed'),
       localCreatorHeartbeatWritten: steps.some(item => item.name === 'creator_client_heartbeat' && item.status === 'passed'),
       readerRequestSyncedToCreator: steps.some(item => item.name === 'local_creator_request_sync' && item.status === 'passed'),
-      publishTraceWritten: steps.some(item => item.name === 'publish_event_written' && item.status === 'passed'),
+      publishTraceWritten: steps.some(item => item.name === 'publish_bundle_transaction' && item.status === 'passed'),
+      authoritativeReceiptWritten: steps.some(item => item.name === 'authoritative_publish_receipt' && item.status === 'passed'),
       readerCanSeePublishedChapter: steps.some(item => item.name === 'reader_sees_published_chapter' && item.status === 'passed'),
+      temporaryPublicWorkHidden: cleanupPassed,
     },
   },
   nextAction,

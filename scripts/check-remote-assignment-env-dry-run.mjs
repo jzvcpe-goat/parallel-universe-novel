@@ -12,6 +12,7 @@ const root = resolve(new URL('..', import.meta.url).pathname)
 const artifactDir = join(root, 'artifacts/runtime')
 const required = process.env.REQUIRE_REMOTE_ASSIGNMENT_ENV_DRY_RUN_READY === 'true'
 const repo = process.env.GITHUB_REPOSITORY || 'jzvcpe-goat/parallel-universe-novel'
+const validationFixtureMode = process.env.OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE === 'true'
 const runtimeAssignmentIntentPath = 'deploy/runtime-production/runtime-assignment.intent.local.json'
 const runtimeAssignmentIntentExamplePath = 'deploy/runtime-production/runtime-assignment.intent.example.json'
 const generatedRuntimeAssignmentContractPath = 'deploy/runtime-production/generated/remote-assignment.contract.json'
@@ -442,7 +443,30 @@ function currentImages(head) {
       && Array.isArray(payload.images)
       && payload.images.length >= 2,
   )
-  assert(evidence, `missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence first`)
+  if (!evidence) {
+    if (validationFixtureMode) {
+      return {
+        imageEvidence: 'fixture-env-validation-no-image-required',
+        apiImageCurrent: true,
+        agentImageCurrent: true,
+        blockedOnCurrentHeadImages: false,
+      }
+    }
+    const publishBlockerEvidence = latestArtifact('runtime-image-publish-evidence-', payload =>
+      payload.status === 'passed_with_publish_blockers'
+        && payload.reason === 'current_head_image_run_missing'
+        && String(payload.detail || '').includes(head),
+    )
+    if (publishBlockerEvidence) {
+      return {
+        imageEvidence: relative(root, publishBlockerEvidence.file),
+        apiImageCurrent: false,
+        agentImageCurrent: false,
+        blockedOnCurrentHeadImages: true,
+      }
+    }
+    throw new Error(`missing current-head P72 image evidence for ${head}; run npm run check:runtime-image-publish-evidence first`)
+  }
   const apiImage = evidence.payload.images.find(item => String(item).includes('/parallel-universe-novel-api:'))
   const agentImage = evidence.payload.images.find(item => String(item).includes('/parallel-universe-novel-agent-runtime:'))
   assert(apiImage && apiImage.includes(head), 'P72 evidence must include current API image')
@@ -451,6 +475,7 @@ function currentImages(head) {
     imageEvidence: relative(root, evidence.file),
     apiImageCurrent: true,
     agentImageCurrent: true,
+    blockedOnCurrentHeadImages: false,
   }
 }
 
@@ -476,12 +501,16 @@ const targetPath = 'deploy/runtime-production/remote-assignment.local.json'
 const artifact = {
   version: 1,
   gate: 'P117_REMOTE_ASSIGNMENT_ENV_DRY_RUN_GATE',
-  status: validation.strictReady
+  status: images.blockedOnCurrentHeadImages
+    ? 'passed_with_image_publish_blockers'
+    : validation.strictReady
     ? 'passed_operator_env_ready'
     : validation.mode === 'waiting_for_operator_env'
       ? 'passed_waiting_for_operator_env'
       : 'passed_with_operator_env_followup_required',
-  decision: validation.decision,
+  decision: images.blockedOnCurrentHeadImages
+    ? 'operator_env_waiting_for_current_head_images'
+    : validation.decision,
   generatedAt: new Date().toISOString(),
   repository: repo,
   currentHead: head,
@@ -510,15 +539,23 @@ const artifact = {
     referenceVaultIncluded: false,
   },
   p116ApplyPreflight: {
-    readyForApply: validation.strictReady && summary.runtimeMode !== 'edge-only',
-    readyForRuntimeContract: validation.strictReady && summary.runtimeMode === 'edge-only',
+    readyForApply: validation.strictReady && !images.blockedOnCurrentHeadImages && summary.runtimeMode !== 'edge-only',
+    readyForRuntimeContract: validation.strictReady && !images.blockedOnCurrentHeadImages && summary.runtimeMode === 'edge-only',
     applyCommand: summary.runtimeMode === 'edge-only'
       ? 'npm run remote-assignment:prepare'
       : envFile.loaded
         ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env`
         : 'REMOTE_ASSIGNMENT_ENV_APPLY_CONFIRM=true npm run apply:remote-assignment-env',
   },
-  nextCommands: validation.strictReady
+  nextCommands: images.blockedOnCurrentHeadImages
+    ? [
+        'Run Publish Runtime Images for the current head.',
+        'npm run check:runtime-image-publish-evidence',
+        envFile.loaded
+          ? `${OPERATOR_ASSIGNMENT_ENV_FILE_KEY}=${envFile.relPath} npm run check:remote-assignment-env-dry-run`
+          : 'npm run check:remote-assignment-env-dry-run',
+      ]
+    : validation.strictReady
     ? summary.runtimeMode === 'edge-only'
       ? [
           'npm run remote-assignment:prepare',
@@ -552,6 +589,9 @@ const artifact = {
 
 const privateHits = scanNoPrivateTerms(artifact)
 assert(privateHits.length === 0, `P117 artifact leaked private terms: ${privateHits.join(', ')}`)
+if (required && images.blockedOnCurrentHeadImages) {
+  throw new Error(`P117 dry-run is waiting for current-head images: ${artifact.currentHead}`)
+}
 if (required && !validation.strictReady) {
   throw new Error(`P117 dry-run is not ready for apply: ${artifact.decision}`)
 }

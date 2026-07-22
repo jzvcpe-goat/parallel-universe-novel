@@ -156,6 +156,21 @@ function validateBlockers(payload, expectedHeadSha) {
   const duplicateStages = ids.filter((id, index) => ids.indexOf(id) !== index)
   const privateMatches = scanNoPrivateTerms(payload)
   const sourceWorkspaceNoGit = expectedHeadSha === 'source-workspace-no-git'
+  const imageEvidence = payload.sourceEvidence?.imagePublishEvidence
+  const handoffArtifact = payload.sourceEvidence?.handoffArtifact
+  const imageEvidencePassed = imageEvidence?.status === 'passed'
+  const currentHeadImageMissing =
+    imageEvidence?.status === 'passed_with_publish_blockers'
+    && imageEvidence?.currentHead === expectedHeadSha
+    && imageEvidence?.headSha === null
+    && imageEvidence?.selectedByCurrentHead === false
+  const handoffReady =
+    handoffArtifact?.status === 'passed'
+    || handoffArtifact?.decision === 'assignment_handoff_ready_for_operator'
+  const handoffWaitingForImages =
+    handoffArtifact?.status === 'passed_with_handoff_artifact_blockers'
+    && handoffArtifact?.decision === 'assignment_handoff_waiting_for_images'
+    && handoffArtifact?.expectedHeadSha === expectedHeadSha
 
   assert(payload.version === 1, 'blocker artifact version must be 1')
   assert(payload.gate === 'P85_REMOTE_RUNTIME_BLOCKER_NORMALIZATION', 'blocker artifact gate mismatch')
@@ -168,19 +183,22 @@ function validateBlockers(payload, expectedHeadSha) {
     assert(blockedIds.includes('runtime-images-published'), 'source workspace without git must keep runtime images blocked')
     assert(blockedIds.includes('handoff-artifact-content'), 'source workspace without git must keep handoff content blocked')
   } else {
-    assert(payload.sourceEvidence?.imagePublishEvidence?.headSha === expectedHeadSha, 'P72 source evidence headSha must match blocker artifact head')
-    assert(payload.sourceEvidence?.imagePublishEvidence?.status === 'passed', 'P72 source evidence must be passed')
-    assert(
-      payload.sourceEvidence?.handoffArtifact?.status === 'passed'
-        || payload.sourceEvidence?.handoffArtifact?.decision === 'assignment_handoff_ready_for_operator',
-      'P89 handoff artifact attestation must be passed',
-    )
+    assert(imageEvidencePassed || currentHeadImageMissing, 'P72 source evidence must be passed or explicitly blocked on the current head runtime image')
+    if (imageEvidencePassed) {
+      assert(imageEvidence?.headSha === expectedHeadSha, 'P72 passed source evidence headSha must match blocker artifact head')
+    } else {
+      assert(blockedIds.includes('runtime-images-published'), 'P90 must keep runtime images blocked when P72 has no current-head image run')
+    }
+    assert(handoffReady || handoffWaitingForImages, 'P89 handoff artifact attestation must be passed or explicitly waiting for runtime images')
+    if (!handoffReady) {
+      assert(blockedIds.includes('handoff-artifact-content'), 'P90 must keep handoff content blocked while P89 is waiting for images')
+    }
   }
-  assert(payload.sourceEvidence?.handoffArtifact?.expectedHeadSha === expectedHeadSha, 'P89 handoff artifact head must match blocker artifact head')
-  if (!sourceWorkspaceNoGit) assert(!blockedIds.includes('runtime-images-published'), 'P90 must not report current runtime images as blocked')
+  assert(handoffArtifact?.expectedHeadSha === expectedHeadSha, 'P89 handoff artifact head must match blocker artifact head')
+  if (!sourceWorkspaceNoGit && imageEvidencePassed) assert(!blockedIds.includes('runtime-images-published'), 'P90 must not report current runtime images as blocked')
   assert(!blockedIds.includes('privacy-release-evidence'), 'P90 must not report privacy release evidence as blocked')
   assert(!blockedIds.includes('assignment-fixture-contract'), 'P90 must not report assignment fixture contract as blocked')
-  if (!sourceWorkspaceNoGit) assert(!blockedIds.includes('handoff-artifact-content'), 'P90 must not report handoff artifact content as blocked')
+  if (!sourceWorkspaceNoGit && handoffReady) assert(!blockedIds.includes('handoff-artifact-content'), 'P90 must not report handoff artifact content as blocked')
 
   if (payload.status === 'ready') {
     assert(payload.decision === 'remote_runtime_ready_for_strict_cutover', 'ready artifact decision mismatch')
