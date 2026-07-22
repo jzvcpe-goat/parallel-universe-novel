@@ -135,6 +135,8 @@ try {
 
   await run('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], {
     VITE_CREATOR_QA_AUTHENTICATED: 'true',
+    VITE_CREATOR_QA_USER_ID: 'creator-qa-local-author',
+    VITE_CREATOR_QA_EMAIL: 'creator-qa@local.test',
     VITE_CREATOR_QA_REFERENCE_AGENT: 'true',
     VITE_ROUTER_MODE: 'hash',
   })

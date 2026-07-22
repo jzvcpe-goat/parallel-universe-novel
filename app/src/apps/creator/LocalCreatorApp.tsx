@@ -19,8 +19,8 @@ import { CreatorLoginPanel } from '@/components/creator/CreatorLoginSurfaces'
 const creatorQaAuthenticated = import.meta.env.VITE_CREATOR_QA_AUTHENTICATED === 'true'
 const creatorQaSession: CreatorSessionState = {
   status: 'signed_in',
-  userId: 'creator-qa-local-author',
-  email: 'creator-qa@local.test',
+  userId: import.meta.env.VITE_CREATOR_QA_USER_ID?.trim() || 'local-browser-author',
+  email: import.meta.env.VITE_CREATOR_QA_EMAIL?.trim() || 'local-browser@localhost',
 }
 
 function useCreatorSession() {
