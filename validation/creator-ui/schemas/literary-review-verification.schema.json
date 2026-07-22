@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "reviewId", "findings", "compositeLiteraryScoreUsed"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-literary-review-verification.v1"
+    },
+    "reviewId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 180
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["findingId", "dimension", "severity", "decision", "evidenceQuote", "rationale"],
+        "properties": {
+          "findingId": { "type": "string", "minLength": 3, "maxLength": 180 },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "continuity",
+              "tension",
+              "information_control",
+              "character_agency",
+              "voice",
+              "freshness",
+              "genre_fulfillment",
+              "repetition",
+              "exposition",
+              "scene_detail",
+              "pacing"
+            ]
+          },
+          "severity": { "type": "string", "enum": ["hard_block", "revision_candidate"] },
+          "decision": { "type": "string", "enum": ["verify", "reject"] },
+          "evidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+          "rationale": { "type": "string", "minLength": 12, "maxLength": 320 }
+        }
+      }
+    },
+    "compositeLiteraryScoreUsed": { "type": "boolean", "const": false }
+  }
+}

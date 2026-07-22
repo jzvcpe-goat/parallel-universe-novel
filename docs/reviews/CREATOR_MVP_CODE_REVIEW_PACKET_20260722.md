@@ -8,7 +8,7 @@ Repository: `jzvcpe-goat/parallel-universe-novel`
 
 Branch: `review/creator-mvp-r0-20260722`
 
-HEAD: `873b057`
+Review head before final evidence commit: `b912da5`
 
 ## 1. Review Objective
 
@@ -34,8 +34,8 @@ At the pre-R0 worktree snapshot recorded locally:
 
 Therefore:
 
-1. Do not review only `origin/main..HEAD`.
-2. Review the live worktree or a deliberately staged review branch.
+1. Review `origin/main..review/creator-mvp-r0-20260722`, using the five documented commit boundaries.
+2. Do not treat the excluded local worktree files as PR evidence.
 3. Do not use `git add .`; validation images and local evidence require privacy curation.
 4. Treat database/payment files under `deploy/supabase` as out of scope unless a database owner explicitly requests review.
 

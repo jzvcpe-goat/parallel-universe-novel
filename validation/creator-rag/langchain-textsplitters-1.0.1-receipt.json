@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "creator-rag-dependency-receipt.v1",
+  "recordedAt": "2026-07-17",
+  "package": "@langchain/textsplitters",
+  "version": "1.0.1",
+  "license": "MIT",
+  "nodeEngine": ">=20",
+  "distIntegrity": "sha512-rheJlB01iVtrOUzttscutRgLybPH9qR79EyzBEbf1u97ljWyuxQfCwIWK+SjoQTM9O8M7GGLLRBSYE26Jmcoww==",
+  "repository": "https://github.com/langchain-ai/langchainjs",
+  "officialDocumentation": "https://docs.langchain.com/oss/javascript/integrations/splitters/recursive_text_splitter",
+  "approvedUse": "Chinese-aware local chunking only",
+  "activationBoundary": {
+    "automaticRetrievalEnabled": false,
+    "embeddingModelInstalled": false,
+    "vectorStoreInstalled": false,
+    "privateDraftUploadAllowed": false,
+    "customRetrievalAlgorithmAllowed": false
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator Local Repair Candidate",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "findingId",
+    "targetBlockId",
+    "operation",
+    "proposedContent",
+    "preservedFacts",
+    "rationale"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-local-repair.v1"
+    },
+    "findingId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetBlockId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation": {
+      "type": "string",
+      "const": "replace_range"
+    },
+    "proposedContent": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 12000
+    },
+    "preservedFacts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fact",
+          "sourceEvidenceQuote",
+          "candidateEvidenceQuote"
+        ],
+        "properties": {
+          "fact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "sourceEvidenceQuote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "candidateEvidenceQuote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        }
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 320
+    }
+  },
+  "additionalProperties": false
+}

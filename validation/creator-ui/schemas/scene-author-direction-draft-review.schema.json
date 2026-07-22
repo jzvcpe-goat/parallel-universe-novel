@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "decision", "axisChecks", "proposedAdjustmentCheck", "rationale"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "creator-scene-author-direction-draft-review.v1" },
+    "decision": { "type": "string", "enum": ["pass", "reject"] },
+    "axisChecks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["axis", "expectedValue", "decision", "evidenceQuote", "diagnosis"],
+        "properties": {
+          "axis": {
+            "type": "string",
+            "enum": ["pressureSource", "conflictEngine", "agencyPattern", "costPattern", "endingPattern"]
+          },
+          "expectedValue": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "decision": { "type": "string", "enum": ["pass", "reject"] },
+          "evidenceQuote": {
+            "anyOf": [
+              { "type": "string", "minLength": 2, "maxLength": 180 },
+              { "type": "null" }
+            ]
+          },
+          "diagnosis": { "type": "string", "minLength": 8, "maxLength": 240 }
+        }
+      }
+    },
+    "proposedAdjustmentCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "evidenceQuotes", "diagnosis"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["pass", "reject"] },
+        "evidenceQuotes": {
+          "type": "array",
+          "maxItems": 3,
+          "items": { "type": "string", "minLength": 2, "maxLength": 180 }
+        },
+        "diagnosis": { "type": "string", "minLength": 8, "maxLength": 240 }
+      }
+    },
+    "rationale": { "type": "string", "minLength": 8, "maxLength": 320 }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "decision", "verifiedDifferentiationAxes", "informationControlCheck", "executionQualityChecks", "issues", "rationale"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-scene-architecture-review.v1"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["pass", "reject"]
+    },
+    "verifiedDifferentiationAxes": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "enum": ["pressureSource", "conflictEngine", "agencyPattern", "costPattern", "endingPattern"]
+      }
+    },
+    "informationControlCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "observableEvidence", "allowedInference", "withheldInference", "diagnosis"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["pass", "reject"] },
+        "observableEvidence": { "type": "string", "minLength": 8, "maxLength": 180 },
+        "allowedInference": { "type": "string", "minLength": 8, "maxLength": 220 },
+        "withheldInference": { "type": "string", "minLength": 8, "maxLength": 220 },
+        "diagnosis": { "type": "string", "minLength": 12, "maxLength": 320 }
+      }
+    },
+    "executionQualityChecks": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dimension", "decision", "architectureEvidence", "diagnosis"],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": ["causal_escalation", "embodied_action", "choice_consequence"]
+          },
+          "decision": { "type": "string", "enum": ["pass", "reject"] },
+          "architectureEvidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": { "type": "string", "minLength": 8, "maxLength": 320 }
+          },
+          "diagnosis": { "type": "string", "minLength": 12, "maxLength": 520 }
+        }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "axis", "architectureEvidence", "recentSceneEvidence", "diagnosis"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["signature_mismatch", "superficial_difference", "causal_chain_repetition", "ending_repetition"]
+          },
+          "axis": {
+            "type": ["string", "null"],
+            "enum": ["pressureSource", "conflictEngine", "agencyPattern", "costPattern", "endingPattern", null]
+          },
+          "architectureEvidence": { "type": "string", "minLength": 8, "maxLength": 320 },
+          "recentSceneEvidence": { "type": "string", "minLength": 8, "maxLength": 520 },
+          "diagnosis": { "type": "string", "minLength": 12, "maxLength": 520 }
+        }
+      }
+    },
+    "rationale": { "type": "string", "minLength": 12, "maxLength": 800 }
+  }
+}

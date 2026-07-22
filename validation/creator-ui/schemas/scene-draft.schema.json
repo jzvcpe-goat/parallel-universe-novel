@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "body", "unplannedFactProposals", "stateProposals"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "creator-scene-draft.v1" },
+    "body": {
+      "type": "string",
+      "minLength": 2850,
+      "maxLength": 3800,
+      "pattern": "[。！？!?…][”’」』）》）\\]\\}]*\\s*$",
+      "description": "Chinese scene prose. The code-unit range keeps generation near the 3000-character target; application validation separately requires 2700-3400 visible non-whitespace characters, a complete terminal sentence, and balanced Chinese quotation marks or brackets."
+    },
+    "unplannedFactProposals": {
+      "type": "array",
+      "maxItems": 6,
+      "items": { "type": "string", "minLength": 2, "maxLength": 160 }
+    },
+    "stateProposals": {
+      "type": "array",
+      "maxItems": 0,
+      "description": "Writer must return an empty array. The independent Observer extracts evidence-grounded 22-dimension state proposals after prose generation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "value", "reason", "irreversible", "evidenceQuote"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/characters/[^/]+/(location|timePosition|physicalCondition|emotionalState|dominantDesire|immediateGoal|currentIntent|fear|woundTrigger|defenseStrategy|beliefs|falseBeliefs|knowledge|secrets|resources|capabilities|limitations|relationshipStances|trust|obligations|recentChoice|paidCost)$"
+          },
+          "value": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "reason": { "type": "string", "minLength": 4, "maxLength": 180 },
+          "irreversible": {
+            "type": "boolean",
+            "description": "Direct knowledge acquisition must be true; uncertain interpretations belong in beliefs or falseBeliefs."
+          },
+          "evidenceQuote": { "type": "string", "minLength": 2, "maxLength": 160 }
+        }
+      }
+    }
+  }
+}

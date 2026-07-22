@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "packages_and_model_runtime_verified_baseline_measured",
+  "packages": [
+    {
+      "name": "@lancedb/lancedb",
+      "version": "0.31.0",
+      "license": "Apache-2.0",
+      "integrity": "sha512-EUEVpheKhaCNE6ybcW760OUyfeei2dKR2ZwgLWeC/ntHL4BBiBLIErh9fuEuUP3/mAx4B5UFraB2m5nDUx5XEA==",
+      "repository": "https://github.com/lancedb/lancedb",
+      "packageLoadVerified": true,
+      "localTableFtsFilterRrfSmokeVerified": true
+    },
+    {
+      "name": "@huggingface/transformers",
+      "version": "4.2.0",
+      "license": "Apache-2.0",
+      "integrity": "sha512-8BRCoBMH0XsWaEIamuR0LrJGAfftgHAfb2Vrffy0VKlSAE/MnUJ5/h/zTfEP3fDIft+nk7TqB8xXEyABGitBjQ==",
+      "repository": "https://github.com/huggingface/transformers.js",
+      "packageLoadVerified": true
+    }
+  ],
+  "embeddingModel": {
+    "modelId": "Xenova/multilingual-e5-small",
+    "baseModelId": "intfloat/multilingual-e5-small",
+    "revision": "761b726",
+    "dtype": "q8",
+    "dimensions": 384,
+    "baseModelLicense": "MIT",
+    "passagePrefix": "passage: ",
+    "queryPrefix": "query: ",
+    "pooling": "mean",
+    "normalize": true,
+    "artifactDownloaded": true,
+    "artifactChecksum": {
+      "modelQuantizedSha256": "f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193",
+      "tokenizerSha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+    },
+    "runtimeVerified": true,
+    "officialHostAttempt": "blocked_by_ECONNRESET",
+    "verifiedMirror": {
+      "remoteHost": "https://modelscope.cn/models/",
+      "revision": "252d0dcb679dda2c7b6fd5bbfed15df3c7feaebf",
+      "hashesMatchHuggingFaceFiles": true
+    },
+    "blocker": null
+  },
+  "activationBoundary": {
+    "automaticRetrievalEnabled": false,
+    "privateDraftUploadAllowed": false,
+    "customRetrievalAlgorithmAllowed": false,
+    "qualityBaselineRecorded": true
+  }
+}

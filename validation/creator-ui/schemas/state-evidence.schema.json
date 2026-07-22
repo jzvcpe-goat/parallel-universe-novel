@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "characterStateProposals",
+    "continuityProposals"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-state-evidence.v1"
+    },
+    "characterStateProposals": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "value", "reason", "irreversible", "evidenceQuote", "supportingEvidenceQuotes"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/characters/[^/]+/(location|timePosition|physicalCondition|emotionalState|dominantDesire|immediateGoal|currentIntent|fear|woundTrigger|defenseStrategy|beliefs|falseBeliefs|knowledge|secrets|resources|capabilities|limitations|relationshipStances|trust|obligations|recentChoice|paidCost)$"
+          },
+          "value": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "reason": { "type": "string", "minLength": 4, "maxLength": 180 },
+          "irreversible": {
+            "type": "boolean",
+            "description": "Direct knowledge acquisition must be true; uncertain interpretations belong in beliefs or falseBeliefs."
+          },
+          "evidenceQuote": { "type": "string", "minLength": 2, "maxLength": 160 },
+          "supportingEvidenceQuotes": {
+            "type": "array",
+            "maxItems": 3,
+            "items": { "type": "string", "minLength": 2, "maxLength": 160 }
+          }
+        }
+      }
+    },
+    "continuityProposals": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "sourceId", "status", "statement", "reason", "irreversible", "evidenceQuote", "supportingEvidenceQuotes"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["timeline", "causal", "promise", "foreshadowing"] },
+          "sourceId": { "type": ["string", "null"], "minLength": 1, "maxLength": 240 },
+          "status": { "type": "string", "enum": ["created", "advanced", "fulfilled"] },
+          "statement": { "type": "string", "minLength": 4, "maxLength": 300 },
+          "reason": { "type": "string", "minLength": 4, "maxLength": 180 },
+          "irreversible": { "type": "boolean" },
+          "evidenceQuote": { "type": "string", "minLength": 2, "maxLength": 160 },
+          "supportingEvidenceQuotes": {
+            "type": "array",
+            "maxItems": 3,
+            "items": { "type": "string", "minLength": 2, "maxLength": 160 }
+          }
+        }
+      }
+    }
+  }
+}

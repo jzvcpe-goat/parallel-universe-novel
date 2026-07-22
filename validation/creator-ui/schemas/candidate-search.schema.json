@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "candidates"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-candidate-search.v1"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "oneSentenceMechanism",
+          "mechanismSignature",
+          "conflictMode",
+          "informationMode",
+          "pacing",
+          "costType",
+          "beats",
+          "strengths",
+          "risks",
+          "clicheRisks",
+          "uncertainties",
+          "irreversibleChanges",
+          "promisesCreated",
+          "futureDebts",
+          "characterCosts",
+          "assessment"
+        ],
+        "properties": {
+          "title": { "type": "string", "minLength": 2, "maxLength": 24 },
+          "oneSentenceMechanism": { "type": "string", "minLength": 12, "maxLength": 180 },
+          "mechanismSignature": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pressureSource", "conflictEngine", "agencyPattern", "costPattern", "endingPattern"],
+            "properties": {
+              "pressureSource": { "type": "string", "enum": ["environment", "opponent", "institution", "relationship", "body", "time", "resource", "information"] },
+              "conflictEngine": { "type": "string", "enum": ["rescue", "pursuit", "negotiation", "infiltration", "escape", "investigation", "combat", "survival", "sacrifice", "revelation"] },
+              "agencyPattern": { "type": "string", "enum": ["command", "refusal", "concealment", "sacrifice", "bargain", "delegation", "improvisation", "endurance", "pursuit", "withdrawal"] },
+              "costPattern": { "type": "string", "enum": ["evidence_loss", "injury", "trust_loss", "resource_loss", "time_loss", "exposure", "position_loss", "obligation", "opportunity_loss", "separation"] },
+              "endingPattern": { "type": "string", "enum": ["consequence_arrives", "irreversible_loss", "relationship_shift", "opponent_gain", "location_shift", "promise_advanced", "question_opened", "temporary_relief", "capability_change"] }
+            }
+          },
+          "conflictMode": {
+            "type": "string",
+            "enum": ["confrontation", "concealment", "misalignment", "sacrifice", "discovery", "reversal"]
+          },
+          "informationMode": {
+            "type": "string",
+            "enum": ["direct_reveal", "delayed_reveal", "dramatic_irony", "false_belief", "partial_reveal"]
+          },
+          "pacing": { "type": "string", "enum": ["compressed", "balanced", "slow_burn"] },
+          "costType": { "type": "string", "minLength": 4, "maxLength": 120 },
+          "beats": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["purpose", "action", "resistance", "consequence", "informationChange"],
+              "properties": {
+                "purpose": { "type": "string", "minLength": 4, "maxLength": 80 },
+                "action": { "type": "string", "minLength": 8, "maxLength": 180 },
+                "resistance": { "type": "string", "minLength": 8, "maxLength": 180 },
+                "consequence": { "type": "string", "minLength": 8, "maxLength": 180 },
+                "informationChange": { "type": ["string", "null"], "maxLength": 180 }
+              }
+            }
+          },
+          "strengths": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string" } },
+          "risks": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string" } },
+          "clicheRisks": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+          "uncertainties": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+          "irreversibleChanges": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+          "promisesCreated": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+          "futureDebts": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+          "characterCosts": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string" } },
+          "assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "intentFit",
+              "characterAgency",
+              "tensionPotential",
+              "informationControl",
+              "continuitySafety",
+              "freshness",
+              "futureDebtFitness"
+            ],
+            "properties": {
+              "intentFit": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "characterAgency": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "tensionPotential": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "informationControl": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "continuitySafety": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "freshness": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "futureDebtFitness": { "type": "integer", "minimum": 1, "maximum": 5 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

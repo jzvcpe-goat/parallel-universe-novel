@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "decisionId",
+    "sessionId",
+    "intentId",
+    "intentRevision",
+    "optionId",
+    "authorConfirmed",
+    "selectedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-scene-author-decision-selection.v1"
+    },
+    "decisionId": { "type": "string", "minLength": 1 },
+    "sessionId": { "type": "string", "minLength": 1 },
+    "intentId": { "type": "string", "minLength": 1 },
+    "intentRevision": { "type": "integer", "minimum": 1 },
+    "optionId": { "type": "string", "minLength": 1 },
+    "authorConfirmed": { "type": "boolean", "const": true },
+    "selectedAt": { "type": "string", "minLength": 1 }
+  }
+}

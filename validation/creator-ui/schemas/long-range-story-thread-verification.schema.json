@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator Long-range Story Thread Verification V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "focus", "threadItems", "findingItems", "rationale"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "creator-long-range-story-thread-verification.v1" },
+    "focus": { "type": "string", "enum": ["causal_state", "promise_arc"] },
+    "threadItems": {
+      "type": "array",
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/threadItem" }
+    },
+    "findingItems": {
+      "type": "array",
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/findingItem" }
+    },
+    "rationale": { "type": "string", "minLength": 8, "maxLength": 320 }
+  },
+  "$defs": {
+    "status": { "type": "string", "enum": ["active", "progressed", "fulfilled", "broken"] },
+    "severity": { "type": "string", "enum": ["hard_block", "revision_candidate", "watch"] },
+    "threadItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threadId",
+        "decision",
+        "confirmedStatus",
+        "sourceEvidenceQuote",
+        "latestEvidenceQuote",
+        "rationale"
+      ],
+      "properties": {
+        "threadId": { "type": "string", "minLength": 4, "maxLength": 80 },
+        "decision": { "type": "string", "enum": ["verify", "reject"] },
+        "confirmedStatus": {
+          "type": ["string", "null"],
+          "enum": ["active", "progressed", "fulfilled", "broken", null]
+        },
+        "sourceEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "latestEvidenceQuote": {
+          "type": ["string", "null"],
+          "minLength": 2,
+          "maxLength": 180
+        },
+        "rationale": { "type": "string", "minLength": 8, "maxLength": 320 }
+      }
+    },
+    "findingItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "findingIndex",
+        "threadId",
+        "decision",
+        "confirmedSeverity",
+        "sourceEvidenceQuote",
+        "targetEvidenceQuote",
+        "rationale"
+      ],
+      "properties": {
+        "findingIndex": { "type": "integer", "minimum": 0 },
+        "threadId": { "type": "string", "minLength": 4, "maxLength": 80 },
+        "decision": { "type": "string", "enum": ["verify", "reject"] },
+        "confirmedSeverity": {
+          "type": ["string", "null"],
+          "enum": ["hard_block", "revision_candidate", "watch", null]
+        },
+        "sourceEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "targetEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "rationale": { "type": "string", "minLength": 8, "maxLength": 320 }
+      }
+    }
+  }
+}

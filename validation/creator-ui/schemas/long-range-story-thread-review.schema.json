@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator Long-range Story Thread Review V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "focus",
+    "fromChapter",
+    "toChapter",
+    "inspectedChapterNumbers",
+    "inspectedDimensions",
+    "threads",
+    "findings"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "creator-long-range-story-thread-review.v1" },
+    "focus": { "type": "string", "enum": ["causal_state", "promise_arc"] },
+    "fromChapter": { "type": "integer", "minimum": 1 },
+    "toChapter": { "type": "integer", "minimum": 1 },
+    "inspectedChapterNumbers": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": { "type": "integer", "minimum": 1 }
+    },
+    "inspectedDimensions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/dimension" }
+    },
+    "threads": {
+      "type": "array",
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/thread" }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/finding" }
+    }
+  },
+  "$defs": {
+    "dimension": {
+      "type": "string",
+      "enum": [
+        "causal_debt",
+        "character_knowledge",
+        "timeline_anchor",
+        "promise",
+        "foreshadowing",
+        "character_arc"
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "quote", "meaning"],
+      "properties": {
+        "chapter": { "type": "integer", "minimum": 1 },
+        "quote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "meaning": { "type": "string", "minLength": 8, "maxLength": 240 }
+      }
+    },
+    "thread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threadId",
+        "dimension",
+        "label",
+        "statement",
+        "sourceChapter",
+        "sourceEvidenceQuote",
+        "status",
+        "latestEvidence",
+        "involvedCharacters",
+        "whyItMatters",
+        "confidence"
+      ],
+      "properties": {
+        "threadId": { "type": "string", "minLength": 4, "maxLength": 80 },
+        "dimension": { "$ref": "#/$defs/dimension" },
+        "label": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "statement": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "sourceChapter": { "type": "integer", "minimum": 1 },
+        "sourceEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "status": { "type": "string", "enum": ["active", "progressed", "fulfilled", "broken"] },
+        "latestEvidence": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["chapter", "quote", "meaning"],
+          "properties": {
+            "chapter": { "type": "integer", "minimum": 1 },
+            "quote": { "type": "string", "minLength": 2, "maxLength": 180 },
+            "meaning": { "type": "string", "minLength": 8, "maxLength": 240 }
+          }
+        },
+        "involvedCharacters": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 80 }
+        },
+        "whyItMatters": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threadId",
+        "dimension",
+        "severity",
+        "sourceChapter",
+        "targetChapter",
+        "sourceEvidenceQuote",
+        "targetEvidenceQuote",
+        "expected",
+        "observed",
+        "readerImpact",
+        "diagnosis",
+        "repairTargetChapter",
+        "repairDirection",
+        "confidence"
+      ],
+      "properties": {
+        "threadId": { "type": "string", "minLength": 4, "maxLength": 80 },
+        "dimension": { "$ref": "#/$defs/dimension" },
+        "severity": { "type": "string", "enum": ["hard_block", "revision_candidate", "watch"] },
+        "sourceChapter": { "type": "integer", "minimum": 1 },
+        "targetChapter": { "type": "integer", "minimum": 1 },
+        "sourceEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "targetEvidenceQuote": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "expected": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "observed": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "readerImpact": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "diagnosis": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "repairTargetChapter": { "type": "integer", "minimum": 1 },
+        "repairDirection": { "type": "string", "minLength": 8, "maxLength": 240 },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+      }
+    }
+  }
+}

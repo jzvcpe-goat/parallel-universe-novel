@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "snapshot": {
+    "base": "origin/main@76ba3f8",
+    "reviewHeadBeforeEvidenceCommit": "b912da5",
+    "branch": "review/creator-mvp-r0-20260722"
+  },
+  "publicEvidence": [
+    {
+      "path": "docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md",
+      "sha256": "0b51a3fdfdb11f227c2d263fed4998b96ea7c19a7c1c605774853623a75f5395"
+    },
+    {
+      "path": "docs/reviews/CREATOR_MVP_CODE_REVIEW_PACKET_20260722.md",
+      "sha256": "7402e59579359d1e294b4cf84e4e43576520573de65b4d31ad282ee69ebacbfd"
+    },
+    {
+      "path": "docs/reviews/CREATOR_MVP_R0_REVIEW_MANIFEST_20260722.md",
+      "sha256": "aed24a44d6eef30f8e5353bbd6241e55bea83d8207b570ae23e5376c9398be52"
+    },
+    {
+      "path": "docs/reviews/CREATOR_PUBLIC_EVIDENCE_ALLOWLIST.md",
+      "sha256": "70e0f50d203c2a2dd1ba8c10f94df2e4e17638ede4577f3333a4d765ee6ad402"
+    },
+    {
+      "path": "validation/creator-rag/langchain-textsplitters-1.0.1-receipt.json",
+      "sha256": "12eb3e9ee71e59eb27b886a424c8c88e5f6e77a279853cb7675243e41524cc30"
+    },
+    {
+      "path": "validation/creator-rag/open-source-local-retrieval-dependencies-2026-07-17.json",
+      "sha256": "696c2fb4d23c1b9dce94d605a4cb8fe2252b22613eb93030a5a2f51b515736dc"
+    },
+    {
+      "path": "validation/creator-rag/local-hybrid-benchmark-2026-07-17.json",
+      "sha256": "1dfced4f581eb4e23fe0fd5a6e94fefd2aaadaef15488e570a930ec58984bef2"
+    },
+    {
+      "path": "validation/creator-rag/real-thread-evidence-benchmark-2026-07-17.json",
+      "sha256": "d4d6a4c2dfac1eedcecfbe3961a25a4d19b69181581cf8fbdfee3cb1fe6e4600"
+    },
+    {
+      "path": "scripts/fixtures/creator-rag-frozen-benchmark.mts",
+      "sha256": "95a284063e74fdccf151f3470e0fba7ad9ff4a2a019c0448c69cfc6247635764"
+    }
+  ],
+  "notMeasured": [
+    "stable literary-quality improvement",
+    "professional blind-review agreement",
+    "automatic retrieval activation",
+    "production deployment readiness"
+  ]
+}
