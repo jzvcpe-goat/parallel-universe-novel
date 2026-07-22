@@ -1,8 +1,12 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase'
+import {
+  getLocalCreatorClientId as getLocalSettingsCreatorClientId,
+} from '@/local-db/creatorLocalSettingsRepository'
 import type {
+  PmfBranch,
   PmfChapter,
   PmfCreatorClient,
-  PmfLocalDraft,
+  PmfFeatureFlag,
   PmfPublishEvent,
   PmfReaderRequest,
   PmfRequestStatus,
@@ -10,52 +14,75 @@ import type {
   PmfWork,
 } from '@/features/pmf/types'
 import { pmfMainBranchId } from '@/features/pmf/types'
-
-const LOCAL_CREATOR_CLIENT_KEY = 'parallel-universe.local-creator.client-id'
-const LOCAL_DRAFT_KEY = 'parallel-universe.local-creator.drafts'
-const LOCAL_AI_SETTINGS_KEY = 'parallel-universe.local-creator.ai-settings'
+import { readerSignalBatchesFromRequests } from '@/features/creator-pivot/externalEchoAdapters'
+import type { ReaderSignalSourceBatch } from '@/features/creator-pivot/externalEchoContracts'
+import {
+  cloudExternalEchoBatch,
+  decodeExternalEchoCloudCursor,
+  unavailableCloudExternalEchoBatch,
+  type CloudExternalEchoRow,
+  type CloudExternalEchoSource,
+} from '@/features/creator-pivot/externalEchoCloudProjection'
+import type { ReaderSignalSourceSyncState } from '@/local-db/schema'
 
 export type PmfResult<T> =
   | { ok: true; data: T }
   | { ok: false; message: string; code?: string }
 
-export interface PmfStarterWorkInput {
-  id: string
-  title: string
-  summary: string
-  coverUrl?: string
-  authorNotice?: string
-}
-
-export interface PmfReaderRequestInput {
+export interface PmfPublishTransactionInput {
+  bundleId: string
+  idempotencyKey: string
+  contentChecksum: string
+  requestIds: string[]
   workId: string
-  branchId?: string | null
-  chapterId?: string | null
-  requestType: PmfRequestType
-  requestText: string
-}
-
-export interface PmfPublishInput {
-  requestId?: string | null
-  workId: string
+  targetKind: 'mainline' | 'if-branch'
   branchId?: string | null
   branchTitle?: string
+  hookChapterId?: string | null
   chapterTitle: string
   content: string
-  localDraftRef: string
 }
 
-export interface LocalAiSettings {
-  provider: 'manual' | 'local_endpoint' | 'openai_compatible'
-  baseUrl: string
-  model: string
-  hasKey: boolean
+export interface PmfServerPublishReceipt {
+  id: string
+  schema_version: 1
+  bundle_id: string
+  destination: 'own-platform'
+  status: 'published'
+  idempotency_key: string
+  content_checksum: string
+  work_id: string
+  branch_id: string
+  chapter_id: string
+  publish_event_id: string
+  attempt: 1
+  created_at: string
+}
+
+export interface PmfPublishTransactionResult {
+  chapter: PmfChapter
+  event: PmfPublishEvent
+  receipt: PmfServerPublishReceipt
+  replayed: boolean
+}
+
+export interface PmfCreateBranchInput {
+  workId: string
+  title: string
+  summary?: string
+  parentBranchId?: string | null
+  parentChapterId?: string | null
+}
+
+export interface CreatorAuthorizationStatus {
+  authorized: boolean
+  createdAt: string | null
 }
 
 function clientUnavailable<T>(): PmfResult<T> {
   return {
     ok: false,
-    message: '同步服务暂未开启，请稍后再试。',
+    message: '作品记录暂时不可用，请稍后再试。',
     code: 'supabase_unconfigured',
   }
 }
@@ -76,60 +103,8 @@ function randomId(prefix: string) {
   return `${prefix}:${id}`
 }
 
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback
-  try {
-    const raw = window.localStorage.getItem(key)
-    return raw ? JSON.parse(raw) as T : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function writeJson<T>(key: string, value: T) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(key, JSON.stringify(value))
-}
-
-export function isLocalCreatorHost() {
-  if (typeof window === 'undefined') return false
-  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
-}
-
-export function getLocalCreatorClientId() {
-  if (typeof window === 'undefined') return randomId('creator-client')
-  const existing = window.localStorage.getItem(LOCAL_CREATOR_CLIENT_KEY)
-  if (existing) return existing
-  const next = crypto.randomUUID()
-  window.localStorage.setItem(LOCAL_CREATOR_CLIENT_KEY, next)
-  return next
-}
-
-export function createLocalDraftRef() {
-  return randomId('local-draft')
-}
-
-export function readLocalDrafts(): PmfLocalDraft[] {
-  return readJson<PmfLocalDraft[]>(LOCAL_DRAFT_KEY, [])
-}
-
-export function upsertLocalDraft(draft: PmfLocalDraft) {
-  const drafts = readLocalDrafts()
-  const withoutCurrent = drafts.filter(item => item.localDraftRef !== draft.localDraftRef)
-  writeJson(LOCAL_DRAFT_KEY, [draft, ...withoutCurrent].slice(0, 50))
-}
-
-export function readLocalAiSettings(): LocalAiSettings {
-  return readJson<LocalAiSettings>(LOCAL_AI_SETTINGS_KEY, {
-    provider: 'manual',
-    baseUrl: '',
-    model: '',
-    hasKey: false,
-  })
-}
-
-export function writeLocalAiSettings(settings: LocalAiSettings) {
-  writeJson(LOCAL_AI_SETTINGS_KEY, settings)
+function getLocalCreatorClientId() {
+  return getLocalSettingsCreatorClientId()
 }
 
 export async function getPmfSession() {
@@ -156,20 +131,6 @@ export async function signOutPmf(): Promise<void> {
   await supabase.auth.signOut()
 }
 
-export async function ensureAnonymousReader(): Promise<PmfResult<{ userId: string }>> {
-  const supabase = getSupabaseBrowserClient()
-  if (!supabase) return clientUnavailable()
-  const { data: sessionData } = await supabase.auth.getSession()
-  if (sessionData.session?.user?.id) {
-    return { ok: true, data: { userId: sessionData.session.user.id } }
-  }
-  const { data, error } = await supabase.auth.signInAnonymously()
-  if (error) return errorResult(error, '读者轻量身份创建失败，请刷新后再试。')
-  const userId = data.user?.id
-  if (!userId) return { ok: false, message: '读者轻量身份创建失败。', code: 'anonymous_user_missing' }
-  return { ok: true, data: { userId } }
-}
-
 export async function upsertCreatorProfile(displayName: string): Promise<PmfResult<{ userId: string }>> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return clientUnavailable()
@@ -183,7 +144,7 @@ export async function upsertCreatorProfile(displayName: string): Promise<PmfResu
     display_name: displayName || data.user.email || '本地作者',
     updated_at: new Date().toISOString(),
   }, { onConflict: 'id' })
-  if (profileError) return errorResult(profileError, '作者资料同步失败。')
+  if (profileError) return errorResult(profileError, '作者资料保存失败。')
   return { ok: true, data: { userId } }
 }
 
@@ -210,95 +171,31 @@ export async function syncCreatorClient(clientLabel = 'Creator App'): Promise<Pm
     .select('id,creator_id,client_label,app_mode,version,online_status,last_seen_at,last_sync_at')
     .single()
 
-  if (error) return errorResult(error, '本地创作端连接状态同步失败。')
+  if (error) return errorResult(error, '本机状态保存失败。')
   return { ok: true, data: data as PmfCreatorClient }
 }
 
-export async function ensureStarterWork(input: PmfStarterWorkInput): Promise<PmfResult<PmfWork>> {
+export async function getCreatorAuthorizationStatus(): Promise<PmfResult<CreatorAuthorizationStatus>> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return clientUnavailable()
-  const profile = await upsertCreatorProfile('本地作者')
-  if (!profile.ok) return profile
+  const { data: userData, error: userError } = await supabase.auth.getUser()
+  if (userError) return errorResult(userError, '作者身份读取失败。')
+  const userId = userData.user?.id
+  if (!userId) return { ok: false, message: '请先登录本地创作端。', code: 'creator_session_missing' }
 
-  const payload = {
-    id: input.id,
-    author_id: profile.data.userId,
-    title: input.title,
-    summary: input.summary,
-    cover_url: input.coverUrl || null,
-    author_notice: input.authorNotice || '读者请求会同步到作者端，作者确认后再发布更新。',
-    status: 'published',
-    updated_at: new Date().toISOString(),
+  const { data, error } = await supabase.from('creator_authorizations')
+    .select('user_id,created_at')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) return errorResult(error, '作者权限读取失败。')
+  return {
+    ok: true,
+    data: {
+      authorized: Boolean(data?.user_id),
+      createdAt: data?.created_at || null,
+    },
   }
-
-  const { data, error } = await supabase.from('works')
-    .upsert(payload, { onConflict: 'id' })
-    .select('id,title,summary,cover_url,status,author_notice,updated_at')
-    .single()
-
-  if (error) return errorResult(error, '作品绑定失败，请确认当前账号拥有作品管理权限。')
-
-  const branchId = pmfMainBranchId(input.id)
-  const { error: branchError } = await supabase.from('branches').upsert({
-    id: branchId,
-    work_id: input.id,
-    branch_type: 'main',
-    title: '主线',
-    summary: input.summary,
-    status: 'published',
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'id' })
-
-  if (branchError) return errorResult(branchError, '主线分支绑定失败。')
-  return { ok: true, data: data as PmfWork }
-}
-
-export async function createReaderRequest(input: PmfReaderRequestInput): Promise<PmfResult<PmfReaderRequest>> {
-  const supabase = getSupabaseBrowserClient()
-  if (!supabase || !isSupabaseConfigured) return clientUnavailable()
-  const reader = await ensureAnonymousReader()
-  if (!reader.ok) return reader
-
-  const requestText = input.requestText.trim().slice(0, 280)
-  const { data, error } = await supabase.from('reader_requests')
-    .insert({
-      work_id: input.workId,
-      branch_id: input.branchId || null,
-      chapter_id: input.chapterId || null,
-      request_type: input.requestType,
-      request_text: requestText || defaultRequestText(input.requestType),
-    })
-    .select('id,work_id,branch_id,chapter_id,request_type,request_text,status,vote_count,published_chapter_id,published_branch_id,publish_event_id,created_at,updated_at')
-    .single()
-
-  if (error) return errorResult(error, '请求提交失败，请稍后再试。')
-  return { ok: true, data: data as PmfReaderRequest }
-}
-
-export async function listPublicRequests(workId: string): Promise<PmfResult<PmfReaderRequest[]>> {
-  const supabase = getSupabaseBrowserClient()
-  if (!supabase || !isSupabaseConfigured) return clientUnavailable()
-  const { data, error } = await supabase.from('reader_requests')
-    .select('id,work_id,branch_id,chapter_id,request_type,request_text,status,vote_count,published_chapter_id,published_branch_id,publish_event_id,created_at,updated_at')
-    .eq('work_id', workId)
-    .order('vote_count', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(8)
-
-  if (error) return errorResult(error, '请求状态读取失败。')
-  return { ok: true, data: (data || []) as PmfReaderRequest[] }
-}
-
-export async function voteForRequest(readerRequestId: string): Promise<PmfResult<{ requestId: string }>> {
-  const supabase = getSupabaseBrowserClient()
-  if (!supabase) return clientUnavailable()
-  const reader = await ensureAnonymousReader()
-  if (!reader.ok) return reader
-  const { error } = await supabase.from('request_votes').insert({
-    reader_request_id: readerRequestId,
-  })
-  if (error) return errorResult(error, '投票失败；同一读者对同一请求只能投一次。')
-  return { ok: true, data: { requestId: readerRequestId } }
 }
 
 export async function listCreatorRequests(): Promise<PmfResult<PmfReaderRequest[]>> {
@@ -312,8 +209,187 @@ export async function listCreatorRequests(): Promise<PmfResult<PmfReaderRequest[
     .order('created_at', { ascending: false })
     .limit(100)
 
-  if (error) return errorResult(error, '请求队列同步失败。')
+  if (error) return errorResult(error, '外界回声读取失败。')
   return { ok: true, data: (data || []) as PmfReaderRequest[] }
+}
+
+export async function listCreatorEchoSourceBatches(
+  currentRequests?: PmfReaderRequest[],
+  currentSources: ReaderSignalSourceSyncState[] = [],
+): Promise<PmfResult<ReaderSignalSourceBatch[]>> {
+  const requestResult = currentRequests
+    ? { ok: true as const, data: currentRequests }
+    : await listCreatorRequests()
+  if (!requestResult.ok) return requestResult
+
+  const requestBatches = readerSignalBatchesFromRequests(requestResult.data)
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase || !isSupabaseConfigured) return { ok: true, data: requestBatches }
+
+  const fetchedAt = new Date().toISOString()
+  const sourceCursor = new Map(currentSources.map(source => [source.source, source.cursor]))
+  const sources: CloudExternalEchoSource[] = ['comment', 'highlight', 'reaction', 'question']
+  const cloudBatches = await Promise.all(sources.map(async source => {
+    const previousCursor = sourceCursor.get(source) || null
+    const cursor = decodeExternalEchoCloudCursor(previousCursor)
+    const { data, error } = await supabase.rpc('list_creator_reader_signals', {
+      p_source: source,
+      p_after_updated_at: cursor?.updatedAt || null,
+      p_after_id: cursor?.id || '',
+      p_work_id: null,
+      p_limit: 500,
+    })
+    if (error) {
+      return unavailableCloudExternalEchoBatch(
+        source,
+        fetchedAt,
+        previousCursor,
+        error.code || 'reader_signal_source_unavailable',
+      )
+    }
+    return cloudExternalEchoBatch(
+      source,
+      (data || []) as CloudExternalEchoRow[],
+      fetchedAt,
+      previousCursor,
+    )
+  }))
+
+  return { ok: true, data: [...requestBatches, ...cloudBatches] }
+}
+
+export async function listCreatorFeatureFlags(): Promise<PmfResult<PmfFeatureFlag[]>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('feature_flags')
+    .select('key,enabled,description,updated_at')
+    .in('key', ['reader_requests_enabled', 'reader_echo_enabled', 'creator_app_enabled', 'cloud_ai_runtime_enabled'])
+    .order('key', { ascending: true })
+
+  if (error) return errorResult(error, '创作开关读取失败。')
+  return { ok: true, data: (data || []) as PmfFeatureFlag[] }
+}
+
+export async function listCreatorWorks(): Promise<PmfResult<PmfWork[]>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('works')
+    .select('id,title,summary,cover_url,status,author_notice,updated_at')
+    .order('updated_at', { ascending: false, nullsFirst: false })
+    .limit(50)
+
+  if (error) return errorResult(error, '作品记录读取失败。')
+  return { ok: true, data: (data || []) as PmfWork[] }
+}
+
+export async function listCreatorBranches(): Promise<PmfResult<PmfBranch[]>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('branches')
+    .select('id,work_id,parent_branch_id,parent_chapter_id,branch_type,title,summary,status,updated_at')
+    .order('updated_at', { ascending: false, nullsFirst: false })
+    .limit(100)
+
+  if (error) return errorResult(error, '支线记录读取失败。')
+  return { ok: true, data: (data || []) as PmfBranch[] }
+}
+
+export async function updateCreatorWorkNotice(workId: string, authorNotice: string): Promise<PmfResult<PmfWork>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('works')
+    .update({
+      author_notice: authorNotice.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', workId)
+    .select('id,title,summary,cover_url,status,author_notice,updated_at')
+    .single()
+
+  if (error) return errorResult(error, '作者公告保存失败。')
+  return { ok: true, data: data as PmfWork }
+}
+
+export async function updateCreatorWorkStatus(workId: string, status: PmfWork['status']): Promise<PmfResult<PmfWork>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('works')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', workId)
+    .select('id,title,summary,cover_url,status,author_notice,updated_at')
+    .single()
+
+  if (error) return errorResult(error, '作品状态保存失败。')
+  return { ok: true, data: data as PmfWork }
+}
+
+export async function createCreatorIfBranch(input: PmfCreateBranchInput): Promise<PmfResult<PmfBranch>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const title = input.title.trim()
+  if (!title) return { ok: false, message: '请先填写支线标题。', code: 'branch_title_missing' }
+  const suffix = randomId('branch').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 22)
+  const branchId = `${input.workId}:if:${suffix}`
+  const { data, error } = await supabase.from('branches')
+    .insert({
+      id: branchId,
+      work_id: input.workId,
+      parent_branch_id: input.parentBranchId || pmfMainBranchId(input.workId),
+      parent_chapter_id: input.parentChapterId || null,
+      branch_type: 'if',
+      title,
+      summary: input.summary?.trim() || null,
+      status: 'draft',
+      updated_at: new Date().toISOString(),
+    })
+    .select('id,work_id,parent_branch_id,parent_chapter_id,branch_type,title,summary,status,updated_at')
+    .single()
+
+  if (error) return errorResult(error, '新支线创建失败。')
+  return { ok: true, data: data as PmfBranch }
+}
+
+export async function updateCreatorBranchStatus(branchId: string, status: PmfBranch['status']): Promise<PmfResult<PmfBranch>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('branches')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', branchId)
+    .select('id,work_id,parent_branch_id,parent_chapter_id,branch_type,title,summary,status,updated_at')
+    .single()
+
+  if (error) return errorResult(error, '支线状态保存失败。')
+  return { ok: true, data: data as PmfBranch }
+}
+
+export async function listCreatorChapters(): Promise<PmfResult<PmfChapter[]>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('chapters')
+    .select('id,work_id,branch_id,chapter_no,title,content,status,published_at')
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(100)
+
+  if (error) return errorResult(error, '章节记录读取失败。')
+  return { ok: true, data: (data || []) as PmfChapter[] }
+}
+
+export async function listCreatorPublishEvents(): Promise<PmfResult<PmfPublishEvent[]>> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return clientUnavailable()
+  const { data, error } = await supabase.from('publish_events')
+    .select('id,reader_request_id,work_id,branch_id,published_chapter_id,published_branch_id,local_draft_ref,event_type,created_at')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) return errorResult(error, '发布记录读取失败。')
+  return { ok: true, data: (data || []) as PmfPublishEvent[] }
 }
 
 export async function updateReaderRequestStatus(id: string, status: Exclude<PmfRequestStatus, 'pending'>): Promise<PmfResult<PmfReaderRequest>> {
@@ -334,84 +410,98 @@ export async function updateReaderRequestStatus(id: string, status: Exclude<PmfR
   return { ok: true, data: data as PmfReaderRequest }
 }
 
-export async function publishChapter(input: PmfPublishInput): Promise<PmfResult<{ chapter: PmfChapter; event: PmfPublishEvent }>> {
+const publishTransactionMessages: Record<string, string> = {
+  publish_session_required: '请先登录本地创作端。',
+  publish_anonymous_forbidden: '当前身份不能发布作品，请使用已授权的作者账号。',
+  publish_authorization_required: '当前账号尚未获得作品发布权限。',
+  publish_work_forbidden: '当前账号不能向这个作品发布内容。',
+  publish_bundle_invalid: '发布包记录不完整，请重新确认后再试。',
+  publish_idempotency_invalid: '发布包校验未通过，请重新生成发布包。',
+  publish_checksum_invalid: '正文校验未通过，请重新生成发布包。',
+  publish_checksum_mismatch: '正文与已确认的发布包不一致，请重新确认。',
+  publish_chapter_title_invalid: '请填写有效的章节标题。',
+  publish_content_invalid: '请填写正文后再发布。',
+  publish_target_invalid: '发布去向不完整，请重新选择。',
+  publish_mainline_target_invalid: '主线发布去向不一致，请重新确认。',
+  publish_mainline_hook_forbidden: '主线章节不能设置支线挂点。',
+  publish_if_branch_target_invalid: '请为 IF 支线选择有效的发布去向。',
+  publish_if_branch_title_invalid: '请填写 IF 支线标题。',
+  publish_request_ids_invalid: '关联的读者回声无效，请刷新后再试。',
+  publish_request_ids_duplicate: '关联的读者回声存在重复，请刷新后再试。',
+  publish_idempotency_conflict: '这个发布包与已有发布记录不一致，请停止重试并核对记录。',
+  publish_hook_chapter_invalid: '支线挂点已变化，请重新选择。',
+  publish_linked_request_invalid: '关联的读者回声已变化，请刷新后再发布。',
+  publish_creator_client_invalid: '本机创作端状态已变化，请重新进入后再发布。',
+  publish_branch_conflict: '目标支线已变化，请刷新作品结构后再发布。',
+  publish_branch_hook_conflict: '支线挂点与当前作品结构不一致，请重新确认。',
+}
+
+function publishTransactionError<T>(error: unknown): PmfResult<T> {
+  const maybeError = error as { message?: string; code?: string }
+  const serverCode = maybeError?.message?.trim() || 'publish_transaction_failed'
+  return {
+    ok: false,
+    code: serverCode,
+    message: publishTransactionMessages[serverCode] || '发布未完成，正文仍保存在本机。',
+  }
+}
+
+function isPublishTransactionResult(value: unknown): value is {
+  chapter: PmfChapter
+  event: PmfPublishEvent
+  receipt: PmfServerPublishReceipt
+  replayed: boolean
+} {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Record<string, unknown>
+  const chapter = candidate.chapter as Record<string, unknown> | undefined
+  const event = candidate.event as Record<string, unknown> | undefined
+  const receipt = candidate.receipt as Record<string, unknown> | undefined
+  return candidate.status === 'published'
+    && typeof candidate.replayed === 'boolean'
+    && typeof chapter?.id === 'string'
+    && typeof event?.id === 'string'
+    && typeof receipt?.id === 'string'
+    && receipt.status === 'published'
+    && receipt.destination === 'own-platform'
+}
+
+export async function publishBundleTransaction(
+  input: PmfPublishTransactionInput,
+): Promise<PmfResult<PmfPublishTransactionResult>> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return clientUnavailable()
-  const { data: userData, error: userError } = await supabase.auth.getUser()
-  if (userError) return errorResult(userError, '作者身份读取失败。')
-  const creatorId = userData.user?.id
-  if (!creatorId) return { ok: false, message: '请先登录本地创作端。', code: 'creator_session_missing' }
-
-  const branchId = input.branchId || pmfMainBranchId(input.workId)
-  const { error: branchError } = await supabase.from('branches').upsert({
-    id: branchId,
-    work_id: input.workId,
-    branch_type: branchId.endsWith(':main') ? 'main' : 'if',
-    title: input.branchTitle || (branchId.endsWith(':main') ? '主线' : '读者请求支线'),
-    summary: '由本地创作端人工确认发布。',
-    status: 'published',
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'id' })
-  if (branchError) return errorResult(branchError, '发布分支准备失败。')
-
-  const { data: existingChapters } = await supabase.from('chapters')
-    .select('chapter_no')
-    .eq('work_id', input.workId)
-    .eq('branch_id', branchId)
-    .order('chapter_no', { ascending: false })
-    .limit(1)
-  const nextChapterNo = Number(existingChapters?.[0]?.chapter_no || 0) + 1
-
-  const { data: chapter, error: chapterError } = await supabase.from('chapters')
-    .insert({
-      work_id: input.workId,
-      branch_id: branchId,
-      chapter_no: nextChapterNo,
-      title: input.chapterTitle.trim() || `第 ${nextChapterNo} 章`,
-      content: input.content.trim(),
-      status: 'published',
-      source_request_id: input.requestId || null,
-      created_by: creatorId,
-      published_at: new Date().toISOString(),
-    })
-    .select('id,work_id,branch_id,chapter_no,title,content,status,published_at')
-    .single()
-
-  if (chapterError) return errorResult(chapterError, '章节发布失败。')
-
-  const { data: event, error: eventError } = await supabase.from('publish_events')
-    .insert({
-      reader_request_id: input.requestId || null,
-      work_id: input.workId,
-      branch_id: branchId,
-      published_chapter_id: (chapter as PmfChapter).id,
-      published_branch_id: branchId,
-      local_draft_ref: input.localDraftRef,
-      event_type: branchId.endsWith(':main') ? 'chapter_published' : 'branch_published',
-      published_by: creatorId,
-    })
-    .select('id,reader_request_id,work_id,branch_id,published_chapter_id,published_branch_id,local_draft_ref,event_type,created_at')
-    .single()
-
-  if (eventError) return errorResult(eventError, '发布记录写入失败。章节已创建，请稍后核对发布状态。')
-
-  if (input.requestId) {
-    const { error: requestError } = await supabase.from('reader_requests')
-      .update({
-        status: 'published',
-        published_chapter_id: (chapter as PmfChapter).id,
-        published_branch_id: branchId,
-        publish_event_id: (event as PmfPublishEvent).id,
-        local_draft_ref: input.localDraftRef,
-        handled_by: creatorId,
-        creator_client_id: getLocalCreatorClientId(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', input.requestId)
-    if (requestError) return errorResult(requestError, '请求状态更新失败。章节已创建，请稍后刷新请求队列。')
+  const { data, error } = await supabase.rpc('publish_bundle_transaction', {
+    p_bundle_id: input.bundleId,
+    p_idempotency_key: input.idempotencyKey,
+    p_content_checksum: input.contentChecksum,
+    p_work_id: input.workId,
+    p_target_kind: input.targetKind,
+    p_chapter_title: input.chapterTitle,
+    p_content: input.content,
+    p_branch_id: input.branchId || null,
+    p_branch_title: input.branchTitle || null,
+    p_hook_chapter_id: input.hookChapterId || null,
+    p_reader_request_ids: input.requestIds,
+    p_creator_client_id: getLocalCreatorClientId(),
+  })
+  if (error) return publishTransactionError(error)
+  if (!isPublishTransactionResult(data)) {
+    return {
+      ok: false,
+      code: 'publish_receipt_invalid',
+      message: '发布结果无法确认，正文仍保存在本机，请先核对阅读端。',
+    }
   }
-
-  return { ok: true, data: { chapter: chapter as PmfChapter, event: event as PmfPublishEvent } }
+  return {
+    ok: true,
+    data: {
+      chapter: data.chapter,
+      event: data.event,
+      receipt: data.receipt,
+      replayed: data.replayed,
+    },
+  }
 }
 
 export function requestTypeLabel(type: PmfRequestType) {
@@ -426,10 +516,4 @@ export function requestStatusLabel(status: PmfRequestStatus) {
   if (status === 'published') return '已发布'
   if (status === 'rejected') return '暂不处理'
   return '已收到'
-}
-
-function defaultRequestText(type: PmfRequestType) {
-  if (type === 'if_branch') return '想看这个选择展开成一条支线。'
-  if (type === 'continue_branch') return '想继续看这条支线。'
-  return '想看下一章。'
 }

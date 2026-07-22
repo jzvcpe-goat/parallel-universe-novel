@@ -114,12 +114,14 @@ export interface LiquidGlassMetricProps
   label: string
   value: React.ReactNode
   detail?: React.ReactNode
+  valueVariant?: 'metric' | 'label'
 }
 
 export function LiquidGlassMetric({
   label,
   value,
   detail,
+  valueVariant = 'metric',
   tone = 'quiet',
   depth = 'flat',
   motion = 'none',
@@ -129,9 +131,18 @@ export function LiquidGlassMetric({
   return (
     <LiquidGlass tone={tone} depth={depth} motion={motion} padding="sm" className={cn('min-w-0', className)} {...props}>
       <LiquidGlassContent>
-        <p className="truncate text-2xl font-semibold text-[var(--ink-paper)]">{value}</p>
-        <p className="mt-1 text-xs font-medium text-[var(--ink-dim)]">{label}</p>
-        {detail ? <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{detail}</p> : null}
+        <p
+          className={cn(
+            'font-semibold text-[var(--liquid-metric-value,var(--foreground))]',
+            valueVariant === 'metric'
+              ? 'truncate text-2xl'
+              : 'text-base leading-6 break-words',
+          )}
+        >
+          {value}
+        </p>
+        <p className="mt-1 text-xs font-medium text-[var(--liquid-metric-label,var(--muted-foreground))]">{label}</p>
+        {detail ? <p className="mt-2 text-xs leading-5 text-[var(--liquid-metric-detail,var(--muted-foreground))]">{detail}</p> : null}
       </LiquidGlassContent>
     </LiquidGlass>
   )

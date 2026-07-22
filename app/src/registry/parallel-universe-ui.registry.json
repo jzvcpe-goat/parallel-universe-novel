@@ -32,6 +32,34 @@
       ]
     },
     {
+      "name": "collapsible",
+      "type": "registry:ui",
+      "title": "Collapsible",
+      "description": "Radix-backed shadcn primitive for compact disclosure groups in dense Creator workbench surfaces.",
+      "files": [
+        {
+          "path": "src/components/ui/collapsible.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "universe-depth",
+      "type": "registry:component",
+      "title": "Universe Depth",
+      "description": "Image2-backed planetary depth stage and worldline constellation layer for Reader surfaces only.",
+      "files": [
+        {
+          "path": "src/components/design-system/UniverseDepth.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/styles/parallel-universe-tokens.css",
+          "type": "registry:style"
+        }
+      ]
+    },
+    {
       "name": "reading-paper",
       "type": "registry:component",
       "title": "Reading Paper",
@@ -92,49 +120,493 @@
       ]
     },
     {
-      "name": "creator-conversation-panel",
+      "name": "reader-request-composer",
       "type": "registry:component",
-      "title": "Creator Conversation Panel",
-      "description": "Socratic creator entry panel with prompt, textarea, action state and responsive story-seed examples.",
+      "title": "Reader Request Composer",
+      "description": "Reader-facing request composer for next chapter, IF branch and branch continuation requests, built from shadcn Card, Tabs, Textarea, Button and Alert status states.",
       "files": [
         {
-          "path": "src/components/design-system/CreatorConversationPanel.tsx",
+          "path": "src/components/reader/ReaderRequestComposer.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "creator-dialogue-thread",
+      "name": "reader-hot-request-list",
       "type": "registry:component",
-      "title": "Creator Dialogue Thread",
-      "description": "Post-seed creator dialogue pattern with user seed, readable opening draft, two follow-up questions and composer.",
+      "title": "Reader Hot Request List",
+      "description": "Reader-facing hot request list with voting and published-state feedback, using one shadcn Card shell and non-nested request rows.",
       "files": [
         {
-          "path": "src/components/design-system/CreatorDialogueThread.tsx",
+          "path": "src/components/reader/ReaderHotRequestList.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "creator-reasoning-map",
+      "name": "reader-reading-tool-button",
       "type": "registry:component",
-      "title": "Creator Reasoning Map",
-      "description": "Visible author-facing creative reasoning summary for hook, character gap, scene pressure, world rule and tone without exposing raw model reasoning.",
+      "title": "Reader Reading Tool Button",
+      "description": "Reader-paper control built from the shadcn Button primitive with semantic paper tokens and visible keyboard focus.",
       "files": [
         {
-          "path": "src/components/design-system/CreatorReasoningMap.tsx",
+          "path": "src/components/reader/ReaderReadingToolButton.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "creator-story-notes",
+      "name": "reader-story-index-panel",
       "type": "registry:component",
-      "title": "Creator Story Notes",
-      "description": "Author-facing story notes that keep character, scene, rule, conflict and hook context without implementation copy.",
+      "title": "Reader Story Index Panel",
+      "description": "Reader-facing story index rail for cover, current chapter, and branch map, composed from shadcn Card, Badge and Button primitives.",
       "files": [
         {
-          "path": "src/components/design-system/CreatorStoryNotes.tsx",
+          "path": "src/components/reader/ReaderStoryIndexPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-story-branch-panel",
+      "type": "registry:component",
+      "title": "Reader Story Branch Panel",
+      "description": "Reader-facing branch focus panel for shelf action, branch summary, and story-progress metrics, composed from shadcn Card, Badge and Button primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderStoryBranchPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-story-progress-panel",
+      "type": "registry:component",
+      "title": "Reader Story Progress Panel",
+      "description": "Reader-facing reading progress panel for page position, shelf state, next-scene state, and worldline feedback, composed from shadcn Card and Badge plus LiquidGlass metrics.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderStoryProgressPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-account-hero-card",
+      "type": "registry:component",
+      "title": "Reader Account Hero Card",
+      "description": "Reader-facing account hero card for current account or membership plan status, composed from shadcn Card and Badge primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderAccountHeroCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-entitlement-summary-grid",
+      "type": "registry:component",
+      "title": "Reader Entitlement Summary Grid",
+      "description": "Reader-facing entitlement summary cards for reading credits, request credits and archive state, composed from shadcn Card and Badge primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderEntitlementSummaryGrid.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-account-merge-panel",
+      "type": "registry:component",
+      "title": "Reader Account Merge Panel",
+      "description": "Reader-facing account recovery panel for login, registration, browser archive check and account merge, composed from shadcn Card, Badge, Button, Input and Label primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderAccountMergePanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-account-status-grid",
+      "type": "registry:component",
+      "title": "Reader Account Status Grid",
+      "description": "Reader-facing account status grid for reading progress, request activity and account recovery, composed from shadcn Card, Badge and Button primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderAccountStatusGrid.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-data-control-panel",
+      "type": "registry:component",
+      "title": "Reader Data Control Panel",
+      "description": "Reader-facing account data governance panel for export, delete preview, confirmation and public-safe account messages, composed from shadcn Card, Badge, Button and Input primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderDataControlPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-checkout-progress-panel",
+      "type": "registry:component",
+      "title": "Reader Checkout Progress Panel",
+      "description": "Reader-facing membership checkout progress panel for current checkout state, status refresh and return-to-reading actions, composed from shadcn Card, Badge and Button primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderCheckoutProgressPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "reader-membership-plan-panel",
+      "type": "registry:component",
+      "title": "Reader Membership Plan Panel",
+      "description": "Reader-facing membership plan section for plan selection, checkout-safe error copy and shared PlanCard layout, composed from shadcn Card, Badge and PlanCard primitives.",
+      "files": [
+        {
+          "path": "src/components/reader/ReaderMembershipPlanPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-shell",
+      "type": "registry:component",
+      "title": "Creator Shell",
+      "description": "Local author workbench shell with six Creator entries, top status, and liquid-glass control header.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorShell.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-conversation-workspace",
+      "type": "registry:component",
+      "title": "Creator Conversation Workspace",
+      "description": "Focused linear writing surface with one composer, candidate-first adoption, explicit canon confirmation, and an optional manual recall rail.",
+      "files": [
+        {
+          "path": "src/components/creator/workspace/CreatorConversationWorkspace.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-conversation-timeline",
+      "type": "registry:component",
+      "title": "Creator Conversation Timeline",
+      "description": "One-question-per-turn authoring timeline for intent, distinct path comparison, candidate adoption, evidence-backed review, and human-confirmed canon changes.",
+      "files": [
+        {
+          "path": "src/components/creator/workspace/CreatorConversationTimeline.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-recall-rail",
+      "type": "registry:component",
+      "title": "Creator Recall Rail",
+      "description": "Optional manual recall directory grouped by causality, character knowledge, timeline, and promises, with source reasons and locators.",
+      "files": [
+        {
+          "path": "src/components/creator/workspace/CreatorRecallRail.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-next-steps-panel",
+      "type": "registry:component",
+      "title": "Creator Today Next Steps Panel",
+      "description": "Flat shadcn panel for the three most valuable writing moves, with explicit loading, empty, error, refresh, and disabled states.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayNextStepsPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-state-panel",
+      "type": "registry:component",
+      "title": "Creator State Panel",
+      "description": "Creator loading, empty, error, and locked-state panel composed from shadcn-compatible LiquidGlass and Button primitives.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorStatePanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-action-bar",
+      "type": "registry:component",
+      "title": "Creator Action Bar",
+      "description": "Compact liquid-glass action rail for local author workflow actions.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorActionBar.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-priority-panel",
+      "type": "registry:component",
+      "title": "Creator Today Priority Panel",
+      "description": "Shadcn-composed Today surface panel that turns current reader demand, draft readiness, publish readiness, judgment metrics, and the writing route into one author-facing next action.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayPriorityPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-route-panels",
+      "type": "registry:component",
+      "title": "Creator Today Route Panels",
+      "description": "Route-level Today wrapper for the dashboard priority path, keeping priority interpretation out of the page file.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayRoutePanels.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-path-panel",
+      "type": "registry:component",
+      "title": "Creator Today Path Panel",
+      "description": "Shadcn-composed Today path surface that presents External Echo, private drafts, PublishBundles, and work structure as one semantic author route without nested glass cards.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayPathPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-echo-status-panel",
+      "type": "registry:component",
+      "title": "Creator Today Echo Status Panel",
+      "description": "Shadcn-composed Today status surface that presents waiting judgment, entered creation, and public response as one semantic External Echo trajectory without nested metric cards.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayEchoStatusPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-today-context-rail",
+      "type": "registry:component",
+      "title": "Creator Today Context Rail",
+      "description": "Shadcn-composed read-only Today rail that unifies current work status, latest work, latest branch, and private-writing guidance without stacked glass panels.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorTodayContextRail.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-branch-line-card",
+      "type": "registry:component",
+      "title": "Creator Branch Line Card",
+      "description": "Shadcn-composed work-line card for main and IF branches with explicit selection, chapter previews, request pressure, writing handoff, and archive confirmation.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorBranchLineCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-work-structure-strip",
+      "type": "registry:component",
+      "title": "Creator Work Structure Strip",
+      "description": "Shadcn-composed work structure summary for main/IF counts, published chapters, open echo pressure, and lines needing an entry chapter.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorWorkStructureStrip.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-author-decision-card",
+      "type": "registry:component",
+      "title": "Creator Author Decision Card",
+      "description": "Shadcn-composed assistant judgment card that turns work-line or publish-check context into one author question, decision basis, and next action.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorAuthorDecisionCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-echo-queue-card",
+      "type": "registry:component",
+      "title": "Creator Echo Queue Card",
+      "description": "Shadcn-composed External Echo card that turns one reader signal into an author-facing scene seed, question, and next writing action.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorEchoQueueCard.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-echo-writing-rail",
+      "type": "registry:component",
+      "title": "Creator Echo Writing Rail",
+      "description": "Shadcn-composed External Echo right rail that turns a selected reader signal into a writing entry, reader-perspective action, related-echo filter, reject confirmation, and processing-order explanation.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorEchoWritingRail.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-echo-status-strip",
+      "type": "registry:component",
+      "title": "Creator Echo Status Strip",
+      "description": "Shadcn-composed External Echo status strip for visible count, sorting mode, and signal-state counts.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorEchoStatusStrip.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-echo-decision-panels",
+      "type": "registry:component",
+      "title": "Creator Echo Decision Panels",
+      "description": "Shadcn-composed External Echo assist panels for today-first writing choice and pre-writing judgment, keeping reader wish, author question, scene seed, and related-echo grouping in Creator component code.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorEchoDecisionPanels.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-publish-bundle-context-panel",
+      "type": "registry:component",
+      "title": "Creator Publish Bundle Context Panel",
+      "description": "Shadcn-composed publish-bundle side panel for destination confirmation, story-line anchor, linked reader request, status, and vote context.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorPublishBundleContextPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-publish-bundle-impact-strip",
+      "type": "registry:component",
+      "title": "Creator Publish Bundle Impact Strip",
+      "description": "Shadcn-composed publish-bundle impact strip that shows reader-visible location, chapter anchor, request outcome, and failure recovery before the author confirms publication.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorPublishBundleImpactStrip.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-publish-bundle-review-panel",
+      "type": "registry:component",
+      "title": "Creator Publish Bundle Review Panel",
+      "description": "Shadcn-composed publish-bundle review panel that helps the author confirm reader-facing promise, title signal, content readiness, and entry location before publishing.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorPublishBundleReviewPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-local-workspace-panel",
+      "type": "registry:component",
+      "title": "Creator Local Workspace Panel",
+      "description": "Shadcn-composed local workspace panel for device-held drafts, setting assets, backup export, assistant permissions, and operation records.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorLocalWorkspacePanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-workspace-preferences-panel",
+      "type": "registry:component",
+      "title": "Creator Workspace Preferences Panel",
+      "description": "Shadcn-composed Local Workspace preferences panel for reduced motion, reduced transparency, and author-confirmed preference reset.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorWorkspacePreferencesPanel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-settings-status-rail",
+      "type": "registry:component",
+      "title": "Creator Settings Status Rail",
+      "description": "Shadcn-composed settings right rail for current workbench state, readiness, public boundary, and publication promises.",
+      "files": [
+        {
+          "path": "src/components/creator/CreatorSettingsStatusRail.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "creator-writing-workspace",
+      "type": "registry:component",
+      "title": "Creator Writing Workspace Shell",
+      "description": "Shadcn-composed Creator workspace shell for the editor frame and shortcut rail. Specialized writing, planning, review, and assistant components are registered through their direct owners.",
+      "files": [
+        {
+          "path": "src/components/creator/workspace/CreatorWorkspaceShell.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "confirm-action-dialog",
+      "type": "registry:component",
+      "title": "Confirm Action Dialog",
+      "description": "Creator confirmation dialog for publish, reject, hide, archive, aggregate, and clear-setting actions.",
+      "files": [
+        {
+          "path": "src/components/creator/ConfirmActionDialog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "local-status-pill",
+      "type": "registry:component",
+      "title": "Local Status Pill",
+      "description": "Creator status badge that distinguishes local private writing from unavailable public surfaces.",
+      "files": [
+        {
+          "path": "src/components/creator/LocalStatusPill.tsx",
           "type": "registry:component"
         }
       ]

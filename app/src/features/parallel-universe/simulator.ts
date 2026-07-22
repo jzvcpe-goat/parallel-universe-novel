@@ -95,17 +95,6 @@ export function qualityForChoice(choice?: WorldChoice): QualityBrakeReport {
   return qualityReports.find(report => report.id === 'quality-hidden-survivor') || qualityReports[0]
 }
 
-export function buildHarnessStatus(choice?: WorldChoice) {
-  return [
-    { id: 'plan', label: '计划', detail: choice ? `已读取选择：“${choice.label}”。` : '等待读者选择第一个分歧点。', status: choice ? 'done' : 'active' },
-    { id: 'draft', label: '编写初稿', detail: choice ? choice.memoryWrite : '待审片段尚未生成。', status: choice ? 'done' : 'waiting' },
-    { id: 'tool', label: '运行工具', detail: choice ? choice.qualityGate : '事件节奏和故事稳定检查待触发。', status: choice ? 'done' : 'waiting' },
-    { id: 'observe', label: '观察结果', detail: choice ? '质量分、伏笔压力和人物一致性已写入创作记录。' : '等待观察。', status: choice ? 'active' : 'waiting' },
-    { id: 'fix', label: '补写修订', detail: choice ? '若低于门槛，保持待审并生成修复建议。' : '未开始。', status: choice ? 'waiting' : 'blocked' },
-    { id: 'confirm', label: '发布确认', detail: '确认后才进入主线或分支。', status: 'blocked' },
-  ] as const
-}
-
 export function flagshipTemplate() {
   return worldTemplates.find(template => template.mode === 'flagship') || worldTemplates[0]
 }

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { authApi, settingsApi } from '@/api'
 import { ApiError } from '@/api/client'
 import { mapIdentityToUser } from '@/lib/adapters'
-import { authStorage } from '@/lib/storage'
+import { authSessionStorage } from '@/lib/authSessionStorage'
 import type { AuthIdentity, LoginRequest, RegisterRequest, User } from '@/types'
 
 export type AuthState =
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
 
   const refreshMe = useCallback(async () => {
-    const token = authStorage.getToken()
+    const token = authSessionStorage.getAccessToken()
     if (!token) return
     setIsLoading(true)
     try {
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = await identityToUser(payload.identity)
       setState({ status: 'AUTHENTICATED', user })
     } catch {
-      authStorage.clear()
+      authSessionStorage.clear()
       setState({ status: 'UNAUTHENTICATED' })
     } finally {
       setIsLoading(false)
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       const response = await authApi.login(data)
-      authStorage.setToken(response.token.access_token)
+      authSessionStorage.setAccessToken(response.token.access_token)
       const user = await identityToUser(response.identity)
       setState({ status: 'AUTHENTICATED', user })
     } catch (err) {
@@ -107,13 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Local cleanup is enough for this prototype shell.
     }
-    authStorage.clear()
+    authSessionStorage.clear()
     setState({ status: 'UNAUTHENTICATED' })
     navigate('/')
   }, [navigate])
 
   const clearLocalSession = useCallback(() => {
-    authStorage.clear()
+    authSessionStorage.clear()
     setState({ status: 'UNAUTHENTICATED' })
   }, [])
 

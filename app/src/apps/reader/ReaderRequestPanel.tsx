@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Bell, CheckCircle2, GitBranch, RefreshCw, Send, ThumbsUp } from 'lucide-react'
+import { Bell, RefreshCw } from 'lucide-react'
 import { Panel } from '@/components/design-system/Panel'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
+import { ReaderHotRequestList } from '@/components/reader/ReaderHotRequestList'
+import { ReaderRequestComposer } from '@/components/reader/ReaderRequestComposer'
+import type { ReaderRequestStatusNote } from '@/components/reader/ReaderRequestComposer'
 import {
   createReaderRequest,
   listPublicRequests,
-  requestStatusLabel,
-  requestTypeLabel,
   voteForRequest,
 } from '@/lib/pmfSupabaseReader'
 import type { PmfReaderRequest, PmfRequestType } from '@/features/pmf/types'
@@ -30,17 +26,38 @@ function defaultRequestText(type: PmfRequestType, choice?: string) {
 }
 
 const readerFlow = [
-  { title: '提交请求', detail: '记录你想看的下一章或支线' },
-  { title: '投票聚合', detail: '重复想法会合并成热度' },
-  { title: '作者处理', detail: '同步到作者本机工作台' },
-  { title: '发布更新', detail: '确认后回到阅读端' },
+  { title: '说出想看', detail: '下一章、支线或继续某个选择' },
+  { title: '聚成热度', detail: '相同想法会合并成更强信号' },
+  { title: '作者已看到', detail: '高热方向会优先进入创作' },
+  { title: '新章出现', detail: '发布后直接回到你的阅读线' },
 ]
+
+const checkingStatus: ReaderRequestStatusNote = {
+  tone: 'checking',
+  title: '正在查看读者请求',
+  detail: '正在读取当前作品的请求热度和更新方向。',
+}
+
+const unavailableStatus: ReaderRequestStatusNote = {
+  tone: 'unavailable',
+  title: '作者暂未开放读者请求',
+  detail: '你仍可以继续阅读当前章节；开放后可以请求下一章或 IF 支线。',
+}
+
+function failedStatus(message: string): ReaderRequestStatusNote {
+  return {
+    tone: 'error',
+    title: '请求暂时没有完成',
+    detail: message,
+  }
+}
 
 export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoiceLabel }: ReaderRequestPanelProps) {
   const [requests, setRequests] = useState<PmfReaderRequest[]>([])
   const [requestType, setRequestType] = useState<PmfRequestType>(selectedChoiceLabel ? 'if_branch' : 'next_chapter')
   const [requestText, setRequestText] = useState(defaultRequestText(requestType, selectedChoiceLabel))
-  const [status, setStatus] = useState('正在读取请求状态...')
+  const [status, setStatus] = useState<ReaderRequestStatusNote>(checkingStatus)
+  const [requestAccess, setRequestAccess] = useState<'checking' | 'open' | 'closed'>('checking')
   const [loading, setLoading] = useState(false)
 
   const hotRequests = useMemo(
@@ -57,13 +74,28 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
   }, [requestType, selectedChoiceLabel])
 
   const loadRequests = useCallback(async () => {
+    setRequestAccess(current => (current === 'closed' ? current : 'checking'))
+    setStatus(current => (current.tone === 'unavailable' ? current : checkingStatus))
     const result = await listPublicRequests(workId)
     if (!result.ok) {
-      setStatus(result.message)
+      const isUnavailable = result.code === 'supabase_unconfigured'
+      setRequestAccess(isUnavailable ? 'closed' : 'open')
+      setStatus(isUnavailable ? unavailableStatus : failedStatus(result.message))
       return
     }
     setRequests(result.data)
-    setStatus(result.data.length ? '读者请求已同步。' : '还没有请求，成为第一个催更的人。')
+    setRequestAccess('open')
+    setStatus(result.data.length
+      ? {
+          tone: 'ready',
+          title: '这些方向正在升温',
+          detail: '你可以给同样的想法加热，也可以写下新的下一章或支线请求。',
+        }
+      : {
+          tone: 'ready',
+          title: '还没有读者请求',
+          detail: '你可以成为第一个提出下一章或支线方向的人。',
+        })
   }, [workId])
 
   useEffect(() => {
@@ -73,7 +105,11 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
   async function submitRequest() {
     if (loading) return
     setLoading(true)
-    setStatus('正在提交请求...')
+    setStatus({
+      tone: 'checking',
+      title: '正在送达请求',
+      detail: '正在把你的想法加入当前作品的请求热度里。',
+    })
     const result = await createReaderRequest({
       workId,
       branchId,
@@ -81,32 +117,45 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
       requestText,
     })
     if (!result.ok) {
-      setStatus(result.message)
+      const isUnavailable = result.code === 'supabase_unconfigured'
+      setRequestAccess(isUnavailable ? 'closed' : 'open')
+      setStatus(isUnavailable ? unavailableStatus : failedStatus(result.message))
       setLoading(false)
       return
     }
-    setStatus('请求已发送，作者本地创作端同步后会处理。')
+    setRequestAccess('open')
+    setStatus({
+      tone: 'success',
+      title: '请求已送达',
+      detail: '热度越高，越可能推动下一次更新。',
+    })
     setLoading(false)
     await loadRequests()
   }
 
   async function vote(id: string) {
     const result = await voteForRequest(id)
-    setStatus(result.ok ? '已为这个请求加热。' : result.message)
+    setStatus(result.ok
+      ? {
+          tone: 'success',
+          title: '已为这个请求加热',
+          detail: '相同想法会聚成更强的更新信号。',
+        }
+      : failedStatus(result.message))
     if (result.ok) await loadRequests()
   }
 
   return (
-    <Panel className="mt-4 w-full p-4" motion="reveal">
+    <Panel className="reader-cosmic-request mt-4 w-full p-4" motion="reveal">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
         <div>
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-[var(--worldline-cyan)]" />
             <p className="text-xs tracking-[0.16em] text-[var(--ink-dim)]">读者请求</p>
           </div>
-          <h2 className="mt-1 text-xl font-semibold text-[var(--ink-paper)]">想让作者继续写哪里？</h2>
+          <h2 className="mt-1 text-xl font-semibold text-[var(--ink-paper)]">你想让世界往哪里走？</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-muted)]">
-            请求会进入作者处理台，作者确认后更新正文或支线。
+            你的想法会和其他读者的选择一起形成热度，推动下一章或新的 IF 支线。
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={loadRequests}>
@@ -116,85 +165,24 @@ export function ReaderRequestPanel({ workId, branchId, titleText, selectedChoice
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card variant="glass" padding="sm" className="pu-motion-lift">
-          <div className="reader-request-flow mb-4">
-            {readerFlow.map((step, index) => (
-              <div key={step.title} className="reader-request-flow-step pu-motion-lift">
-                <span className="reader-request-flow-index">{index + 1}</span>
-                <span className="min-w-0">
-                  <span className="block text-xs font-semibold text-[var(--ink-paper)]">{step.title}</span>
-                  <span className="mt-1 block text-[11px] leading-4 text-[var(--ink-dim)]">{step.detail}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-          <Tabs value={requestType} onValueChange={value => setRequestType(value as PmfRequestType)}>
-            <TabsList className="grid h-auto w-full grid-cols-3 bg-[var(--pu-panel-850)] text-[var(--ink-muted)]">
-              {(['next_chapter', 'if_branch', 'continue_branch'] as PmfRequestType[]).map(type => (
-                <TabsTrigger key={type} value={type} className="min-h-10 text-xs sm:text-sm">
-                  {requestTypeLabel(type)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          <Textarea
-            className="mt-3 min-h-[108px]"
-            value={requestText}
-            maxLength={280}
-            onChange={event => setRequestText(event.target.value)}
-            aria-label="读者请求内容"
-          />
-          <div className="mt-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <p className="text-xs leading-5 text-[var(--ink-dim)]">
-              《{titleText}》 · 请求会被聚合和限流，重复请求请投票加热。
-            </p>
-            <Button variant="gold" onClick={submitRequest} disabled={loading}>
-              <Send size={15} />
-              发送请求
-            </Button>
-          </div>
-          <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">{status}</p>
-        </Card>
-
-        <Card variant="glass" padding="sm" className="pu-motion-lift">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <GitBranch size={16} className="text-[var(--manuscript-gold)]" />
-              <CardTitle className="text-sm">热门请求</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-          <div className="mt-3 space-y-2">
-            {hotRequests.length ? hotRequests.map(item => (
-              <Card key={item.id} variant="default" padding="sm" className="pu-motion-lift bg-black/15">
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant={item.status === 'published' ? 'stasis' : 'outline'}>
-                    {requestStatusLabel(item.status)}
-                  </Badge>
-                  <Button variant="ghost" size="sm" onClick={() => vote(item.id)}>
-                    <ThumbsUp size={13} />
-                    {item.vote_count}
-                  </Button>
-                </div>
-                <p className="mt-2 text-xs font-semibold text-[var(--ink-paper)]">{requestTypeLabel(item.request_type)}</p>
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--ink-muted)]">{item.request_text}</p>
-                {item.status === 'published' && (
-                  <p className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--manuscript-gold)]">
-                    <CheckCircle2 size={13} />
-                    已回写到阅读端
-                  </p>
-                )}
-              </Card>
-            )) : (
-              <Alert className="border-dashed border-white/10 bg-transparent text-[var(--ink-dim)]">
-                <Bell className="h-4 w-4" />
-                <AlertTitle>暂无请求</AlertTitle>
-                <AlertDescription>提交后这里会显示聚合状态。</AlertDescription>
-              </Alert>
-            )}
-          </div>
-          </CardContent>
-        </Card>
+        <ReaderRequestComposer
+          flow={readerFlow}
+          requestType={requestType}
+          requestText={requestText}
+          titleText={titleText}
+          status={status}
+          loading={loading}
+          disabled={requestAccess !== 'open'}
+          onRequestTypeChange={setRequestType}
+          onRequestTextChange={setRequestText}
+          onSubmit={submitRequest}
+        />
+        <ReaderHotRequestList
+          requests={hotRequests}
+          emptyTitle={requestAccess === 'closed' ? '请求尚未开放' : undefined}
+          emptyDescription={requestAccess === 'closed' ? '开放后，这里会显示读者最想看的更新方向。' : undefined}
+          onVote={vote}
+        />
       </div>
     </Panel>
   )

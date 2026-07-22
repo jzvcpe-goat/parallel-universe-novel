@@ -88,20 +88,6 @@ export interface AuthRegisterResponse {
   } | null
 }
 
-export interface AuthVerificationResponse {
-  verification?: {
-    flow_token_id?: string
-    flow_type?: string
-    expires_at?: string
-    token?: string
-  } | null
-  delivery?: {
-    provider?: string
-    message_id?: string
-    preview_text?: string
-  } | null
-}
-
 export interface SubscriptionTier {
   tier_id: string
   display_name: string
@@ -540,75 +526,6 @@ export interface AccountDeleteConfirmResponse {
   message: string
 }
 
-export interface CustomerPortalResponse {
-  portal: {
-    url?: string
-    [key: string]: unknown
-  }
-}
-
-export interface CustomerExportPayload {
-  report_type: string
-  filename: string
-  content_type: string
-  content?: string | Record<string, unknown>
-  content_base64?: string
-}
-
-export interface AuditExportResponse {
-  audit_export?: Record<string, unknown>
-  export_payload?: Record<string, unknown>
-  [key: string]: unknown
-}
-
-export interface FeatureAvailability {
-  supported: boolean
-  code: string
-  reason: string
-  nextAction?: string
-}
-
-export interface WsEvent<T = Record<string, unknown>> {
-  type: string
-  payload: T
-  receivedAt: string
-}
-
-export interface DeviationAnalysis {
-  totalScore: number
-  breakdown: {
-    character: number
-    plot: number
-    theme: number
-  }
-  trend: 'increasing' | 'decreasing' | 'stable'
-  maxPossible: number
-  ifBranchCount: number
-  parallelWorlds: number
-}
-
-export interface SoulDimension {
-  label: string
-  value: number
-  max: number
-}
-
-export interface StudioNode {
-  id: string
-  title: string
-  type: 'root' | 'branch' | 'end'
-  x: number
-  y: number
-  description: string
-  status: 'active' | 'draft'
-}
-
-export interface NodeConnection {
-  from: string
-  to: string
-  label?: string
-}
-
 export interface BackendErrorDetail {
   code?: string
   reason?: string
@@ -619,22 +536,4 @@ export interface BackendErrorDetail {
   next_allowed_at?: string | null
   identity?: AuthIdentity
   [key: string]: unknown
-}
-
-export interface MembershipPlan {
-  id: string
-  name: string
-  price: number
-  period: 'monthly' | 'yearly'
-  features: string[]
-  isCurrent: boolean
-  expiresAt: string | null
-}
-
-export interface InkPackage {
-  id: string
-  amount: number
-  bonus: number
-  price: number
-  isRecommended: boolean
 }

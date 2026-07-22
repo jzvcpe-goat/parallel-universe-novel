@@ -22,6 +22,8 @@ export interface PmfWork {
 export interface PmfBranch {
   id: string
   work_id: string
+  parent_branch_id?: string | null
+  parent_chapter_id?: string | null
   branch_type: PmfBranchType
   title: string
   summary: string | null
@@ -79,13 +81,51 @@ export interface PmfCreatorClient {
   last_sync_at: string | null
 }
 
+export interface PmfFeatureFlag {
+  key: string
+  enabled: boolean
+  description: string | null
+  updated_at: string | null
+}
+
 export interface PmfLocalDraft {
   localDraftRef: string
   requestId: string | null
   workId: string
   branchId: string
+  chapterNumber?: number | null
   title: string
   content: string
+  updatedAt: string
+}
+
+export type PmfLocalSettingAssetKind =
+  | 'character'
+  | 'skill'
+  | 'location'
+  | 'map'
+  | 'faction'
+  | 'item'
+  | 'rule'
+  | 'timeline'
+
+export type PmfLocalSettingAssetStage =
+  | 'intent'
+  | 'scene'
+  | 'draft'
+  | 'memory'
+  | 'publish'
+
+export interface PmfLocalSettingAsset {
+  localAssetRef: string
+  workId: string
+  branchId: string | null
+  kind: PmfLocalSettingAssetKind
+  stage: PmfLocalSettingAssetStage
+  title: string
+  summary: string
+  detail: string
+  tags: string[]
   updatedAt: string
 }
 
