@@ -23,7 +23,7 @@ export function localDraftRefFromPublishBundleDraftId(bundleDraftId: string | nu
 }
 
 export function publishBundleDraftTargetPathForLocalDraftRef(localDraftRef: string) {
-  return `/creator/publish?${publishBundleDraftQueryKey}=${encodeURIComponent(createPublishBundleDraftId(localDraftRef))}`
+  return `/creator/bundles?${publishBundleDraftQueryKey}=${encodeURIComponent(createPublishBundleDraftId(localDraftRef))}`
 }
 
 export function createPublishBundleDraftRecord(

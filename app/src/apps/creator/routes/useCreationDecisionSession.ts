@@ -62,7 +62,9 @@ import {
 } from './creatorEditorAuthorEditGuard'
 import { runCreatorCharacterRehearsal } from './creatorCharacterRehearsalService'
 
-const localWorkingAgentUrl = import.meta.env.VITE_CREATOR_WORKING_AGENT_URL?.trim() || ''
+const localWorkingAgentUrl = import.meta.env.VITE_CREATOR_QA_REFERENCE_AGENT === 'true'
+  ? ''
+  : import.meta.env.VITE_CREATOR_WORKING_AGENT_URL?.trim() || ''
 const writingAgent = localWorkingAgentUrl
   ? createLocalWorkingAgent(localWorkingAgentUrl)
   : referenceWritingAgent

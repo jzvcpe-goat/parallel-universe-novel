@@ -1230,7 +1230,7 @@ requireAll(publishBundleDraftHandoffPath, [
   'legacyPublishDraftQueryKey',
   'createPublishBundleDraftRecord',
   'resolvePublishBundleDraftRouteRef',
-  '/creator/publish?',
+  '/creator/bundles?',
 ])
 
 requireAll(editorSettingAssetControllerPath, [

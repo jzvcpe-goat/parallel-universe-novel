@@ -202,6 +202,8 @@ try {
 
   await run('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], {
     VITE_ROUTER_MODE: 'hash',
+    VITE_CREATOR_QA_AUTHENTICATED: 'true',
+    VITE_CREATOR_QA_REFERENCE_AGENT: 'true',
     VITE_CREATOR_WORKING_AGENT_URL: '',
   })
 

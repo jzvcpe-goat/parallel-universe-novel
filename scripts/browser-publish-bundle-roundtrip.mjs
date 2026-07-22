@@ -119,6 +119,8 @@ try {
   const baseUrl = `http://127.0.0.1:${port}`
 
   const build = start('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], {
+    VITE_CREATOR_QA_AUTHENTICATED: 'true',
+    VITE_CREATOR_QA_REFERENCE_AGENT: 'true',
     VITE_ROUTER_MODE: 'hash',
   })
   await new Promise((resolveBuild, reject) => {
@@ -139,18 +141,39 @@ try {
   mkdirSync(artifactDir, { recursive: true })
   mkdirSync(join(root, 'artifacts', 'qa'), { recursive: true })
 
-  await page.goto(`${baseUrl}/#/creator/editor?qa=local-creator-authenticated`, { waitUntil: 'domcontentloaded' })
-  await page.locator('.creator-editor-paper').waitFor({ timeout: 15000 })
-  await page.locator('#creator-chapter-title').fill('灯码的第二个答案')
-  await page.locator('#creator-chapter-content').fill([
-    '沈星澜把灯码压在掌心，没有立刻交给巡夜人。',
-    '雾里的蓝灯又亮了一次，这一次，她终于看清了灯后站着谁。',
-  ].join('\n\n'))
+  await page.goto(`${baseUrl}/#/creator/write?qa=local-creator-authenticated`, { waitUntil: 'domcontentloaded' })
+  const workspace = page.locator('[data-slot="creator-conversation-workspace"]')
+  const composer = page.locator('[data-slot="creator-conversation-input"]')
+  await workspace.waitFor({ timeout: 15000 })
+  await page.waitForFunction(() => document.querySelector('[data-slot="creator-conversation-workspace"]')?.getAttribute('data-agent-ready') === 'true')
+
+  await composer.fill('雾港停电后，守灯人发现失踪者的名字正在灯塔玻璃上逐个亮起。')
+  await composer.press('Enter')
+  const intentLock = page.getByRole('button', { name: /锁定本章意图/ })
+  for (let answerCount = 0; answerCount < 2 && await intentLock.count() === 0; answerCount += 1) {
+    const question = page.locator('[data-slot="creator-conversation-turn"]').filter({ hasText: '这轮只确认一件事' }).last()
+    await question.waitFor({ timeout: 15000 })
+    const answer = question.getByRole('button').first()
+    await answer.waitFor({ timeout: 15000 })
+    await answer.click()
+    await page.waitForTimeout(240)
+  }
+  await intentLock.waitFor({ timeout: 15000 })
+  await intentLock.click()
+  await page.getByRole('button', { name: '比较不同方向' }).click()
+  const candidates = page.locator('[data-slot="creator-conversation-candidate"]')
+  await candidates.first().waitFor({ timeout: 20000 })
+  await candidates.first().click()
+  await page.getByRole('button', { name: /写当前场景候选/ }).click()
+  await page.locator('[data-slot="creator-conversation-preview"]').waitFor({ timeout: 20000 })
+  await page.getByRole('button', { name: '采用为草稿' }).click()
+  await page.locator('[data-slot="creator-conversation-active-draft"]').waitFor({ timeout: 15000 })
   await page.locator('[data-agent-action="save_local_draft"]:visible').first().click()
   await page.waitForTimeout(180)
+  await page.getByRole('button', { name: '更多创作操作' }).click()
   await Promise.all([
-    page.waitForURL(/#\/creator\/publish\?/, { timeout: 15000 }),
-    page.locator('[data-agent-action="enter_publish_check"]:visible').first().click(),
+    page.waitForURL(/#\/creator\/bundles\?/, { timeout: 15000 }),
+    page.locator('[data-agent-action="enter_publish_check"]:visible').click(),
   ])
 
   const prepareButton = page.locator('[data-agent-action="prepare_publish_bundle"]')

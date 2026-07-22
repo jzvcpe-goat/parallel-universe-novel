@@ -133,7 +133,11 @@ try {
   const baseUrl = `http://127.0.0.1:${port}`
   const routeUrl = `${baseUrl}/#/creator/requests?qa=local-creator-authenticated`
 
-  await run('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], { VITE_ROUTER_MODE: 'hash' })
+  await run('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], {
+    VITE_CREATOR_QA_AUTHENTICATED: 'true',
+    VITE_CREATOR_QA_REFERENCE_AGENT: 'true',
+    VITE_ROUTER_MODE: 'hash',
+  })
   start('external-echo-preview', 'npm', [
     '--prefix', 'app', 'run', 'preview', '--',
     '--host', '127.0.0.1', '--port', String(port), '--outDir', 'dist-creator-qa',

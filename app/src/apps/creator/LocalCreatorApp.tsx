@@ -16,14 +16,26 @@ import {
 import { CreatorFrame, RequireCreator } from '@/components/creator/CreatorAppFrame'
 import { CreatorLoginPanel } from '@/components/creator/CreatorLoginSurfaces'
 
+const creatorQaAuthenticated = import.meta.env.VITE_CREATOR_QA_AUTHENTICATED === 'true'
+const creatorQaSession: CreatorSessionState = {
+  status: 'signed_in',
+  userId: 'creator-qa-local-author',
+  email: 'creator-qa@local.test',
+}
+
 function useCreatorSession() {
-  const [session, setSession] = useState<CreatorSessionState>({ status: 'loading' })
+  const [session, setSession] = useState<CreatorSessionState>(creatorQaAuthenticated ? creatorQaSession : { status: 'loading' })
 
   async function refresh() {
+    if (creatorQaAuthenticated) {
+      setSession(creatorQaSession)
+      return
+    }
     setSession(await readCreatorSession())
   }
 
   useEffect(() => {
+    if (creatorQaAuthenticated) return
     return scheduleCreatorSessionRefresh(refresh)
   }, [])
 
