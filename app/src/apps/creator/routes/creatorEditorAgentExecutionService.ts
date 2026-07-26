@@ -1,4 +1,5 @@
 import { createCreatorAgentExecutor } from '@/agent-surface/executor'
+import { confirmCreatorAgentConfirmation } from '@/agent-surface/confirmation'
 import type { CreatorAgentActionName } from '@/agent-surface/actions'
 import {
   runEditorManualDraftSubmitFlow,
@@ -118,6 +119,19 @@ export async function runEditorAssistCandidateAdoptionThroughAgent({
       }
     },
   })
+  const requested = await execute({
+    actionName: 'apply_suggestion',
+    input: {
+      route: '/creator/write/:draftId',
+      targetId,
+      candidateId,
+      draftId: targetId,
+      adoptionMode: 'insert',
+    },
+  })
+  if (requested.status !== 'awaiting_confirmation') return { ok: false, result }
+  const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
+  if (!confirmed.ok) return { ok: false, result }
   const execution = await execute({
     actionName: 'apply_suggestion',
     input: {
@@ -127,6 +141,8 @@ export async function runEditorAssistCandidateAdoptionThroughAgent({
       draftId: targetId,
       adoptionMode: 'insert',
     },
+    operationId: requested.operationId,
+    confirmationReceiptId: requested.receipt.id,
   })
   return { ok: execution.status === 'succeeded', result }
 }

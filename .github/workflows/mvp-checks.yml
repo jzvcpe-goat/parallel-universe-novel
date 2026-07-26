@@ -36,9 +36,12 @@ jobs:
 
       - name: Verify Creator MVP
         run: |
+          npm run check:package-json-duplicate-keys
+          npm run check:creator-checkout-path-safety
+          npm run check:creator-r0-evidence-hashes
           npm run test:creator-literary-evidence-workspace-contract
           npm run check:pivot
-          npm run test:creator
+          npm run test:creator:full
 
       - name: Build local Creator
         run: npm run build:creator

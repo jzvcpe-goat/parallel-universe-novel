@@ -89,7 +89,7 @@ export const creatorAgentActions = [
     selector: '[data-agent-action="apply_suggestion"]',
     risk: 'medium',
     stage: 'writing_assist',
-    requiresAuthorConfirmation: false,
+    requiresAuthorConfirmation: true,
     readsPrivateDraftBody: true,
     writesLocalData: true,
     writesPublicData: false,

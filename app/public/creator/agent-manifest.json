@@ -14,7 +14,7 @@
     { "name": "open_draft", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
     { "name": "start_inspiration", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
     { "name": "pin_reminder", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["creative_reminder"], "publicEffects": ["none"] },
-    { "name": "apply_suggestion", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "apply_suggestion", "risk": "medium", "requiresAuthorConfirmation": true, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
     { "name": "select_priority_request", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
     { "name": "convert_echo_to_scene", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
     { "name": "generate_candidate_from_instruction", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },

@@ -8,6 +8,7 @@ import {
   creatorAgentActionByName,
   type CreatorAgentActionName,
 } from './actions'
+import { isLocalCreatorHost } from '@/local-db/creatorLocalSettingsRepository'
 import {
   requestCreatorAgentConfirmation,
   type RequestCreatorAgentConfirmationInput,
@@ -80,7 +81,7 @@ type CreatorAgentExecutorResult<Name extends CreatorAgentActionName> =
     status: 'blocked'
     operationId: string
     inputHash: string
-    reason: 'invalid_input' | 'confirmation_missing' | 'confirmation_invalid' | 'handler_missing'
+    reason: 'invalid_input' | 'confirmation_missing' | 'confirmation_invalid' | 'handler_missing' | 'local_surface_required'
   }
   | {
     status: 'failed'
@@ -108,6 +109,20 @@ export function createCreatorAgentExecutor(
     const rawInput = input && typeof input === 'object' ? input as Record<string, unknown> : {}
     const route = safeString(rawInput.route) || action.route.replace('/:draftId', '')
     const targetId = safeString(rawInput.targetId) || 'unknown-target'
+
+    // Creator mutations are local-only even when a route guard is bypassed.
+    if (typeof window !== 'undefined' && !isLocalCreatorHost() && (action.writesLocalData || action.writesPublicData)) {
+      await lifecycle.recordEvent({
+        operationId,
+        actionName,
+        route,
+        targetId,
+        status: 'blocked',
+        inputHash,
+        messageCode: 'local_surface_required',
+      })
+      return { status: 'blocked', operationId, inputHash, reason: 'local_surface_required' }
+    }
 
     if (!confirmationReceiptId) {
       await lifecycle.recordEvent({

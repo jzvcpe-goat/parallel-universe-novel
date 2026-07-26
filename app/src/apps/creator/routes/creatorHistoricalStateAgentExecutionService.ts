@@ -1,4 +1,5 @@
 import { createCreatorAgentExecutor } from '@/agent-surface/executor'
+import { confirmCreatorAgentConfirmation } from '@/agent-surface/confirmation'
 import { rejectHistoricalStateBackfillProposal } from '@/features/creator-decision/historicalStateBackfill'
 import type {
   HistoricalStateBackfillCommitResult,
@@ -76,6 +77,8 @@ export async function runHistoricalStateConfirmThroughAgent(
     input,
   })
   if (request.status !== 'awaiting_confirmation') return { ok: false, result }
+  const confirmed = await confirmCreatorAgentConfirmation(request.receipt.id)
+  if (!confirmed.ok) return { ok: false, result }
   const execution = await execute({
     actionName: 'confirm_historical_state_candidate',
     input,
@@ -111,6 +114,8 @@ export async function runHistoricalStateRejectThroughAgent(
     input,
   })
   if (request.status !== 'awaiting_confirmation') return { ok: false, result }
+  const confirmed = await confirmCreatorAgentConfirmation(request.receipt.id)
+  if (!confirmed.ok) return { ok: false, result }
   const execution = await execute({
     actionName: 'reject_historical_state_candidate',
     input,

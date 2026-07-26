@@ -139,6 +139,22 @@ assert.deepEqual(
   assert.equal(completed.status, 'succeeded')
   assert.equal(handlerCalls, 1)
   assert.equal(fixture.receipts.get(requested.receipt.id)?.status, 'consumed')
+  const missing = await execute({
+    actionName: 'confirm_publish_bundle',
+    input,
+    operationId: requested.operationId,
+    confirmationReceiptId: 'receipt:missing',
+  })
+  assert.equal(missing.status, 'blocked', 'a missing confirmation receipt must not mutate')
+  assert.equal(handlerCalls, 1)
+  const mismatched = await execute({
+    actionName: 'confirm_publish_bundle',
+    input: { ...input, targetId: 'bundle:other', bundleId: 'bundle:other' },
+    operationId: requested.operationId,
+    confirmationReceiptId: requested.receipt.id,
+  })
+  assert.equal(mismatched.status, 'blocked', 'a mismatched receipt binding must not mutate')
+  assert.equal(handlerCalls, 1)
   const replay = await execute({
     actionName: 'confirm_publish_bundle',
     input,
@@ -147,6 +163,32 @@ assert.deepEqual(
   })
   assert.equal(replay.status, 'blocked', 'a confirmation receipt must be single use')
   assert.equal(handlerCalls, 1)
+}
+
+{
+  const fixture = createFixtureLifecycle()
+  let handlerCalls = 0
+  const previousWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: { location: { hostname: 'creator.example.com' } },
+  })
+  try {
+    const execute = createCreatorAgentExecutor({
+      save_local_draft: input => {
+        handlerCalls += 1
+        return { kind: 'draft_saved', targetId: input.targetId, recordId: input.draftId }
+      },
+    }, fixture.lifecycle)
+    const result = await execute({
+      actionName: 'save_local_draft',
+      input: { route: '/creator/editor', targetId: 'draft:nonlocal', draftId: 'draft:nonlocal' },
+    })
+    assert.equal(result.status, 'blocked', 'non-local surfaces must fail closed before local mutation')
+    assert.equal(handlerCalls, 0)
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: previousWindow })
+  }
 }
 
 {

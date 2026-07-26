@@ -3,6 +3,7 @@ import {
   createCreatorAgentExecutor,
   type CreatorAgentActionHandlerRegistry,
 } from './executor'
+import { confirmCreatorAgentConfirmation } from './confirmation'
 import { recordCreatorAgentOperationEvent } from './operationLog'
 
 const candidateActionKinds = {
@@ -94,6 +95,18 @@ export async function executeCreatorCommandCandidateApplyFlow({
       }
     },
   })
+  const requested = await execute({
+    actionName: 'apply_suggestion',
+    input: {
+      route,
+      targetId: candidateId,
+      candidateId,
+      adoptionMode,
+    },
+  })
+  if (requested.status !== 'awaiting_confirmation') return requested
+  const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
+  if (!confirmed.ok) return requested
   return execute({
     actionName: 'apply_suggestion',
     input: {
@@ -102,6 +115,8 @@ export async function executeCreatorCommandCandidateApplyFlow({
       candidateId,
       adoptionMode,
     },
+    operationId: requested.operationId,
+    confirmationReceiptId: requested.receipt.id,
   })
 }
 

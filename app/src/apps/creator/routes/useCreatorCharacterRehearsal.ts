@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
+import { confirmCreatorAgentConfirmation } from '@/agent-surface/confirmation'
+import { createCreatorAgentExecutor } from '@/agent-surface/executor'
 import type {
   CharacterSimulationRequest,
   CharacterSimulationResult,
@@ -75,33 +77,86 @@ export function useCreatorCharacterRehearsal(input: {
       setNotice(readiness.issue || '角色排练请求还不完整。')
       return null
     }
+    const rehearsalRequest = readiness.request
+    let simulationResult: CharacterSimulationResult | null = null
+    const execute = createCreatorAgentExecutor({
+      start_character_rehearsal: async parsedInput => {
+        const next = await simulate(rehearsalRequest)
+        simulationResult = next
+        if (next) setResult(next)
+        return {
+          kind: 'character_rehearsal_candidates_ready',
+          targetId: parsedInput.targetId,
+          recordId: next?.simulationRunId,
+          messageCode: next ? 'character_rehearsal_ready' : 'character_rehearsal_unavailable',
+        }
+      },
+    })
     setPending(true)
-    setRequest(readiness.request)
+    setRequest(rehearsalRequest)
     setNotice('正在进行短期角色排练；正文和正史不会改变。')
     try {
-      const next = await simulate(readiness.request)
-      if (!next) {
+      const requested = await execute({
+        actionName: 'start_character_rehearsal',
+        input: {
+          route: '/creator/editor',
+          targetId: rehearsalRequest.requestId,
+          requestId: rehearsalRequest.requestId,
+          contextSnapshotId: rehearsalRequest.contextSnapshotId,
+          characterIds: rehearsalRequest.characters.map(character => character.id),
+          scenario: rehearsalRequest.scenario,
+        },
+      })
+      if (requested.status !== 'awaiting_confirmation') {
         setNotice('角色排练没有完成；正文、人物卡和正史均未改变。')
         return null
       }
-      setResult(next)
+      const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
+      if (!confirmed.ok) {
+        setNotice('角色排练没有确认；正文、人物卡和正史均未改变。')
+        return null
+      }
+      const completed = await execute({
+        actionName: 'start_character_rehearsal',
+        input: {
+          route: '/creator/editor',
+          targetId: rehearsalRequest.requestId,
+          requestId: rehearsalRequest.requestId,
+          contextSnapshotId: rehearsalRequest.contextSnapshotId,
+          characterIds: rehearsalRequest.characters.map(character => character.id),
+          scenario: rehearsalRequest.scenario,
+        },
+        operationId: requested.operationId,
+        confirmationReceiptId: requested.receipt.id,
+      })
+      if (completed.status !== 'succeeded' || !simulationResult) {
+        setNotice('角色排练没有完成；正文、人物卡和正史均未改变。')
+        return null
+      }
       setNotice('角色排练已通过独立审阅，只生成待作者确认的本机卡片候选。')
-      return next
+      return simulationResult
     } finally {
       setPending(false)
     }
   }, [draft, readiness.issue, readiness.request, simulate])
 
-  const captureCharacter = useCallback((proposalId: string) => {
+  const captureCharacter = useCallback(async (proposalId: string) => {
     if (!request || !result) return null
     try {
-      const asset = captureCharacterRehearsalProposal({
-        request,
-        result,
-        proposalId,
-        authorConfirmed: true,
-        branchId,
+      let asset: PmfLocalSettingAsset | null = null
+      const execute = createCreatorAgentExecutor({
+        save_character_rehearsal_card: parsedInput => {
+          asset = captureCharacterRehearsalProposal({ request, result, proposalId, authorConfirmed: true, branchId })
+          return { kind: 'character_rehearsal_card_saved', targetId: parsedInput.targetId, recordId: asset.localAssetRef }
+        },
       })
+      const actionInput = { route: '/creator/editor', targetId: proposalId, proposalId, simulationRunId: result.simulationRunId }
+      const requested = await execute({ actionName: 'save_character_rehearsal_card', input: actionInput })
+      if (requested.status !== 'awaiting_confirmation') throw new Error('confirmation_required')
+      const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
+      if (!confirmed.ok) throw new Error('confirmation_failed')
+      const completed = await execute({ actionName: 'save_character_rehearsal_card', input: actionInput, operationId: requested.operationId, confirmationReceiptId: requested.receipt.id })
+      if (completed.status !== 'succeeded' || !asset) throw new Error('capture_failed')
       setSavedProposalIds(current => Array.from(new Set([...current, proposalId])))
       setNotice('人物卡候选已由作者确认并保存到本机写作智库；它仍不是正史。')
       onAssetSaved(asset)
@@ -112,16 +167,23 @@ export function useCreatorCharacterRehearsal(input: {
     }
   }, [branchId, onAssetSaved, request, result])
 
-  const captureSetting = useCallback((proposalId: string) => {
+  const captureSetting = useCallback(async (proposalId: string) => {
     if (!request || !result) return null
     try {
-      const asset = captureCharacterRehearsalSettingProposal({
-        request,
-        result,
-        proposalId,
-        authorConfirmed: true,
-        branchId,
+      let asset: PmfLocalSettingAsset | null = null
+      const execute = createCreatorAgentExecutor({
+        save_character_rehearsal_setting: parsedInput => {
+          asset = captureCharacterRehearsalSettingProposal({ request, result, proposalId, authorConfirmed: true, branchId })
+          return { kind: 'character_rehearsal_setting_saved', targetId: parsedInput.targetId, recordId: asset.localAssetRef }
+        },
       })
+      const actionInput = { route: '/creator/editor', targetId: proposalId, proposalId, simulationRunId: result.simulationRunId }
+      const requested = await execute({ actionName: 'save_character_rehearsal_setting', input: actionInput })
+      if (requested.status !== 'awaiting_confirmation') throw new Error('confirmation_required')
+      const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
+      if (!confirmed.ok) throw new Error('confirmation_failed')
+      const completed = await execute({ actionName: 'save_character_rehearsal_setting', input: actionInput, operationId: requested.operationId, confirmationReceiptId: requested.receipt.id })
+      if (completed.status !== 'succeeded' || !asset) throw new Error('capture_failed')
       setSavedProposalIds(current => Array.from(new Set([...current, proposalId])))
       setNotice('设定卡候选已由作者确认并保存到本机写作智库；它仍不是正史。')
       onAssetSaved(asset)

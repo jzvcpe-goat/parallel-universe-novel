@@ -375,5 +375,14 @@ export function RequireCreator({ session, children }: { session: CreatorSessionS
       <CreatorAccessGate preview={preview} onLogin={() => navigate('/creator/login')} />
     )
   }
+  if (!detectCreatorLocalSurface()) {
+    return (
+      <CreatorStatePanel
+        kind="error"
+        title="请在本机创作工作区继续"
+        description="为保护未发布正文和本机创作资产，此页面不会在公共地址打开可写操作。"
+      />
+    )
+  }
   return <>{children}</>
 }
