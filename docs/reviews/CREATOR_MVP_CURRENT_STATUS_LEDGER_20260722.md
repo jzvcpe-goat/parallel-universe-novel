@@ -7,7 +7,7 @@ Date: 2026-07-22
 | Check | Status | Boundary |
 | --- | --- | --- |
 | `npm run check:pivot` | Pass | Creator contracts, local persistence, Agent, echo, publish, and UI gates. |
-| `npm run test:creator` | Pass | Creator domain, recall, local persistence, evidence, and static checks. |
+| `npm run test:creator:full` | Pass after R0 review fixes | Canonical full Creator suite; CI invokes this explicit command. |
 | `npm run build:creator` | Pass with bundle-size warning | Build succeeds; performance acceptance is not established. |
 | `git diff --check` | Pass during R0 packaging | Whitespace hygiene only. |
 | Focused Creator domain, local workspace, route-registry, decision-workbench, and RAG-boundary checks | Pass | See Draft PR checks; this is not a literary-quality effectiveness claim. |

@@ -4,7 +4,7 @@
 
 - Base: `origin/main@76ba3f8`
 - Packaging branch: `review/creator-mvp-r0-20260722`
-- Review head before evidence commit: `b912da5`
+- Reviewed implementation head: `f3d7ad9`
 - Scope: Creator MVP contracts, local persistence, Agent action surface, decision domain, route composition, and selected sanitized evidence.
 - Explicit exclusions: database migrations, payment, production deployment, private manuscript evidence, local workspace exports, browser-session evidence, and generated local databases.
 
@@ -18,11 +18,11 @@
 
 ## Review commit map
 
-1. `e7fbf2d` Governance, contracts, reproducible checks, and review policy.
-2. `8aae78f` Local data, migrations, and Agent action surface.
-3. `650e385` Creator decision and long-form correctness.
-4. `b912da5` Creator routes, legacy slicing cleanup, and UI composition.
-5. This evidence commit updates the review status and manifest only.
+1. `61d0a43` Governance, contracts, reproducible checks, and review policy.
+2. `b751dff` Local data, migrations, and Agent action surface.
+3. `8794c80` Creator decision and long-form correctness.
+4. `f0272d7` Creator routes, legacy slicing cleanup, and publish-bundle composition.
+5. `f3d7ad9` R0 review fixes: confirmation receipts, localhost fail-closed boundary, CI suite identity, evidence verification, and non-ASCII checkout coverage.
 
 ## Public evidence inventory
 
@@ -30,13 +30,13 @@ Only records listed below may be added to the final review commit.
 
 | Path | Source category | SHA-256 | Review decision |
 | --- | --- | --- | --- |
-| `docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md` | Status ledger | Pending final hash | Approved |
-| `docs/reviews/CREATOR_MVP_CODE_REVIEW_PACKET_20260722.md` | Review packet | Pending final hash | Approved |
-| `validation/creator-rag/langchain-textsplitters-1.0.1-receipt.json` | Package receipt | Pending final hash | Approved sanitized evidence |
-| `validation/creator-rag/open-source-local-retrieval-dependencies-2026-07-17.json` | Package/model receipt | Pending final hash | Approved sanitized evidence |
-| `validation/creator-rag/local-hybrid-benchmark-2026-07-17.json` | Synthetic benchmark receipt | Pending final hash | Approved sanitized evidence |
-| `validation/creator-rag/real-thread-evidence-benchmark-2026-07-17.json` | Redacted hash-and-metrics receipt | Pending final hash | Approved sanitized evidence |
-| `scripts/fixtures/creator-rag-frozen-benchmark.mts` | Synthetic frozen fixture | Pending final hash | Approved sanitized evidence |
+| `docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md` | Status ledger | Inventory JSON | Approved |
+| `docs/reviews/CREATOR_MVP_CODE_REVIEW_PACKET_20260722.md` | Review packet | Inventory JSON | Approved |
+| `validation/creator-rag/langchain-textsplitters-1.0.1-receipt.json` | Package receipt | Inventory JSON | Approved sanitized evidence |
+| `validation/creator-rag/open-source-local-retrieval-dependencies-2026-07-17.json` | Package/model receipt | Inventory JSON | Approved sanitized evidence |
+| `validation/creator-rag/local-hybrid-benchmark-2026-07-17.json` | Synthetic benchmark receipt | Inventory JSON | Approved sanitized evidence |
+| `validation/creator-rag/real-thread-evidence-benchmark-2026-07-17.json` | Redacted hash-and-metrics receipt | Inventory JSON | Approved sanitized evidence |
+| `scripts/fixtures/creator-rag-frozen-benchmark.mts` | Synthetic frozen fixture | Inventory JSON | Approved sanitized evidence |
 | `scripts/fixtures/creator-frozen-paired-quality-fixture.mts` | Synthetic paired-quality fixture | Pending final hash | Approved sanitized evidence |
 | `validation/story_seeds.json` | Synthetic validation seed set | Pending final hash | Approved sanitized evidence |
 | `validation/creator-ui/schemas/*.json` | Public JSON schemas | Per-file hashes in Git | Approved sanitized evidence |
@@ -47,6 +47,7 @@ Only records listed below may be added to the final review commit.
 - `npm run check:pivot`
 - `npm run test:creator`
 - `npm run build:creator`
+- `npm run check:creator-r0-evidence-hashes`
 - `git diff --check`
 - Secret scan and staged-content privacy review
 - `npm audit --omit=dev` with advisory classification

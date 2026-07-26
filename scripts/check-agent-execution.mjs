@@ -104,6 +104,12 @@ for (const actionName of declaredActionNames) {
 for (const actionName of actionNames) {
   if (!declaredActionNames.has(actionName)) failures.push(`agent manifest exposes undeclared action ${actionName}`)
 }
+for (const actionName of ['apply_suggestion', 'start_character_rehearsal', 'save_character_rehearsal_card', 'save_character_rehearsal_setting']) {
+  const contract = manifest.actionContracts?.find(item => item.name === actionName)
+  if (contract?.requiresAuthorConfirmation !== true) {
+    failures.push(`${actionName} must require an author confirmation receipt in the public manifest`)
+  }
+}
 for (const highRiskName of ['export_publish_bundle', 'confirm_publish_bundle', 'submit_publish_bundle']) {
   const contract = manifest.actionContracts?.find(item => item.name === highRiskName)
   if (contract?.risk !== 'high' || contract?.requiresAuthorConfirmation !== true) {
