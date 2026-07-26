@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "snapshot": {
     "base": "origin/main@76ba3f8",
-    "reviewHead": "96092ab",
+    "reviewHead": "b2f6d13",
     "branch": "review/creator-mvp-r0-20260722"
   },
   "publicEvidence": [

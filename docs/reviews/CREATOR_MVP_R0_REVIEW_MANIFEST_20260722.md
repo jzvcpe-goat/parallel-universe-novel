@@ -4,7 +4,7 @@
 
 - Base: `origin/main@76ba3f8`
 - Packaging branch: `review/creator-mvp-r0-20260722`
-- Reviewed implementation head: `96092ab`
+- Reviewed implementation head: `b2f6d13`
 - Scope: Creator MVP contracts, local persistence, Agent action surface, decision domain, route composition, and selected sanitized evidence.
 - Explicit exclusions: database migrations, payment, production deployment, private manuscript evidence, local workspace exports, browser-session evidence, and generated local databases.
 
@@ -25,6 +25,7 @@
 5. `f3d7ad9` R0 review fixes: confirmation receipts, localhost fail-closed boundary, CI suite identity, evidence verification, and non-ASCII checkout coverage.
 6. `8ae61bf` R0 CI reproducibility: preserve private long-range recall evidence locally and report its absence as `NOT_MEASURED` in clean checkouts.
 7. `96092ab` R0 full-suite reproducibility: separate public contracts from gitignored private quality receipts without weakening local receipt validation.
+8. `b2f6d13` R0 scope correction: remove an uncommitted Reader Account gate from the Creator-only suite.
 
 ## Public evidence inventory
 
