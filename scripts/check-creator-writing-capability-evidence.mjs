@@ -28,6 +28,7 @@ const decisionWorkflowTestPath = resolve(root, 'app/tests/creator-decision-workf
 const repairSelectionControllerPath = resolve(root, 'app/src/apps/creator/routes/creatorEditorRepairSelectionController.ts')
 const appPackagePath = resolve(root, 'app/package.json')
 const rootPackagePath = resolve(root, 'package.json')
+const fullSuitePath = resolve(root, 'scripts/run-creator-full-suite.mjs')
 const failures = []
 
 function expect(condition, message) {
@@ -115,6 +116,7 @@ const decisionWorkflowTestText = existsSync(decisionWorkflowTestPath) ? readFile
 const repairSelectionControllerText = existsSync(repairSelectionControllerPath)
   ? readFileSync(repairSelectionControllerPath, 'utf8')
   : ''
+const fullSuiteText = existsSync(fullSuitePath) ? readFileSync(fullSuitePath, 'utf8') : ''
 const appPackage = existsSync(appPackagePath) ? JSON.parse(readFileSync(appPackagePath, 'utf8')) : {}
 const rootPackage = existsSync(rootPackagePath) ? JSON.parse(readFileSync(rootPackagePath, 'utf8')) : {}
 const mapRows = [...mapText.matchAll(/^\| ([^|]+) \| (implemented|conditional|contract_only|historical) \|/gm)]
@@ -496,7 +498,9 @@ for (const requiredDepthTest of [
   )
 }
 expect(
-  rootPackage.scripts?.['test:creator']?.includes('test:creator-writing-quality-depth'),
+  rootPackage.scripts?.['test:creator']?.includes('test:creator:full')
+    && rootPackage.scripts?.['test:creator:full']?.includes('run-creator-full-suite.mjs')
+    && fullSuiteText.includes('npm --prefix app run test:creator-writing-quality-depth'),
   'the default Creator regression must execute the writing-quality depth suite',
 )
 for (const boundary of ['repositoryWritePerformed', 'candidateAdopted', 'canonChanged', 'chapter20AccessedOrChanged', 'chapter21AccessedOrChanged', 'cloudDataChanged', 'publicationPerformed']) {
