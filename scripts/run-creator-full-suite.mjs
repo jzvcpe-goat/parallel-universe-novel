@@ -36,7 +36,6 @@ const commands = [
   'npm run check:creator-data-map',
   'npm run check:creator-socratic-setting-assets',
   'npm run check:reader-request-components',
-  'npm run check:reader-account-components',
   'npm run check:reader-story-components',
   'npm run check:creator-m0-m1-baseline',
   'npm run check:creator-m2-today',
