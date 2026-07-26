@@ -20,28 +20,35 @@ function expect(condition, message) {
 }
 
 const receiptPath = 'validation/creator-writing/long-range-thread-recall-projection-2026-07-17.json'
-const receipt = JSON.parse(read(receiptPath) || '{}')
-expect(receipt.status === 'real_verified_thread_recall_projection_measured_not_applied', 'receipt must remain measured and not applied')
-expect(receipt.source?.fromChapter === 1 && receipt.source?.toChapter === 20, 'receipt must cover only Chapters 1-20')
-expect(receipt.source?.independentlyVerifiedThreadCount === 13, 'receipt must retain 13 independently verified threads')
-expect(receipt.source?.activeRecallCandidateCount === 4, 'receipt must retain 4 active recall candidates')
-expect(receipt.source?.recallDirectoryCandidateCount === 4, 'all real candidates must enter the manual recall directory')
-expect(receipt.source?.locatedCandidateCount === 4, 'all real candidates must retain a Canon locator')
-expect(receipt.source?.privateThreadTextCopiedIntoReceipt === false, 'receipt must not copy private thread text')
-expect(receipt.authorBoundary?.allCandidatesInitiallyUnselected === true, 'all candidates must begin unselected')
-expect(receipt.authorBoundary?.explicitConfirmationRequired === true, 'explicit author confirmation must be required')
-expect(receipt.authorBoundary?.simulatedAuthorSelectionApplied === false, 'validation must not simulate an author selection')
-expect(receipt.authorBoundary?.contextSnapshotChanged === false, 'validation must not change Context Snapshot')
-for (const key of [
-  'workspaceChanged',
-  'acceptedManuscriptChanged',
-  'canonChanged',
-  'chapter21ManuscriptReadOrChanged',
-  'localRepositoryChanged',
-  'cloudDataChanged',
-  'publicationPerformed',
-]) {
-  expect(receipt.sideEffects?.[key] === false, `${key} must remain false`)
+const receiptAbsolutePath = resolve(root, receiptPath)
+const hasMeasuredReceipt = existsSync(receiptAbsolutePath)
+
+// Real longform receipts are intentionally gitignored because they are derived
+// from private local Canon material. Their absence is not a green measurement.
+if (hasMeasuredReceipt) {
+  const receipt = JSON.parse(readFileSync(receiptAbsolutePath, 'utf8'))
+  expect(receipt.status === 'real_verified_thread_recall_projection_measured_not_applied', 'receipt must remain measured and not applied')
+  expect(receipt.source?.fromChapter === 1 && receipt.source?.toChapter === 20, 'receipt must cover only Chapters 1-20')
+  expect(receipt.source?.independentlyVerifiedThreadCount === 13, 'receipt must retain 13 independently verified threads')
+  expect(receipt.source?.activeRecallCandidateCount === 4, 'receipt must retain 4 active recall candidates')
+  expect(receipt.source?.recallDirectoryCandidateCount === 4, 'all real candidates must enter the manual recall directory')
+  expect(receipt.source?.locatedCandidateCount === 4, 'all real candidates must retain a Canon locator')
+  expect(receipt.source?.privateThreadTextCopiedIntoReceipt === false, 'receipt must not copy private thread text')
+  expect(receipt.authorBoundary?.allCandidatesInitiallyUnselected === true, 'all candidates must begin unselected')
+  expect(receipt.authorBoundary?.explicitConfirmationRequired === true, 'explicit author confirmation must be required')
+  expect(receipt.authorBoundary?.simulatedAuthorSelectionApplied === false, 'validation must not simulate an author selection')
+  expect(receipt.authorBoundary?.contextSnapshotChanged === false, 'validation must not change Context Snapshot')
+  for (const key of [
+    'workspaceChanged',
+    'acceptedManuscriptChanged',
+    'canonChanged',
+    'chapter21ManuscriptReadOrChanged',
+    'localRepositoryChanged',
+    'cloudDataChanged',
+    'publicationPerformed',
+  ]) {
+    expect(receipt.sideEffects?.[key] === false, `${key} must remain false`)
+  }
 }
 
 const domainSource = read('app/src/features/creator-decision/longRangeThreadRecall.ts')
@@ -72,4 +79,8 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('[creator-long-range-thread-recall-projection] PASS (4 real candidates, all unselected and directory-visible)')
+if (hasMeasuredReceipt) {
+  console.log('[creator-long-range-thread-recall-projection] PASS (4 real candidates, all unselected and directory-visible)')
+} else {
+  console.log('[creator-long-range-thread-recall-projection] NOT_MEASURED (private receipt excluded; domain and directory contracts passed)')
+}
