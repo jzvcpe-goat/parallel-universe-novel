@@ -2,11 +2,11 @@
   "schemaVersion": 2,
   "snapshot": {
     "base": "origin/main@76ba3f8",
-    "reviewHead": "f3d7ad9",
+    "reviewHead": "8ae61bf",
     "branch": "review/creator-mvp-r0-20260722"
   },
   "publicEvidence": [
-    { "path": "docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md", "sha256": "f027c0a2aed489830ee6b5d8ebd1446ea4173ae1bdb00d052e01ddd23853bafc" },
+    { "path": "docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md", "sha256": "36a22a391f4b3dc47bea159c2739f1a407c9aacc1cc7a07319c48c772d7274c9" },
     { "path": "docs/reviews/CREATOR_MVP_CODE_REVIEW_PACKET_20260722.md", "sha256": "7402e59579359d1e294b4cf84e4e43576520573de65b4d31ad282ee69ebacbfd" },
     { "path": "validation/creator-rag/langchain-textsplitters-1.0.1-receipt.json", "sha256": "12eb3e9ee71e59eb27b886a424c8c88e5f6e77a279853cb7675243e41524cc30" },
     { "path": "validation/creator-rag/open-source-local-retrieval-dependencies-2026-07-17.json", "sha256": "696c2fb4d23c1b9dce94d605a4cb8fe2252b22613eb93030a5a2f51b515736dc" },

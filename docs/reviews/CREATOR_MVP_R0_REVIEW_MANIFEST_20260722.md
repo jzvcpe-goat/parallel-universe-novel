@@ -4,7 +4,7 @@
 
 - Base: `origin/main@76ba3f8`
 - Packaging branch: `review/creator-mvp-r0-20260722`
-- Reviewed implementation head: `f3d7ad9`
+- Reviewed implementation head: `8ae61bf`
 - Scope: Creator MVP contracts, local persistence, Agent action surface, decision domain, route composition, and selected sanitized evidence.
 - Explicit exclusions: database migrations, payment, production deployment, private manuscript evidence, local workspace exports, browser-session evidence, and generated local databases.
 
@@ -23,6 +23,7 @@
 3. `8794c80` Creator decision and long-form correctness.
 4. `f0272d7` Creator routes, legacy slicing cleanup, and publish-bundle composition.
 5. `f3d7ad9` R0 review fixes: confirmation receipts, localhost fail-closed boundary, CI suite identity, evidence verification, and non-ASCII checkout coverage.
+6. `8ae61bf` R0 CI reproducibility: preserve private long-range recall evidence locally and report its absence as `NOT_MEASURED` in clean checkouts.
 
 ## Public evidence inventory
 
