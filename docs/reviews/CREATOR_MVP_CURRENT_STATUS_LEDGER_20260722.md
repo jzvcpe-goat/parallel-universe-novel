@@ -7,7 +7,7 @@ Date: 2026-07-22
 | Check | Status | Boundary |
 | --- | --- | --- |
 | `npm run check:pivot` | Pass | Creator contracts, local persistence, Agent, echo, publish, and UI gates. |
-| `npm run test:creator:full` | Pass after R0 review fixes | Canonical full Creator suite; CI invokes this explicit command. A clean checkout reports the gitignored real long-range recall receipt as `NOT_MEASURED`, while retaining domain and directory contract checks. |
+| `npm run test:creator:full` | Pass after R0 review fixes | Canonical full Creator suite; CI invokes this explicit command. Public contracts always run; gitignored local quality receipts run only when complete and otherwise report `NOT_MEASURED`, never a fabricated pass. |
 | `npm run build:creator` | Pass with bundle-size warning | Build succeeds; performance acceptance is not established. |
 | `git diff --check` | Pass during R0 packaging | Whitespace hygiene only. |
 | Focused Creator domain, local workspace, route-registry, decision-workbench, and RAG-boundary checks | Pass | See Draft PR checks; this is not a literary-quality effectiveness claim. |
