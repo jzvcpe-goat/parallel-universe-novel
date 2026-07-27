@@ -24,6 +24,7 @@ import {
   type CreatorCommand,
 } from '@/components/creator/creatorCommandCandidateService'
 import {
+  confirmCreatorCommandCandidateApplyFlow,
   executeCreatorCommandCandidateApplyFlow,
   executeCreatorCommandCandidateStartFlow,
   recordCreatorCommandCandidateCancellation,
@@ -240,6 +241,14 @@ export function CreatorFrame({
   const [commandCandidate, setCommandCandidate] = useState<CommandCandidate | null>(null)
   const [candidateFeedback, setCandidateFeedback] = useState('')
   const [candidateSelectedAction, setCandidateSelectedAction] = useState('')
+  const [candidateConfirmation, setCandidateConfirmation] = useState<{
+    operationId: string
+    receiptId: string
+    candidateId: string
+    adoptionMode: CommandCandidateApplyDetail['mode']
+    route: string
+  } | null>(null)
+  const [candidateConfirmationPending, setCandidateConfirmationPending] = useState(false)
   const activePath = location.pathname
   const legacyActivePath = resolveCreatorLegacyPath(activePath)
   const focusMode = legacyActivePath === '/creator/editor'
@@ -259,6 +268,8 @@ export function CreatorFrame({
     setCommandCandidate(null)
     setCandidateFeedback('')
     setCandidateSelectedAction('')
+    setCandidateConfirmation(null)
+    setCandidateConfirmationPending(false)
   }
 
   useEffect(() => {
@@ -281,12 +292,16 @@ export function CreatorFrame({
     setCommandCandidate(candidate)
     setCandidateFeedback('')
     setCandidateSelectedAction('')
+    setCandidateConfirmation(null)
+    setCandidateConfirmationPending(false)
   }
 
   async function chooseCandidateOption(label: string) {
     if (!commandCandidate) return
     const decision = resolveCommandCandidateOption(label)
     setCandidateSelectedAction(label)
+    setCandidateConfirmation(null)
+    setCandidateConfirmationPending(false)
     if (decision.kind === 'cancel') {
       await recordCreatorCommandCandidateCancellation(commandCandidate.id, activePath)
       setCandidateFeedback(decision.feedback)
@@ -296,19 +311,35 @@ export function CreatorFrame({
       route: activePath,
       candidateId: commandCandidate.id,
       adoptionMode: decision.applyMode,
-      applyCandidate: () => {
-        if (!legacyActivePath.includes('/creator/editor')) return
-        const detail: CommandCandidateApplyDetail = {
-          mode: decision.applyMode,
-          label,
-          candidateId: commandCandidate.id,
-          candidateTitle: commandCandidate.title,
-        }
-        dispatchCreatorCommandCandidateApply(detail)
-      },
     })
-    if (execution.status !== 'succeeded') return
-    setCandidateFeedback(commandCandidate.feedback)
+    if (execution.status !== 'awaiting_confirmation') return
+    setCandidateConfirmation(execution.confirmation)
+    setCandidateFeedback('等待作者确认；此时还没有修改正文。')
+  }
+
+  async function confirmCandidateOption() {
+    if (!commandCandidate || !candidateConfirmation || !candidateSelectedAction) return
+    setCandidateConfirmationPending(true)
+    try {
+      const execution = await confirmCreatorCommandCandidateApplyFlow(
+        candidateConfirmation,
+        () => {
+          if (!legacyActivePath.includes('/creator/editor')) return
+          const detail: CommandCandidateApplyDetail = {
+            mode: candidateConfirmation.adoptionMode,
+            label: candidateSelectedAction,
+            candidateId: commandCandidate.id,
+            candidateTitle: commandCandidate.title,
+          }
+          dispatchCreatorCommandCandidateApply(detail)
+        },
+      )
+      if (execution.status !== 'succeeded') return
+      setCandidateFeedback(commandCandidate.feedback)
+      setCandidateConfirmation(null)
+    } finally {
+      setCandidateConfirmationPending(false)
+    }
   }
 
   return (
@@ -349,7 +380,10 @@ export function CreatorFrame({
         candidate={session.status === 'signed_in' ? commandCandidate : null}
         feedback={candidateFeedback}
         selectedAction={candidateSelectedAction}
+        awaitingAuthorConfirmation={Boolean(candidateConfirmation)}
+        confirmingAuthorConfirmation={candidateConfirmationPending}
         onChoose={label => void chooseCandidateOption(label)}
+        onConfirm={() => void confirmCandidateOption()}
         onClose={closeFrameSurfaces}
       />
     </CreatorShell>

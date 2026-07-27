@@ -73,10 +73,29 @@ requireAll('app/src/apps/creator/routes/CreatorEditorRoute.tsx', [
   'runEditorPublishCheckThroughAgent',
 ])
 requireAll('app/src/components/creator/CreatorAppFrame.tsx', [
+  'confirmCreatorCommandCandidateApplyFlow',
   'executeCreatorCommandCandidateStartFlow',
   'executeCreatorCommandCandidateApplyFlow',
   'recordCreatorCommandCandidateCancellation',
 ])
+const candidateOperationFlow = read('app/src/agent-surface/operationFlow.ts')
+const candidateRequestFlow = candidateOperationFlow.match(
+  /export async function executeCreatorCommandCandidateApplyFlow[\s\S]*?\n\}\n\nexport async function confirmCreatorCommandCandidateApplyFlow/u,
+)
+if (!candidateRequestFlow) {
+  failures.push('candidate apply flow must split Agent request from author confirmation')
+} else if (candidateRequestFlow[0].includes('confirmCreatorAgentConfirmation(')) {
+  failures.push('Agent-addressable candidate apply flow must not self-confirm a receipt')
+}
+requireAll('app/src/components/creator/workspace/CreatorCommandCandidate.tsx', [
+  'data-slot="creator-author-confirm-candidate"',
+  '作者确认采用',
+])
+const candidateSurface = read('app/src/components/creator/workspace/CreatorCommandCandidate.tsx')
+const authorConfirmButton = candidateSurface.match(/data-slot="creator-author-confirm-candidate"[\s\S]{0,300}/u)
+if (!authorConfirmButton || authorConfirmButton[0].includes('data-agent-action')) {
+  failures.push('author candidate confirmation must not be Agent-addressable')
+}
 requireAll('app/src/apps/creator/routes/creatorPublishBundleActionService.ts', [
   'runConfirmedCreatorBundleConfirmation',
   'runConfirmedCreatorBundleSubmit',

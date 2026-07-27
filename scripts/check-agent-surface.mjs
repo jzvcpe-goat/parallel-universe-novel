@@ -248,6 +248,7 @@ for (const snippet of [
   'CreatorCommandCandidateSurface',
   'executeCreatorCommandCandidateStartFlow',
   'executeCreatorCommandCandidateApplyFlow',
+  'confirmCreatorCommandCandidateApplyFlow',
   'recordCreatorCommandCandidateCancellation',
   'assistantScopeForPath',
   'assistantScopeLabel',
@@ -313,6 +314,7 @@ for (const snippet of [
 }
 
 for (const snippet of [
+  'confirmCreatorCommandCandidateApplyFlow',
   'executeCreatorCommandCandidateStartFlow',
   'executeCreatorCommandCandidateApplyFlow',
   'recordCreatorCommandCandidateCancellation',

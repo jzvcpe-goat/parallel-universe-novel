@@ -1,6 +1,6 @@
 # Creator MVP Code Review Packet
 
-Status: `review_packet_draft`
+Status: `historical_superseded`
 
 Date: 2026-07-22
 
@@ -8,7 +8,9 @@ Repository: `jzvcpe-goat/parallel-universe-novel`
 
 Branch: `review/creator-mvp-r0-20260722`
 
-Review head before final evidence commit: `b912da5`
+Historical review head before the final evidence commit: `b912da5` (not an authoritative current R0 head)
+
+> This packet preserves the pre-R0 audit context only. The current R0 review authority is `CREATOR_MVP_R0_REVIEW_MANIFEST_20260722.md`, `CREATOR_MVP_R0_EVIDENCE_HASHES_20260722.json`, and `CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md`. Do not use this packet's dated dependency counts or commit references as current release evidence.
 
 ## 1. Review Objective
 

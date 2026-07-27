@@ -4,7 +4,8 @@
 
 - Base: `origin/main@76ba3f8`
 - Packaging branch: `review/creator-mvp-r0-20260722`
-- Reviewed implementation head: `b2f6d13`
+- Reviewed implementation head before final R0 review corrections: `37bcabc`
+- Final evidence closure: this manifest and `CREATOR_MVP_R0_EVIDENCE_HASHES_20260722.json` must change together; the final merge SHA is recorded only after merge.
 - Scope: Creator MVP contracts, local persistence, Agent action surface, decision domain, route composition, and selected sanitized evidence.
 - Explicit exclusions: database migrations, payment, production deployment, private manuscript evidence, local workspace exports, browser-session evidence, and generated local databases.
 
@@ -26,6 +27,7 @@
 6. `8ae61bf` R0 CI reproducibility: preserve private long-range recall evidence locally and report its absence as `NOT_MEASURED` in clean checkouts.
 7. `96092ab` R0 full-suite reproducibility: separate public contracts from gitignored private quality receipts without weakening local receipt validation.
 8. `b2f6d13` R0 scope correction: remove an uncommitted Reader Account gate from the Creator-only suite.
+9. Final R0 review corrections: split Agent candidate selection from the author-only confirmation gesture, close the public evidence inventory, and refresh the dated dependency snapshot.
 
 ## Public evidence inventory
 
@@ -40,9 +42,10 @@ Only records listed below may be added to the final review commit.
 | `validation/creator-rag/local-hybrid-benchmark-2026-07-17.json` | Synthetic benchmark receipt | Inventory JSON | Approved sanitized evidence |
 | `validation/creator-rag/real-thread-evidence-benchmark-2026-07-17.json` | Redacted hash-and-metrics receipt | Inventory JSON | Approved sanitized evidence |
 | `scripts/fixtures/creator-rag-frozen-benchmark.mts` | Synthetic frozen fixture | Inventory JSON | Approved sanitized evidence |
-| `scripts/fixtures/creator-frozen-paired-quality-fixture.mts` | Synthetic paired-quality fixture | Pending final hash | Approved sanitized evidence |
-| `validation/story_seeds.json` | Synthetic validation seed set | Pending final hash | Approved sanitized evidence |
-| `validation/creator-ui/schemas/*.json` | Public JSON schemas | Per-file hashes in Git | Approved sanitized evidence |
+| `scripts/fixtures/creator-frozen-paired-quality-fixture.mts` | Synthetic paired-quality fixture | Inventory JSON | Approved sanitized evidence |
+| `validation/story_seeds.json` | Synthetic validation seed set | Inventory JSON | Approved sanitized evidence |
+
+The JSON schemas under `validation/creator-ui/schemas/` remain public source contracts, but are not approved R0 evidence artifacts and are intentionally not represented by a wildcard evidence entry.
 
 ## Verification required before Draft PR
 

@@ -27,7 +27,8 @@ Creator review evidence is public only when it proves a bounded contract without
 - `scripts/fixtures/creator-rag-frozen-benchmark.mts`: explicitly synthetic fixture and leakage decoys only.
 - `scripts/fixtures/creator-frozen-paired-quality-fixture.mts`: explicitly synthetic paired-quality fixture only.
 - `validation/story_seeds.json`: synthetic validation seeds only.
-- `validation/creator-ui/schemas/*.json`: public JSON schemas only; no browser logs, screenshots, or run outputs.
+
+Public JSON schemas under `validation/creator-ui/schemas/` remain source contracts, not R0 approved evidence artifacts. They are reviewed as code and are not represented by a wildcard entry in the R0 hash inventory.
 
 ## Never commit
 

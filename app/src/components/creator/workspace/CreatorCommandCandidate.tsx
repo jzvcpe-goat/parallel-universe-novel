@@ -102,7 +102,10 @@ export interface CreatorCommandCandidateSurfaceProps {
   candidate: CreatorCommandCandidateModel | null
   feedback: string
   selectedAction: string
+  awaitingAuthorConfirmation: boolean
+  confirmingAuthorConfirmation: boolean
   onChoose: (label: string) => void
+  onConfirm: () => void
   onClose: () => void
   className?: string
 }
@@ -111,7 +114,10 @@ export function CreatorCommandCandidateSurface({
   candidate,
   feedback,
   selectedAction,
+  awaitingAuthorConfirmation,
+  confirmingAuthorConfirmation,
   onChoose,
+  onConfirm,
   onClose,
   className,
 }: CreatorCommandCandidateSurfaceProps) {
@@ -191,6 +197,19 @@ export function CreatorCommandCandidateSurface({
           <strong>{receiptCopy?.title || '当前结果'}</strong>
           <small>{feedback}</small>
           {receiptCopy ? <em>{receiptCopy.next}</em> : null}
+          {awaitingAuthorConfirmation ? (
+            <Button
+              type="button"
+              variant="gold"
+              size="sm"
+              data-slot="creator-author-confirm-candidate"
+              onClick={onConfirm}
+              disabled={confirmingAuthorConfirmation}
+              loading={confirmingAuthorConfirmation}
+            >
+              作者确认采用
+            </Button>
+          ) : null}
         </div>
       ) : (
         <p className="mt-4 text-xs leading-5 text-[var(--creator-text-dim)]">

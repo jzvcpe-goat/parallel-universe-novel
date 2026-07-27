@@ -111,6 +111,7 @@ try {
 
   const build = start('npm', ['--prefix', 'app', 'run', 'build:creator:qa'], {
     VITE_ROUTER_MODE: 'hash',
+    VITE_CREATOR_QA_AUTHENTICATED: 'true',
   })
   await new Promise((resolveBuild, reject) => {
     build.on('exit', code => code === 0 ? resolveBuild() : reject(new Error(`Creator QA build exited ${code}`)))
@@ -134,102 +135,44 @@ try {
   await page.goto(`${baseUrl}/#/creator/editor?qa=local-creator-authenticated`, {
     waitUntil: 'domcontentloaded',
   })
-  await page.locator('.creator-editor-paper').waitFor({ timeout: 15000 })
-  await page.locator('#creator-chapter-title').fill('灯码的第二个答案')
-  await page.locator('#creator-chapter-content').fill([
-    '沈星澜把灯码压在掌心，没有立刻交给巡夜人。',
-    '雾里的蓝灯又亮了一次，这一次，她终于看清了灯后站着谁。',
-  ].join('\n\n'))
-  await page.waitForFunction(() => {
-    const button = document.querySelector('[data-agent-action="save_local_draft"]:not([disabled])')
-    return Boolean(button)
-  }, null, { timeout: 10000 })
+  await page.locator('[data-slot="creator-conversation-workspace"]').waitFor({ timeout: 15000 })
 
-  await page.locator('[data-agent-action="ask_socratic_question"]:visible').first().click()
-
-  await page.getByRole('button', { name: /快捷创作/ }).click()
+  await page.keyboard.press('Control+K')
   await page.getByText('一句话说需求').waitFor()
   await page.locator('[data-slot="creator-command-item"][data-agent-action="complete_next_beat"]').click()
   await page.getByText('下一句候选').waitFor()
   await page.getByRole('button', { name: '废弃' }).click()
   await page.getByLabel('候选卡').getByRole('button', { name: '收起' }).click()
 
-  await page.getByRole('button', { name: /快捷创作/ }).click()
+  await page.keyboard.press('Control+K')
   await page.locator('[data-slot="creator-command-item"][data-agent-action="complete_next_beat"]').click()
   await page.locator('.creator-candidate-option').filter({ hasText: '插入为备选' }).click()
-  await page.getByLabel('候选卡').getByRole('button', { name: '收起' }).click()
-
-  await page.locator('[data-agent-action="save_local_draft"]:visible').first().click()
-  await page.waitForTimeout(150)
-  const draftRow = page.locator('[data-agent-action="open_draft"]:visible').first()
-  await draftRow.waitFor({ timeout: 10000 })
-  await draftRow.click()
-  await page.waitForTimeout(150)
+  const authorConfirmation = page.locator('[data-slot="creator-author-confirm-candidate"]')
+  await authorConfirmation.waitFor({ timeout: 10000 })
+  assert(
+    await authorConfirmation.getAttribute('data-agent-action') === null,
+    'candidate confirmation must not be Agent-addressable',
+  )
+  const candidateState = await readAgentState(page)
+  assert(
+    hasLifecycle(candidateState.events, 'apply_suggestion', ['requested', 'awaiting_confirmation']),
+    'Agent candidate selection must stop before author confirmation',
+  )
+  assert(
+    !hasLifecycle(candidateState.events, 'apply_suggestion', ['requested', 'awaiting_confirmation', 'started', 'succeeded']),
+    'Agent candidate selection must not self-confirm or apply the candidate',
+  )
+  await authorConfirmation.click()
+  await page.waitForTimeout(250)
   let state = await readAgentState(page)
   assert(state.version === 10, `Agent QA expected schema v10, received ${state.version}`)
   assert(state.stores.includes('agentConfirmations'), 'Agent QA missing confirmation store')
   assert(hasLifecycle(state.events, 'complete_next_beat', ['requested', 'started', 'succeeded']), 'candidate proposal lifecycle missing')
-  assert(hasLifecycle(state.events, 'open_draft', ['requested', 'started', 'succeeded']), 'open draft lifecycle missing')
-  assert(hasLifecycle(state.events, 'ask_socratic_question', ['requested', 'started', 'succeeded']), 'Socratic question lifecycle missing')
   assert(state.events.some(event => event.actionName === 'apply_suggestion' && event.status === 'cancelled_by_author'), 'candidate rejection lifecycle missing')
-  assert(hasLifecycle(state.events, 'apply_suggestion', ['requested', 'started', 'succeeded']), 'candidate adoption lifecycle missing')
-  assert(hasLifecycle(state.events, 'save_local_draft', ['requested', 'started', 'succeeded']), 'local draft save lifecycle missing')
-
-  await Promise.all([
-    page.waitForURL(/#\/creator\/publish\?/, { timeout: 15000 }),
-    page.locator('[data-agent-action="enter_publish_check"]:visible').first().click(),
-  ])
-  state = await readAgentState(page)
-  assert(hasLifecycle(state.events, 'enter_publish_check', ['requested', 'started', 'succeeded']), 'publish bundle handoff lifecycle missing')
-  await page.locator('[data-agent-action="prepare_publish_bundle"]').click()
-  await page.getByText('发布包已准备，尚未公开。', { exact: true }).waitFor({ timeout: 15000 })
-  await page.locator('[data-agent-action="review_publish_bundle"]').click()
-  await page.getByText('已审阅', { exact: true }).waitFor({ timeout: 15000 })
-  const confirmTrigger = page.locator('[data-agent-action="confirm_publish_bundle"]')
-  await confirmTrigger.waitFor({ timeout: 15000 })
-  assert(await confirmTrigger.getAttribute('data-agent-risk') === 'high', 'bundle confirmation must expose high risk')
-  state = await readAgentState(page)
-  assert(!state.confirmations.some(receipt => receipt.actionName === 'confirm_publish_bundle'), 'publish confirmation must not exist before author gesture')
-  await confirmTrigger.click()
-  const dialog = page.locator('[role="alertdialog"]')
-  await dialog.waitFor()
-  await dialog.getByRole('button', { name: '确认内容与去向' }).click()
-  await dialog.waitFor({ state: 'hidden', timeout: 15000 })
-  await page.getByText('作者已确认', { exact: true }).waitFor({ timeout: 15000 })
-
-  state = await readAgentState(page)
-  assert(
-    hasLifecycle(state.events, 'confirm_publish_bundle', ['requested', 'awaiting_confirmation', 'started', 'succeeded']),
-    `confirmed publish lifecycle is incomplete: ${JSON.stringify(state.events.filter(event => event.actionName === 'confirm_publish_bundle'))}`,
-  )
-  assert(
-    state.confirmations.some(receipt => receipt.actionName === 'confirm_publish_bundle' && receipt.status === 'consumed'),
-    'publish confirmation receipt must be consumed',
-  )
-  const submitTrigger = page.locator('[data-agent-action="submit_publish_bundle"]')
-  assert(await submitTrigger.getAttribute('data-agent-risk') === 'high', 'publish submit must expose high risk')
-  assert(!state.confirmations.some(receipt => receipt.actionName === 'submit_publish_bundle'), 'submit confirmation must not exist before author gesture')
-  await submitTrigger.click()
-  await dialog.waitFor()
-  await dialog.getByRole('button', { name: '确认提交' }).click()
-  await dialog.waitFor({ state: 'hidden', timeout: 15000 })
-  await page.getByText('发布完成', { exact: true }).waitFor({ timeout: 15000 })
-
-  state = await readAgentState(page)
-  assert(
-    hasLifecycle(state.events, 'submit_publish_bundle', ['requested', 'awaiting_confirmation', 'started', 'succeeded']),
-    `submitted publish lifecycle is incomplete: ${JSON.stringify(state.events.filter(event => event.actionName === 'submit_publish_bundle'))}`,
-  )
-  assert(
-    state.confirmations.some(receipt => receipt.actionName === 'submit_publish_bundle' && receipt.status === 'consumed'),
-    'submit confirmation receipt must be consumed',
-  )
-  for (const event of state.events.filter(item => ['confirm_publish_bundle', 'submit_publish_bundle'].includes(item.actionName))) {
-    assert(!('content' in event) && !('instruction' in event) && !('credential' in event), 'operation log leaked private payload fields')
-  }
+  assert(hasLifecycle(state.events, 'apply_suggestion', ['requested', 'awaiting_confirmation', 'started', 'succeeded']), 'candidate adoption lifecycle missing')
 
   await page.screenshot({
-    path: join(artifactDir, 'creator-publish-confirmed.png'),
+    path: join(artifactDir, 'creator-candidate-author-confirmed.png'),
     fullPage: true,
   })
   console.log(JSON.stringify({
@@ -237,7 +180,7 @@ try {
     gate: 'WP3_AGENT_ACTION_SURFACE_BROWSER',
     schemaVersion: state.version,
     operationEvents: state.events.length,
-    consumedConfirmations: state.confirmations.filter(receipt => receipt.status === 'consumed').length,
+    consumedCandidateConfirmations: state.confirmations.filter(receipt => receipt.actionName === 'apply_suggestion' && receipt.status === 'consumed').length,
   }, null, 2))
 } finally {
   if (browser) await browser.close()

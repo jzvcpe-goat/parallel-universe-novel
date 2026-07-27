@@ -1,6 +1,6 @@
 # Creator MVP Current Status Ledger
 
-Date: 2026-07-22
+Date: 2026-07-27
 
 ## Verified locally
 
@@ -19,7 +19,7 @@ Date: 2026-07-22
 - Automatic retrieval remains disabled pending the frozen activation benchmark.
 - Relationship evaluation, Kernel, Constraint, and timeline measurements remain `not_measured` without typed receipts.
 - Production deployment, payment, and unapplied database migrations are outside this Creator R0 review branch.
-- Dependency triage is incomplete: `npm audit --omit=dev` currently reports 7 high, 4 moderate, and 1 low advisory. Reachability and remediation ownership are pending.
+- Dependency triage is incomplete: on 2026-07-27, `npm audit --omit=dev --json` reported 8 high, 4 moderate, and 2 low advisories (14 total). Reachability, remediation, and accept-risk ownership remain pending security work; this Creator R0 branch does not claim a dependency-security release.
 - The scheduled Reader health workflow has a separately owned DNS failure for the configured cloud endpoint.
 - Full Git history has six legacy secret-scan findings pending security-owner classification. The R0 staged scope scanned clean after narrow SHA-256 artifact-digest annotations.
 

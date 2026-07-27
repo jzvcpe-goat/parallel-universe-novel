@@ -32,7 +32,14 @@ export interface CreatorCommandCandidateApplyInput {
   candidateId: string
   adoptionMode: 'insert' | 'replace' | 'branch' | 'hold'
   route: string
-  applyCandidate: () => void
+}
+
+export interface CreatorCommandCandidateConfirmation {
+  candidateId: string
+  adoptionMode: CreatorCommandCandidateApplyInput['adoptionMode']
+  route: string
+  operationId: string
+  receiptId: string
 }
 
 function isCandidateActionName(actionName: CreatorAgentActionName): actionName is CreatorCandidateActionName {
@@ -82,18 +89,14 @@ export async function executeCreatorCommandCandidateApplyFlow({
   candidateId,
   adoptionMode,
   route,
-  applyCandidate,
 }: CreatorCommandCandidateApplyInput) {
   const execute = createCreatorAgentExecutor({
-    apply_suggestion: parsedInput => {
-      applyCandidate()
-      return {
-        kind: 'candidate_adopted',
-        targetId: parsedInput.targetId,
-        recordId: candidateId,
-        messageCode: `candidate_${adoptionMode}`,
-      }
-    },
+    apply_suggestion: parsedInput => ({
+      kind: 'candidate_adopted',
+      targetId: parsedInput.targetId,
+      recordId: candidateId,
+      messageCode: `candidate_${adoptionMode}`,
+    }),
   })
   const requested = await execute({
     actionName: 'apply_suggestion',
@@ -105,8 +108,43 @@ export async function executeCreatorCommandCandidateApplyFlow({
     },
   })
   if (requested.status !== 'awaiting_confirmation') return requested
-  const confirmed = await confirmCreatorAgentConfirmation(requested.receipt.id)
-  if (!confirmed.ok) return requested
+  return {
+    ...requested,
+    confirmation: {
+      candidateId,
+      adoptionMode,
+      route,
+      operationId: requested.operationId,
+      receiptId: requested.receipt.id,
+    } satisfies CreatorCommandCandidateConfirmation,
+  }
+}
+
+export async function confirmCreatorCommandCandidateApplyFlow(
+  confirmation: CreatorCommandCandidateConfirmation,
+  applyCandidate: () => void,
+) {
+  const confirmed = await confirmCreatorAgentConfirmation(confirmation.receiptId)
+  if (!confirmed.ok) {
+    return {
+      status: 'blocked' as const,
+      operationId: confirmation.operationId,
+      reason: 'confirmation_invalid' as const,
+    }
+  }
+
+  const { candidateId, adoptionMode, route } = confirmation
+  const execute = createCreatorAgentExecutor({
+    apply_suggestion: parsedInput => {
+      applyCandidate()
+      return {
+        kind: 'candidate_adopted',
+        targetId: parsedInput.targetId,
+        recordId: candidateId,
+        messageCode: `candidate_${adoptionMode}`,
+      }
+    },
+  })
   return execute({
     actionName: 'apply_suggestion',
     input: {
@@ -115,8 +153,8 @@ export async function executeCreatorCommandCandidateApplyFlow({
       candidateId,
       adoptionMode,
     },
-    operationId: requested.operationId,
-    confirmationReceiptId: requested.receipt.id,
+    operationId: confirmation.operationId,
+    confirmationReceiptId: confirmation.receiptId,
   })
 }
 
