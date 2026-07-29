@@ -301,6 +301,12 @@ if (!browserQaSource.includes('[data-slot="creator-command-item"][data-agent-act
 if (browserQaSource.includes('.creator-command-item')) {
   fail('Agent browser QA must not depend on the retired command item class')
 }
+if (!browserQaSource.includes("fileURLToPath(new URL('..', import.meta.url))")) {
+  fail('Agent browser QA must derive its filesystem root with fileURLToPath')
+}
+if (browserQaSource.includes("new URL('..', import.meta.url).pathname")) {
+  fail('Agent browser QA must not derive its filesystem root from URL.pathname')
+}
 
 for (const snippet of [
   "agentAction: 'complete_next_beat'",

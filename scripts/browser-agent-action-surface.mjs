@@ -4,8 +4,9 @@ import { mkdirSync, rmSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
+import { fileURLToPath } from 'node:url'
 
-const root = resolve(new URL('..', import.meta.url).pathname)
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const artifactDir = join(root, 'artifacts', 'visual-qa', 'agent-action-surface')
 const children = []
 

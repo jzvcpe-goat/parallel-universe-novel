@@ -46,6 +46,42 @@ jobs:
       - name: Build local Creator
         run: npm run build:creator
 
+  agent-action-browser:
+    name: Agent action browser boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci --include=optional
+
+      - name: Install app dependencies
+        run: npm --prefix app ci --include=optional
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify agent action boundary from non-ASCII checkout
+        env:
+          CREATOR_CHECKOUT_PATH_QA: 'true'
+        run: npm run check:creator-checkout-path-safety
+
+      - name: Upload agent action browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-action-browser-evidence
+          path: artifacts/visual-qa/agent-action-surface
+          if-no-files-found: warn
+
   diff-hygiene:
     name: Diff hygiene
     runs-on: ubuntu-latest
