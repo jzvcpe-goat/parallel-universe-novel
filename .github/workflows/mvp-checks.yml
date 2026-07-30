@@ -82,6 +82,40 @@ jobs:
           path: artifacts/visual-qa/agent-action-surface
           if-no-files-found: warn
 
+  r1-a0-writing-workflow:
+    name: R1-A0 writing workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci --include=optional
+
+      - name: Install app dependencies
+        run: npm --prefix app ci --include=optional
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify R1-A0 writing workflow
+        run: npm run qa:creator-r1-a0-writing-workflow
+
+      - name: Upload R1-A0 workflow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1-a0-writing-workflow-evidence
+          path: artifacts/qa/creator-decision-workbench
+          if-no-files-found: error
+
   diff-hygiene:
     name: Diff hygiene
     runs-on: ubuntu-latest
