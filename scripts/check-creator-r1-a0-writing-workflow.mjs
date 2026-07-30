@@ -52,7 +52,8 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'minimumExactEvidenceLength = 6',
   "status: 'violated'",
   "status: 'omitted'",
-  'hasOppositePolarity',
+  'matchedPropositionHasOppositePolarity',
+  'oppositePolarityAnchorCount',
 ])
 if (recallEvidence.includes('length >= 2')) {
   failures.push('manual recall evidence must not accept an arbitrary two-character overlap')
@@ -61,6 +62,8 @@ if (recallEvidence.includes('length >= 2')) {
 requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'reviewerHardNegativeRecall',
   'reviewerHardNegativeDraft',
+  'reviewerPositiveRecallText',
+  'reviewerPositiveGate',
   'manual_recall_receipt_rejected',
 ])
 

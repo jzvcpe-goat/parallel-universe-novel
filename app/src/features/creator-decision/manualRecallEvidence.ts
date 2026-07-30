@@ -5,7 +5,8 @@ import type {
 
 const minimumExactEvidenceLength = 6
 const contradictionAnchorLength = 2
-const negationPattern = /(?:没有|并无|不存在|未曾|从未|不再|并未|无从|不能|不可)/u
+const negationTokens = ['不存在', '没有', '并无', '未曾', '从未', '不再', '并未', '无从', '不能', '不可']
+const clauseBoundaryPattern = /[。！？!?；;，,：:]/u
 const ignoredContradictionAnchors = new Set([
   '必须',
   '始终',
@@ -65,8 +66,30 @@ function contradictionAnchors(statement: string, sentence: string) {
   return anchors
 }
 
-function hasOppositePolarity(statement: string, sentence: string) {
-  return negationPattern.test(statement) !== negationPattern.test(sentence)
+function matchedPropositionIsNegated(text: string, matchedText: string) {
+  const matchStart = text.indexOf(matchedText)
+  if (matchStart < 0) return false
+  let clauseStart = matchStart
+  while (clauseStart > 0 && !clauseBoundaryPattern.test(text[clauseStart - 1]!)) {
+    clauseStart -= 1
+  }
+  const propositionPrefix = text.slice(clauseStart, matchStart + matchedText.length)
+  return negationTokens.some(token => propositionPrefix.includes(token))
+}
+
+function matchedPropositionHasOppositePolarity(
+  statement: string,
+  sentence: string,
+  matchedText: string,
+) {
+  return matchedPropositionIsNegated(statement, matchedText)
+    !== matchedPropositionIsNegated(sentence, matchedText)
+}
+
+function oppositePolarityAnchorCount(statement: string, sentence: string, anchors: Set<string>) {
+  return [...anchors].filter(anchor => (
+    matchedPropositionHasOppositePolarity(statement, sentence, anchor)
+  )).length
 }
 
 export function matchManualRecallEvidence(
@@ -78,7 +101,7 @@ export function matchManualRecallEvidence(
   for (const sentence of sentences) {
     const sharedSpan = longestSharedSpan(statement, sentence)
     if (!sharedSpan) continue
-    if (hasOppositePolarity(statement, sentence)) {
+    if (matchedPropositionHasOppositePolarity(statement, sentence, sharedSpan)) {
       return {
         status: 'violated',
         evidenceQuote: sentence,
@@ -94,7 +117,7 @@ export function matchManualRecallEvidence(
 
   for (const sentence of sentences) {
     const anchors = contradictionAnchors(statement, sentence)
-    if (anchors.size >= 2 && hasOppositePolarity(statement, sentence)) {
+    if (oppositePolarityAnchorCount(statement, sentence, anchors) >= 2) {
       return {
         status: 'violated',
         evidenceQuote: sentence,

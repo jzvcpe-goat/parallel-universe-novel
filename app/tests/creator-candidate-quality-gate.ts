@@ -510,6 +510,84 @@ assert.ok(
   'the real review receipt must block contradictory prose at the candidate-quality gate',
 )
 
+const reviewerPositiveRecallText = '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。'
+const reviewerPositiveContinuation = '升降机沿潮湿井壁下降，主角逐段核对刻度，把唯一配重芯的校准职责交给同伴。风压每次改变，双方都重新确认权限与代价，职责交付因此成为真实行动，并留下必须偿还的未来义务。'
+const reviewerPositiveText = [
+  reviewerPositiveRecallText,
+  blockText,
+  ...Array.from({ length: 18 }, (_, index) => `${reviewerPositiveContinuation}第${index + 1}次校准后，刻度、权限和责任都有可见变化。`),
+].join('')
+const reviewerPositiveDraftSeed: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-positive-recall',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-positive-recall',
+    text: reviewerPositiveText,
+    startOffset: 0,
+    endOffset: reviewerPositiveText.length,
+    protected: false,
+  }],
+}
+const reviewerPositiveDirectionEvidence = evidenceForDraftQuote(
+  reviewerPositiveDraftSeed.contentBlocks,
+  blockText,
+)
+assert.ok(reviewerPositiveDirectionEvidence)
+const reviewerPositiveDraft: SceneDraftResult = {
+  ...reviewerPositiveDraftSeed,
+  directionReceipt: {
+    schemaVersion: 'scene-draft-direction-receipt.v1',
+    decision: 'pass',
+    axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+      axis,
+      expectedValue,
+    ]) => ({
+      axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+      expectedValue,
+      evidence: reviewerPositiveDirectionEvidence,
+    })),
+    proposedAdjustmentEvidence: reviewerPositiveDirectionEvidence,
+    reviewer: 'Auditor',
+  },
+}
+const reviewerPositiveSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerPositiveDraft.revision,
+  activeDraftId: reviewerPositiveDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerPositiveReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerPositiveSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerPositiveDraft,
+})
+assert.equal(reviewerPositiveReview.manualRecallAdherence?.decision, 'pass')
+assert.equal(reviewerPositiveReview.manualRecallAdherence?.checks[0]?.status, 'respected')
+assert.ok(
+  reviewerPositiveReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'valid recall adherence must retain locatable manuscript evidence',
+)
+const reviewerPositiveGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerPositiveSession,
+    activeReviewId: reviewerPositiveReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerPositiveDraft,
+  review: reviewerPositiveReview,
+  repairs: [],
+})
+assert.deepEqual(
+  reviewerPositiveGate,
+  { allowed: true, blockers: [] },
+  'supporting negation must not block a candidate that respects the recalled proposition',
+)
+
 const mismatchedRecallReview = evaluateCandidateQualityGate({
   session,
   intent,
