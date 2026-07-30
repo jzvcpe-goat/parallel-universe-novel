@@ -36,7 +36,7 @@ const requiredFiles = [
   'app/src/api/creator.ts',
   'app/src/api/runtime.ts',
   'app/src/pages/Story.tsx',
-  'app/src/pages/Studio.tsx',
+  'app/src/features/internal-ops/StudioOpsSurface.tsx',
   'backend/src/narrativeos/api/product_runtime.py',
   'backend/tests/test_product_runtime_api.py',
   'scripts/smoke-creator-chain.mjs',
@@ -110,7 +110,7 @@ assertIncludes('app/src/pages/Story.tsx', [
   'source_run_id',
   'nextSceneBody',
 ])
-assertIncludes('app/src/pages/Studio.tsx', [
+assertIncludes('app/src/features/internal-ops/StudioOpsSurface.tsx', [
   'runtimeApi.evaluateQuality',
   'runtimeApi.commitCanon',
   'studioRunId',

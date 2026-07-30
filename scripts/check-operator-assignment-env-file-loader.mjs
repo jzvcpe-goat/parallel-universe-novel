@@ -83,6 +83,8 @@ function runNode(script, extraEnv, args = []) {
     env: {
       ...process.env,
       ...extraEnv,
+      OPERATOR_ASSIGNMENT_ENV_VALIDATION_FIXTURE: 'true',
+      OPERATOR_ASSIGNMENT_ENV_APPLY_FIXTURE: 'true',
     },
     encoding: 'utf8',
     timeout: 30000,

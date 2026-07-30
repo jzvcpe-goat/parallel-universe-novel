@@ -1,0 +1,10 @@
+title = "Parallel Universe Novel narrow artifact-digest allowlist"
+
+[allowlist]
+description = "Only fixed public SHA-256 artifact digests used by sanitized retrieval receipts."
+regexTarget = "line"
+regexes = [
+  '''f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193''',
+  '''0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39''',
+  '''15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc'''
+]

@@ -20,7 +20,7 @@ export interface PmfReaderRequestInput {
 function clientUnavailable<T>(): PmfReaderResult<T> {
   return {
     ok: false,
-    message: '请求服务尚未开启，请稍后再试。',
+    message: '作者暂未开放读者请求。',
     code: 'supabase_unconfigured',
   }
 }
@@ -29,7 +29,7 @@ function errorResult<T>(error: unknown, fallback: string): PmfReaderResult<T> {
   const maybeError = error as { message?: string; code?: string }
   return {
     ok: false,
-    message: maybeError?.message || fallback,
+    message: fallback,
     code: maybeError?.code,
   }
 }
@@ -42,9 +42,9 @@ async function ensureAnonymousReader(): Promise<PmfReaderResult<{ userId: string
     return { ok: true, data: { userId: sessionData.session.user.id } }
   }
   const { data, error } = await supabase.auth.signInAnonymously()
-  if (error) return errorResult(error, '请求身份创建失败，请稍后再试。')
+  if (error) return errorResult(error, '暂时无法记录你的请求，请稍后再试。')
   const userId = data.user?.id
-  if (!userId) return { ok: false, message: '请求身份创建失败。', code: 'anonymous_user_missing' }
+  if (!userId) return { ok: false, message: '暂时无法记录你的请求。', code: 'anonymous_user_missing' }
   return { ok: true, data: { userId } }
 }
 
@@ -66,7 +66,7 @@ export async function createReaderRequest(input: PmfReaderRequestInput): Promise
     .select('id,work_id,branch_id,chapter_id,request_type,request_text,status,vote_count,published_chapter_id,published_branch_id,publish_event_id,created_at,updated_at')
     .single()
 
-  if (error) return errorResult(error, '请求提交失败，请稍后再试。')
+  if (error) return errorResult(error, '请求暂时没有送达，请稍后再试。')
   return { ok: true, data: data as PmfReaderRequest }
 }
 
@@ -80,7 +80,7 @@ export async function listPublicRequests(workId: string): Promise<PmfReaderResul
     .order('created_at', { ascending: false })
     .limit(8)
 
-  if (error) return errorResult(error, '请求状态读取失败。')
+  if (error) return errorResult(error, '暂时没有读到请求状态。')
   return { ok: true, data: (data || []) as PmfReaderRequest[] }
 }
 
@@ -92,7 +92,7 @@ export async function voteForRequest(readerRequestId: string): Promise<PmfReader
   const { error } = await supabase.from('request_votes').insert({
     reader_request_id: readerRequestId,
   })
-  if (error) return errorResult(error, '投票失败；同一读者对同一请求只能投一次。')
+  if (error) return errorResult(error, '这次加热没有成功；可能已经加热过。')
   return { ok: true, data: { requestId: readerRequestId } }
 }
 

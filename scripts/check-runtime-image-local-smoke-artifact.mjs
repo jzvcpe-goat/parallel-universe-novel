@@ -156,7 +156,7 @@ function validateSmoke(payload, expectedHeadSha) {
   assert(payload.version === 1, 'runtime image local smoke artifact version must be 1')
   assert(payload.gate === 'P114_RUNTIME_IMAGE_LOCAL_SMOKE_GATE', 'runtime image local smoke artifact gate mismatch')
   assert(privateMatches.length === 0, `runtime image local smoke artifact leaked private terms: ${privateMatches.join(', ')}`)
-  assert(['passed', 'skipped', 'passed_with_source_workspace_no_git'].includes(payload.status), 'runtime image local smoke status mismatch')
+  assert(['passed', 'skipped', 'passed_with_image_publish_blockers', 'passed_with_source_workspace_no_git'].includes(payload.status), 'runtime image local smoke status mismatch')
 
   if (sourceWorkspaceNoGit) {
     assert(payload.status === 'passed_with_source_workspace_no_git', 'source workspace smoke artifact must use source no-git status')
@@ -173,6 +173,19 @@ function validateSmoke(payload, expectedHeadSha) {
 
   assert(payload.currentHead === expectedHeadSha, `runtime image local smoke currentHead must match expected head ${expectedHeadSha}`)
   assert(payload.imageEvidence && String(payload.imageEvidence).includes('runtime-image-publish-evidence-'), 'runtime image local smoke must point to P72 evidence')
+  if (payload.status === 'passed_with_image_publish_blockers') {
+    assert(payload.decision === 'runtime_image_local_smoke_waiting_for_current_head_images', 'image-blocked smoke artifact decision mismatch')
+    assert(Object.keys(payload.images || {}).length === 0, 'image-blocked smoke artifact must not invent images')
+    assert(Object.keys(payload.health || {}).length === 0, 'image-blocked smoke artifact must not include health details')
+    assert(Object.keys(payload.workflow || {}).length === 0, 'image-blocked smoke artifact must not include workflow details')
+    validatePublicBoundary(payload)
+    return {
+      status: payload.status,
+      decision: payload.decision,
+      imageCount: 0,
+      workflowStatus: null,
+    }
+  }
   assert(payload.images?.api === expectedImage('api', expectedHeadSha), 'runtime image local smoke API image must match current head')
   assert(payload.images?.agent === expectedImage('agent-runtime', expectedHeadSha), 'runtime image local smoke Agent image must match current head')
   validatePublicBoundary(payload)

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator State Evidence Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "decision",
+    "verifiedCharacterProposalIndexes",
+    "verifiedContinuityProposalIndexes",
+    "issues",
+    "rationale"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-state-evidence-review.v1"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["pass", "reject"]
+    },
+    "verifiedCharacterProposalIndexes": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 7
+      }
+    },
+    "verifiedContinuityProposalIndexes": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 7
+      }
+    },
+    "issues": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "proposalKind",
+          "proposalIndex",
+          "code",
+          "evidenceQuote",
+          "diagnosis"
+        ],
+        "properties": {
+          "proposalKind": {
+            "type": "string",
+            "enum": ["character", "continuity"]
+          },
+          "proposalIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "dimension_semantics",
+              "evidence_overclaim",
+              "knowledge_boundary",
+              "temporal_scope",
+              "causal_scope",
+              "promise_or_foreshadowing",
+              "irreversibility",
+              "status_semantics"
+            ]
+          },
+          "evidenceQuote": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 180
+          },
+          "diagnosis": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 320
+          }
+        }
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 320
+    }
+  }
+}

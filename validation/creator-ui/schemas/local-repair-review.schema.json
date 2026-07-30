@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator Local Repair Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "findingId",
+    "targetBlockId",
+    "decision",
+    "verifiedPreservedFactIndexes",
+    "issues",
+    "rationale"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-local-repair-review.v1"
+    },
+    "findingId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetBlockId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["pass", "reject"]
+    },
+    "verifiedPreservedFactIndexes": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 11
+      }
+    },
+    "issues": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "severity",
+          "sourceEvidenceQuote",
+          "candidateEvidenceQuote",
+          "diagnosis"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "repair_goal",
+              "fact_preservation",
+              "author_intent",
+              "scope",
+              "continuity",
+              "character_knowledge",
+              "timeline",
+              "causality",
+              "promise",
+              "voice"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["hard_block", "revision_candidate"]
+          },
+          "sourceEvidenceQuote": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "candidateEvidenceQuote": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "diagnosis": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 320
+          }
+        }
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 320
+    }
+  }
+}

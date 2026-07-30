@@ -1,4 +1,5 @@
 import type { BackendErrorDetail } from '@/types'
+import { authSessionStorage } from '@/lib/authSessionStorage'
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '')
 
@@ -18,8 +19,6 @@ const HEALTH_URL = `${API_ORIGIN}/health`
 const FORCE_LOCAL = import.meta.env.VITE_API_LOCAL === 'true'
 const WS_URL = String(import.meta.env.VITE_WS_URL || '').trim()
   || API_ORIGIN.replace(/^http/i, (match) => (match.toLowerCase() === 'https' ? 'wss' : 'ws')) + '/ws/v1/narrative'
-
-let backendStatusPromise: Promise<boolean> | null = null
 
 export class ApiError extends Error {
   status: number
@@ -54,7 +53,7 @@ export class ApiError extends Error {
 }
 
 function tokenHeaders(): Record<string, string> {
-  const token = localStorage.getItem('qi_token')
+  const token = authSessionStorage.getAccessToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
@@ -138,38 +137,6 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 
   return { message: normalized.length > 280 ? `${normalized.slice(0, 277)}...` : normalized }
-}
-
-export async function checkBackend(): Promise<boolean> {
-  if (FORCE_LOCAL) return false
-  const controller = new AbortController()
-  const timer = window.setTimeout(() => controller.abort(), 2000)
-  try {
-    const response = await fetch(HEALTH_URL, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    })
-    return response.ok
-  } catch {
-    return false
-  } finally {
-    window.clearTimeout(timer)
-  }
-}
-
-export async function getBackendStatus(): Promise<boolean> {
-  if (backendStatusPromise === null) {
-    backendStatusPromise = checkBackend()
-  }
-  return backendStatusPromise
-}
-
-export function resetBackendStatus(): void {
-  backendStatusPromise = null
 }
 
 async function request<T>(

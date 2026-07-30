@@ -47,8 +47,8 @@ export function ParallelUniverseShell({
 }: ParallelUniverseShellProps) {
   return (
     <div className={cn('min-h-screen bg-[var(--pu-void-900)] text-[var(--pu-ink-100)]', className)}>
-      <LiquidGlass as="aside" tone="quiet" depth="flat" className="fixed inset-y-0 left-0 z-30 hidden w-[104px] rounded-none border-y-0 border-l-0 px-4 py-5 lg:block">
-        <div className="mb-8 grid h-14 w-14 place-items-center rounded-lg border border-[var(--pu-cyan-500)]/35 bg-[var(--pu-panel-900)]">
+      <LiquidGlass as="aside" tone="quiet" depth="flat" motion="reveal" className="fixed inset-y-0 left-0 z-30 hidden w-[104px] rounded-none border-y-0 border-l-0 px-4 py-5 lg:block">
+        <div className="pu-motion-lift mb-8 grid h-14 w-14 place-items-center rounded-lg border border-[var(--pu-cyan-500)]/35 bg-[var(--pu-panel-900)]">
           <img src="/parallel-assets/brand/parallel-universe-mark.svg" alt="平行宇宙小说" className="h-9 w-9" />
         </div>
         <nav className="space-y-3" aria-label="平行宇宙小说功能导航">
@@ -59,7 +59,7 @@ export function ParallelUniverseShell({
                 key={item.id}
                 type="button"
                 className={cn(
-                  'grid w-full place-items-center gap-1 rounded-lg border px-2 py-2 text-xs transition-colors',
+                  'pu-motion-lift grid w-full place-items-center gap-1 rounded-lg border px-2 py-2 text-xs transition-colors',
                   selected
                     ? 'border-[var(--pu-gold-300)]/45 bg-[var(--pu-gold-500)]/12 text-[var(--pu-gold-300)]'
                     : 'border-transparent text-[var(--pu-ink-500)] hover:border-[var(--pu-cyan-500)]/24 hover:bg-[rgba(69,216,255,0.08)] hover:text-[var(--pu-cyan-500)]',
@@ -75,7 +75,7 @@ export function ParallelUniverseShell({
       </LiquidGlass>
 
       <div className="lg:pl-[104px]">
-        <LiquidGlass as="header" tone="quiet" depth="flat" className="sticky top-0 z-20 rounded-none border-x-0 border-t-0 px-4 py-3 md:px-6">
+        <LiquidGlass as="header" tone="quiet" depth="flat" motion="reveal" className="sticky top-0 z-20 rounded-none border-x-0 border-t-0 px-4 py-3 md:px-6">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--pu-ink-100)]">{title}</p>

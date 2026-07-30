@@ -38,6 +38,12 @@ const liquidGlassVariants = cva(
         true: 'pu-liquid-interactive cursor-pointer',
         false: '',
       },
+      motion: {
+        none: '',
+        reveal: 'pu-motion-reveal',
+        drift: 'pu-motion-drift',
+        pulse: 'pu-motion-pulse',
+      },
     },
     defaultVariants: {
       tone: 'default',
@@ -45,6 +51,7 @@ const liquidGlassVariants = cva(
       radius: 'md',
       padding: 'none',
       interactive: false,
+      motion: 'none',
     },
   },
 )
@@ -64,12 +71,13 @@ export function LiquidGlass({
   radius,
   padding,
   interactive,
+  motion,
   className,
   ...props
 }: LiquidGlassProps) {
   return (
     <Comp
-      className={cn(liquidGlassVariants({ tone, depth, radius, padding, interactive, className }))}
+      className={cn(liquidGlassVariants({ tone, depth, radius, padding, interactive, motion, className }))}
       {...props}
     />
   )
@@ -102,27 +110,39 @@ export function LiquidGlassFooter({ className, ...props }: React.HTMLAttributes<
 
 export interface LiquidGlassMetricProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    Pick<VariantProps<typeof liquidGlassVariants>, 'tone' | 'depth'> {
+    Pick<VariantProps<typeof liquidGlassVariants>, 'tone' | 'depth' | 'motion'> {
   label: string
   value: React.ReactNode
   detail?: React.ReactNode
+  valueVariant?: 'metric' | 'label'
 }
 
 export function LiquidGlassMetric({
   label,
   value,
   detail,
+  valueVariant = 'metric',
   tone = 'quiet',
   depth = 'flat',
+  motion = 'none',
   className,
   ...props
 }: LiquidGlassMetricProps) {
   return (
-    <LiquidGlass tone={tone} depth={depth} padding="sm" className={cn('min-w-0', className)} {...props}>
+    <LiquidGlass tone={tone} depth={depth} motion={motion} padding="sm" className={cn('min-w-0', className)} {...props}>
       <LiquidGlassContent>
-        <p className="truncate text-2xl font-semibold text-[var(--ink-paper)]">{value}</p>
-        <p className="mt-1 text-xs font-medium text-[var(--ink-dim)]">{label}</p>
-        {detail ? <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{detail}</p> : null}
+        <p
+          className={cn(
+            'font-semibold text-[var(--liquid-metric-value,var(--foreground))]',
+            valueVariant === 'metric'
+              ? 'truncate text-2xl'
+              : 'text-base leading-6 break-words',
+          )}
+        >
+          {value}
+        </p>
+        <p className="mt-1 text-xs font-medium text-[var(--liquid-metric-label,var(--muted-foreground))]">{label}</p>
+        {detail ? <p className="mt-2 text-xs leading-5 text-[var(--liquid-metric-detail,var(--muted-foreground))]">{detail}</p> : null}
       </LiquidGlassContent>
     </LiquidGlass>
   )

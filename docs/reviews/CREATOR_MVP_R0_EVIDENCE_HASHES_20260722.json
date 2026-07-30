@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 3,
+  "snapshot": {
+    "base": "origin/main@76ba3f8",
+    "reviewHeadBeforeFinalEvidence": "37bcabc",
+    "branch": "review/creator-mvp-r0-20260722"
+  },
+  "publicEvidence": [
+    { "path": "docs/reviews/CREATOR_MVP_CURRENT_STATUS_LEDGER_20260722.md", "sha256": "bfc15ab2997e365b81ff7220567aadc63ebd92a40ce33a72b20fb9b63b2d629e" },
+    { "path": "docs/reviews/CREATOR_MVP_CODE_REVIEW_PACKET_20260722.md", "sha256": "8d4c72b76bb32ab8209363ec62c7d60a22dbda6288d765cdf9743bd28d9c7352" },
+    { "path": "validation/creator-rag/langchain-textsplitters-1.0.1-receipt.json", "sha256": "12eb3e9ee71e59eb27b886a424c8c88e5f6e77a279853cb7675243e41524cc30" },
+    { "path": "validation/creator-rag/open-source-local-retrieval-dependencies-2026-07-17.json", "sha256": "696c2fb4d23c1b9dce94d605a4cb8fe2252b22613eb93030a5a2f51b515736dc" },
+    { "path": "validation/creator-rag/local-hybrid-benchmark-2026-07-17.json", "sha256": "1dfced4f581eb4e23fe0fd5a6e94fefd2aaadaef15488e570a930ec58984bef2" },
+    { "path": "validation/creator-rag/real-thread-evidence-benchmark-2026-07-17.json", "sha256": "d4d6a4c2dfac1eedcecfbe3961a25a4d19b69181581cf8fbdfee3cb1fe6e4600" },
+    { "path": "scripts/fixtures/creator-rag-frozen-benchmark.mts", "sha256": "95a284063e74fdccf151f3470e0fba7ad9ff4a2a019c0448c69cfc6247635764" },
+    { "path": "scripts/fixtures/creator-frozen-paired-quality-fixture.mts", "sha256": "2670ea5f13f7d1f47f214cb36e8084f671cc333a5ed8ab2d131f1a5dbcda4ff5" },
+    { "path": "validation/story_seeds.json", "sha256": "d7322080b6795b0fc51ae09dcbd5d3f8afc2ea666ea94b631dff07be3fe0f6ad" }
+  ],
+  "notMeasured": [
+    "stable literary-quality improvement",
+    "professional blind-review agreement",
+    "automatic retrieval activation",
+    "production deployment readiness"
+  ]
+}

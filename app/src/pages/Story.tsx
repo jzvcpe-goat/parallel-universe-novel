@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import {
-  BookOpen,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock3,
   CreditCard,
-  GitBranch,
   HeartHandshake,
   Menu,
   PanelRightOpen,
-  Save,
   ShieldCheck,
   Sparkles,
   X,
@@ -21,8 +18,12 @@ import { Button } from '@/components/primitives/Button'
 import { ChoiceCard } from '@/components/design-system/ChoiceCard'
 import { Panel } from '@/components/design-system/Panel'
 import { ReadingPaper } from '@/components/design-system/ReadingPaper'
-import { LiquidGlassMetric } from '@/components/ui/liquid-glass'
 import { ReaderRequestPanel } from '@/apps/reader/ReaderRequestPanel'
+import { ReaderStoryBranchPanel } from '@/components/reader/ReaderStoryBranchPanel'
+import { ReaderStoryIndexPanel } from '@/components/reader/ReaderStoryIndexPanel'
+import { ReaderStoryProgressPanel } from '@/components/reader/ReaderStoryProgressPanel'
+import { ReaderReadingToolButton } from '@/components/reader/ReaderReadingToolButton'
+import { UniverseDepth } from '@/components/design-system/UniverseDepth'
 import { runtimeApi, settingsApi, storyApi } from '@/api'
 import { runtimeConfig } from '@/api/client'
 import type { ReaderRuntimeSnapshot, SceneAdvanceResponse } from '@/api/runtime'
@@ -150,8 +151,8 @@ function runtimeModeBadge(runtimeState: ReaderRuntimeState) {
   if (runtimeState.mode === 'connecting') return '保存中'
   if (runtimeState.mode === 'advancing') return '整理中'
   if (runtimeState.mode === 'service') return '已保存'
-  if (runtimeState.mode === 'unavailable') return '本机记录'
-  return '本机记录'
+  if (runtimeState.mode === 'unavailable') return '已保存'
+  return '已保存'
 }
 
 function storyMembershipLabel(membership: ReaderMembershipState) {
@@ -181,29 +182,20 @@ function RuntimeSyncPanel({
   const isService = runtimeState.mode === 'service' || runtimeState.mode === 'advancing'
   const qualityGate = runtimeState.advance?.quality_brake || runtimeState.snapshot?.quality_brake
   const worldline = runtimeState.snapshot?.worldline || runtimeState.advance?.raw_continue
+  const nextSceneStatus = choiceLabel ? '已选择' : qualityGate?.candidate_status === 'canon_ready' ? '可继续' : '待选择'
 
   return (
-    <section className="narrative-panel p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <CheckCircle2 className={isService ? 'text-teal-300' : 'text-[var(--ink-dim)]'} size={18} />
-          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">阅读进度</h2>
-        </div>
-        <Badge variant={isService ? 'stasis' : 'outline'}>{runtimeModeBadge(runtimeState)}</Badge>
-      </div>
-      <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">{runtimeState.notice}</p>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-        <LiquidGlassMetric label="页码" value={pageLabel} className="text-center" />
-        <LiquidGlassMetric label="书架" value={saved ? '已加入' : '未加入'} className="text-center" />
-        <LiquidGlassMetric
-          label="下一幕"
-          value={choiceLabel ? '已选择' : qualityGate?.candidate_status === 'canon_ready' ? '可继续' : '待选择'}
-          className="text-center"
-        />
-      </div>
-      {choiceLabel && <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">已选择：{choiceLabel}</p>}
-      {worldline && <p className="mt-3 text-[11px] text-[var(--ink-dim)]">你的选择会用于整理后续章节。</p>}
-    </section>
+    <ReaderStoryProgressPanel
+      isSavedOnline={isService}
+      stateLabel={runtimeModeBadge(runtimeState)}
+      stateTone={isService ? 'stasis' : 'outline'}
+      notice={runtimeState.notice}
+      pageLabel={pageLabel}
+      saved={saved}
+      nextSceneStatus={nextSceneStatus}
+      choiceLabel={choiceLabel}
+      hasWorldline={Boolean(worldline)}
+    />
   )
 }
 
@@ -219,7 +211,7 @@ function MembershipPromptPanel({
   const isMember = Boolean(membership.subscription?.effective_tier || membership.subscription?.subscription)
 
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CreditCard className="text-[var(--manuscript-gold)]" size={18} />
@@ -236,7 +228,7 @@ function MembershipPromptPanel({
         <CreditCard size={16} />
         {isMember ? '查看会员权益' : '查看会员方案'}
       </Button>
-    </section>
+    </Panel>
   )
 }
 
@@ -254,7 +246,6 @@ function UnknownWorldGate({ worldId }: { worldId: string }) {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button variant="gold" onClick={() => navigate('/story?world=beacon-beyond')}>
-              <BookOpen size={16} />
               进入《灯塔之外》
             </Button>
             <Button variant="outline" onClick={() => navigate('/library')}>
@@ -263,48 +254,6 @@ function UnknownWorldGate({ worldId }: { worldId: string }) {
           </div>
         </div>
       </section>
-    </div>
-  )
-}
-
-function WorldlineMap({
-  branches,
-  activeBranchId,
-  onSelect,
-}: {
-  branches: WorldBranch[]
-  activeBranchId: string
-  onSelect: (branch: WorldBranch) => void
-}) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-4">
-      <div className="relative min-h-[230px]">
-        <div className="absolute left-1/2 top-10 h-[130px] w-px bg-[var(--worldline-cyan)]/25" />
-        <div className="absolute left-[20%] top-[115px] h-px w-[60%] bg-[var(--worldline-cyan)]/25" />
-        {branches.slice(0, 5).map((branch, index) => {
-          const positions = [
-            'left-1/2 top-2 -translate-x-1/2',
-            'left-[10%] top-[98px]',
-            'left-[43%] top-[158px]',
-            'right-[10%] top-[98px]',
-            'left-1/2 bottom-0 -translate-x-1/2',
-          ]
-          const isActive = branch.id === activeBranchId
-          return (
-            <button
-              key={branch.id}
-              type="button"
-              className={`absolute ${positions[index] || positions[0]} flex flex-col items-center gap-2 text-center`}
-              onClick={() => onSelect(branch)}
-            >
-              <span className={`worldline-node ${isActive ? 'worldline-node-active' : ''}`}>
-                {index === 0 ? 'Ω' : `Ω-${index}`}
-              </span>
-              <span className="max-w-[92px] text-[11px] leading-4 text-[var(--ink-muted)]">{branch.name}</span>
-            </button>
-          )
-        })}
-      </div>
     </div>
   )
 }
@@ -322,69 +271,33 @@ function BranchFocusPanel({
 }) {
   const branchCode = branch.id === 'mainline' ? 'Ω-17' : branch.id === 'public-signal' ? 'Ω-17-A' : 'Ω-17-B'
   return (
-    <section className="narrative-panel overflow-hidden p-5">
-      <div className="relative">
-        <div className="absolute -right-16 -top-24 h-52 w-52 rounded-full border border-[var(--worldline-cyan)]/15 shadow-[inset_0_0_60px_rgba(90,178,214,0.08)]" />
-        <div className="relative flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs tracking-[0.14em] text-[var(--ink-dim)]">我的分支</p>
-            <h2 className="mt-2 text-4xl font-semibold leading-none text-[var(--ink-paper)]">{branchCode}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{branch.name}</p>
-          </div>
-          <Badge variant={branchTone(branch)}>{branchStatusLabel(branch)}</Badge>
-        </div>
-
-        <div className="omega-map mt-5">
-          <div className="omega-node omega-node-small">Ω-15</div>
-          <div className="omega-link" />
-          <div className="omega-node omega-node-small">Ω-16</div>
-          <div className="omega-link" />
-          <div className="omega-node omega-node-active">Ω-17</div>
-          <div className="omega-split">
-            <span>Ω-17-A</span>
-            <span>Ω-17-B</span>
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-lg border border-white/10 bg-black/[0.22] p-4">
-          <p className="text-sm leading-6 text-[var(--ink-muted)]">{branch.summary}</p>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="text-xl font-semibold text-[var(--ink-paper)]">{branch.divergence}%</p>
-              <p className="text-[11px] text-[var(--ink-dim)]">分歧</p>
-            </div>
-            <div>
-              <p className="text-xl font-semibold text-[var(--ink-paper)]">{branch.stability}%</p>
-              <p className="text-[11px] text-[var(--ink-dim)]">稳定</p>
-            </div>
-            <div>
-              <p className="text-xl font-semibold text-[var(--ink-paper)]">{branch.readingProgress}%</p>
-              <p className="text-[11px] text-[var(--ink-dim)]">进度</p>
-            </div>
-          </div>
-        </div>
-
-        <Button className="mt-4 w-full" variant={saved ? 'secondary' : 'gold'} onClick={onSave}>
-          <Save size={16} />
-          {saved ? '已加入书架' : '加入书架'}
-        </Button>
-        <p className="mt-3 text-center text-xs leading-5 text-[var(--ink-dim)]">{readerSaveHint(saveState)}</p>
-      </div>
-    </section>
+    <ReaderStoryBranchPanel
+      branchCode={branchCode}
+      branchName={branch.name}
+      statusLabel={branchStatusLabel(branch)}
+      statusTone={branchTone(branch)}
+      summary={branch.summary}
+      divergence={branch.divergence}
+      stability={branch.stability}
+      readingProgress={branch.readingProgress}
+      saved={saved}
+      saveHint={readerSaveHint(saveState)}
+      onToggleSave={onSave}
+    />
   )
 }
 
 function EventRhythmPanel({ branch, choice }: { branch: WorldBranch; choice?: WorldChoice }) {
   const timeline = simulateTimeline(branch.templateId, branch.id, choice?.id)
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center gap-2">
         <Clock3 className="text-[var(--manuscript-gold)]" size={18} />
         <h2 className="text-lg font-semibold text-[var(--ink-paper)]">剧情节奏</h2>
       </div>
       <div className="mt-4 space-y-3">
         {timeline.map((event, index) => (
-          <div key={event.id} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+          <div key={event.id} className="pu-motion-lift rounded-lg border border-white/10 bg-white/[0.025] p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-[var(--ink-paper)]">第 {index + 1} 拍 / {event.label}</p>
               <Badge variant={event.type === 'burst' ? 'collapse' : event.type === 'aftershock' ? 'flux' : 'outline'}>
@@ -398,7 +311,7 @@ function EventRhythmPanel({ branch, choice }: { branch: WorldBranch; choice?: Wo
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -430,7 +343,7 @@ function StabilityDial({ score }: { score: number }) {
 function QualityPanel({ choice }: { choice?: WorldChoice }) {
   const quality = qualityForChoice(choice)
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="text-teal-300" size={18} />
@@ -444,7 +357,7 @@ function QualityPanel({ choice }: { choice?: WorldChoice }) {
       </div>
       <div className="mt-4 grid gap-2">
         {quality.metrics.map(metric => (
-          <div key={metric.label} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+          <div key={metric.label} className="pu-motion-lift rounded-lg border border-white/10 bg-white/[0.025] p-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-[var(--ink-paper)]">{metric.label}</span>
               <span className="text-[var(--ink-paper)]">{metric.value}%</span>
@@ -455,7 +368,7 @@ function QualityPanel({ choice }: { choice?: WorldChoice }) {
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -487,7 +400,7 @@ function CharacterMemoryPanel({ choice }: { choice?: WorldChoice }) {
       ]
 
   return (
-    <section className="narrative-panel p-5">
+    <Panel className="narrative-panel p-5" motion="reveal">
       <div className="flex items-center gap-2">
         <HeartHandshake className="text-[var(--worldline-cyan)]" size={18} />
         <h2 className="text-lg font-semibold text-[var(--ink-paper)]">角色记忆反馈</h2>
@@ -511,7 +424,7 @@ function CharacterMemoryPanel({ choice }: { choice?: WorldChoice }) {
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -709,62 +622,17 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
   }
 
   const leftRail = (
-    <aside className="space-y-4">
-      <section className="narrative-panel p-5">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="mb-4 px-0">
-          <ChevronLeft size={16} />
-          返回首页
-        </Button>
-        <div
-          className="world-cover world-cover-flagship mb-4"
-          style={{
-            backgroundImage: `linear-gradient(180deg, rgba(5,9,18,0.08), rgba(5,9,18,0.78)), url(${template.coverImage})`,
-            backgroundPosition: template.coverPosition,
-          }}
-        >
-          <div className="absolute bottom-3 left-3 right-3 z-[1] flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold tracking-[0.16em] text-white/70">正在阅读</p>
-              <p className="mt-1 text-sm font-semibold text-white">{template.title}</p>
-            </div>
-            <span className="rounded-full border border-white/20 bg-black/35 px-2 py-1 text-[11px] font-semibold text-white/80">
-              {template.chapterCount}
-            </span>
-          </div>
-        </div>
-        <Badge variant={template.mode === 'flagship' ? 'gold' : 'outline'}>{template.subtitle}</Badge>
-        <h1 className="mt-3 text-2xl font-semibold leading-tight text-[var(--ink-paper)]">{template.title}</h1>
-        <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{template.tagline}</p>
-      </section>
-
-      <section className="narrative-panel p-5">
-        <div className="flex items-center gap-2">
-          <BookOpen className="text-[var(--manuscript-gold)]" size={18} />
-          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">章节阅读</h2>
-        </div>
-        <div className="mt-4 rounded-lg border border-[var(--manuscript-gold)]/30 bg-[var(--manuscript-gold)]/[0.08] p-4">
-          <p className="text-sm font-semibold text-[var(--ink-paper)]">{chapter.title}</p>
-          <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">{chapter.kicker}</p>
-        </div>
-      </section>
-
-      <section className="narrative-panel p-5">
-        <div className="flex items-center gap-2">
-          <GitBranch className="text-[var(--worldline-cyan)]" size={18} />
-          <h2 className="text-lg font-semibold text-[var(--ink-paper)]">分支地图</h2>
-        </div>
-        <div className="mt-4">
-          <WorldlineMap
-            branches={branches.length ? branches : [branch]}
-            activeBranchId={branch.id}
-            onSelect={nextBranch => {
-              setBranchId(nextBranch.id)
-              setRightOpen(true)
-            }}
-          />
-        </div>
-      </section>
-    </aside>
+    <ReaderStoryIndexPanel
+      template={template}
+      chapter={chapter}
+      branches={branches.length ? branches : [branch]}
+      activeBranchId={branch.id}
+      onBack={() => navigate('/')}
+      onSelectBranch={nextBranch => {
+        setBranchId(nextBranch.id)
+        setRightOpen(true)
+      }}
+    />
   )
 
   const choiceImpactPanel = (
@@ -808,7 +676,7 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
   )
 
   return (
-    <div className="narrative-page space-y-5">
+    <UniverseDepth variant="story" className="narrative-page space-y-5 px-0 py-0 md:px-0" orbit={false}>
       <header className="reader-shell-bar flex flex-col justify-between gap-3 rounded-lg border border-white/10 bg-[#07101a]/90 p-4 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
           <Badge variant="gold">阅读中</Badge>
@@ -843,16 +711,16 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-[var(--pu-paper-muted)]">
                 <span>《{template.title}》 · {chapter.title}</span>
                 <div className="flex items-center gap-2">
-                  <button type="button" className="reader-tool-button">Aa</button>
-                  <button type="button" className="reader-tool-button">目录</button>
-                  <button type="button" className="reader-tool-button">书签</button>
+                  <ReaderReadingToolButton>Aa</ReaderReadingToolButton>
+                  <ReaderReadingToolButton>目录</ReaderReadingToolButton>
+                  <ReaderReadingToolButton>书签</ReaderReadingToolButton>
                 </div>
               </div>
             )}
             meta={(
               <>
                 <span className="rounded-full bg-[#221b13]/[0.08] px-3 py-1 text-xs font-semibold text-[#5b4630]">{template.genre}</span>
-                <span className="rounded-full bg-[#221b13]/[0.08] px-3 py-1 text-xs font-semibold text-[#5b4630]">{selectedChoice ? '个人分支已生成' : '主线阅读中'}</span>
+                <span className="rounded-full bg-[#221b13]/[0.08] px-3 py-1 text-xs font-semibold text-[#5b4630]">{selectedChoice ? '个人分支已开启' : '主线阅读中'}</span>
                 <span className="rounded-full bg-[#221b13]/[0.08] px-3 py-1 text-xs font-semibold text-[#5b4630]">
                   第 {safePageIndex + 1} / {readerPages.length} 页
                 </span>
@@ -994,7 +862,7 @@ function TemplateStoryReader({ templateId }: { templateId: string }) {
           </div>
         </div>
       )}
-    </div>
+    </UniverseDepth>
   )
 }
 

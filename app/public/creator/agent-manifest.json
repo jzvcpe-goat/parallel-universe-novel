@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "product": "PUF Local Creator",
+  "lifecycle": [
+    "requested",
+    "awaiting_confirmation",
+    "started",
+    "succeeded",
+    "failed",
+    "blocked",
+    "cancelled_by_author"
+  ],
+  "actionContracts": [
+    { "name": "open_draft", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "start_inspiration", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "pin_reminder", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["creative_reminder"], "publicEffects": ["none"] },
+    { "name": "apply_suggestion", "risk": "medium", "requiresAuthorConfirmation": true, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "select_priority_request", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "convert_echo_to_scene", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "generate_candidate_from_instruction", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "complete_next_beat", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "rewrite_as_action", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "ask_socratic_question", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "extract_setting_asset", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["writing_asset"], "publicEffects": ["none"] },
+    { "name": "branch_sandbox", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["branch_candidate"], "publicEffects": ["none"] },
+    { "name": "inspect_story_impact", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "open_suggestion_record", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "save_local_draft", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["draft_body"], "publicEffects": ["none"] },
+    { "name": "edit_local_manuscript", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["draft_body"], "publicEffects": ["none"] },
+    { "name": "start_next_local_chapter", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["draft_body"], "publicEffects": ["none"] },
+    { "name": "import_historical_state_candidate", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "start_character_rehearsal", "risk": "medium", "requiresAuthorConfirmation": true, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "save_character_rehearsal_card", "risk": "medium", "requiresAuthorConfirmation": true, "localEffects": ["writing_asset"], "publicEffects": ["none"] },
+    { "name": "save_character_rehearsal_setting", "risk": "medium", "requiresAuthorConfirmation": true, "localEffects": ["writing_asset"], "publicEffects": ["none"] },
+    { "name": "confirm_historical_state_candidate", "risk": "high", "requiresAuthorConfirmation": true, "localEffects": ["canon_state"], "publicEffects": ["none"] },
+    { "name": "reject_historical_state_candidate", "risk": "high", "requiresAuthorConfirmation": true, "localEffects": ["candidate_record"], "publicEffects": ["none"] },
+    { "name": "enter_publish_check", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["publish_bundle"], "publicEffects": ["none"] },
+    { "name": "prepare_publish_bundle", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["publish_bundle"], "publicEffects": ["none"] },
+    { "name": "review_publish_bundle", "risk": "medium", "requiresAuthorConfirmation": false, "localEffects": ["publish_bundle"], "publicEffects": ["none"] },
+    { "name": "check_reader_promise", "risk": "low", "requiresAuthorConfirmation": false, "localEffects": ["none"], "publicEffects": ["none"] },
+    { "name": "export_publish_bundle", "risk": "high", "requiresAuthorConfirmation": true, "localEffects": ["publish_bundle"], "publicEffects": ["none"] },
+    { "name": "confirm_publish_bundle", "risk": "high", "requiresAuthorConfirmation": true, "localEffects": ["publish_bundle"], "publicEffects": ["none"] },
+    { "name": "submit_publish_bundle", "risk": "high", "requiresAuthorConfirmation": true, "localEffects": ["publish_bundle"], "publicEffects": ["published_content", "reader_signal_status"] }
+  ],
+  "routes": [
+    {
+      "id": "today",
+      "path": "/creator",
+      "purpose": "choose next writing step",
+      "readableRegions": ["today-path", "echo-summary", "active-draft"],
+      "actions": ["open_draft", "start_inspiration", "select_priority_request", "export_publish_bundle"]
+    },
+    {
+      "id": "echo",
+      "path": "/creator/echo",
+      "purpose": "turn reader feedback into creative reminders",
+      "readableRegions": ["echo-list", "echo-clusters"],
+      "actions": ["pin_reminder", "convert_echo_to_scene", "ask_socratic_question"]
+    },
+    {
+      "id": "writing-desk",
+      "path": "/creator/editor",
+      "purpose": "edit local manuscript draft",
+      "readinessSelector": "[data-agent-workspace-state=\"ready\"][data-agent-ready=\"true\"]",
+      "readableRegions": ["draft-title", "draft-body", "writing-reminders", "historical-state-review", "character-rehearsal-candidates"],
+      "actions": [
+        "open_draft",
+        "generate_candidate_from_instruction",
+        "complete_next_beat",
+        "rewrite_as_action",
+        "ask_socratic_question",
+        "extract_setting_asset",
+        "branch_sandbox",
+        "inspect_story_impact",
+        "open_suggestion_record",
+        "apply_suggestion",
+        "save_local_draft",
+        "edit_local_manuscript",
+        "start_next_local_chapter",
+        "import_historical_state_candidate",
+        "start_character_rehearsal",
+        "save_character_rehearsal_card",
+        "save_character_rehearsal_setting",
+        "confirm_historical_state_candidate",
+        "reject_historical_state_candidate",
+        "enter_publish_check",
+        "export_publish_bundle"
+      ]
+    },
+    {
+      "id": "bundles",
+      "path": "/creator/bundles",
+      "purpose": "prepare author-confirmed publish bundles",
+      "readableRegions": ["bundle-manifest", "bundle-destinations"],
+      "actions": ["prepare_publish_bundle", "review_publish_bundle", "check_reader_promise", "export_publish_bundle", "confirm_publish_bundle", "submit_publish_bundle"]
+    }
+  ],
+  "blockedActions": [
+    "publish_without_author_confirmation",
+    "overwrite_published_canon",
+    "upload_private_draft_body",
+    "read_credentials"
+  ]
+}

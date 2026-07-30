@@ -1,0 +1,13 @@
+# Creator MVP review ownership. GitHub enforces these only after branch protection is enabled.
+
+/app/src/apps/creator/ @jzvcpe-goat
+/app/src/components/creator/ @jzvcpe-goat
+/app/src/features/creator-decision/ @jzvcpe-goat
+/app/src/features/creator-pivot/ @jzvcpe-goat
+/app/src/local-db/ @jzvcpe-goat
+/app/src/agent-surface/ @jzvcpe-goat
+/app/src/integrations/creator-rag/ @jzvcpe-goat
+/docs/product/ @jzvcpe-goat
+/docs/data-contracts/ @jzvcpe-goat
+/docs/agent-protocol/ @jzvcpe-goat
+/deploy/supabase/ @jzvcpe-goat

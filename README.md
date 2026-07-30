@@ -54,9 +54,23 @@ npm run scan:internal-terms
 npm audit --audit-level=moderate
 ```
 
-当前已知：`npm audit --audit-level=moderate` 仍会报告 Mastra 依赖链中的 `@ai-sdk/provider-utils` 与 `gray-matter/js-yaml` 风险；已执行非强制 `npm audit fix`，未使用 `--force`。
+当前已知：`npm audit --omit=dev` 报告 7 个 high、4 个 moderate 和 1 个 low advisory。该数字本身不证明 Creator 默认路径可利用，也不构成安全放行；逐项可达性与修复归属仍待独立安全工作流处理。
 
-## 首轮已打通链路
+## Validation
+当前已用 10 个固定单场景验证两问上限、候选先行、证据评价和未确认不写正史。
+浏览器 E2E 覆盖候选采用、作者修改、局部修复、人工确认、原子提交和刷新恢复。
+`referenceWritingAgent` 只证明流程合同，不代表真实模型文学质量通过。
+真实多模型评分、用户采纳率、留存、成本和生产上线均暂无证据。
+运行：`npm run validate:creator-decision-offline`、`npm run qa:creator-decision-workbench`。
+完整范围、矩阵、Rubric 与证据见 [`docs/VALIDATION.md`](docs/VALIDATION.md)。
+
+## MVP Collaboration
+
+当前 GitHub 分支用于协作维护本机 Creator 与 Reader MVP，不等同于生产上线声明。
+贡献入口、边界和 PR 证据要求见 [`CONTRIBUTING.md`](CONTRIBUTING.md) 与 [`docs/launch/MVP_COLLABORATION_HANDOFF_20260721.md`](docs/launch/MVP_COLLABORATION_HANDOFF_20260721.md)。
+Creator MVP 的本地验证入口是 `npm run test:creator`；Chapter 1-20 的文学证据聚合必须显式提供本机 workspace，例如 `CREATOR_WORKSPACE_PATH=/absolute/path/to/workspace.pufw.zip npm run validate:creator-literary-value-evidence:chapter-1-20`。该命令不会回退到任何个人目录。
+
+## 已保留的首轮自然语言链路
 
 ```text
 Creator Studio /create
@@ -66,12 +80,13 @@ Creator Studio /create
   -> 前端展示候选正文、两个以内追问、设定沉淀、运行 trace
 ```
 
+这条链路仍有工作流测试，但 `#/create` 已不是当前公开 GitHub Pages 的 Creator 入口。
+
 公开 GitHub Pages 链接：
 
 - 首页：`https://jzvcpe-goat.github.io/parallel-universe-novel/`
-- 创作页：`https://jzvcpe-goat.github.io/parallel-universe-novel/#/create`
 
-当前 GitHub Pages 是静态预览模式。公开创作页会显示“创作服务待连接”，不会在没有远端 Runtime 时生成本地假正文。远端 Runtime 接通标准见 `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`。
+当前 GitHub Pages 是 Reader-only 静态预览。`#/create` 与 `#/studio` 已退役并重定向到 `#/library`，不会在没有远端 Runtime 时生成本地假正文。远端 Runtime 接通标准见 `docs/backend/P13_PUBLIC_RUNTIME_PREVIEW_CONTRACT.md`。
 
 远端 Runtime 部署包：
 

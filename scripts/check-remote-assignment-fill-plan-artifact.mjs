@@ -143,10 +143,24 @@ function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) 
     ? payload.upstreamEvidence.blockerLedger.blockedStages
     : []
   const runtimeAssignmentEvidence = payload.upstreamEvidence?.blockerLedger?.runtimeAssignment || {}
+  const runtimeImageEvidence = payload.upstreamEvidence?.runtimeImages || {}
+  const handoffEvidence = payload.upstreamEvidence?.handoff || {}
   const currentEdgeOnlyProjection = runtimeAssignmentEvidence.runtimeMode === 'edge-only'
     && runtimeAssignmentEvidence.selectedEdgeOnlyCurrentPath === true
   const assignmentHealthReady = currentEdgeOnlyProjection
     && !blockedStages.includes('remote-assignment-health-ready')
+  const runtimeImagesReady =
+    runtimeImageEvidence.status === 'passed'
+    && runtimeImageEvidence.headSha === expectedHeadSha
+  const runtimeImagesWaitingForCurrentHead =
+    runtimeImageEvidence.status === 'passed_with_publish_blockers'
+    && runtimeImageEvidence.headSha === null
+  const handoffReady =
+    handoffEvidence.status === 'passed'
+    || handoffEvidence.decision === 'assignment_handoff_ready_for_operator'
+  const handoffWaitingForImages =
+    handoffEvidence.decision === 'assignment_handoff_waiting_for_images'
+    && handoffEvidence.headSha === expectedHeadSha
   const fillPlanIds = new Set((payload.fillPlan || []).map(item => item.id))
   const validationText = Array.isArray(payload.validationSequence) ? payload.validationSequence.join('\n') : ''
   const sourceWorkspaceNoGit = expectedHeadSha === 'source-workspace-no-git'
@@ -226,8 +240,18 @@ function validateFillPlan(payload, markdownText, expectedHeadSha, options = {}) 
     assert(blockedStages.includes('runtime-images-published'), 'source workspace fill-plan must keep runtime images blocked')
     assert(blockedStages.includes('handoff-artifact-content'), 'source workspace fill-plan must keep handoff content blocked')
   } else {
-    assert(!blockedStages.includes('runtime-images-published'), 'release fill-plan must not keep runtime images blocked')
-    assert(!blockedStages.includes('handoff-artifact-content'), 'release fill-plan must not keep handoff content blocked')
+    assert(runtimeImagesReady || runtimeImagesWaitingForCurrentHead, 'fill-plan runtime image evidence must be ready or explicitly waiting for current-head images')
+    if (runtimeImagesReady) {
+      assert(!blockedStages.includes('runtime-images-published'), 'release fill-plan must not keep runtime images blocked after current-head images are published')
+    } else {
+      assert(blockedStages.includes('runtime-images-published'), 'release fill-plan must keep runtime images blocked until current-head images are published')
+    }
+    assert(handoffReady || handoffWaitingForImages, 'fill-plan handoff evidence must be ready or explicitly waiting for current-head images')
+    if (handoffReady) {
+      assert(!blockedStages.includes('handoff-artifact-content'), 'release fill-plan must not keep handoff content blocked after handoff is ready')
+    } else {
+      assert(blockedStages.includes('handoff-artifact-content'), 'release fill-plan must keep handoff content blocked while handoff is waiting for images')
+    }
   }
   assert(privateMatches.length === 0, `fill-plan artifact leaked private terms: ${privateMatches.join(', ')}`)
   assert(markdownPrivateMatches.length === 0, `fill-plan Markdown leaked private terms: ${markdownPrivateMatches.join(', ')}`)

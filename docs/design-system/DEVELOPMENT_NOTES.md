@@ -7108,3 +7108,39 @@ npm run check:zero-cost-pmf-loop
 npm run check:public-reader-bundle-boundary
 npm run scan:public-ui-boundary
 ```
+
+## 2026-06-28 Shadcn Motion Polish Preview
+
+The Reader Web and Local Creator App now use motion as a design-system
+capability instead of page-local animation snippets. The goal is to make the
+two surfaces feel more polished while preserving the zero-cost PMF boundary:
+Reader remains a calm reading and request surface; Local Creator remains a
+localhost workbench for request handling, drafts and publishing.
+
+Implementation notes:
+
+1. LiquidGlass motion variants are now owned by `LiquidGlass`: `reveal`, `drift` and
+   `pulse`. `Panel` passes those variants through so product pages compose the
+   same shadcn-compatible primitive.
+2. Shared CSS tokens define `pu-motion-reveal`, `pu-motion-lift`,
+   `pu-motion-pulse` and reduced-motion behavior. New page work should reuse
+   these hooks rather than creating bespoke animation systems.
+3. `prefers-reduced-motion` disables motion and hover transforms, so the UI
+   remains accessible and stable.
+4. Reader motion should support scanning and reading: entrance reveal, light
+   hover feedback and no movement in the manuscript paper itself.
+5. Creator motion should support work state: request cards, dashboard metrics,
+   draft panels and publish confirmation can respond subtly, but private
+   author workflow details still must not leak into public Reader copy.
+
+Verification:
+
+```bash
+npm --prefix app run lint -- --max-warnings=0
+npm --prefix app run build:reader
+npm --prefix app run build:creator
+npm --prefix app run check:design-system
+npm --prefix app run check:copy-boundary
+npm run scan:public-ui-boundary
+npm run scan:internal-terms
+```

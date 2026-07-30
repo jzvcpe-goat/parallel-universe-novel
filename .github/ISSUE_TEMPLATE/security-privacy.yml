@@ -1,0 +1,31 @@
+name: Security or privacy report
+description: Report a suspected secret, privacy, authorization, or unsafe publication boundary.
+title: "[Security] "
+labels: [security, triage]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not post credentials, unpublished prose, workspace archives, or exploit details in a public issue. Open a minimal report and request a private follow-up."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Minimal safe summary
+    validations:
+      required: true
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Boundary
+      options:
+        - Secret or credential
+        - Private Creator data
+        - Authorization or confirmation
+        - Publication or public data
+        - Dependency or build chain
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Safe reproduction outline
+      description: Use placeholders and synthetic values only.

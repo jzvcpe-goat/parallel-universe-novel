@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "creator-paired-literary-comparison-verification.v1"
+    },
+    "comparisonId": { "type": "string" },
+    "dimensions": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "continuity",
+              "tension",
+              "information_control",
+              "character_agency",
+              "voice",
+              "freshness",
+              "genre_fulfillment",
+              "repetition",
+              "exposition",
+              "scene_detail",
+              "pacing"
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": ["verify", "reject"]
+          },
+          "confirmedPreference": {
+            "type": ["string", "null"],
+            "enum": ["candidate_a", "candidate_b", "tie", null]
+          },
+          "confirmedReasonCode": {
+            "type": ["string", "null"],
+            "enum": [
+              "canon_alignment_weaker",
+              "causal_escalation_weaker",
+              "information_released_too_early",
+              "inference_outpaces_evidence",
+              "choice_pre_scripted",
+              "choice_consequence_weaker",
+              "voice_flattened",
+              "mechanism_familiar",
+              "language_repetitive",
+              "genre_action_underrealized",
+              "exposition_overloaded",
+              "embodied_detail_weaker",
+              "pacing_overcompressed",
+              "pacing_overextended",
+              "beat_structure_mechanical",
+              "ending_pressure_weaker",
+              "balanced_tradeoff",
+              "no_material_difference",
+              null
+            ]
+          },
+          "candidateAEvidenceBlockIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": { "type": "string" }
+          },
+          "candidateBEvidenceBlockIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": { "type": "string" }
+          },
+          "rationale": { "type": "string" }
+        },
+        "required": [
+          "dimension",
+          "decision",
+          "confirmedPreference",
+          "confirmedReasonCode",
+          "candidateAEvidenceBlockIds",
+          "candidateBEvidenceBlockIds",
+          "rationale"
+        ]
+      }
+    },
+    "hardConstraints": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "candidate": {
+            "type": "string",
+            "enum": ["candidate_a", "candidate_b"]
+          },
+          "decision": {
+            "type": "string",
+            "enum": ["verify", "reject"]
+          },
+          "confirmedStatus": {
+            "type": ["string", "null"],
+            "enum": ["pass", "fail", null]
+          },
+          "confirmedViolationType": {
+            "type": ["string", "null"],
+            "enum": [
+              "none",
+              "continuity",
+              "character_knowledge",
+              "timeline",
+              "hard_constraint",
+              "must_not_resolve",
+              null
+            ]
+          },
+          "confirmedReasonCode": {
+            "type": ["string", "null"],
+            "enum": [
+              "no_violation",
+              "required_causal_consequence_omitted",
+              "canon_fact_contradicted",
+              "character_knows_forbidden_fact",
+              "timeline_location_contradicted",
+              "explicit_hard_constraint_broken",
+              "forbidden_resolution_revealed",
+              null
+            ]
+          },
+          "evidenceBlockIds": {
+            "type": "array",
+            "maxItems": 3,
+            "items": { "type": "string" }
+          },
+          "rationale": { "type": "string" }
+        },
+        "required": [
+          "candidate",
+          "decision",
+          "confirmedStatus",
+          "confirmedViolationType",
+          "confirmedReasonCode",
+          "evidenceBlockIds",
+          "rationale"
+        ]
+      }
+    },
+    "compositeLiteraryScoreUsed": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "comparisonId",
+    "dimensions",
+    "hardConstraints",
+    "compositeLiteraryScoreUsed"
+  ]
+}

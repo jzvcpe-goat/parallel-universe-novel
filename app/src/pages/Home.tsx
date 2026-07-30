@@ -113,7 +113,7 @@ export default function Home() {
     <div className="narrative-page commercial-home-page">
       <section className="commercial-gateway cosmic-board p-4 md:p-5">
         <div className="relative space-y-4">
-          <header className="commercial-topbar">
+          <header className="commercial-topbar pu-motion-reveal">
             <button
               type="button"
               className="commercial-brand"
@@ -169,7 +169,7 @@ export default function Home() {
           />
 
           <div className="commercial-hero-grid">
-            <aside className="commercial-side-panel">
+            <aside className="commercial-side-panel pu-motion-reveal pu-motion-delay-1">
               <div className="flex items-center gap-2">
                 <Library className="text-[var(--worldline-cyan)]" size={18} />
               <h2 className="text-lg font-semibold text-[var(--ink-paper)]">热门题材索引</h2>
@@ -182,7 +182,7 @@ export default function Home() {
                   <button
                     key={item.id}
                     type="button"
-                    className="commercial-category-row"
+                    className="commercial-category-row pu-motion-lift"
                     onClick={() => navigate(libraryTopicPath(item.label))}
                   >
                     <span className="min-w-0">
@@ -196,7 +196,7 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-              <button type="button" className="commercial-command-card mt-4" onClick={() => navigate('/library')}>
+              <button type="button" className="commercial-command-card pu-motion-lift mt-4" onClick={() => navigate('/library')}>
                 <span>
                   <span className="block text-sm font-semibold text-[var(--ink-paper)]">按口味找书</span>
                   <span className="mt-1 block text-xs leading-5 text-[var(--ink-muted)]">
@@ -208,7 +208,7 @@ export default function Home() {
             </aside>
 
             <main className="commercial-hero-main">
-              <section className="commercial-feature-card">
+              <section className="commercial-feature-card pu-motion-reveal pu-motion-delay-2">
                 <div className="commercial-feature-copy">
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="gold">主编强推</Badge>
@@ -233,7 +233,7 @@ export default function Home() {
                   </div>
                   <div className="commercial-hero-stats">
                     {heroStats.map(card => (
-                      <div key={card.label} className="commercial-stat-card">
+                      <div key={card.label} className="commercial-stat-card pu-motion-lift">
                         <p className="text-xl font-semibold text-[var(--ink-paper)]">{card.value}</p>
                         <p className="mt-1 text-[11px] font-semibold text-[var(--manuscript-gold)]">{card.label}</p>
                       </div>
@@ -243,7 +243,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="commercial-cover-stage"
+                  className="commercial-cover-stage pu-motion-lift"
                   onClick={() => navigate('/story?world=beacon-beyond')}
                   aria-label="阅读灯塔之外"
                 >
@@ -260,7 +260,7 @@ export default function Home() {
                   <button
                     key={pick.title}
                     type="button"
-                    className="editor-pick-card"
+                    className="editor-pick-card pu-motion-lift"
                     onClick={() => navigate('/story?world=beacon-beyond')}
                   >
                     <Badge variant="outline">{pick.tag}</Badge>
@@ -271,7 +271,7 @@ export default function Home() {
               </section>
             </main>
 
-            <aside className="commercial-side-panel">
+            <aside className="commercial-side-panel pu-motion-reveal pu-motion-delay-3">
               <div className="flex items-center gap-2">
                 <Trophy className="text-[var(--manuscript-gold)]" size={18} />
                 <h2 className="text-lg font-semibold text-[var(--ink-paper)]">榜单</h2>
@@ -298,7 +298,7 @@ export default function Home() {
       </section>
 
       <section className="commercial-content-grid">
-        <Panel className="commercial-section-panel">
+        <Panel className="commercial-section-panel" motion="reveal">
           <div className="commercial-section-head">
             <div className="flex items-center gap-2">
               <Flame className="text-[var(--manuscript-gold)]" size={18} />
@@ -333,7 +333,7 @@ export default function Home() {
           </div>
         </Panel>
 
-        <Panel as="aside" className="commercial-section-panel">
+        <Panel as="aside" className="commercial-section-panel" motion="reveal">
           <div className="flex items-center gap-2">
             <UserRound className="text-[var(--worldline-cyan)]" size={18} />
             <h2 className="text-lg font-semibold text-[var(--ink-paper)]">作者更新</h2>
@@ -360,7 +360,7 @@ export default function Home() {
         </Panel>
       </section>
 
-      <Panel className="commercial-section-panel">
+      <Panel className="commercial-section-panel" motion="reveal">
         <div className="commercial-section-head">
           <div className="flex items-center gap-2">
             <Clock3 className="text-[var(--worldline-cyan)]" size={18} />

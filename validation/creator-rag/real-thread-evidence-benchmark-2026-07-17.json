@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "status": "real_verified_thread_evidence_measured_not_activated",
+  "completedAt": "2026-07-17T14:45:12.066Z",
+  "source": {
+    "workId": "redacted-local-work",
+    "fromChapter": 1,
+    "toChapter": 20,
+    "chapterCount": 20,
+    "summarySha256": "9a7d814494bc2cb783fc369a46b2883d360761e0e2ba3922409c3a31364dd84e",
+    "privateLedgerSha256": "e51cca1e0567336546069550a2c58383aac16a6416c8b6ffef13535237dc6bbd",
+    "workspaceArchiveSha256": "2f7e0ac1ea89d67b2102eff4e2234957f212ea009068e9706a89900d64e75b83",
+    "independentlyVerifiedThreadCount": 13,
+    "dimensionCounts": {
+      "causal_debt": 3,
+      "character_knowledge": 3,
+      "timeline_anchor": 2,
+      "promise": 2,
+      "foreshadowing": 2,
+      "character_arc": 1
+    },
+    "manuscriptOrEvidenceTextCopiedIntoReceipt": false,
+    "threadLabelsCopiedIntoReceipt": false
+  },
+  "retrieval": {
+    "queryCount": 13,
+    "sourceCount": 16,
+    "realEvidenceSourceCount": 13,
+    "syntheticLeakageDecoyCount": 3,
+    "recallAt10": 1,
+    "precisionAt3": 0.3333333333333333,
+    "top3HitCount": 13,
+    "wrongWorkLeakageCount": 0,
+    "wrongBranchLeakageCount": 0,
+    "futureChapterLeakageCount": 0,
+    "sourceLocatorCoverage": 1,
+    "manualSelectionInclusion": 1,
+    "queryLatencyP50Ms": 8.570374999999785,
+    "queryLatencyP95Ms": 40.56812500000024,
+    "modelLoadAndIndexBuildMs": 2418.73,
+    "observedRssDeltaBytes": 394428416
+  },
+  "sideEffects": {
+    "workspaceChanged": false,
+    "acceptedManuscriptChanged": false,
+    "canonChanged": false,
+    "chapter21AccessedOrChanged": false,
+    "cloudDataChanged": false,
+    "publicationPerformed": false,
+    "automaticRetrievalEnabled": false
+  },
+  "limitations": [
+    "This run indexes independently verified real thread evidence cards, not every paragraph of Chapters 1-20.",
+    "Queries are derived from private author-facing why-it-matters reminders and are not reader traffic.",
+    "The result does not activate automatic recall or replace explicit author selection."
+  ]
+}
