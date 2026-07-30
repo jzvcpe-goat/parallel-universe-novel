@@ -22,7 +22,9 @@
 
 ## 1. 这次需要 Colin 做什么
 
-Colin 只需要独立审核，不需要另写一套功能，也不需要接手数据库、支付或部署。
+在 PR #9 阶段，Colin 只需要独立审核，不需要另写一套功能，也不能把数据库、
+支付或部署改动混入 R1-A0。R1-A0 审阅结束后，Colin 将作为 R1-D owner，
+按独立工作包处理数据库安全、支付和部署。
 
 1. 在干净 checkout 中定位 PR #9 的最新 HEAD。
 2. 阅读本文件列出的核心实现和安全边界。
@@ -35,7 +37,7 @@ Colin 不应：
 
 - 在自己的非仓库目录中根据文字说明重新实现。
 - 用旧的本地附件或旧 commit 代替 PR #9 最新 HEAD。
-- 修改数据库 migration、RLS、支付、部署或 Reader 公开投影。
+- 在 PR #9 修改数据库 migration、RLS、支付、部署或 Reader 公开投影。
 - 因单次参考 Adapter PASS 宣称文学质量已经提升。
 - 合并 PR、打 tag 或启动下一工作包。
 
@@ -286,3 +288,13 @@ Findings:
 5. PR 仍保持 R1-A0 范围，没有混入 R1-B/R1-C/R1-D。
 
 任何新 commit 都会改变审阅对象；旧 approval 不应自动覆盖未经复核的新 HEAD。
+
+## 11. 审阅完成后的 Colin 工作包
+
+R1-A0 审阅结束后，Colin 的下一职责见：
+
+```text
+docs/reviews/COLINLI98_R1_D_CLOUD_PAYMENT_DEPLOYMENT_HANDOFF_20260730.md
+```
+
+R1-D 必须从更新后的 `main` 创建独立分支，不得继续提交到 PR #9。
