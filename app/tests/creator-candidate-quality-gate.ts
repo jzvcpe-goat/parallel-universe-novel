@@ -8,11 +8,13 @@ import {
   contextSnapshotFingerprint,
 } from '../src/features/creator-decision/contextCompiler'
 import { evidenceForDraftQuote } from '../src/features/creator-decision/literaryReview'
+import { referenceWritingAgent } from '../src/features/creator-decision/referenceWritingAgent'
 import type {
   AuthorIntentContract,
   ContextSnapshot,
   CreationSession,
   LiteraryReview,
+  NarrativeCandidate,
   RepairProposal,
   SceneDraftResult,
 } from '../src/features/creator-decision/types'
@@ -428,6 +430,85 @@ assert.deepEqual(rejectedRecallReview.blockers, [{
   code: 'manual_recall_receipt_rejected',
   count: 1,
 }])
+
+const reviewerHardNegativeRecall = {
+  id: 'manual-recall:reviewer-hard-negative',
+  sourceId: 'canon:silver-key-promise',
+  sourceRevision: 1,
+  authority: 'canon' as const,
+  group: 'promise' as const,
+  statement: '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出',
+  sourceLabel: '银钥匙长期承诺',
+  whyNow: '当前场景不得提前取出或否定这项长期承诺。',
+  locator: {
+    kind: 'canon' as const,
+    targetId: 'canon:silver-key-promise',
+    label: '银钥匙长期承诺',
+  },
+}
+const reviewerHardNegativeContextSeed: ContextSnapshot = {
+  ...context,
+  id: 'context:reviewer-hard-negative',
+  manualRecallItems: [reviewerHardNegativeRecall],
+}
+const reviewerHardNegativeContext: ContextSnapshot = {
+  ...reviewerHardNegativeContextSeed,
+  contentFingerprint: contextSnapshotFingerprint(reviewerHardNegativeContextSeed),
+}
+const reviewerHardNegativeText = '她必须马上打开北侧的门。屋里没有钥匙、旧钟、涨潮或任何与那份长期承诺有关的事物。'
+const reviewerHardNegativeDraft: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-hard-negative',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-hard-negative',
+    text: reviewerHardNegativeText,
+    startOffset: 0,
+    endOffset: reviewerHardNegativeText.length,
+    protected: false,
+  }],
+  directionReceipt: undefined,
+}
+const reviewerHardNegativeSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerHardNegativeDraft.revision,
+  activeDraftId: reviewerHardNegativeDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerHardNegativeCandidate = {
+  id: reviewerHardNegativeSession.selectedCandidateId!,
+  revision: reviewerHardNegativeSession.currentCandidateRevision,
+} as NarrativeCandidate
+const reviewerHardNegativeReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerHardNegativeSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerHardNegativeDraft,
+})
+assert.equal(reviewerHardNegativeReview.manualRecallAdherence?.decision, 'reject')
+assert.equal(reviewerHardNegativeReview.manualRecallAdherence?.checks[0]?.status, 'violated')
+assert.ok(
+  reviewerHardNegativeReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'contradictory recall evidence must remain locatable in the candidate manuscript',
+)
+const reviewerHardNegativeGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerHardNegativeSession,
+    activeReviewId: reviewerHardNegativeReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerHardNegativeDraft,
+  review: reviewerHardNegativeReview,
+  repairs: [],
+})
+assert.equal(reviewerHardNegativeGate.allowed, false)
+assert.ok(
+  reviewerHardNegativeGate.blockers.some(blocker => blocker.code === 'manual_recall_receipt_rejected'),
+  'the real review receipt must block contradictory prose at the candidate-quality gate',
+)
 
 const mismatchedRecallReview = evaluateCandidateQualityGate({
   session,

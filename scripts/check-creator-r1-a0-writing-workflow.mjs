@@ -43,9 +43,25 @@ requireMarkers('app/src/features/creator-decision/referenceWritingAgent.ts', [
   'async reviewRepair(input): Promise<LocalRepairReview>',
   'createManualRecallAdherenceReceipt',
   'manualRecallAdherenceViolations',
-  'sharedManualRecallEvidence',
+  'matchManualRecallEvidence',
   '/world/informationBoundaries/',
   '/promises/',
+])
+
+const recallEvidence = requireMarkers('app/src/features/creator-decision/manualRecallEvidence.ts', [
+  'minimumExactEvidenceLength = 6',
+  "status: 'violated'",
+  "status: 'omitted'",
+  'hasOppositePolarity',
+])
+if (recallEvidence.includes('length >= 2')) {
+  failures.push('manual recall evidence must not accept an arbitrary two-character overlap')
+}
+
+requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
+  'reviewerHardNegativeRecall',
+  'reviewerHardNegativeDraft',
+  'manual_recall_receipt_rejected',
 ])
 
 requireMarkers('app/src/features/creator-decision/candidateQualityGate.ts', [

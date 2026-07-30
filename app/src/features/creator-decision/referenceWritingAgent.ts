@@ -14,6 +14,7 @@ import {
   createManualRecallAdherenceReceipt,
   manualRecallAdherenceViolations,
 } from './manualRecallAdherence'
+import { matchManualRecallEvidence } from './manualRecallEvidence'
 import {
   applySceneDraftToBlocks,
   countVisibleCharacters,
@@ -59,20 +60,6 @@ function evidenceQuoteContaining(text: string, anchors: string[]) {
   const start = Math.min(...positions)
   const end = Math.max(...positions.map((position, index) => position + anchors[index]!.length))
   return text.slice(start, end)
-}
-
-function sharedManualRecallEvidence(statement: string, blocks: DraftBlock[]) {
-  const manuscript = blocks.map(block => block.text).join('\n')
-  const chunks = statement.match(/[\p{Script=Han}A-Za-z0-9·]+/gu) || []
-  for (const chunk of chunks.sort((left, right) => right.length - left.length)) {
-    for (let length = Math.min(18, chunk.length); length >= 2; length -= 1) {
-      for (let start = 0; start + length <= chunk.length; start += 1) {
-        const quote = chunk.slice(start, start + length)
-        if (manuscript.includes(quote)) return quote
-      }
-    }
-  }
-  return null
 }
 
 function intentQuestions(intent: AuthorIntentContract): IntentQuestion[] {
@@ -879,21 +866,19 @@ export const referenceWritingAgent: WritingAgentCapabilities = {
           review: {
             schemaVersion: 'creator-manual-recall-adherence-review.v1',
             decision: input.context.manualRecallItems.every(item => (
-              Boolean(sharedManualRecallEvidence(item.statement, blocks))
+              matchManualRecallEvidence(item.statement, blocks).status === 'respected'
             )) ? 'pass' : 'reject',
             checks: input.context.manualRecallItems.map(item => {
-              const quote = sharedManualRecallEvidence(item.statement, blocks)
+              const match = matchManualRecallEvidence(item.statement, blocks)
               return {
                 sourceId: item.sourceId,
                 group: item.group,
-                status: quote ? 'respected' as const : 'omitted' as const,
-                evidenceQuotes: quote ? [quote] : [],
-                diagnosis: quote
-                  ? '当前正文包含可逐字定位的召回承接证据。'
-                  : '当前正文没有可定位证据证明这张记忆卡已被承接。',
+                status: match.status,
+                evidenceQuotes: match.evidenceQuote ? [match.evidenceQuote] : [],
+                diagnosis: match.diagnosis,
               }
             }),
-            rationale: '本机参考审阅只依据当前正文中的逐字重合证据判断，不推断隐含遵循。',
+            rationale: '本机参考审阅只接受足够具体、极性一致且可定位的正文证据；缺失或矛盾时拒绝。',
           },
           selectedRecallItems: input.context.manualRecallItems,
           draftBlocks: blocks,
