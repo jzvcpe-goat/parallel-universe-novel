@@ -65,6 +65,12 @@ Pull Request 会运行独立的 `R1-A0 writing workflow` CI job，并上传
 `r1-a0-writing-workflow-evidence` artifact。Reviewer 应以该 job 对当前 HEAD
 生成的 JSON 和截图为准，不以本地文字汇报代替运行证据。
 
+独立审阅步骤、Hard Negative 清单和结论模板见：
+
+```text
+docs/reviews/COLINLI98_R1_A0_REVIEW_HANDOFF_20260730.md
+```
+
 通过条件：
 
 - 关键追问不超过两次。
