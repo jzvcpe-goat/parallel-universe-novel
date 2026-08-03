@@ -588,6 +588,88 @@ assert.deepEqual(
   'supporting negation must not block a candidate that respects the recalled proposition',
 )
 
+const reviewerLaterContradictionRecallText = '守灯人先声称银钥匙藏在旧钟内部，然而银钥匙没有藏在旧钟内部。'
+const reviewerLaterContradictionText = [
+  reviewerLaterContradictionRecallText,
+  blockText,
+  ...Array.from({ length: 18 }, (_, index) => `${reviewerPositiveContinuation}第${index + 1}次校准后，刻度、权限和责任都有可见变化。`),
+].join('')
+const reviewerLaterContradictionDraftSeed: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-later-contradiction',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-later-contradiction',
+    text: reviewerLaterContradictionText,
+    startOffset: 0,
+    endOffset: reviewerLaterContradictionText.length,
+    protected: false,
+  }],
+}
+const reviewerLaterContradictionDirectionEvidence = evidenceForDraftQuote(
+  reviewerLaterContradictionDraftSeed.contentBlocks,
+  blockText,
+)
+assert.ok(reviewerLaterContradictionDirectionEvidence)
+const reviewerLaterContradictionDraft: SceneDraftResult = {
+  ...reviewerLaterContradictionDraftSeed,
+  directionReceipt: {
+    schemaVersion: 'scene-draft-direction-receipt.v1',
+    decision: 'pass',
+    axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+      axis,
+      expectedValue,
+    ]) => ({
+      axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+      expectedValue,
+      evidence: reviewerLaterContradictionDirectionEvidence,
+    })),
+    proposedAdjustmentEvidence: reviewerLaterContradictionDirectionEvidence,
+    reviewer: 'Auditor',
+  },
+}
+const reviewerLaterContradictionSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerLaterContradictionDraft.revision,
+  activeDraftId: reviewerLaterContradictionDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerLaterContradictionReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerLaterContradictionSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerLaterContradictionDraft,
+})
+assert.equal(reviewerLaterContradictionReview.manualRecallAdherence?.decision, 'reject')
+assert.equal(
+  reviewerLaterContradictionReview.manualRecallAdherence?.checks[0]?.status,
+  'violated',
+)
+assert.ok(
+  reviewerLaterContradictionReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'a later contradiction must remain locatable even after an earlier matching proposition',
+)
+const reviewerLaterContradictionGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerLaterContradictionSession,
+    activeReviewId: reviewerLaterContradictionReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerLaterContradictionDraft,
+  review: reviewerLaterContradictionReview,
+  repairs: [],
+})
+assert.equal(reviewerLaterContradictionGate.allowed, false)
+assert.ok(
+  reviewerLaterContradictionGate.blockers.some(
+    blocker => blocker.code === 'manual_recall_receipt_rejected',
+  ),
+  'the candidate-quality gate must reject a later contradiction in the same sentence',
+)
+
 const mismatchedRecallReview = evaluateCandidateQualityGate({
   session,
   intent,

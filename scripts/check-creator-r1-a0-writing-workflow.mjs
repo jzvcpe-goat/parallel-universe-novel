@@ -52,6 +52,7 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'minimumExactEvidenceLength = 6',
   "status: 'violated'",
   "status: 'omitted'",
+  'matchedPropositionPolarities',
   'matchedPropositionHasOppositePolarity',
   'oppositePolarityAnchorCount',
 ])
@@ -64,6 +65,8 @@ requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'reviewerHardNegativeDraft',
   'reviewerPositiveRecallText',
   'reviewerPositiveGate',
+  'reviewerLaterContradictionRecallText',
+  'reviewerLaterContradictionGate',
   'manual_recall_receipt_rejected',
 ])
 

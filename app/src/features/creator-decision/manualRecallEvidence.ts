@@ -66,9 +66,11 @@ function contradictionAnchors(statement: string, sentence: string) {
   return anchors
 }
 
-function matchedPropositionIsNegated(text: string, matchedText: string) {
-  const matchStart = text.indexOf(matchedText)
-  if (matchStart < 0) return false
+function matchedPropositionIsNegatedAt(
+  text: string,
+  matchedText: string,
+  matchStart: number,
+) {
   let clauseStart = matchStart
   while (clauseStart > 0 && !clauseBoundaryPattern.test(text[clauseStart - 1]!)) {
     clauseStart -= 1
@@ -77,13 +79,28 @@ function matchedPropositionIsNegated(text: string, matchedText: string) {
   return negationTokens.some(token => propositionPrefix.includes(token))
 }
 
+function matchedPropositionPolarities(text: string, matchedText: string) {
+  const polarities: boolean[] = []
+  let searchStart = 0
+
+  while (searchStart <= text.length - matchedText.length) {
+    const matchStart = text.indexOf(matchedText, searchStart)
+    if (matchStart < 0) break
+    polarities.push(matchedPropositionIsNegatedAt(text, matchedText, matchStart))
+    searchStart = matchStart + Math.max(1, matchedText.length)
+  }
+
+  return polarities
+}
+
 function matchedPropositionHasOppositePolarity(
   statement: string,
   sentence: string,
   matchedText: string,
 ) {
-  return matchedPropositionIsNegated(statement, matchedText)
-    !== matchedPropositionIsNegated(sentence, matchedText)
+  const statementPolarities = matchedPropositionPolarities(statement, matchedText)
+  const sentencePolarities = matchedPropositionPolarities(sentence, matchedText)
+  return sentencePolarities.some(polarity => !statementPolarities.includes(polarity))
 }
 
 function oppositePolarityAnchorCount(statement: string, sentence: string, anchors: Set<string>) {
