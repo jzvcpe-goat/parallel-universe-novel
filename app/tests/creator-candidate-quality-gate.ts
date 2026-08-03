@@ -376,6 +376,7 @@ const recallReview: LiteraryReview = {
     decision: 'pass',
     checks: [{
       sourceId: recallContext.manualRecallItems[0].sourceId,
+      sourceRevision: recallContext.manualRecallItems[0].sourceRevision,
       group: recallContext.manualRecallItems[0].group,
       status: 'fulfilled',
       evidence,
@@ -688,6 +689,28 @@ const mismatchedRecallReview = evaluateCandidateQualityGate({
   repairs: [],
 })
 assert.ok(mismatchedRecallReview.blockers.some(item => item.code === 'manual_recall_receipt_mismatch'))
+
+const staleRecallRevisionReview = evaluateCandidateQualityGate({
+  session,
+  intent,
+  context: recallContext,
+  draft,
+  review: {
+    ...recallReview,
+    manualRecallAdherence: {
+      ...recallReview.manualRecallAdherence!,
+      checks: recallReview.manualRecallAdherence!.checks.map(check => ({
+        ...check,
+        sourceRevision: check.sourceRevision + 1,
+      })),
+    },
+  },
+  repairs: [],
+})
+assert.ok(
+  staleRecallRevisionReview.blockers.some(item => item.code === 'manual_recall_receipt_mismatch'),
+  'a receipt for another source revision must not authorize the current recall selection',
+)
 
 const invalidRecallEvidence = evaluateCandidateQualityGate({
   session,

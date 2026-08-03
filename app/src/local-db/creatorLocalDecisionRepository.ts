@@ -1,5 +1,6 @@
 import type { PmfLocalDraft } from '@/features/pmf/types'
 import { buildCanonCommitResult } from '@/features/creator-decision/canonPatch'
+import { CreationDecisionError } from '@/features/creator-decision/types'
 import { buildHistoricalStateBackfillCommitResult } from '@/features/creator-decision/historicalStateBackfill'
 import {
   authorIntentContractSchema,
@@ -87,6 +88,25 @@ export const creatorDecisionRecordFamilies = [
 ] as const
 
 export type CreatorDecisionRecordFamily = typeof creatorDecisionRecordFamilies[number]
+
+function assertCanonCommitSessionCurrent(
+  proposed: CreationSession,
+  stored: CreationSession | null | undefined,
+) {
+  if (
+    !stored
+    || stored.phase !== 'canon_patch_pending'
+    || stored.activeDraftId !== proposed.activeDraftId
+    || stored.currentDraftRevision !== proposed.currentDraftRevision
+    || stored.activeReviewId !== proposed.activeReviewId
+    || stored.proposedCanonPatchId !== proposed.proposedCanonPatchId
+  ) {
+    throw new CreationDecisionError(
+      'draft_revision_conflict',
+      'The persisted manuscript session changed before canon commit.',
+    )
+  }
+}
 
 export function isCreatorDecisionRecordFamily(
   family: string,
@@ -441,6 +461,13 @@ export class IndexedDbCreationDecisionRepository implements CreationDecisionRepo
       ]
       const transaction = db.transaction(stores, 'readwrite')
       try {
+        const storedSessionValue = await requestToPromise<unknown>(
+          transaction.objectStore(creatorLocalStoreNames.creationSessions).get(input.session.id),
+        )
+        const storedSession = storedSessionValue === undefined
+          ? null
+          : creationSessionSchema.parse(storedSessionValue)
+        assertCanonCommitSessionCurrent(input.session, storedSession)
         const storedCanonValue = await requestToPromise<unknown>(
           transaction.objectStore(creatorLocalStoreNames.localCanonStates).get(canonId),
         )
@@ -807,6 +834,7 @@ export class MemoryCreationDecisionRepository implements CreationDecisionReposit
   }
 
   async commitCanon(input: CanonCommitInput) {
+    assertCanonCommitSessionCurrent(input.session, this.sessions.get(input.session.id))
     const currentCanon = await this.loadCanonState(input.session.workId, input.session.chapterId)
     const result = buildCanonCommitResult({ ...input, currentCanon })
     this.drafts.set(input.draft.draftId, input.draft)

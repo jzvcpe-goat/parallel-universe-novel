@@ -207,6 +207,7 @@ export function useCreationDecisionSession(input: UseCreationDecisionSessionInpu
   const [protectedBlockIds, setProtectedBlockIds] = useState<string[]>([])
   const suppressNextManuscriptRef = useRef<string | null>(null)
   const snapshotRef = useRef<CreationDecisionSnapshot | null>(null)
+  const operationQueueRef = useRef<Promise<unknown>>(Promise.resolve())
   const inputRef = useRef(input)
   inputRef.current = input
   snapshotRef.current = snapshot
@@ -262,20 +263,26 @@ export function useCreationDecisionSession(input: UseCreationDecisionSessionInpu
     command: (current: CreationDecisionSnapshot) => Promise<{ snapshot: CreationDecisionSnapshot; value: T }>,
     success: string,
   ) => {
-    const current = snapshotRef.current
-    if (!current) return null
-    setPendingAction(action)
-    try {
-      const result = await command(current)
-      setSnapshot(result.snapshot)
-      setNotice(success)
-      return result.value
-    } catch (error) {
-      setNotice(productError(error))
-      return null
-    } finally {
-      setPendingAction(null)
+    const execute = async () => {
+      const current = snapshotRef.current
+      if (!current) return null
+      setPendingAction(action)
+      try {
+        const result = await command(current)
+        snapshotRef.current = result.snapshot
+        setSnapshot(result.snapshot)
+        setNotice(success)
+        return result.value
+      } catch (error) {
+        setNotice(productError(error))
+        return null
+      } finally {
+        setPendingAction(null)
+      }
     }
+    const queued = operationQueueRef.current.then(execute, execute)
+    operationQueueRef.current = queued.then(() => undefined, () => undefined)
+    return queued
   }, [])
 
   const intent = snapshot ? currentAuthorIntent(snapshot) : null
@@ -525,6 +532,29 @@ export function useCreationDecisionSession(input: UseCreationDecisionSessionInpu
       setPreviewDraftId(null)
       setNotice('候选已收起，作者正文没有变化。')
     },
+    recordAuthorEdit: async (content: string) => {
+      const value = await run(
+        'record_author_edit',
+        current => {
+          const currentDraft = activeSceneDraft(current)
+          if (!currentDraft) {
+            throw new CreationDecisionError('stale_result', 'The active manuscript is no longer current.')
+          }
+          return workflow.recordAuthorEdit({
+            snapshot: current,
+            content,
+            editedBlockIds: currentDraft.contentBlocks.map(block => block.id),
+            protectedBlockIds,
+          })
+        },
+        '作者修改已保存，旧审阅和正史差异已失效。',
+      )
+      if (value) {
+        suppressNextManuscriptRef.current = content
+        inputRef.current.onApplyManuscript(content)
+      }
+      return value
+    },
     reviewDraft: (focusLensIds: WritingAssistLensId[] = []) => run(
       'review_scene',
       current => {
@@ -621,7 +651,7 @@ export function useCreationDecisionSession(input: UseCreationDecisionSessionInpu
       setProtectedBlockIds(current => current.filter(id => id !== blockId))
       setNotice('该段落已解除保护。')
     },
-  }), [generateScene, previewDraftId, rehearseCharacters, run])
+  }), [generateScene, previewDraftId, protectedBlockIds, rehearseCharacters, run])
 
   return {
     snapshot,

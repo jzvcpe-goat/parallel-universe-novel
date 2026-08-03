@@ -91,6 +91,7 @@ export const manualRecallAdherenceReviewSchema = z.object({
   decision: z.enum(['pass', 'reject']),
   checks: z.array(z.object({
     sourceId: id,
+    sourceRevision: z.number().int().nonnegative(),
     group: z.enum(['causal', 'character_knowledge', 'timeline', 'promise']),
     status: z.enum(['fulfilled', 'respected', 'violated', 'omitted']),
     evidenceQuotes: z.array(z.string().min(2).max(180)).max(3),
@@ -541,6 +542,7 @@ export const literaryReviewSchema = z.object({
     decision: z.enum(['pass', 'reject']),
     checks: z.array(z.object({
       sourceId: id,
+      sourceRevision: z.number().int().default(-1),
       group: z.enum(['causal', 'character_knowledge', 'timeline', 'promise']),
       status: z.enum(['fulfilled', 'respected', 'violated', 'omitted']),
       evidence: z.array(z.object({

@@ -75,7 +75,7 @@ export interface CreatorConversationTimelineProps {
   onAdoptDraft: () => void
   onRejectDraft: () => void
   onReviewScene: (lensIds?: WritingAssistLensId[]) => void
-  onSaveManuscriptEdit: (content: string) => void
+  onSaveManuscriptEdit: (content: string) => Promise<boolean>
   onFocusFinding: (finding: LiteraryFinding) => void
   onFocusAdvisoryFinding: (finding: AdvisoryCraftFinding) => void
   onProposeRepair: (findingId: string) => void
@@ -257,6 +257,7 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
   const manuscriptText = props.manuscript || (props.activeDraft ? draftTextFromBlocks(props.activeDraft.contentBlocks) : '')
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null)
   const [manuscriptEdit, setManuscriptEdit] = useState('')
+  const [savingManuscript, setSavingManuscript] = useState(false)
   const [focusedEvidenceRange, setFocusedEvidenceRange] = useState<{ startOffset: number; endOffset: number } | null>(null)
   const manuscriptEditorRef = useRef<HTMLTextAreaElement>(null)
   const recentAssets = [...props.settingAssets]
@@ -273,6 +274,7 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
     ? `${props.writingAssistRecommendation.draftId}:${props.writingAssistRecommendation.draftRevision}:${props.writingAssistRecommendation.lensIds.join(',')}`
     : null
   const editingManuscript = Boolean(props.activeDraft && editingDraftId === props.activeDraft.draftId)
+  const manuscriptHasUnsavedChanges = editingManuscript && manuscriptEdit !== manuscriptText
 
   useEffect(() => {
     if (!editingManuscript) return
@@ -318,10 +320,18 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
     setFocusedEvidenceRange(null)
   }
 
-  function saveManuscriptEdit() {
+  async function saveManuscriptEdit() {
     if (!manuscriptEdit.trim()) return
-    if (manuscriptEdit !== manuscriptText) props.onSaveManuscriptEdit(manuscriptEdit)
-    cancelManuscriptEdit()
+    if (manuscriptEdit === manuscriptText) {
+      cancelManuscriptEdit()
+      return
+    }
+    setSavingManuscript(true)
+    try {
+      if (await props.onSaveManuscriptEdit(manuscriptEdit)) cancelManuscriptEdit()
+    } finally {
+      setSavingManuscript(false)
+    }
   }
 
   return (
@@ -508,8 +518,9 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    onClick={saveManuscriptEdit}
-                    disabled={props.pending || !manuscriptEdit.trim()}
+                    onClick={() => void saveManuscriptEdit()}
+                    loading={savingManuscript}
+                    disabled={props.pending || savingManuscript || !manuscriptEdit.trim()}
                     data-agent-action="edit_local_manuscript"
                     data-agent-risk="medium"
                     data-agent-target={props.session?.activeDraftId || 'active-draft'}
@@ -618,7 +629,16 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button type="button" className="mt-4" disabled={props.pending || props.session?.phase === 'canon_committed'}>
+              <Button
+                type="button"
+                className="mt-4"
+                disabled={
+                  props.pending
+                  || savingManuscript
+                  || manuscriptHasUnsavedChanges
+                  || props.session?.phase === 'canon_committed'
+                }
+              >
                 <ShieldCheck size={14} aria-hidden="true" />确认写入本机主宇宙
               </Button>
             </AlertDialogTrigger>
@@ -632,7 +652,13 @@ export function CreatorConversationTimeline(props: CreatorConversationTimelinePr
               <AlertDialogFooter>
                 <AlertDialogCancel>返回检查</AlertDialogCancel>
                 <AlertDialogAction asChild>
-                  <Button type="button" onClick={props.onConfirmCanon}>确认写入</Button>
+                  <Button
+                    type="button"
+                    onClick={props.onConfirmCanon}
+                    disabled={props.pending || savingManuscript || manuscriptHasUnsavedChanges}
+                  >
+                    确认写入
+                  </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

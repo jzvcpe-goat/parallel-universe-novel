@@ -872,6 +872,7 @@ export const referenceWritingAgent: WritingAgentCapabilities = {
               const match = matchManualRecallEvidence(item.statement, blocks)
               return {
                 sourceId: item.sourceId,
+                sourceRevision: item.sourceRevision,
                 group: item.group,
                 status: match.status,
                 evidenceQuotes: match.evidenceQuote ? [match.evidenceQuote] : [],

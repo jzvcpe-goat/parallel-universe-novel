@@ -3,6 +3,7 @@ import {
   createManualRecallAdherenceReceipt,
   manualRecallAdherenceViolations,
 } from '../src/features/creator-decision/manualRecallAdherence'
+import { matchManualRecallEvidence } from '../src/features/creator-decision/manualRecallEvidence'
 import { draftBlocksFromText } from '../src/features/creator-decision/sceneDrafting'
 import { createLiteraryReview } from '../src/features/creator-decision/literaryReview'
 import { literaryReviewSchema } from '../src/features/creator-decision/schemas'
@@ -52,6 +53,73 @@ const recalls: ManualRecallItem[] = [
   },
 ]
 
+const silverKeyPromise = '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出'
+const recallEvidenceCases = [
+  {
+    name: 'later contradiction in the same sentence',
+    text: '银钥匙藏在旧钟内部。下一刻守灯人承认银钥匙没有藏在旧钟内部。',
+    status: 'violated',
+  },
+  {
+    name: 'later contradiction in a separate block',
+    text: '银钥匙藏在旧钟内部。\n\n守灯人随后承认银钥匙没有藏在旧钟内部。',
+    status: 'violated',
+  },
+  {
+    name: 'postposed rejection',
+    text: '银钥匙藏在旧钟内部——这句话不属实。',
+    status: 'violated',
+  },
+  {
+    name: 'removal before the promised tide',
+    text: '银钥匙曾藏在旧钟内部，但守灯人在第一次涨潮时将它取出。',
+    status: 'violated',
+  },
+  {
+    name: 'later removal overrides repeated support',
+    text: '银钥匙藏在旧钟内部。守灯人再次确认它仍在旧钟内部。随后守灯人把银钥匙从旧钟内部取出。',
+    status: 'violated',
+  },
+  {
+    name: 'reported speech is not evidence',
+    text: '据说守灯人声称银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    status: 'omitted',
+  },
+  {
+    name: 'hypothetical mention is not evidence',
+    text: '如果银钥匙必须始终藏在旧钟内部，守灯人就会等到第三次涨潮。',
+    status: 'omitted',
+  },
+  {
+    name: 'rhetorical rejection is not evidence',
+    text: '银钥匙必须始终藏在旧钟内部——难道不是荒唐的说法吗？',
+    status: 'omitted',
+  },
+  {
+    name: 'ambiguous double negation is not evidence',
+    text: '不能说银钥匙没有藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'an unrelated removal action is not a contradiction',
+    text: '她从药箱里取出最后一卷绷带。',
+    status: 'omitted',
+  },
+  {
+    name: 'factual support remains accepted',
+    text: '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。',
+    status: 'respected',
+  },
+] as const
+
+for (const testCase of recallEvidenceCases) {
+  assert.equal(
+    matchManualRecallEvidence(silverKeyPromise, draftBlocksFromText(testCase.text)).status,
+    testCase.status,
+    testCase.name,
+  )
+}
+
 const draftBlocks = draftBlocksFromText([
   '解晶剂的空管滚到踏板边，许照没有第二支药。',
   '闻澜隔着毒雾问他还能撑多久，他只把咳出的晶屑压进湿滤巾，没有回答。',
@@ -64,6 +132,7 @@ const passingReview: ManualRecallAdherenceReview = {
   checks: [
     {
       sourceId: 'canon:last-antidote',
+      sourceRevision: 6,
       group: 'causal',
       status: 'fulfilled',
       evidenceQuotes: ['没有第二支药'],
@@ -71,6 +140,7 @@ const passingReview: ManualRecallAdherenceReview = {
     },
     {
       sourceId: 'asset:wenlan',
+      sourceRevision: 2,
       group: 'character_knowledge',
       status: 'respected',
       evidenceQuotes: ['没有回答'],
@@ -78,6 +148,7 @@ const passingReview: ManualRecallAdherenceReview = {
     },
     {
       sourceId: 'canon:greenhouse-time',
+      sourceRevision: 1,
       group: 'timeline',
       status: 'respected',
       evidenceQuotes: ['还剩六分十二秒', '风箱台下的苗床'],
@@ -162,11 +233,19 @@ delete legacyReviewValue.contextSnapshotId
 delete legacyReviewValue.contextCompilationPolicyVersion
 delete legacyReviewValue.contextSourceFingerprint
 delete legacyReviewValue.contextSnapshotFingerprint
+const legacyRecallChecks = (
+  legacyReviewValue.manualRecallAdherence as { checks: Array<Record<string, unknown>> }
+).checks
+legacyRecallChecks.forEach(check => delete check.sourceRevision)
 const parsedLegacyReview = literaryReviewSchema.parse(legacyReviewValue)
 assert.equal(parsedLegacyReview.contextSnapshotId, 'legacy-unbound-context')
 assert.equal(parsedLegacyReview.contextCompilationPolicyVersion, 0)
 assert.equal(parsedLegacyReview.contextSourceFingerprint, 'legacy-unfingerprinted')
 assert.equal(parsedLegacyReview.contextSnapshotFingerprint, 'legacy-unfingerprinted')
+assert.ok(
+  parsedLegacyReview.manualRecallAdherence?.checks.every(check => check.sourceRevision === -1),
+  'legacy unbound recall receipts must migrate to a fail-closed source revision',
+)
 
 const rejectingReceipt = createManualRecallAdherenceReceipt({
   review: {
@@ -214,5 +293,16 @@ assert.throws(() => createManualRecallAdherenceReceipt({
   selectedRecallItems: recalls,
   draftBlocks,
 }), /contradicts its per-source checks/u)
+
+assert.throws(() => createManualRecallAdherenceReceipt({
+  review: {
+    ...passingReview,
+    checks: passingReview.checks.map((check, index) => index === 0
+      ? { ...check, sourceRevision: check.sourceRevision + 1 }
+      : check),
+  },
+  selectedRecallItems: recalls,
+  draftBlocks,
+}), /source order, revision, or recall group/u)
 
 console.log('Creator manual recall adherence domain checks passed.')

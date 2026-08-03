@@ -581,7 +581,7 @@ export function CreatorEditorRoute() {
       onAdoptDraft={() => void decision.actions.adoptPreviewDraft()}
       onRejectDraft={decision.actions.rejectPreviewDraft}
       onReviewScene={lensIds => void decision.actions.reviewDraft(lensIds)}
-      onSaveManuscriptEdit={setContent}
+      onSaveManuscriptEdit={async value => Boolean(await decision.actions.recordAuthorEdit(value))}
       onFocusFinding={finding => decision.actions.focusFinding(finding.evidence[0] || null)}
       onFocusAdvisoryFinding={finding => decision.actions.focusFinding(finding.evidence[0] || null)}
       onProposeRepair={findingId => void decision.actions.proposeRepair(findingId)}

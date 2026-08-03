@@ -1181,6 +1181,28 @@ await repository.saveSession(session)
 
 const canonBeforePendingRepairCommit = await repository.loadCanonState(session.workId, session.chapterId)
 const eventsBeforePendingRepairCommit = await repository.listEvents(session.id)
+await repository.saveSession({
+  ...session,
+  activeDraftId: 'draft:author-saved-after-confirmation-opened',
+  currentDraftRevision: session.currentDraftRevision + 1,
+})
+await assert.rejects(
+  () => repository.commitCanon({
+    session,
+    intent,
+    context,
+    draft,
+    review: authorResolvedReview,
+    repairs: [],
+    patch,
+    currentCanon: baselineCanon,
+    authorConfirmed: true,
+    confirmedAt: '2026-07-13T11:06:00.000Z',
+  }),
+  error => error instanceof CreationDecisionError && error.code === 'draft_revision_conflict',
+  'the repository must reject an old Canon patch after a newer author draft was persisted',
+)
+await repository.saveSession(session)
 await assert.rejects(
   () => repository.commitCanon({
     session,

@@ -52,9 +52,11 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'minimumExactEvidenceLength = 6',
   "status: 'violated'",
   "status: 'omitted'",
-  'matchedPropositionPolarities',
-  'matchedPropositionHasOppositePolarity',
+  'matchedPropositionOccurrences',
+  'matchedPropositionAssessment',
   'oppositePolarityAnchorCount',
+  'retentionViolation',
+  'contradictingSentence',
 ])
 if (recallEvidence.includes('length >= 2')) {
   failures.push('manual recall evidence must not accept an arbitrary two-character overlap')
@@ -67,6 +69,7 @@ requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'reviewerPositiveGate',
   'reviewerLaterContradictionRecallText',
   'reviewerLaterContradictionGate',
+  'staleRecallRevisionReview',
   'manual_recall_receipt_rejected',
 ])
 
@@ -75,6 +78,22 @@ requireMarkers('app/src/features/creator-decision/candidateQualityGate.ts', [
   'manual_recall_receipt_rejected',
   'pending_repair_decision',
   'active_revision_candidate',
+  'check.sourceRevision === selectedRecalls[index]?.sourceRevision',
+])
+
+requireMarkers('app/src/apps/creator/routes/useCreationDecisionSession.ts', [
+  'operationQueueRef',
+  'recordAuthorEdit: async (content: string)',
+])
+
+requireMarkers('app/src/components/creator/workspace/CreatorConversationTimeline.tsx', [
+  'manuscriptHasUnsavedChanges',
+  'savingManuscript',
+])
+
+requireMarkers('app/src/local-db/creatorLocalDecisionRepository.ts', [
+  'assertCanonCommitSessionCurrent',
+  'stored.currentDraftRevision !== proposed.currentDraftRevision',
 ])
 
 requireMarkers('docs/launch/070_R1_A0_WRITING_WORKFLOW_INTEGRATION.md', [

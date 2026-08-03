@@ -7,6 +7,9 @@ const minimumExactEvidenceLength = 6
 const contradictionAnchorLength = 2
 const negationTokens = ['不存在', '没有', '并无', '未曾', '从未', '不再', '并未', '无从', '不能', '不可']
 const clauseBoundaryPattern = /[。！？!?；;，,：:]/u
+const uncertainAssertionPattern = /(?:据说|听说|传言|传闻|有人说|声称|宣称|如果|假如|倘若|难道|不能说)/u
+const postposedRejectionPattern = /(?:不属实|并非事实|不是真的|是假的|只是谎言|荒唐的说法)/u
+const removalActionPattern = /取出/u
 const ignoredContradictionAnchors = new Set([
   '必须',
   '始终',
@@ -79,34 +82,94 @@ function matchedPropositionIsNegatedAt(
   return negationTokens.some(token => propositionPrefix.includes(token))
 }
 
-function matchedPropositionPolarities(text: string, matchedText: string) {
-  const polarities: boolean[] = []
+interface PropositionOccurrence {
+  negated: boolean
+  uncertain: boolean
+  rejectedAfterward: boolean
+}
+
+function clauseBounds(text: string, matchStart: number, matchEnd: number) {
+  let start = matchStart
+  let end = matchEnd
+  while (start > 0 && !clauseBoundaryPattern.test(text[start - 1]!)) start -= 1
+  while (end < text.length && !clauseBoundaryPattern.test(text[end]!)) end += 1
+  return { start, end }
+}
+
+function matchedPropositionOccurrences(text: string, matchedText: string) {
+  const occurrences: PropositionOccurrence[] = []
   let searchStart = 0
 
   while (searchStart <= text.length - matchedText.length) {
     const matchStart = text.indexOf(matchedText, searchStart)
     if (matchStart < 0) break
-    polarities.push(matchedPropositionIsNegatedAt(text, matchedText, matchStart))
+    const matchEnd = matchStart + matchedText.length
+    const bounds = clauseBounds(text, matchStart, matchEnd)
+    const prefix = text.slice(bounds.start, matchStart)
+    const suffix = text.slice(matchEnd, bounds.end)
+    const rhetorical = /难道/u.test(suffix)
+    occurrences.push({
+      negated: matchedPropositionIsNegatedAt(text, matchedText, matchStart),
+      uncertain: uncertainAssertionPattern.test(prefix) || rhetorical,
+      rejectedAfterward: !rhetorical && postposedRejectionPattern.test(suffix),
+    })
     searchStart = matchStart + Math.max(1, matchedText.length)
   }
 
-  return polarities
+  return occurrences
 }
 
-function matchedPropositionHasOppositePolarity(
+function matchedPropositionAssessment(
   statement: string,
   sentence: string,
   matchedText: string,
 ) {
-  const statementPolarities = matchedPropositionPolarities(statement, matchedText)
-  const sentencePolarities = matchedPropositionPolarities(sentence, matchedText)
-  return sentencePolarities.some(polarity => !statementPolarities.includes(polarity))
+  const statementPolarities = matchedPropositionOccurrences(statement, matchedText)
+    .map(item => item.negated)
+  const occurrences = matchedPropositionOccurrences(sentence, matchedText)
+  return {
+    supports: occurrences.some(item => (
+      !item.uncertain
+      && !item.rejectedAfterward
+      && statementPolarities.includes(item.negated)
+    )),
+    contradicts: occurrences.some(item => (
+      !item.uncertain
+      && (
+        item.rejectedAfterward
+        || !statementPolarities.includes(item.negated)
+      )
+    )),
+  }
 }
 
 function oppositePolarityAnchorCount(statement: string, sentence: string, anchors: Set<string>) {
   return [...anchors].filter(anchor => (
-    matchedPropositionHasOppositePolarity(statement, sentence, anchor)
+    matchedPropositionAssessment(statement, sentence, anchor).contradicts
   )).length
+}
+
+function positiveRemoval(sentence: string) {
+  const matchStart = sentence.search(removalActionPattern)
+  if (matchStart < 0) return false
+  return !matchedPropositionIsNegatedAt(sentence, '取出', matchStart)
+}
+
+function retentionViolation(statement: string, sentence: string) {
+  const retention = statement.match(/直到([^，。；]{1,16}?)(?:才|才能)取出/u)
+  if (!retention || !positiveRemoval(sentence)) return false
+  const anchors = contradictionAnchors(statement, sentence)
+  if (!longestSharedSpan(statement, sentence) && anchors.size < 2) return false
+  const removalIndex = sentence.search(removalActionPattern)
+  if (
+    uncertainAssertionPattern.test(sentence.slice(0, removalIndex))
+    || /难道/u.test(sentence)
+  ) return false
+  const threshold = retention[1]?.trim()
+  if (!threshold) return false
+  if (sentence.includes(`${threshold}前`)) return true
+  if (sentence.includes(threshold) && /(?:后|时|当日|当天)/u.test(sentence)) return false
+  return true
 }
 
 export function matchManualRecallEvidence(
@@ -114,32 +177,37 @@ export function matchManualRecallEvidence(
   blocks: DraftBlock[],
 ): ManualRecallEvidenceMatch {
   const sentences = manuscriptSentences(blocks)
+  let supportingSentence: string | null = null
+  let contradictingSentence: string | null = null
 
   for (const sentence of sentences) {
     const sharedSpan = longestSharedSpan(statement, sentence)
-    if (!sharedSpan) continue
-    if (matchedPropositionHasOppositePolarity(statement, sentence, sharedSpan)) {
-      return {
-        status: 'violated',
-        evidenceQuote: sentence,
-        diagnosis: '正文中的可定位片段与记忆卡极性相反，不能视为遵循。',
+    if (sharedSpan) {
+      const assessment = matchedPropositionAssessment(statement, sentence, sharedSpan)
+      if (assessment.contradicts) contradictingSentence ||= sentence
+      if (assessment.supports) supportingSentence ||= sentence
+    }
+    if (!sharedSpan) {
+      const anchors = contradictionAnchors(statement, sentence)
+      if (oppositePolarityAnchorCount(statement, sentence, anchors) >= 2) {
+        contradictingSentence ||= sentence
       }
     }
-    return {
-      status: 'respected',
-      evidenceQuote: sentence,
-      diagnosis: '当前正文包含足够具体、极性一致且可逐字定位的召回承接证据。',
-    }
+    if (retentionViolation(statement, sentence)) contradictingSentence ||= sentence
   }
 
-  for (const sentence of sentences) {
-    const anchors = contradictionAnchors(statement, sentence)
-    if (oppositePolarityAnchorCount(statement, sentence, anchors) >= 2) {
-      return {
-        status: 'violated',
-        evidenceQuote: sentence,
-        diagnosis: '正文同时提及记忆卡中的多个具体锚点，却明确否定其成立。',
-      }
+  if (contradictingSentence) {
+    return {
+      status: 'violated',
+      evidenceQuote: contradictingSentence,
+      diagnosis: '正文中的可定位片段否定或提前破坏了记忆卡约束，不能视为遵循。',
+    }
+  }
+  if (supportingSentence) {
+    return {
+      status: 'respected',
+      evidenceQuote: supportingSentence,
+      diagnosis: '当前正文包含足够具体、极性一致且可逐字定位的召回承接证据。',
     }
   }
 

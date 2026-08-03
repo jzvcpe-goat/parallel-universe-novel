@@ -384,6 +384,48 @@ try {
 
   await page.getByRole('button', { name: '准备正史差异' }).click()
   await page.getByText('正史差异待确认', { exact: true }).first().waitFor({ timeout: 10000 })
+
+  await activeDraft.getByRole('button', { name: '编辑正文' }).click()
+  await manuscript.waitFor({ timeout: 5000 })
+  const preCommitAuthorEdit = `${await manuscript.inputValue()}\n\n守灯人把最后一笔潮汐刻度留给下一次核验。`
+  await manuscript.fill(preCommitAuthorEdit)
+  const saveBeforeCommit = page.getByRole('button', { name: '保存修改', exact: true })
+  const openCommitDialog = page.getByRole('button', { name: '确认写入本机主宇宙', exact: true })
+  await Promise.allSettled([
+    saveBeforeCommit.click(),
+    openCommitDialog.click({ force: true }),
+  ])
+  const staleCommitDialog = page.getByRole('alertdialog')
+  if (await staleCommitDialog.count()) {
+    await staleCommitDialog.getByRole('button', { name: '确认写入', exact: true }).click({ force: true })
+  }
+  let afterRacedSave = await readDecisionState(page)
+  for (let attempt = 0; attempt < 100 && afterRacedSave.session?.phase !== 'drafting'; attempt += 1) {
+    await page.waitForTimeout(100)
+    afterRacedSave = await readDecisionState(page)
+  }
+  assert(
+    afterRacedSave.session?.phase === 'drafting',
+    `saving an author edit must invalidate an already-open Canon patch, got ${afterRacedSave.session?.phase}`,
+  )
+  assert(
+    afterRacedSave.canon === null,
+    'an old Canon patch must not commit while a newer author edit is being saved',
+  )
+  assert(
+    afterRacedSave.session?.proposedCanonPatchId === null,
+    'the saved author edit must invalidate the old Canon patch before another confirmation',
+  )
+
+  await page.getByRole('button', { name: /运行本机规则检查|检查连续性与文学问题/ }).click()
+  await page.getByText('本机规则检查完成；未连接独立审阅时只报告确定性问题。', { exact: true }).waitFor({ timeout: 10000 })
+  const postRaceDismissibleFindings = page.getByRole('button', { name: '本轮忽略', exact: true })
+  while (await postRaceDismissibleFindings.count() > 0) {
+    await postRaceDismissibleFindings.first().click()
+    await page.waitForTimeout(100)
+  }
+  await page.getByRole('button', { name: '准备正史差异' }).click()
+  await page.getByText('正史差异待确认', { exact: true }).first().waitFor({ timeout: 10000 })
   await page.getByRole('button', { name: '确认写入本机主宇宙', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await dialog.waitFor({ timeout: 5000 })
