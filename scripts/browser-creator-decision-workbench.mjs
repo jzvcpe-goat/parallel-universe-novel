@@ -23,10 +23,15 @@ function gitValue(args) {
 function repositoryIdentity() {
   const checkoutSha = gitValue(['rev-parse', 'HEAD'])
   const pullRequestHeadSha = process.env.PR_HEAD_SHA || checkoutSha
+  if (checkoutSha !== pullRequestHeadSha) {
+    throw new Error(
+      `R1-A0 evidence checkout ${checkoutSha} does not match PR head ${pullRequestHeadSha}`,
+    )
+  }
   return {
     checkoutSha,
     pullRequestHeadSha,
-    pullRequestHeadTreeSha: gitValue(['rev-parse', `${pullRequestHeadSha}^{tree}`]),
+    pullRequestHeadTreeSha: gitValue(['rev-parse', 'HEAD^{tree}']),
     branch: process.env.GITHUB_HEAD_REF || gitValue(['branch', '--show-current']),
   }
 }
