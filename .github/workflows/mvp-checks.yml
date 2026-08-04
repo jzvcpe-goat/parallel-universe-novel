@@ -106,6 +106,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Verify R1-A0 writing workflow
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: npm run qa:creator-r1-a0-writing-workflow
 
       - name: Upload R1-A0 workflow evidence

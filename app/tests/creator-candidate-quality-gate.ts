@@ -671,6 +671,198 @@ assert.ok(
   'the candidate-quality gate must reject a later contradiction in the same sentence',
 )
 
+const reviewerTerminalRecallMatrix = [
+  {
+    name: 'unchanged normative constraint',
+    recallText: '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'bare not-in contradiction',
+    recallText: '银钥匙藏在旧钟内部。随后守灯人确认银钥匙不在旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'support followed by cross-block contradiction',
+    recallText: '银钥匙藏在旧钟内部。\n\n守灯人随后承认银钥匙没有藏在旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'postposed rejection',
+    recallText: '银钥匙藏在旧钟内部——这句话不属实。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'literal removal before the threshold',
+    recallText: '银钥匙曾藏在旧钟内部，但守灯人在第一次涨潮时将它取出。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'repeated support cannot hide later removal',
+    recallText: '银钥匙藏在旧钟内部。守灯人再次确认它仍在旧钟内部。随后守灯人把银钥匙从旧钟内部取出。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ordinary took-out contradiction',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙拿了出来。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ordinary moved-out contradiction',
+    recallText: '银钥匙藏在旧钟内部。后来守灯人将银钥匙移出旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'plain speech attribution',
+    recallText: '守灯人说银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'compound reported speech',
+    recallText: '据说守灯人声称银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'short hypothetical marker',
+    recallText: '若银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'full hypothetical marker',
+    recallText: '如果银钥匙必须始终藏在旧钟内部，守灯人就会等到第三次涨潮。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'common rhetorical question',
+    recallText: '谁会相信银钥匙仍藏在旧钟内部？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'rhetorical rejection',
+    recallText: '银钥匙必须始终藏在旧钟内部——难道不是荒唐的说法吗？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ambiguous double negation',
+    recallText: '不能说银钥匙没有藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'unrelated removal does not satisfy recall',
+    recallText: '她从药箱里取出最后一卷绷带。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'supporting negation remains factual support',
+    recallText: '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'removal after the threshold is compliant',
+    recallText: '银钥匙一直藏在旧钟内部。第三次涨潮后，守灯人把银钥匙拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+] as const
+
+for (const [index, testCase] of reviewerTerminalRecallMatrix.entries()) {
+  const text = [
+    testCase.recallText,
+    blockText,
+    ...Array.from(
+      { length: 18 },
+      (_, continuationIndex) => (
+        `${reviewerPositiveContinuation}第${continuationIndex + 1}次校准后，刻度、权限和责任都有可见变化。`
+      ),
+    ),
+  ].join('')
+  const draftSeed: SceneDraftResult = {
+    ...baseDraft,
+    draftId: `draft:reviewer-terminal-recall:${index}`,
+    revision: 1,
+    baseDraftRevision: 0,
+    contentBlocks: [{
+      id: `block:reviewer-terminal-recall:${index}`,
+      text,
+      startOffset: 0,
+      endOffset: text.length,
+      protected: false,
+    }],
+  }
+  const directionEvidence = evidenceForDraftQuote(draftSeed.contentBlocks, blockText)
+  assert.ok(directionEvidence)
+  const matrixDraft: SceneDraftResult = {
+    ...draftSeed,
+    directionReceipt: {
+      schemaVersion: 'scene-draft-direction-receipt.v1',
+      decision: 'pass',
+      axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+        axis,
+        expectedValue,
+      ]) => ({
+        axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+        expectedValue,
+        evidence: directionEvidence,
+      })),
+      proposedAdjustmentEvidence: directionEvidence,
+      reviewer: 'Auditor',
+    },
+  }
+  const matrixSession: CreationSession = {
+    ...session,
+    currentDraftRevision: matrixDraft.revision,
+    activeDraftId: matrixDraft.draftId,
+    activeReviewId: null,
+  }
+  const matrixReview = await referenceWritingAgent.reviewDraft({
+    session: matrixSession,
+    intent,
+    context: reviewerHardNegativeContext,
+    candidate: reviewerHardNegativeCandidate,
+    draft: matrixDraft,
+  })
+  assert.equal(
+    matrixReview.manualRecallAdherence?.checks[0]?.status,
+    testCase.expectedStatus,
+    `${testCase.name}: production review status`,
+  )
+  const matrixGate = evaluateCandidateQualityGate({
+    session: { ...matrixSession, activeReviewId: matrixReview.id },
+    intent,
+    context: reviewerHardNegativeContext,
+    draft: matrixDraft,
+    review: matrixReview,
+    repairs: [],
+  })
+  assert.equal(
+    matrixGate.allowed,
+    testCase.expectedAllowed,
+    `${testCase.name}: candidate gate decision`,
+  )
+  assert.equal(
+    matrixGate.blockers.some(blocker => blocker.code === 'manual_recall_receipt_rejected'),
+    !testCase.expectedAllowed,
+    `${testCase.name}: manual recall blocker`,
+  )
+}
+
 const mismatchedRecallReview = evaluateCandidateQualityGate({
   session,
   intent,

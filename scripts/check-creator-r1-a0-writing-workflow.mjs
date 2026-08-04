@@ -21,6 +21,9 @@ function requireMarkers(path, markers) {
 
 const browser = requireMarkers('scripts/browser-creator-decision-workbench.mjs', [
   "fileURLToPath(new URL('..', import.meta.url))",
+  'repositoryIdentity',
+  'pullRequestHeadSha',
+  'pullRequestHeadTreeSha',
   'creator-recall-item',
   'contextSnapshots',
   'manualRecallAdherence',
@@ -56,6 +59,9 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'matchedPropositionAssessment',
   'oppositePolarityAnchorCount',
   'retentionViolation',
+  'structuredRetentionAssessment',
+  'assertionModeAt',
+  'actualRemoval',
   'contradictingSentence',
 ])
 if (recallEvidence.includes('length >= 2')) {
@@ -70,6 +76,10 @@ requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'reviewerLaterContradictionRecallText',
   'reviewerLaterContradictionGate',
   'staleRecallRevisionReview',
+  'reviewerTerminalRecallMatrix',
+  'unchanged normative constraint',
+  'ordinary took-out contradiction',
+  'plain speech attribution',
   'manual_recall_receipt_rejected',
 ])
 

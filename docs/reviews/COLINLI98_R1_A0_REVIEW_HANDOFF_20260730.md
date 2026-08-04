@@ -8,7 +8,7 @@
 
 **审阅分支：** `codex/r1-a0-writing-workflow-integration`
 
-**代码实现 commit：** `630caa7dcc3da19c206952621183ddced4c94865`
+**审阅提交：** PR #9 当前 `headRefOid`，禁止使用本文中的静态 SHA 代替实时 HEAD
 
 **R0 基线 tag：** `creator-mvp-r0`
 
@@ -16,9 +16,9 @@
 
 **独立 Reviewer：** ColinLi98
 
-> 审阅时以 PR #9 显示的最新 HEAD 为准。本 handoff 在代码实现 commit
-> 之后补入，因此 PR 最新 HEAD 可能只比 `630caa7` 多一份 handoff 文档。
-> Reviewer 必须核对最新 HEAD 的 CI，不以本文件记录代替 GitHub 实际状态。
+> 审阅时以 PR #9 显示的最新 HEAD 为准。Reviewer 必须在开始与结束时分别
+> 核对 `headRefOid`、CI checkout、artifact 内嵌的 `pullRequestHeadSha` 与
+> `pullRequestHeadTreeSha`，不以本文件、旧截图或旧运行记录代替 GitHub 实际状态。
 
 ## 1. 这次需要 Colin 做什么
 

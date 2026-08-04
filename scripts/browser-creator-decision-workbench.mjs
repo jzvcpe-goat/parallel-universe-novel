@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { join } from 'node:path'
@@ -12,6 +12,24 @@ const evidencePath = join(artifactDir, 'creator-decision-workbench.json')
 const screenshotPath = join(artifactDir, 'creator-decision-workbench.png')
 const children = []
 const logs = []
+
+function gitValue(args) {
+  return execFileSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+  }).trim()
+}
+
+function repositoryIdentity() {
+  const checkoutSha = gitValue(['rev-parse', 'HEAD'])
+  const pullRequestHeadSha = process.env.PR_HEAD_SHA || checkoutSha
+  return {
+    checkoutSha,
+    pullRequestHeadSha,
+    pullRequestHeadTreeSha: gitValue(['rev-parse', `${pullRequestHeadSha}^{tree}`]),
+    branch: process.env.GITHUB_HEAD_REF || gitValue(['branch', '--show-current']),
+  }
+}
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -521,6 +539,7 @@ try {
   const evidence = {
     status: 'pass',
     gate: 'R1_A0_WRITING_WORKFLOW_INTEGRATION',
+    repository: repositoryIdentity(),
     route,
     questionCount,
     selectedRecallId,

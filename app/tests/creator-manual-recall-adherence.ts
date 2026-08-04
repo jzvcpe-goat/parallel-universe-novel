@@ -56,6 +56,16 @@ const recalls: ManualRecallItem[] = [
 const silverKeyPromise = '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出'
 const recallEvidenceCases = [
   {
+    name: 'the unchanged normative constraint is supporting evidence',
+    text: '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    status: 'respected',
+  },
+  {
+    name: 'the normative constraint remains support inside surrounding prose',
+    text: '守灯人复核封条。银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。潮声仍在远处。',
+    status: 'respected',
+  },
+  {
     name: 'later contradiction in the same sentence',
     text: '银钥匙藏在旧钟内部。下一刻守灯人承认银钥匙没有藏在旧钟内部。',
     status: 'violated',
@@ -81,6 +91,26 @@ const recallEvidenceCases = [
     status: 'violated',
   },
   {
+    name: 'bare not-in wording overrides earlier support',
+    text: '银钥匙藏在旧钟内部。随后守灯人确认银钥匙不在旧钟内部。',
+    status: 'violated',
+  },
+  {
+    name: 'ordinary took-out wording overrides earlier support',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙拿了出来。',
+    status: 'violated',
+  },
+  {
+    name: 'ordinary moved-out wording overrides earlier support',
+    text: '银钥匙藏在旧钟内部。后来守灯人将银钥匙移出旧钟内部。',
+    status: 'violated',
+  },
+  {
+    name: 'removal after the threshold is allowed',
+    text: '银钥匙一直藏在旧钟内部。第三次涨潮后，守灯人把银钥匙拿了出来。',
+    status: 'respected',
+  },
+  {
     name: 'reported speech is not evidence',
     text: '据说守灯人声称银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
     status: 'omitted',
@@ -89,6 +119,26 @@ const recallEvidenceCases = [
     name: 'hypothetical mention is not evidence',
     text: '如果银钥匙必须始终藏在旧钟内部，守灯人就会等到第三次涨潮。',
     status: 'omitted',
+  },
+  {
+    name: 'plain speech attribution is not evidence',
+    text: '守灯人说银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'short hypothetical marker is not evidence',
+    text: '若银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'common rhetorical question is not evidence',
+    text: '谁会相信银钥匙仍藏在旧钟内部？',
+    status: 'omitted',
+  },
+  {
+    name: 'a report followed by a separate factual assertion is accepted',
+    text: '守灯人说银钥匙仍藏在旧钟内部。开钟验看后，银钥匙确实仍藏在旧钟内部。',
+    status: 'respected',
   },
   {
     name: 'rhetorical rejection is not evidence',
