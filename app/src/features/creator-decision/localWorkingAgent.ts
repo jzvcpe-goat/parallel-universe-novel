@@ -1004,6 +1004,7 @@ export async function requestManualRecallAdherenceReviewFromWorkingAgent(input: 
     payload: {
       selectedManualRecallItems: input.selectedRecallItems.map(item => ({
         sourceId: item.sourceId,
+        sourceRevision: item.sourceRevision,
         group: item.group,
         statement: item.statement,
         whyNow: item.whyNow,

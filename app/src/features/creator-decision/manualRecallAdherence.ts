@@ -35,10 +35,15 @@ export function createManualRecallAdherenceReceipt(input: {
 
   const receiptChecks = checks.map((check, index) => {
     const recall = expected[index]
-    if (!recall || check.sourceId !== recall.sourceId || check.group !== recall.group) {
+    if (
+      !recall
+      || check.sourceId !== recall.sourceId
+      || check.sourceRevision !== recall.sourceRevision
+      || check.group !== recall.group
+    ) {
       throw new CreationDecisionError(
         'model_output_invalid',
-        'Manual recall adherence review changed the selected source order or recall group.',
+        'Manual recall adherence review changed the selected source order, revision, or recall group.',
       )
     }
     if (check.status !== 'omitted' && check.evidenceQuotes.length === 0) {
@@ -59,6 +64,7 @@ export function createManualRecallAdherenceReceipt(input: {
     })
     return {
       sourceId: check.sourceId,
+      sourceRevision: check.sourceRevision,
       group: check.group,
       status: check.status,
       evidence,

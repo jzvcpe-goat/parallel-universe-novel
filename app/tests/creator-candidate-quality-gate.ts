@@ -8,11 +8,13 @@ import {
   contextSnapshotFingerprint,
 } from '../src/features/creator-decision/contextCompiler'
 import { evidenceForDraftQuote } from '../src/features/creator-decision/literaryReview'
+import { referenceWritingAgent } from '../src/features/creator-decision/referenceWritingAgent'
 import type {
   AuthorIntentContract,
   ContextSnapshot,
   CreationSession,
   LiteraryReview,
+  NarrativeCandidate,
   RepairProposal,
   SceneDraftResult,
 } from '../src/features/creator-decision/types'
@@ -374,6 +376,7 @@ const recallReview: LiteraryReview = {
     decision: 'pass',
     checks: [{
       sourceId: recallContext.manualRecallItems[0].sourceId,
+      sourceRevision: recallContext.manualRecallItems[0].sourceRevision,
       group: recallContext.manualRecallItems[0].group,
       status: 'fulfilled',
       evidence,
@@ -429,6 +432,743 @@ assert.deepEqual(rejectedRecallReview.blockers, [{
   count: 1,
 }])
 
+const reviewerHardNegativeRecall = {
+  id: 'manual-recall:reviewer-hard-negative',
+  sourceId: 'canon:silver-key-promise',
+  sourceRevision: 1,
+  authority: 'canon' as const,
+  group: 'promise' as const,
+  statement: '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出',
+  sourceLabel: '银钥匙长期承诺',
+  whyNow: '当前场景不得提前取出或否定这项长期承诺。',
+  locator: {
+    kind: 'canon' as const,
+    targetId: 'canon:silver-key-promise',
+    label: '银钥匙长期承诺',
+  },
+}
+const reviewerHardNegativeContextSeed: ContextSnapshot = {
+  ...context,
+  id: 'context:reviewer-hard-negative',
+  manualRecallItems: [reviewerHardNegativeRecall],
+}
+const reviewerHardNegativeContext: ContextSnapshot = {
+  ...reviewerHardNegativeContextSeed,
+  contentFingerprint: contextSnapshotFingerprint(reviewerHardNegativeContextSeed),
+}
+const reviewerHardNegativeText = '她必须马上打开北侧的门。屋里没有钥匙、旧钟、涨潮或任何与那份长期承诺有关的事物。'
+const reviewerHardNegativeDraft: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-hard-negative',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-hard-negative',
+    text: reviewerHardNegativeText,
+    startOffset: 0,
+    endOffset: reviewerHardNegativeText.length,
+    protected: false,
+  }],
+  directionReceipt: undefined,
+}
+const reviewerHardNegativeSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerHardNegativeDraft.revision,
+  activeDraftId: reviewerHardNegativeDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerHardNegativeCandidate = {
+  id: reviewerHardNegativeSession.selectedCandidateId!,
+  revision: reviewerHardNegativeSession.currentCandidateRevision,
+} as NarrativeCandidate
+const reviewerHardNegativeReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerHardNegativeSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerHardNegativeDraft,
+})
+assert.equal(reviewerHardNegativeReview.manualRecallAdherence?.decision, 'reject')
+assert.equal(reviewerHardNegativeReview.manualRecallAdherence?.checks[0]?.status, 'violated')
+assert.ok(
+  reviewerHardNegativeReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'contradictory recall evidence must remain locatable in the candidate manuscript',
+)
+const reviewerHardNegativeGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerHardNegativeSession,
+    activeReviewId: reviewerHardNegativeReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerHardNegativeDraft,
+  review: reviewerHardNegativeReview,
+  repairs: [],
+})
+assert.equal(reviewerHardNegativeGate.allowed, false)
+assert.ok(
+  reviewerHardNegativeGate.blockers.some(blocker => blocker.code === 'manual_recall_receipt_rejected'),
+  'the real review receipt must block contradictory prose at the candidate-quality gate',
+)
+
+const reviewerPositiveRecallText = '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。'
+const reviewerPositiveContinuation = '升降机沿潮湿井壁下降，主角逐段核对刻度，把唯一配重芯的校准职责交给同伴。风压每次改变，双方都重新确认权限与代价，职责交付因此成为真实行动，并留下必须偿还的未来义务。'
+const reviewerPositiveText = [
+  reviewerPositiveRecallText,
+  blockText,
+  ...Array.from({ length: 18 }, (_, index) => `${reviewerPositiveContinuation}第${index + 1}次校准后，刻度、权限和责任都有可见变化。`),
+].join('')
+const reviewerPositiveDraftSeed: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-positive-recall',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-positive-recall',
+    text: reviewerPositiveText,
+    startOffset: 0,
+    endOffset: reviewerPositiveText.length,
+    protected: false,
+  }],
+}
+const reviewerPositiveDirectionEvidence = evidenceForDraftQuote(
+  reviewerPositiveDraftSeed.contentBlocks,
+  blockText,
+)
+assert.ok(reviewerPositiveDirectionEvidence)
+const reviewerPositiveDraft: SceneDraftResult = {
+  ...reviewerPositiveDraftSeed,
+  directionReceipt: {
+    schemaVersion: 'scene-draft-direction-receipt.v1',
+    decision: 'pass',
+    axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+      axis,
+      expectedValue,
+    ]) => ({
+      axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+      expectedValue,
+      evidence: reviewerPositiveDirectionEvidence,
+    })),
+    proposedAdjustmentEvidence: reviewerPositiveDirectionEvidence,
+    reviewer: 'Auditor',
+  },
+}
+const reviewerPositiveSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerPositiveDraft.revision,
+  activeDraftId: reviewerPositiveDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerPositiveReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerPositiveSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerPositiveDraft,
+})
+assert.equal(reviewerPositiveReview.manualRecallAdherence?.decision, 'pass')
+assert.equal(reviewerPositiveReview.manualRecallAdherence?.checks[0]?.status, 'respected')
+assert.ok(
+  reviewerPositiveReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'valid recall adherence must retain locatable manuscript evidence',
+)
+const reviewerPositiveGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerPositiveSession,
+    activeReviewId: reviewerPositiveReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerPositiveDraft,
+  review: reviewerPositiveReview,
+  repairs: [],
+})
+assert.deepEqual(
+  reviewerPositiveGate,
+  { allowed: true, blockers: [] },
+  'supporting negation must not block a candidate that respects the recalled proposition',
+)
+
+const reviewerLaterContradictionRecallText = '守灯人先声称银钥匙藏在旧钟内部，然而银钥匙没有藏在旧钟内部。'
+const reviewerLaterContradictionText = [
+  reviewerLaterContradictionRecallText,
+  blockText,
+  ...Array.from({ length: 18 }, (_, index) => `${reviewerPositiveContinuation}第${index + 1}次校准后，刻度、权限和责任都有可见变化。`),
+].join('')
+const reviewerLaterContradictionDraftSeed: SceneDraftResult = {
+  ...baseDraft,
+  draftId: 'draft:reviewer-later-contradiction',
+  revision: 1,
+  baseDraftRevision: 0,
+  contentBlocks: [{
+    id: 'block:reviewer-later-contradiction',
+    text: reviewerLaterContradictionText,
+    startOffset: 0,
+    endOffset: reviewerLaterContradictionText.length,
+    protected: false,
+  }],
+}
+const reviewerLaterContradictionDirectionEvidence = evidenceForDraftQuote(
+  reviewerLaterContradictionDraftSeed.contentBlocks,
+  blockText,
+)
+assert.ok(reviewerLaterContradictionDirectionEvidence)
+const reviewerLaterContradictionDraft: SceneDraftResult = {
+  ...reviewerLaterContradictionDraftSeed,
+  directionReceipt: {
+    schemaVersion: 'scene-draft-direction-receipt.v1',
+    decision: 'pass',
+    axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+      axis,
+      expectedValue,
+    ]) => ({
+      axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+      expectedValue,
+      evidence: reviewerLaterContradictionDirectionEvidence,
+    })),
+    proposedAdjustmentEvidence: reviewerLaterContradictionDirectionEvidence,
+    reviewer: 'Auditor',
+  },
+}
+const reviewerLaterContradictionSession: CreationSession = {
+  ...session,
+  currentDraftRevision: reviewerLaterContradictionDraft.revision,
+  activeDraftId: reviewerLaterContradictionDraft.draftId,
+  activeReviewId: null,
+}
+const reviewerLaterContradictionReview = await referenceWritingAgent.reviewDraft({
+  session: reviewerLaterContradictionSession,
+  intent,
+  context: reviewerHardNegativeContext,
+  candidate: reviewerHardNegativeCandidate,
+  draft: reviewerLaterContradictionDraft,
+})
+assert.equal(reviewerLaterContradictionReview.manualRecallAdherence?.decision, 'reject')
+assert.equal(
+  reviewerLaterContradictionReview.manualRecallAdherence?.checks[0]?.status,
+  'violated',
+)
+assert.ok(
+  reviewerLaterContradictionReview.manualRecallAdherence?.checks[0]?.evidence.length,
+  'a later contradiction must remain locatable even after an earlier matching proposition',
+)
+const reviewerLaterContradictionGate = evaluateCandidateQualityGate({
+  session: {
+    ...reviewerLaterContradictionSession,
+    activeReviewId: reviewerLaterContradictionReview.id,
+  },
+  intent,
+  context: reviewerHardNegativeContext,
+  draft: reviewerLaterContradictionDraft,
+  review: reviewerLaterContradictionReview,
+  repairs: [],
+})
+assert.equal(reviewerLaterContradictionGate.allowed, false)
+assert.ok(
+  reviewerLaterContradictionGate.blockers.some(
+    blocker => blocker.code === 'manual_recall_receipt_rejected',
+  ),
+  'the candidate-quality gate must reject a later contradiction in the same sentence',
+)
+
+const reviewerTerminalRecallMatrix = [
+  {
+    name: 'unchanged normative constraint',
+    recallText: '银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'bare not-in contradiction',
+    recallText: '银钥匙藏在旧钟内部。随后守灯人确认银钥匙不在旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'support followed by cross-block contradiction',
+    recallText: '银钥匙藏在旧钟内部。\n\n守灯人随后承认银钥匙没有藏在旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'postposed rejection',
+    recallText: '银钥匙藏在旧钟内部——这句话不属实。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'literal removal before the threshold',
+    recallText: '银钥匙曾藏在旧钟内部，但守灯人在第一次涨潮时将它取出。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'repeated support cannot hide later removal',
+    recallText: '银钥匙藏在旧钟内部。守灯人再次确认它仍在旧钟内部。随后守灯人把银钥匙从旧钟内部取出。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ordinary took-out contradiction',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙拿了出来。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ordinary moved-out contradiction',
+    recallText: '银钥匙藏在旧钟内部。后来守灯人将银钥匙移出旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'plain speech attribution',
+    recallText: '守灯人说银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'compound reported speech',
+    recallText: '据说守灯人声称银钥匙必须始终藏在旧钟内部，直到第三次涨潮才能取出。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'short hypothetical marker',
+    recallText: '若银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'full hypothetical marker',
+    recallText: '如果银钥匙必须始终藏在旧钟内部，守灯人就会等到第三次涨潮。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'common rhetorical question',
+    recallText: '谁会相信银钥匙仍藏在旧钟内部？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'rhetorical rejection',
+    recallText: '银钥匙必须始终藏在旧钟内部——难道不是荒唐的说法吗？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'ambiguous double negation',
+    recallText: '不能说银钥匙没有藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'unrelated removal does not satisfy recall',
+    recallText: '她从药箱里取出最后一卷绷带。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'supporting negation remains factual support',
+    recallText: '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'removal after the threshold is compliant',
+    recallText: '银钥匙一直藏在旧钟内部。第三次涨潮后，守灯人把银钥匙拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'unrelated removal in a supporting sentence',
+    recallText: '银钥匙仍藏在旧钟内部，守灯人从药箱里取出一卷绷带。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'unrelated removal joined without punctuation',
+    recallText: '银钥匙仍藏在旧钟内部而守灯人从药箱里拿出绷带。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'pronoun follows the nearest explicit map object',
+    recallText: '银钥匙仍藏在旧钟内部。\n\n守灯人拿起旧地图。第二次涨潮时，他把它拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'unclassified pronoun state change fails closed',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人对它做了无法识别的处置。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'container lookup cannot find the key',
+    recallText: '银钥匙藏在旧钟内部。后来打开钟门时，旧钟内部已找不到银钥匙。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is hidden outside the clock',
+    recallText: '银钥匙藏在旧钟内部。后来银钥匙被藏到了旧钟外部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'postposed key is extracted from the clock',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时守灯人从旧钟内部抽出了银钥匙。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is taken away before the threshold',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙带走了。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is transferred to a drawer',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时银钥匙已被转移到灯塔抽屉。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key leaves the clock',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙已经离开了旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key disappears from the clock',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙从旧钟内部消失了。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is handed to the captain',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙交给了船长。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is placed in a pocket',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙塞进了自己的衣袋。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is missing during a seal check',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮后检查封条时，银钥匙已经不见了。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'later denial refers to prior support',
+    recallText: '银钥匙藏在旧钟内部——守灯人随后否认了此事。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'later fabrication claim refers to prior support',
+    recallText: '银钥匙藏在旧钟内部；这话纯属杜撰。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'repeated support blocks cannot hide extraction',
+    recallText: '银钥匙藏在旧钟内部。\n\n银钥匙藏在旧钟内部。\n\n第二次涨潮时守灯人从旧钟内部抽出了银钥匙。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'pronoun extraction resolves to active key',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把它拿了出来。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'before-threshold pronoun extraction',
+    recallText: '银钥匙藏在旧钟内部。还没到第三次涨潮，守灯人便取出了它。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'later threshold reminder does not excuse early removal',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙拿出旧钟内部，尽管约定写着第三次涨潮后。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'normative future extraction is not actual removal',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人必须等到第三次涨潮才能把银钥匙从旧钟内部拿出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'fourth-tide extraction plan is not actual removal',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人打算等第四次涨潮后再把银钥匙取出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'fourth-tide pronoun extraction plan is not actual removal',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人计划在第四次涨潮时再把它拿出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'just-passed threshold permits extraction',
+    recallText: '银钥匙一直藏在旧钟内部。第三次涨潮刚过，守灯人把银钥匙拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'unrealized extraction preserves the constraint',
+    recallText: '银钥匙仍在旧钟内部，尚未取出。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'speech attribution before comma',
+    recallText: '守灯人说，银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'rumor attribution',
+    recallText: '根据传闻，银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'legend attribution',
+    recallText: '相传银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'written attribution',
+    recallText: '航海日志写着：银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'assumption',
+    recallText: '假设银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'colon assumption',
+    recallText: '假设：银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'as-long-as condition',
+    recallText: '只要银钥匙仍藏在旧钟内部，守灯人就继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'unless condition',
+    recallText: '除非银钥匙仍藏在旧钟内部，守灯人才继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'whether concession',
+    recallText: '无论银钥匙是否仍藏在旧钟内部，守灯人都会继续等待。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'plain question',
+    recallText: '银钥匙仍藏在旧钟内部吗？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'speculative question',
+    recallText: '莫非银钥匙仍藏在旧钟内部？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'rhetorical how question',
+    recallText: '银钥匙怎会仍藏在旧钟内部？',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'disbelief statement',
+    recallText: '谁都不会相信银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'so-called speculative claim',
+    recallText: '所谓“银钥匙仍藏在旧钟内部”只是一种猜测。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'pending confirmation',
+    recallText: '银钥匙是否仍藏在旧钟内部，尚待确认。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'seemingly factual claim',
+    recallText: '银钥匙似乎仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'possibly factual claim',
+    recallText: '银钥匙或许仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'container alias and key alias extraction',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人从钟腔里取出了那枚钥匙。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'seal inspection preserves prior support',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人检查了银钥匙的封条。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'empty constrained container',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟内部已经空无一物。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'dust-only constrained container',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟里面只剩灰尘。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'executed action according to plan',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时守灯人按计划把银钥匙拿了出来。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'cross-block threshold time permits extraction',
+    recallText: '银钥匙一直藏在旧钟内部。\n\n第三次涨潮刚过。\n\n守灯人把银钥匙拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'quoted direct speech',
+    recallText: '守灯人低声道：“银钥匙仍藏在旧钟内部。”',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'postposed direct-speech attribution',
+    recallText: '“银钥匙仍藏在旧钟内部”，守灯人回答。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'unrelated question after factual support',
+    recallText: '银钥匙仍藏在旧钟内部，谁去守北门？',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+] as const
+
+for (const [index, testCase] of reviewerTerminalRecallMatrix.entries()) {
+  const text = [
+    testCase.recallText,
+    blockText,
+    ...Array.from(
+      { length: 18 },
+      (_, continuationIndex) => (
+        `${reviewerPositiveContinuation}第${continuationIndex + 1}次校准后，刻度、权限和责任都有可见变化。`
+      ),
+    ),
+  ].join('')
+  const draftSeed: SceneDraftResult = {
+    ...baseDraft,
+    draftId: `draft:reviewer-terminal-recall:${index}`,
+    revision: 1,
+    baseDraftRevision: 0,
+    contentBlocks: [{
+      id: `block:reviewer-terminal-recall:${index}`,
+      text,
+      startOffset: 0,
+      endOffset: text.length,
+      protected: false,
+    }],
+  }
+  const directionEvidence = evidenceForDraftQuote(draftSeed.contentBlocks, blockText)
+  assert.ok(directionEvidence)
+  const matrixDraft: SceneDraftResult = {
+    ...draftSeed,
+    directionReceipt: {
+      schemaVersion: 'scene-draft-direction-receipt.v1',
+      decision: 'pass',
+      axisChecks: Object.entries(intent.sceneMechanismDirection!.expectedMechanismSignature).map(([
+        axis,
+        expectedValue,
+      ]) => ({
+        axis: axis as keyof typeof intent.sceneMechanismDirection.expectedMechanismSignature,
+        expectedValue,
+        evidence: directionEvidence,
+      })),
+      proposedAdjustmentEvidence: directionEvidence,
+      reviewer: 'Auditor',
+    },
+  }
+  const matrixSession: CreationSession = {
+    ...session,
+    currentDraftRevision: matrixDraft.revision,
+    activeDraftId: matrixDraft.draftId,
+    activeReviewId: null,
+  }
+  const matrixReview = await referenceWritingAgent.reviewDraft({
+    session: matrixSession,
+    intent,
+    context: reviewerHardNegativeContext,
+    candidate: reviewerHardNegativeCandidate,
+    draft: matrixDraft,
+  })
+  assert.equal(
+    matrixReview.manualRecallAdherence?.checks[0]?.status,
+    testCase.expectedStatus,
+    `${testCase.name}: production review status`,
+  )
+  const matrixGate = evaluateCandidateQualityGate({
+    session: { ...matrixSession, activeReviewId: matrixReview.id },
+    intent,
+    context: reviewerHardNegativeContext,
+    draft: matrixDraft,
+    review: matrixReview,
+    repairs: [],
+  })
+  assert.equal(
+    matrixGate.allowed,
+    testCase.expectedAllowed,
+    `${testCase.name}: candidate gate decision`,
+  )
+  assert.equal(
+    matrixGate.blockers.some(blocker => blocker.code === 'manual_recall_receipt_rejected'),
+    !testCase.expectedAllowed,
+    `${testCase.name}: manual recall blocker`,
+  )
+}
+
 const mismatchedRecallReview = evaluateCandidateQualityGate({
   session,
   intent,
@@ -447,6 +1187,28 @@ const mismatchedRecallReview = evaluateCandidateQualityGate({
   repairs: [],
 })
 assert.ok(mismatchedRecallReview.blockers.some(item => item.code === 'manual_recall_receipt_mismatch'))
+
+const staleRecallRevisionReview = evaluateCandidateQualityGate({
+  session,
+  intent,
+  context: recallContext,
+  draft,
+  review: {
+    ...recallReview,
+    manualRecallAdherence: {
+      ...recallReview.manualRecallAdherence!,
+      checks: recallReview.manualRecallAdherence!.checks.map(check => ({
+        ...check,
+        sourceRevision: check.sourceRevision + 1,
+      })),
+    },
+  },
+  repairs: [],
+})
+assert.ok(
+  staleRecallRevisionReview.blockers.some(item => item.code === 'manual_recall_receipt_mismatch'),
+  'a receipt for another source revision must not authorize the current recall selection',
+)
 
 const invalidRecallEvidence = evaluateCandidateQualityGate({
   session,

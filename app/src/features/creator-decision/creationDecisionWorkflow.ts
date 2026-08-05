@@ -1330,22 +1330,34 @@ export class CreationDecisionWorkflow {
   }
 
   async confirmCanon(snapshot: CreationDecisionSnapshot): Promise<CreationDecisionCommandResult<CanonCommitResult>> {
-    const currentContext = currentContextSnapshot(snapshot)
+    const latest = await this.reload(snapshot.session.id)
+    if (
+      latest.session.activeDraftId !== snapshot.session.activeDraftId
+      || latest.session.currentDraftRevision !== snapshot.session.currentDraftRevision
+      || latest.session.activeReviewId !== snapshot.session.activeReviewId
+      || latest.session.proposedCanonPatchId !== snapshot.session.proposedCanonPatchId
+    ) {
+      throw new CreationDecisionError(
+        'draft_revision_conflict',
+        'The manuscript changed after canon confirmation was opened.',
+      )
+    }
+    const currentContext = currentContextSnapshot(latest)
     if (!currentContext) throw new CreationDecisionError('stale_result', 'The context snapshot is no longer current.')
     const context = assertContextSnapshotIntegrity(currentContext)
-    const draft = requireActiveDraft(snapshot)
-    const review = requireActiveReview(snapshot)
-    const patch = activeCanonPatch(snapshot)
+    const draft = requireActiveDraft(latest)
+    const review = requireActiveReview(latest)
+    const patch = activeCanonPatch(latest)
     if (!patch) throw new CreationDecisionError('stale_result', 'Prepare the canon diff before confirming it.')
     const result = await this.repository.commitCanon({
-      session: snapshot.session,
-      intent: requireIntent(snapshot),
+      session: latest.session,
+      intent: requireIntent(latest),
       context,
       draft,
       review,
-      repairs: snapshot.repairs,
+      repairs: latest.repairs,
       patch,
-      currentCanon: snapshot.canon,
+      currentCanon: latest.canon,
       authorConfirmed: true,
       confirmedAt: new Date().toISOString(),
     })

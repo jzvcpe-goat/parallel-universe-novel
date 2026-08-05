@@ -7,6 +7,15 @@ import {
   excerptHash,
 } from './literaryReview'
 import {
+  buildLocalRepairIntentPreservationRequirements,
+  localRepairIntentPreservationIssues,
+} from './localRepairIntentPreservation'
+import {
+  createManualRecallAdherenceReceipt,
+  manualRecallAdherenceViolations,
+} from './manualRecallAdherence'
+import { matchManualRecallEvidence } from './manualRecallEvidence'
+import {
   applySceneDraftToBlocks,
   countVisibleCharacters,
   createDraftResult,
@@ -26,10 +35,13 @@ import type {
   DraftBlock,
   InformationMode,
   IntentQuestion,
+  LocalRepairCandidate,
+  LocalRepairReview,
   LiteraryFinding,
   NarrativeCandidate,
   NarrativeBeat,
   SceneMechanismSignature,
+  StatePatchOperation,
   WritingAgentCapabilities,
 } from './types'
 
@@ -40,6 +52,14 @@ function stableId(prefix: string, value: string) {
     hash = Math.imul(hash, 16777619)
   }
   return `${prefix}:${Math.abs(hash >>> 0).toString(36)}`
+}
+
+function evidenceQuoteContaining(text: string, anchors: string[]) {
+  const positions = anchors.map(anchor => text.indexOf(anchor))
+  if (positions.some(position => position < 0)) return null
+  const start = Math.min(...positions)
+  const end = Math.max(...positions.map((position, index) => position + anchors[index]!.length))
+  return text.slice(start, end)
 }
 
 function intentQuestions(intent: AuthorIntentContract): IntentQuestion[] {
@@ -607,8 +627,9 @@ export const referenceWritingAgent: WritingAgentCapabilities = {
       .find(character => character.id === input.intent.characterAgency.primaryActorId)
       ?.state
     const currentRelationshipPosition = actorState?.relationshipStances || actorState?.relationshipPosition
-    const observedStateChanges = evidenceBlockId
-      ? [{
+    const observedStateChanges: StatePatchOperation[] = []
+    if (evidenceBlockId) {
+      observedStateChanges.push({
           op: currentRelationshipPosition === undefined ? 'add' as const : 'replace' as const,
           path: normalizeCharacterStatePath(
             `/characters/${input.intent.characterAgency.primaryActorId}/relationshipStances`,
@@ -620,8 +641,34 @@ export const referenceWritingAgent: WritingAgentCapabilities = {
           evidenceBlockIds: [evidenceBlockId],
           reason: input.intent.narrativeDelta.mustChange,
           irreversible: Boolean(input.intent.narrativeDelta.irreversibleChange),
-        }]
-      : []
+      })
+      const informationBoundary = input.intent.informationPolicy.charactersMustNotKnow[0]
+        || input.intent.informationPolicy.delayedReveals[0]
+      if (informationBoundary) {
+        const statement = typeof informationBoundary === 'string'
+          ? informationBoundary
+          : informationBoundary.information
+        observedStateChanges.push({
+          op: 'add',
+          path: `/world/informationBoundaries/${stableId('boundary', statement)}/status`,
+          value: 'withheld',
+          evidenceBlockIds: [evidenceBlockId],
+          reason: `本场继续保留信息边界：${statement}`,
+          irreversible: false,
+        })
+      }
+      const recalledPromise = input.context.manualRecallItems.find(item => item.group === 'promise')
+      if (recalledPromise) {
+        observedStateChanges.push({
+          op: 'add',
+          path: `/promises/${stableId('reader-promise', recalledPromise.sourceId)}/status`,
+          value: 'advanced',
+          evidenceBlockIds: [evidenceBlockId],
+          reason: recalledPromise.statement,
+          irreversible: false,
+        })
+      }
+    }
     return createDraftResult({
       request: input.request,
       contentBlocks,
@@ -814,15 +861,143 @@ export const referenceWritingAgent: WritingAgentCapabilities = {
         deterministicViolations.push(`state_patch_evidence_missing:${operation.path}`)
       }
     }
+    const manualRecallAdherence = input.context.manualRecallItems.length
+      ? createManualRecallAdherenceReceipt({
+          review: {
+            schemaVersion: 'creator-manual-recall-adherence-review.v1',
+            decision: input.context.manualRecallItems.every(item => (
+              matchManualRecallEvidence(item.statement, blocks).status === 'respected'
+            )) ? 'pass' : 'reject',
+            checks: input.context.manualRecallItems.map(item => {
+              const match = matchManualRecallEvidence(item.statement, blocks)
+              return {
+                sourceId: item.sourceId,
+                sourceRevision: item.sourceRevision,
+                group: item.group,
+                status: match.status,
+                evidenceQuotes: match.evidenceQuote ? [match.evidenceQuote] : [],
+                diagnosis: match.diagnosis,
+              }
+            }),
+            rationale: '本机参考审阅只接受足够具体、极性一致且可定位的正文证据；缺失或矛盾时拒绝。',
+          },
+          selectedRecallItems: input.context.manualRecallItems,
+          draftBlocks: blocks,
+        })
+      : undefined
+    if (manualRecallAdherence) {
+      deterministicViolations.push(...manualRecallAdherenceViolations(manualRecallAdherence))
+    }
     return createLiteraryReview({
       id: stableId('literary-review', `${input.draft.draftId}:${input.draft.revision}`),
       sessionId: input.session.id,
       context: input.context,
       draft: input.draft,
       findings,
+      manualRecallAdherence,
       requestedFocusDimensions: input.focusDimensions,
       deterministicViolations,
     })
+  },
+
+  async proposeRepair(input): Promise<LocalRepairCandidate> {
+    const evidence = input.finding.evidence.find(item => item.blockId === input.targetBlock.id)
+    if (!evidence) {
+      throw new CreationDecisionError('evidence_missing', 'The local repair target must contain the reviewed evidence.')
+    }
+    const evidenceText = input.targetBlock.text.slice(evidence.startOffset, evidence.endOffset).trim()
+    if (!evidenceText) {
+      throw new CreationDecisionError('evidence_missing', 'The local repair evidence must resolve to current manuscript text.')
+    }
+    const findingDimension = 'dimension' in input.finding
+      ? input.finding.dimension
+      : input.finding.lensId
+    const replacement = findingDimension === 'repetition'
+      ? '她没有重复先前的动作，只把未出口的话压回喉间，转身去承担已经做出的选择。'
+      : findingDimension === 'information_control'
+        ? '她没有解释，只把已经做出的选择落实在动作里。'
+        : findingDimension === 'exposition'
+          ? '门外的脚步骤然停住，桌上那盏灯同时暗了一层。'
+          : '她停了一瞬，随即用一个更明确的动作承接了前面的选择。'
+    const proposedContent = findingDimension === 'repetition'
+      ? replacement
+      : `${input.targetBlock.text.slice(0, evidence.startOffset)}${replacement}${input.targetBlock.text.slice(evidence.endOffset)}`
+    const intentRequirements = buildLocalRepairIntentPreservationRequirements({
+      intent: input.intent,
+      targetBlockText: input.targetBlock.text,
+    })
+    const preservedFacts = intentRequirements.flatMap(requirement => {
+      const candidateEvidenceQuote = evidenceQuoteContaining(proposedContent, requirement.requiredAnchors)
+      return candidateEvidenceQuote
+        ? [{
+            fact: requirement.statement,
+            sourceEvidenceQuote: requirement.sourceEvidenceQuote,
+            candidateEvidenceQuote,
+          }]
+        : []
+    })
+    if (preservedFacts.length === 0) {
+      const sourceEvidenceQuote = input.targetBlock.text.slice(evidence.endOffset).trim()
+        || input.targetBlock.text.slice(0, evidence.startOffset).trim()
+        || evidenceText
+      const candidateEvidenceQuote = proposedContent.includes(sourceEvidenceQuote)
+        ? sourceEvidenceQuote
+        : replacement
+      preservedFacts.push({
+        fact: '证据段中不属于修订目标的叙事信息保持可定位。',
+        sourceEvidenceQuote,
+        candidateEvidenceQuote,
+      })
+    }
+
+    return {
+      schemaVersion: 'creator-local-repair.v1',
+      findingId: input.finding.id,
+      targetBlockId: input.targetBlock.id,
+      operation: 'replace_range',
+      proposedContent,
+      preservedFacts,
+      rationale: `只替换证据所在段，处理“${input.finding.diagnosis}”，不改动其他正文块。`,
+    }
+  },
+
+  async reviewRepair(input): Promise<LocalRepairReview> {
+    const issues = localRepairIntentPreservationIssues({
+      candidate: input.repair,
+      requirements: buildLocalRepairIntentPreservationRequirements({
+        intent: input.intent,
+        targetBlockText: input.targetBlock.text,
+      }),
+    })
+    if (input.repair.findingId !== input.finding.id || input.repair.targetBlockId !== input.targetBlock.id) {
+      issues.push({
+        dimension: 'scope',
+        severity: 'hard_block',
+        sourceEvidenceQuote: input.targetBlock.text,
+        candidateEvidenceQuote: input.repair.proposedContent,
+        diagnosis: '局部候选与当前审阅证据块不一致。',
+      })
+    }
+    if (!input.repair.proposedContent.trim() || input.repair.proposedContent === input.targetBlock.text) {
+      issues.push({
+        dimension: 'repair_goal',
+        severity: 'hard_block',
+        sourceEvidenceQuote: input.targetBlock.text,
+        candidateEvidenceQuote: input.repair.proposedContent || null,
+        diagnosis: '局部候选没有形成可验证的正文变化。',
+      })
+    }
+    return {
+      schemaVersion: 'creator-local-repair-review.v1',
+      findingId: input.finding.id,
+      targetBlockId: input.targetBlock.id,
+      decision: issues.some(issue => issue.severity === 'hard_block') ? 'reject' : 'pass',
+      verifiedPreservedFactIndexes: input.repair.preservedFacts.map((_, index) => index),
+      issues,
+      rationale: issues.length
+        ? '局部候选未通过确定性范围与作者意图检查。'
+        : '局部候选只改动当前证据块，且没有缩窄已锁定作者意图。',
+    }
   },
 
   async proposeCanonPatch(input): Promise<CanonStatePatch> {

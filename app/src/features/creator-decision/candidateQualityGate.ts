@@ -136,6 +136,7 @@ export function evaluateCandidateQualityGate(input: {
       && new Set(recallReceipt.checks.map(check => check.sourceId)).size === recallReceipt.checks.length
       && recallReceipt.checks.every((check, index) => (
         check.sourceId === selectedRecalls[index]?.sourceId
+        && check.sourceRevision === selectedRecalls[index]?.sourceRevision
         && check.group === selectedRecalls[index]?.group
       ))
     if (!receiptMatchesSelection) {

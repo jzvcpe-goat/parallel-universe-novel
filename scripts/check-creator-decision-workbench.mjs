@@ -98,8 +98,10 @@ requireAll('app/src/features/creator-decision/candidateQualityGate.ts', [
   'direction_adjustment_evidence_invalid',
 ])
 requireAll('app/src/features/creator-decision/creationDecisionWorkflow.ts', [
-  'repairs: snapshot.repairs',
-  'intent: requireIntent(snapshot)',
+  'const latest = await this.reload(snapshot.session.id)',
+  'latest.session.currentDraftRevision !== snapshot.session.currentDraftRevision',
+  'repairs: latest.repairs',
+  'intent: requireIntent(latest)',
 ])
 requireAll('app/src/features/creator-decision/canonPatch.ts', [
   'assertCandidateQualityGate',

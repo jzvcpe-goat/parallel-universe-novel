@@ -365,6 +365,7 @@ export interface ManualRecallAdherenceReview {
   decision: 'pass' | 'reject'
   checks: Array<{
     sourceId: string
+    sourceRevision: number
     group: ManualRecallGroup
     status: ManualRecallAdherenceStatus
     evidenceQuotes: string[]
@@ -681,6 +682,7 @@ export interface ManualRecallAdherenceReceipt {
   decision: 'pass' | 'reject'
   checks: Array<{
     sourceId: string
+    sourceRevision: number
     group: ManualRecallGroup
     status: ManualRecallAdherenceStatus
     evidence: LiteraryEvidence[]
