@@ -229,6 +229,58 @@ async function readDecisionState(page) {
   })
 }
 
+function sha256Json(value) {
+  return createHash('sha256')
+    .update(JSON.stringify(value ?? null))
+    .digest('hex')
+}
+
+function evidenceState(state) {
+  return {
+    databaseVersion: state.databaseVersion,
+    counts: state.counts,
+    session: state.session
+      ? {
+          id: state.session.id,
+          phase: state.session.phase,
+          baseCanonRevision: state.session.baseCanonRevision,
+          currentDraftRevision: state.session.currentDraftRevision,
+          currentCandidateRevision: state.session.currentCandidateRevision,
+        }
+      : null,
+    canon: state.canon
+      ? {
+          id: state.canon.id,
+          revision: state.canon.revision,
+          acceptedContentBlockCount: state.canon.acceptedContentBlocks?.length || 0,
+          acceptedContentSha256: sha256Json(state.canon.acceptedContentBlocks),
+        }
+      : null,
+    context: state.latestContext
+      ? {
+          id: state.latestContext.id,
+          contentFingerprint: state.latestContext.contentFingerprint,
+          recallCount: state.latestContext.manualRecallItems?.length || 0,
+        }
+      : null,
+    candidateCount: state.candidateTitles.length,
+    contextRecallSourceIds: state.contextRecallSourceIds,
+    patchStatuses: state.patchStatuses,
+    eventTypes: state.eventTypes,
+    reviewEvidenceCount: state.reviewEvidenceCount,
+    manualRecallAdherence: state.manualRecallAdherence
+      ? {
+          decision: state.manualRecallAdherence.decision,
+          checkStatuses: state.manualRecallAdherence.checks?.map(check => check.status) || [],
+        }
+      : null,
+    reviewFindings: state.reviewFindings,
+    repairs: state.repairs,
+    publishBundleStatuses: state.publishBundleStatuses,
+    agentOperationActions: state.agentOperationActions,
+  }
+}
+
 let browser = null
 
 try {
@@ -544,10 +596,10 @@ try {
     adoptedLength: adoptedText.length,
     authorEditedLength: authorEditedText.length,
     repairedLength: repairedText.length,
-    beforeReload,
-    afterReload,
-    finalState,
-    restoredFinalState,
+    beforeReload: evidenceState(beforeReload),
+    afterReload: evidenceState(afterReload),
+    finalState: evidenceState(finalState),
+    restoredFinalState: evidenceState(restoredFinalState),
     publicSubmitExecuted: false,
     screenshot: {
       file: basename(screenshotPath),

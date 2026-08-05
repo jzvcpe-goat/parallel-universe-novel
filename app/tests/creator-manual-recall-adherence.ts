@@ -366,6 +366,51 @@ const recallEvidenceCases = [
     status: 'omitted',
   },
   {
+    name: 'container alias and subject alias bind to an early extraction',
+    text: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人从钟腔里取出了那枚钥匙。',
+    status: 'violated',
+  },
+  {
+    name: 'a seal inspection does not change the constrained subject state',
+    text: '银钥匙仍藏在旧钟内部。守灯人检查了银钥匙的封条。',
+    status: 'respected',
+  },
+  {
+    name: 'an empty constrained container contradicts prior support',
+    text: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟内部已经空无一物。',
+    status: 'violated',
+  },
+  {
+    name: 'a constrained container containing only dust contradicts prior support',
+    text: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟里面只剩灰尘。',
+    status: 'violated',
+  },
+  {
+    name: 'an action executed according to plan remains an executed action',
+    text: '银钥匙仍藏在旧钟内部。第二次涨潮时守灯人按计划把银钥匙拿了出来。',
+    status: 'violated',
+  },
+  {
+    name: 'a prior sentence supplies the time for the following transition',
+    text: '银钥匙一直藏在旧钟内部。\n\n第三次涨潮刚过。\n\n守灯人把银钥匙拿了出来。',
+    status: 'respected',
+  },
+  {
+    name: 'quoted direct speech is attribution rather than factual support',
+    text: '守灯人低声道：“银钥匙仍藏在旧钟内部。”',
+    status: 'omitted',
+  },
+  {
+    name: 'postposed speech attribution is not factual support',
+    text: '“银钥匙仍藏在旧钟内部”，守灯人回答。',
+    status: 'omitted',
+  },
+  {
+    name: 'an unrelated following question does not erase factual support',
+    text: '银钥匙仍藏在旧钟内部，谁去守北门？',
+    status: 'respected',
+  },
+  {
     name: 'factual support remains accepted',
     text: '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。',
     status: 'respected',

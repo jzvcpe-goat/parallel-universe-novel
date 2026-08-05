@@ -25,6 +25,7 @@ const reportedAssertionPattern = /(?:据说|听说|传言|传闻|根据传闻|�
 const hypotheticalAssertionPattern = /(?:^|[，,；;：:])(?:如果|假如|假设|倘若|若|要是|只要|除非|无论|即使|哪怕|万一|若要)/u
 const rhetoricalAssertionPattern = /(?:谁(?:会|能|都不会)?相信|难道|莫非|岂(?:会|能)|怎会|怎么可能|何曾|不能说|不会相信)/u
 const postposedRejectionPattern = /(?:不属实|并非事实|不是真的|是假的|只是谎言|荒唐的说法|否认了?(?:此事|这件事|这一点)|这(?:句)?话纯属杜撰|纯属杜撰)/u
+const speechAttributionPattern = /(?:低声|高声|轻声|沉声)?(?:道|说|说道|答道|回答|表示|声称|宣称|断言|写道|写着|记载)/u
 const ignoredContradictionAnchors = new Set([
   '必须',
   '始终',
@@ -114,30 +115,60 @@ function clauseBounds(text: string, matchStart: number, matchEnd: number) {
 function assertionModeAt(text: string, propositionStart: number) {
   const bounds = clauseBounds(text, propositionStart, propositionStart)
   const clausePrefix = text.slice(bounds.start, propositionStart)
-  const widerPrefix = text.slice(0, propositionStart)
-  const sentence = text.trim()
+  const clause = text.slice(bounds.start, bounds.end)
+  const clauseTerminator = text[bounds.end] ?? ''
+  const sentenceBounds = sentenceBoundsAt(text, propositionStart)
+  const sentencePrefix = text.slice(sentenceBounds.start, propositionStart)
+  const sentenceSuffix = text.slice(propositionStart, sentenceBounds.end)
+  const quotedByPrefix = new RegExp(
+    `${speechAttributionPattern.source}[\\s，,：:]*[“"'‘]?$`,
+    'u',
+  ).test(sentencePrefix)
+  const quotedBySuffix = /^[^”"'’]{0,80}[”"'’][\s，,]*(?:[\p{Script=Han}A-Za-z0-9·]{0,16})?(?:低声|高声|轻声|沉声)?(?:道|说|说道|答道|回答)/u
+    .test(sentenceSuffix)
 
   if (
     hypotheticalAssertionPattern.test(clausePrefix)
-    || hypotheticalAssertionPattern.test(widerPrefix)
-    || /无论[^，。；!?！？]{0,20}是否/u.test(widerPrefix)
+    || hypotheticalAssertionPattern.test(clause)
+    || /(?:假设|如果|假如|倘若|若|要是)[\s，,：:]*[“"'‘]?$/.test(sentencePrefix)
+    || /无论[^，。；!?！？]{0,20}是否/u.test(clause)
   ) {
     return 'hypothetical' as const
   }
   if (
-    rhetoricalAssertionPattern.test(sentence)
-    || /[?？]/u.test(sentence)
+    rhetoricalAssertionPattern.test(clause)
+    || /[?？]/u.test(clauseTerminator)
   ) {
     return 'rhetorical' as const
   }
   if (
-    /(?:所谓|似乎|或许|也许|可能|大概|据推测|猜测|尚待确认|有待确认|无法确认)/u.test(sentence)
-    || /是否[^。；!?！？]{0,24}(?:待|需|需要|尚待|有待)(?:确认|查明|核实)/u.test(sentence)
+    /(?:所谓|似乎|或许|也许|可能|大概|据推测|猜测|尚待确认|有待确认|无法确认)/u.test(clause)
+    || /是否[^。；!?！？]{0,24}(?:待|需|需要|尚待|有待)(?:确认|查明|核实)/u.test(clause)
+    || (
+      clause.includes('是否')
+      && /^[^。；!?！？]{0,50}[，,][^。；!?！？]{0,16}(?:尚待|有待|需要|需)(?:确认|查明|核实)/u
+        .test(sentenceSuffix)
+    )
   ) {
     return 'epistemic' as const
   }
-  if (reportedAssertionPattern.test(widerPrefix)) return 'reported' as const
+  if (
+    reportedAssertionPattern.test(sentencePrefix)
+    || quotedByPrefix
+    || quotedBySuffix
+  ) {
+    return 'reported' as const
+  }
   return 'assertive' as const
+}
+
+function sentenceBoundsAt(text: string, index: number) {
+  const sentenceBoundaryPattern = /[。！？!?；;]/u
+  let start = index
+  let end = index
+  while (start > 0 && !sentenceBoundaryPattern.test(text[start - 1]!)) start -= 1
+  while (end < text.length && !sentenceBoundaryPattern.test(text[end]!)) end += 1
+  return { start, end }
 }
 
 function matchedPropositionOccurrences(text: string, matchedText: string) {
@@ -222,6 +253,7 @@ type RetentionRelation = 'support' | 'violation' | 'allowed_transition' | 'uncer
 interface RetentionDiscourse {
   latestEntity: string | null
   priorSupport: boolean
+  timeRelation: 'unknown' | 'allowed' | 'premature'
 }
 
 interface RetentionSentenceAssessment {
@@ -231,6 +263,8 @@ interface RetentionSentenceAssessment {
 
 const transitionActionPattern = /(?:取了出来|拿了出来|抽了出来|取出来|拿出来|抽出来|取出|拿出|抽出|移出|搬出|带出|取走|拿走|带走|转移|藏到|离开|消失|不见|交给|塞进)/gu
 const explicitUnrealizedPattern = /(?:打算|计划|准备|想要|试图|拟|尚未|还未|没有|并未|未曾|从未|不得|禁止|不能|不可|必须|应当|需要|须)/u
+const realizedPlanPattern = /(?:按|依照|按照)(?:原定)?计划/u
+const unknownStateChangePattern = /(?:处置|处理|移动|挪动|转移|安置|藏匿|带离|交付|改变(?:了)?(?:位置|状态))/u
 const chineseOrdinal = new Map([
   ['一', 1],
   ['二', 2],
@@ -255,12 +289,13 @@ function transitionTimeRelation(
   sentence: string,
   actionStart: number,
   constraint: RetentionConstraint,
+  discourseTimeRelation: RetentionDiscourse['timeRelation'],
 ) {
   const thresholdOrdinal = tideOrdinal(constraint.threshold)
   const preceding = sentence.slice(0, actionStart)
   const markers = [...preceding.matchAll(/第([一二三四五六七八九十\d]+)次涨潮(?:刚过|已过|之后|以后|后|之前|以前|前|时|当日|当天)?/gu)]
   const nearest = markers.at(-1)
-  if (!nearest || thresholdOrdinal === null) return 'unknown' as const
+  if (!nearest || thresholdOrdinal === null) return discourseTimeRelation
   const ordinal = tideOrdinal(nearest[0])
   if (ordinal === null) return 'unknown' as const
   const markerPrefix = preceding.slice(
@@ -277,6 +312,79 @@ function transitionTimeRelation(
     return ordinal <= thresholdOrdinal ? 'premature' as const : 'allowed' as const
   }
   return ordinal >= thresholdOrdinal ? 'allowed' as const : 'premature' as const
+}
+
+function timeRelationFromText(
+  text: string,
+  constraint: RetentionConstraint,
+): RetentionDiscourse['timeRelation'] {
+  const thresholdOrdinal = tideOrdinal(constraint.threshold)
+  const markers = [...text.matchAll(/第([一二三四五六七八九十\d]+)次涨潮(?:刚过|已过|之后|以后|后|之前|以前|前|时|当日|当天)?/gu)]
+  const marker = markers.at(-1)
+  if (!marker || thresholdOrdinal === null) return 'unknown'
+  const ordinal = tideOrdinal(marker[0])
+  if (ordinal === null) return 'unknown'
+  if (/(?:刚过|已过|之后|以后|后)$/u.test(marker[0])) {
+    return ordinal >= thresholdOrdinal ? 'allowed' : 'premature'
+  }
+  if (/(?:之前|以前|前)$/u.test(marker[0])) {
+    return ordinal <= thresholdOrdinal ? 'premature' : 'allowed'
+  }
+  return ordinal >= thresholdOrdinal ? 'allowed' : 'premature'
+}
+
+function subjectAliases(constraint: RetentionConstraint) {
+  const aliases = new Set([constraint.subject])
+  if (constraint.subject.endsWith('钥匙')) {
+    aliases.add('钥匙')
+    aliases.add('那枚钥匙')
+    aliases.add('这枚钥匙')
+  }
+  return aliases
+}
+
+function containerAliases(constraint: RetentionConstraint) {
+  const aliases = new Set([
+    constraint.container,
+    `${constraint.container}内部`,
+    `${constraint.container}里面`,
+    `${constraint.container}内`,
+  ])
+  if (constraint.container.endsWith('钟')) {
+    aliases.add('钟腔')
+    aliases.add('钟腔里')
+    aliases.add('钟内')
+  }
+  return aliases
+}
+
+function normalizedEntity(
+  value: string | null,
+  constraint: RetentionConstraint,
+  discourse: RetentionDiscourse,
+) {
+  if (!value) return null
+  const compact = value.replace(/^(?:那|这)(?:枚|把|个|件)?/u, '').trim()
+  if (
+    value === '它'
+    || value === '他'
+    || value === '她'
+  ) {
+    return discourse.latestEntity
+  }
+  if (
+    [...subjectAliases(constraint)].some(alias => (
+      value.includes(alias)
+      || compact.includes(alias.replace(/^(?:那|这)(?:枚|把|个|件)?/u, ''))
+    ))
+  ) {
+    return constraint.subject
+  }
+  return value
+}
+
+function mentionsContainer(text: string, constraint: RetentionConstraint) {
+  return [...containerAliases(constraint)].some(alias => text.includes(alias))
 }
 
 function extractedActionTarget(
@@ -298,12 +406,11 @@ function extractedActionTarget(
   )
   const explicitBefore = prefix.match(/(?:把|将|让)([^，。；!?！？而但]{1,16})$/u)?.[1]?.trim()
   if (explicitBefore) {
-    if (explicitBefore.startsWith('它')) return localLatestEntity
-    if (explicitBefore.startsWith(constraint.subject)) return constraint.subject
-    return explicitBefore
+    if (/^(?:它|他|她)$/u.test(explicitBefore)) return localLatestEntity
+    return normalizedEntity(explicitBefore, constraint, discourse)
   }
   const passiveBefore = prefix.match(/([^，。；!?！？而但]{1,16}?)(?:已经|已)?被$/u)?.[1]?.trim()
-  if (passiveBefore) return passiveBefore
+  if (passiveBefore) return normalizedEntity(passiveBefore, constraint, discourse)
   if (/^(?:了|出来|走|到|进|入|往|回|去|开)?它/u.test(suffix)) {
     return localLatestEntity
   }
@@ -312,7 +419,7 @@ function extractedActionTarget(
   }
   const explicitAfter = suffix.match(/^(?:了|出来|走|到|进|入|往|回|去|开|离)?(?:一[卷枚把个只本张件])?([^，。；!?！？而但]{1,12})/u)?.[1]?.trim()
   if (explicitAfter && !/^(?:旧钟内部|灯塔|船长|自己的衣袋)/u.test(explicitAfter)) {
-    return explicitAfter
+    return normalizedEntity(explicitAfter, constraint, discourse)
   }
   const actorBoundary = prefix.match(/(?:而|但|随后|然后)([^，。；!?！？]{1,16})$/u)?.[1]
   if (actorBoundary && /(?:守灯人|船长|她|他)$/u.test(actorBoundary.trim())) return null
@@ -328,7 +435,13 @@ function latestExplicitEntity(
     ...sentence.matchAll(/(?:拿起|取出|拿出|抽出|带走|取走|拿走)(?:了)?(?:一[卷枚把个只本张件])?([^，。；!?！？而但]{1,12})/gu),
   ]
   const latestObject = explicitObjects.at(-1)?.[1]?.trim()
-  if (latestObject) return latestObject
+  if (latestObject) {
+    return normalizedEntity(latestObject, constraint, {
+      latestEntity: fallback,
+      priorSupport: false,
+      timeRelation: 'unknown',
+    })
+  }
   if (sentence.includes(constraint.subject)) return constraint.subject
   return fallback
 }
@@ -356,6 +469,10 @@ function structuredRetentionAssessment(
 
   const subject = escapeRegExp(constraint.subject)
   const container = escapeRegExp(constraint.container)
+  const containerStateViolation = (
+    mentionsContainer(sentence, constraint)
+    && /(?:空无一物|空空如也|已经空了|已空|只剩(?:下)?(?:灰尘|尘土)|什么都没有|没有任何东西)/u.test(sentence)
+  )
   const locationDenial = (
     new RegExp(`${subject}[^，。；!?！？而但]{0,12}(?:已经不在|已不在|并不在|不在)[^，。；!?！？而但]{0,10}${container}`, 'u').test(sentence)
     || new RegExp(
@@ -379,7 +496,7 @@ function structuredRetentionAssessment(
     && postposedRejectionPattern.test(sentence.slice(subjectIndex))
   )
 
-  if (locationDenial || statementRejected) {
+  if (locationDenial || statementRejected || containerStateViolation) {
     return { relation: 'violation', latestEntity: nextLatestEntity }
   }
 
@@ -398,15 +515,25 @@ function structuredRetentionAssessment(
     if (target !== constraint.subject) continue
     const bounds = clauseBounds(sentence, actionStart, actionStart + match[0].length)
     const actionClause = sentence.slice(bounds.start, bounds.end)
+    const actionPrefix = actionClause.slice(0, actionStart - bounds.start)
+    const unrealizedAction = (
+      explicitUnrealizedPattern.test(actionPrefix)
+      && !realizedPlanPattern.test(actionPrefix)
+    )
     if (
       assertionModeAt(sentence, actionStart) !== 'assertive'
       || matchedPropositionIsNegatedAt(sentence, match[0], actionStart)
-      || explicitUnrealizedPattern.test(actionClause.slice(0, actionStart - bounds.start))
+      || unrealizedAction
     ) {
       sawUnrealizedTransition = true
       continue
     }
-    const timeRelation = transitionTimeRelation(sentence, actionStart, constraint)
+    const timeRelation = transitionTimeRelation(
+      sentence,
+      actionStart,
+      constraint,
+      discourse.timeRelation,
+    )
     if (timeRelation === 'allowed') {
       return { relation: 'allowed_transition', latestEntity: nextLatestEntity }
     }
@@ -419,10 +546,17 @@ function structuredRetentionAssessment(
   if (sawUnrealizedTransition) {
     return { relation: 'irrelevant', latestEntity: nextLatestEntity }
   }
-  if (subjectIndex >= 0) {
+  if (
+    subjectIndex >= 0
+    && unknownStateChangePattern.test(sentence)
+  ) {
     return { relation: 'uncertain', latestEntity: nextLatestEntity }
   }
-  if (discourse.latestEntity === constraint.subject && sentence.includes('它')) {
+  if (
+    discourse.latestEntity === constraint.subject
+    && sentence.includes('它')
+    && unknownStateChangePattern.test(sentence)
+  ) {
     return { relation: 'uncertain', latestEntity: nextLatestEntity }
   }
   return { relation: 'irrelevant', latestEntity: nextLatestEntity }
@@ -438,13 +572,21 @@ export function matchManualRecallEvidence(
   let contradictingSentence: string | null = null
   let uncertainSentence: string | null = null
   let latestEntity: string | null = null
+  let discourseTimeRelation: RetentionDiscourse['timeRelation'] = 'unknown'
 
   for (const sentence of sentences) {
     const structured = structuredRetentionAssessment(statement, sentence, {
       latestEntity,
       priorSupport: supportingSentence !== null,
+      timeRelation: discourseTimeRelation,
     })
     latestEntity = structured.latestEntity
+    if (constraint) {
+      const sentenceTimeRelation = timeRelationFromText(sentence, constraint)
+      if (sentenceTimeRelation !== 'unknown') {
+        discourseTimeRelation = sentenceTimeRelation
+      }
+    }
     if (structured.relation === 'violation') contradictingSentence ||= sentence
     if (
       structured.relation === 'support'

@@ -38,6 +38,10 @@ Public JSON schemas under `validation/creator-ui/schemas/` remain source contrac
   `approval = approved-sanitized-synthetic-fixture`.
 - The manifest must record the screenshot's relative filename and SHA-256. It
   must not contain a runner or local absolute path.
+- The adjacent JSON manifest may record IDs, revisions, counts, status arrays,
+  fingerprints, and SHA-256 values for this synthetic workflow. It must not
+  embed Context statements, Candidate prose, accepted Canon blocks, review
+  quotations, or other continuous synthetic manuscript text.
 - This approval covers the repository's synthetic Fog Harbor fixture only. It
   does not approve screenshots from a real author workspace, unpublished prose,
   browser authentication state, or local workspace exports.

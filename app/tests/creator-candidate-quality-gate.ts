@@ -1032,6 +1032,60 @@ const reviewerTerminalRecallMatrix = [
     expectedStatus: 'omitted',
     expectedAllowed: false,
   },
+  {
+    name: 'container alias and key alias extraction',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人从钟腔里取出了那枚钥匙。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'seal inspection preserves prior support',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人检查了银钥匙的封条。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'empty constrained container',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟内部已经空无一物。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'dust-only constrained container',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时打开钟门，旧钟里面只剩灰尘。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'executed action according to plan',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时守灯人按计划把银钥匙拿了出来。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'cross-block threshold time permits extraction',
+    recallText: '银钥匙一直藏在旧钟内部。\n\n第三次涨潮刚过。\n\n守灯人把银钥匙拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'quoted direct speech',
+    recallText: '守灯人低声道：“银钥匙仍藏在旧钟内部。”',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'postposed direct-speech attribution',
+    recallText: '“银钥匙仍藏在旧钟内部”，守灯人回答。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'unrelated question after factual support',
+    recallText: '银钥匙仍藏在旧钟内部，谁去守北门？',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
 ] as const
 
 for (const [index, testCase] of reviewerTerminalRecallMatrix.entries()) {
