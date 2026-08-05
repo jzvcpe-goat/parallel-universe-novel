@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
+import { readR1A0RepositoryIdentity } from './lib/r1-a0-repository-identity.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const artifactDir = join(root, 'artifacts', 'qa', 'creator-decision-workbench')
@@ -13,27 +14,12 @@ const screenshotPath = join(artifactDir, 'creator-decision-workbench.png')
 const children = []
 const logs = []
 
-function gitValue(args) {
-  return execFileSync('git', args, {
-    cwd: root,
-    encoding: 'utf8',
-  }).trim()
-}
-
 function repositoryIdentity() {
-  const checkoutSha = gitValue(['rev-parse', 'HEAD'])
-  const pullRequestHeadSha = process.env.PR_HEAD_SHA || checkoutSha
-  if (checkoutSha !== pullRequestHeadSha) {
-    throw new Error(
-      `R1-A0 evidence checkout ${checkoutSha} does not match PR head ${pullRequestHeadSha}`,
-    )
-  }
-  return {
-    checkoutSha,
-    pullRequestHeadSha,
-    pullRequestHeadTreeSha: gitValue(['rev-parse', 'HEAD^{tree}']),
-    branch: process.env.GITHUB_HEAD_REF || gitValue(['branch', '--show-current']),
-  }
+  return readR1A0RepositoryIdentity({
+    root,
+    expectedHeadSha: process.env.PR_HEAD_SHA,
+    branch: process.env.GITHUB_HEAD_REF,
+  })
 }
 
 function assert(condition, message) {

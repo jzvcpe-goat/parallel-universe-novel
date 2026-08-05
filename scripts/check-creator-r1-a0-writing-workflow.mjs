@@ -3,9 +3,22 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readR1A0RepositoryIdentity } from './lib/r1-a0-repository-identity.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const failures = []
+const repositoryIdentity = readR1A0RepositoryIdentity({ root })
+try {
+  readR1A0RepositoryIdentity({
+    root,
+    expectedHeadSha: `${repositoryIdentity.checkoutSha}-mismatch`,
+  })
+  failures.push('R1-A0 repository identity must reject a mismatched PR head')
+} catch (error) {
+  if (!String(error).includes('does not match PR head')) {
+    failures.push('R1-A0 repository identity mismatch must fail with a precise error')
+  }
+}
 
 function read(path) {
   return readFileSync(join(root, path), 'utf8')
@@ -22,8 +35,6 @@ function requireMarkers(path, markers) {
 const browser = requireMarkers('scripts/browser-creator-decision-workbench.mjs', [
   "fileURLToPath(new URL('..', import.meta.url))",
   'repositoryIdentity',
-  'pullRequestHeadSha',
-  'pullRequestHeadTreeSha',
   'creator-recall-item',
   'contextSnapshots',
   'manualRecallAdherence',
@@ -35,6 +46,13 @@ const browser = requireMarkers('scripts/browser-creator-decision-workbench.mjs',
   'author_confirmed',
   'publishReceipts',
   'publicSubmitExecuted: false',
+])
+
+requireMarkers('scripts/lib/r1-a0-repository-identity.mjs', [
+  'checkoutSha',
+  'pullRequestHeadSha',
+  'pullRequestHeadTreeSha',
+  'does not match PR head',
 ])
 
 if (browser.includes("locator('[data-agent-action=\"submit_publish_bundle\"]').click")) {
@@ -58,10 +76,11 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'matchedPropositionOccurrences',
   'matchedPropositionAssessment',
   'oppositePolarityAnchorCount',
-  'retentionViolation',
   'structuredRetentionAssessment',
   'assertionModeAt',
-  'actualRemoval',
+  'actionTargetsSubject',
+  'removalTiming',
+  'subjectActive',
   'contradictingSentence',
 ])
 if (recallEvidence.includes('length >= 2')) {
@@ -80,6 +99,12 @@ requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'unchanged normative constraint',
   'ordinary took-out contradiction',
   'plain speech attribution',
+  'unrelated removal in a supporting sentence',
+  'container lookup cannot find the key',
+  'later threshold reminder does not excuse early removal',
+  'speech attribution before comma',
+  'whether concession',
+  'plain question',
   'manual_recall_receipt_rejected',
 ])
 

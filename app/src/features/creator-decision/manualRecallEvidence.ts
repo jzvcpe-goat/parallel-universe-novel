@@ -21,11 +21,11 @@ const negationTokens = [
   '不可',
 ]
 const clauseBoundaryPattern = /[。！？!?；;，,：:]/u
-const reportedAssertionPattern = /(?:据说|听说|传言|传闻|有人说|[\p{Script=Han}A-Za-z0-9·]{1,16}(?:说|表示|提到|写道|声称|宣称|断言|转述))[^，。；!?！？]{0,20}$/u
-const hypotheticalAssertionPattern = /(?:^|[，,；;：:])(?:如果|假如|倘若|若|要是|即使|哪怕|万一|若要)/u
-const rhetoricalAssertionPattern = /(?:谁(?:会|能)?相信|难道|岂(?:会|能)|怎么可能|何曾|不能说)/u
-const postposedRejectionPattern = /(?:不属实|并非事实|不是真的|是假的|只是谎言|荒唐的说法)/u
-const removalActionPattern = /(?:取了出来|拿了出来|取出来|拿出来|取出|拿出|移出|搬出|带出|取走|拿走)/gu
+const reportedAssertionPattern = /(?:据说|听说|传言|传闻|根据传闻|相传|有人说|[\p{Script=Han}A-Za-z0-9·]{1,16}(?:说|表示|提到|写道|写着|记载|声称|宣称|断言|转述))[\s，,：:“”"'《》]*$/u
+const hypotheticalAssertionPattern = /(?:^|[，,；;：:])(?:如果|假如|假设|倘若|若|要是|只要|除非|无论|即使|哪怕|万一|若要)/u
+const rhetoricalAssertionPattern = /(?:谁(?:会|能|都不会)?相信|难道|莫非|岂(?:会|能)|怎会|怎么可能|何曾|不能说|不会相信)/u
+const postposedRejectionPattern = /(?:不属实|并非事实|不是真的|是假的|只是谎言|荒唐的说法|否认了?(?:此事|这件事|这一点)|这(?:句)?话纯属杜撰|纯属杜撰)/u
+const removalActionPattern = /(?:取了出来|拿了出来|抽了出来|取出来|拿出来|抽出来|取出|拿出|抽出|移出|搬出|带出|取走|拿走|带走|转移|藏到)/gu
 const unrealizedActionPattern = /(?:才(?:能|可|可以)?|可以|允许|应当|应该|必须|需要|不得|禁止|不能|不可|打算|计划|准备|想要|试图|若要)[^，。；!?！？]{0,8}$/u
 const ignoredContradictionAnchors = new Set([
   '必须',
@@ -116,13 +116,19 @@ function clauseBounds(text: string, matchStart: number, matchEnd: number) {
 function assertionModeAt(text: string, propositionStart: number) {
   const bounds = clauseBounds(text, propositionStart, propositionStart)
   const clausePrefix = text.slice(bounds.start, propositionStart)
-  const widerPrefix = text.slice(Math.max(0, propositionStart - 24), propositionStart)
-  const clause = text.slice(bounds.start, bounds.end)
+  const widerPrefix = text.slice(0, propositionStart)
+  const sentence = text.trim()
 
-  if (hypotheticalAssertionPattern.test(clausePrefix)) return 'hypothetical' as const
   if (
-    rhetoricalAssertionPattern.test(clause)
-    || (/[?？]/u.test(clause) && /(?:谁|何|怎么|难道|岂)/u.test(clause))
+    hypotheticalAssertionPattern.test(clausePrefix)
+    || hypotheticalAssertionPattern.test(widerPrefix)
+    || /无论[^，。；!?！？]{0,20}是否/u.test(widerPrefix)
+  ) {
+    return 'hypothetical' as const
+  }
+  if (
+    rhetoricalAssertionPattern.test(sentence)
+    || /[?？]/u.test(sentence)
   ) {
     return 'rhetorical' as const
   }
@@ -207,17 +213,40 @@ function retentionConstraint(statement: string): RetentionConstraint | null {
   }
 }
 
-function actualRemoval(sentence: string, constraint: RetentionConstraint) {
+type RemovalTiming = 'none' | 'premature' | 'allowed'
+
+function actionTargetsSubject(
+  sentence: string,
+  actionStart: number,
+  actionEnd: number,
+  constraint: RetentionConstraint,
+  subjectActive: boolean,
+) {
   const subject = escapeRegExp(constraint.subject)
-  const container = escapeRegExp(constraint.container)
-  const relatesToConstraint = (
-    new RegExp(subject, 'u').test(sentence)
-    && (
-      new RegExp(container, 'u').test(sentence)
-      || new RegExp(`(?:把|将|让)?${subject}.{0,12}(?:取|拿|移|搬|带)`, 'u').test(sentence)
+  const bounds = clauseBounds(sentence, actionStart, actionEnd)
+  const clause = sentence.slice(bounds.start, bounds.end)
+  const actionOffset = actionStart - bounds.start
+  const before = clause.slice(0, actionOffset)
+  const after = clause.slice(actionOffset)
+  if (new RegExp(subject, 'u').test(clause)) {
+    return (
+      new RegExp(`(?:把|将|让)?${subject}[^，。；!?！？]{0,18}$`, 'u').test(before)
+      || new RegExp(`^(?:了|出来|走|到|在|向|至|进|入|往|回|去|开|离开|离)?[^，。；!?！？]{0,10}${subject}`, 'u').test(after)
+      || new RegExp(`${subject}.{0,8}(?:被|已被|已经被)`, 'u').test(before)
     )
+  }
+  return subjectActive && (
+    /(?:把|将|让)它[^，。；!?！？]{0,18}$/u.test(before)
+    || /^(?:了|出来|走|到|在|向|至|进|入|往|回|去|开|离开|离)?[^，。；!?！？]{0,6}它/u.test(after)
   )
-  if (!relatesToConstraint) return false
+}
+
+function removalTiming(
+  sentence: string,
+  constraint: RetentionConstraint,
+  subjectActive: boolean,
+): RemovalTiming {
+  const threshold = escapeRegExp(constraint.threshold)
 
   removalActionPattern.lastIndex = 0
   for (const match of sentence.matchAll(removalActionPattern)) {
@@ -226,56 +255,101 @@ function actualRemoval(sentence: string, constraint: RetentionConstraint) {
     const action = match[0]
     const clause = clauseBounds(sentence, matchStart, matchStart + action.length)
     const prefix = sentence.slice(clause.start, matchStart)
+    const fullClause = sentence.slice(clause.start, clause.end)
+    const eventContext = sentence
+    if (!actionTargetsSubject(
+      sentence,
+      matchStart,
+      matchStart + action.length,
+      constraint,
+      subjectActive,
+    )) {
+      continue
+    }
     if (assertionModeAt(sentence, matchStart) !== 'assertive') continue
     if (matchedPropositionIsNegatedAt(sentence, action, matchStart)) continue
-    if (unrealizedActionPattern.test(prefix)) continue
-    return true
+    if (
+      unrealizedActionPattern.test(prefix)
+      || /(?:尚未|还未|没有|并未|未曾|从未)[^，。；!?！？]{0,8}(?:取|拿|抽|移|搬|带|转移)/u.test(fullClause)
+      || new RegExp(
+        `(?:必须|应当|需要|须).{0,24}(?:等到|直到)${threshold}.{0,8}(?:才|才能|方可|方能)`,
+        'u',
+      ).test(eventContext)
+    ) {
+      continue
+    }
+    if (
+      new RegExp(`(?:还没到|未到|不到|早于)${threshold}`, 'u').test(eventContext)
+      || new RegExp(`${threshold}前`, 'u').test(eventContext)
+      || /(?:第一|第二|一|二)次涨潮(?:前|时|当日|当天)?/u.test(eventContext)
+    ) {
+      return 'premature'
+    }
+    if (
+      new RegExp(`${threshold}(?:后|之后|刚过|已过|时|当日|当天)`, 'u').test(eventContext)
+    ) {
+      return 'allowed'
+    }
+    return 'premature'
   }
-  return false
+  return 'none'
 }
 
-function structuredRetentionAssessment(statement: string, sentence: string) {
+function structuredRetentionAssessment(
+  statement: string,
+  sentence: string,
+  context: { subjectActive: boolean; priorSupport: boolean },
+) {
   const constraint = retentionConstraint(statement)
   if (!constraint) return { supports: false, contradicts: false }
 
   const subjectIndex = sentence.indexOf(constraint.subject)
-  if (subjectIndex < 0) return { supports: false, contradicts: false }
-  if (assertionModeAt(sentence, subjectIndex) !== 'assertive') {
+  const propositionStart = subjectIndex >= 0 ? subjectIndex : 0
+  const mode = assertionModeAt(sentence, propositionStart)
+  const rejectionOfPrior = (
+    context.priorSupport
+    && postposedRejectionPattern.test(sentence)
+  )
+  if (rejectionOfPrior) return { supports: false, contradicts: true }
+  if (subjectIndex < 0 && !context.subjectActive) {
     return { supports: false, contradicts: false }
   }
+  if (mode !== 'assertive') return { supports: false, contradicts: false }
 
   const subject = escapeRegExp(constraint.subject)
   const container = escapeRegExp(constraint.container)
   const locationDenial = (
-    new RegExp(`${subject}.{0,12}(?:已经不在|已不在|并不在|不在).{0,10}${container}`, 'u').test(sentence)
+    new RegExp(`${subject}[^，。；!?！？]{0,12}(?:已经不在|已不在|并不在|不在)[^，。；!?！？]{0,10}${container}`, 'u').test(sentence)
     || new RegExp(
-      `${subject}.{0,10}(?:没有|并未|未曾|从未|不再)(?:藏|留|放|位于)?(?:在|于)?.{0,10}${container}`,
+      `${subject}[^，。；!?！？]{0,10}(?:没有|并未|未曾|从未|不再)(?:藏|留|放|位于)?(?:在|于)?[^，。；!?！？]{0,10}${container}`,
+      'u',
+    ).test(sentence)
+    || new RegExp(`${container}[^，。；!?！？]{0,12}(?:已)?(?:找不到|没有|不见)[^，。；!?！？]{0,8}${subject}`, 'u').test(sentence)
+    || new RegExp(
+      `${subject}[^，。；!?！？]{0,12}(?:被)?(?:藏到|藏在|移到|转移到)[^，。；!?！？]{0,12}(?:外部|外面|之外|抽屉|药箱|别处)`,
       'u',
     ).test(sentence)
   )
   const locationSupport = new RegExp(
-    `${subject}.{0,12}(?:仍|还|依然|一直|始终)?(?:藏|留|放|位于)(?:在|于)?.{0,10}${container}`,
+    `${subject}[^，。；!?！？]{0,12}(?:仍|还|依然|一直|始终)?(?:藏|留|放|位于|在)(?:在|于)?[^，。；!?！？]{0,10}${container}`,
     'u',
   ).test(sentence)
   const statementRejected = (
     locationSupport
     && postposedRejectionPattern.test(sentence.slice(subjectIndex))
   )
-  const removal = actualRemoval(sentence, constraint)
-  const thresholdReached = new RegExp(
-    `${escapeRegExp(constraint.threshold)}(?:后|之后|时|当日|当天)`,
-    'u',
-  ).test(sentence)
-  const prematureRemoval = removal && !thresholdReached
+  const removal = removalTiming(sentence, constraint, context.subjectActive || subjectIndex >= 0)
+  const prematureRemoval = removal === 'premature'
 
   return {
-    supports: locationSupport && !locationDenial && !statementRejected && !prematureRemoval,
+    supports: (
+      (locationSupport || removal === 'allowed')
+      && !locationDenial
+      && !statementRejected
+      && !prematureRemoval
+    ),
     contradicts: locationDenial || statementRejected || prematureRemoval,
   }
-}
-
-function retentionViolation(statement: string, sentence: string) {
-  return structuredRetentionAssessment(statement, sentence).contradicts
 }
 
 export function matchManualRecallEvidence(
@@ -283,19 +357,25 @@ export function matchManualRecallEvidence(
   blocks: DraftBlock[],
 ): ManualRecallEvidenceMatch {
   const sentences = manuscriptSentences(blocks)
+  const constraint = retentionConstraint(statement)
   let supportingSentence: string | null = null
   let contradictingSentence: string | null = null
+  let subjectActive = false
 
   for (const sentence of sentences) {
-    const structured = structuredRetentionAssessment(statement, sentence)
+    const structured = structuredRetentionAssessment(statement, sentence, {
+      subjectActive,
+      priorSupport: supportingSentence !== null,
+    })
     if (structured.contradicts) contradictingSentence ||= sentence
     if (structured.supports) supportingSentence ||= sentence
+    if (constraint && sentence.includes(constraint.subject)) subjectActive = true
 
     const sharedSpan = longestSharedSpan(statement, sentence)
     if (sharedSpan) {
       const assessment = matchedPropositionAssessment(statement, sentence, sharedSpan)
       if (assessment.contradicts) contradictingSentence ||= sentence
-      if (assessment.supports) supportingSentence ||= sentence
+      if (!constraint && assessment.supports) supportingSentence ||= sentence
     }
     if (!sharedSpan) {
       const anchors = contradictionAnchors(statement, sentence)
@@ -303,7 +383,6 @@ export function matchManualRecallEvidence(
         contradictingSentence ||= sentence
       }
     }
-    if (retentionViolation(statement, sentence)) contradictingSentence ||= sentence
   }
 
   if (contradictingSentence) {

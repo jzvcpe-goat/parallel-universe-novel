@@ -156,6 +156,146 @@ const recallEvidenceCases = [
     status: 'omitted',
   },
   {
+    name: 'an unrelated removal in a supporting sentence does not target the key',
+    text: '银钥匙仍藏在旧钟内部，守灯人从药箱里取出一卷绷带。',
+    status: 'respected',
+  },
+  {
+    name: 'container lookup cannot find the constrained subject',
+    text: '银钥匙藏在旧钟内部。后来打开钟门时，旧钟内部已找不到银钥匙。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is moved to an outside location',
+    text: '银钥匙藏在旧钟内部。后来银钥匙被藏到了旧钟外部。',
+    status: 'violated',
+  },
+  {
+    name: 'postposed object is extracted from the container',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时守灯人从旧钟内部抽出了银钥匙。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is taken away before the threshold',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙带走了。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is transferred to another container',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时银钥匙已被转移到灯塔抽屉。',
+    status: 'violated',
+  },
+  {
+    name: 'a later denial refers to the prior proposition',
+    text: '银钥匙藏在旧钟内部——守灯人随后否认了此事。',
+    status: 'violated',
+  },
+  {
+    name: 'a later fabrication claim refers to the prior proposition',
+    text: '银钥匙藏在旧钟内部；这话纯属杜撰。',
+    status: 'violated',
+  },
+  {
+    name: 'repeated support across blocks cannot hide extraction',
+    text: '银钥匙藏在旧钟内部。\n\n银钥匙藏在旧钟内部。\n\n第二次涨潮时守灯人从旧钟内部抽出了银钥匙。',
+    status: 'violated',
+  },
+  {
+    name: 'pronoun extraction resolves to the active constrained subject',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把它拿了出来。',
+    status: 'violated',
+  },
+  {
+    name: 'before-threshold extraction with a pronoun is violated',
+    text: '银钥匙藏在旧钟内部。还没到第三次涨潮，守灯人便取出了它。',
+    status: 'violated',
+  },
+  {
+    name: 'a later threshold reminder cannot excuse an earlier extraction',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时守灯人把银钥匙拿出旧钟内部，尽管约定写着第三次涨潮后。',
+    status: 'violated',
+  },
+  {
+    name: 'normative future extraction is not an actual removal',
+    text: '银钥匙仍藏在旧钟内部。守灯人必须等到第三次涨潮才能把银钥匙从旧钟内部拿出来。',
+    status: 'respected',
+  },
+  {
+    name: 'just-passed threshold permits extraction',
+    text: '银钥匙一直藏在旧钟内部。第三次涨潮刚过，守灯人把银钥匙拿了出来。',
+    status: 'respected',
+  },
+  {
+    name: 'explicitly unrealized extraction preserves the constraint',
+    text: '银钥匙仍在旧钟内部，尚未取出。',
+    status: 'respected',
+  },
+  {
+    name: 'speech attribution before a comma is not factual support',
+    text: '守灯人说，银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'rumor attribution is not factual support',
+    text: '根据传闻，银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'legend attribution is not factual support',
+    text: '相传银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'written attribution is not factual support',
+    text: '航海日志写着：银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'assumption is not factual support',
+    text: '假设银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'colon assumption is not factual support',
+    text: '假设：银钥匙仍藏在旧钟内部，守灯人便会继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'conditional as long as is not factual support',
+    text: '只要银钥匙仍藏在旧钟内部，守灯人就继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'conditional unless is not factual support',
+    text: '除非银钥匙仍藏在旧钟内部，守灯人才继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'whether concession is not factual support',
+    text: '无论银钥匙是否仍藏在旧钟内部，守灯人都会继续等待。',
+    status: 'omitted',
+  },
+  {
+    name: 'plain question is not factual support',
+    text: '银钥匙仍藏在旧钟内部吗？',
+    status: 'omitted',
+  },
+  {
+    name: 'speculative question is not factual support',
+    text: '莫非银钥匙仍藏在旧钟内部？',
+    status: 'omitted',
+  },
+  {
+    name: 'rhetorical how question is not factual support',
+    text: '银钥匙怎会仍藏在旧钟内部？',
+    status: 'omitted',
+  },
+  {
+    name: 'disbelief statement is not factual support',
+    text: '谁都不会相信银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
     name: 'factual support remains accepted',
     text: '银钥匙仍藏在旧钟内部，她没有在第三次涨潮前将它取出。',
     status: 'respected',

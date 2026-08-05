@@ -174,7 +174,7 @@ Linux/CI 使用 Playwright Chromium，不要求 Google Chrome 路径。
 
 ## 6. CI 与运行证据
 
-PR #9 当前代码实现曾在以下 GitHub Actions run 全绿：
+以下 run 仅是早期历史基线，不代表 PR #9 当前 HEAD 的验收结果：
 
 [MVP Creator Checks run 30522525352](https://github.com/jzvcpe-goat/parallel-universe-novel/actions/runs/30522525352)
 
@@ -186,7 +186,8 @@ PR #9 当前代码实现曾在以下 GitHub Actions run 全绿：
 - `Diff hygiene`
 - `Secret scan`
 
-Reviewer 仍应检查 PR 最新 HEAD 的新一轮同名 checks。`R1-A0 writing workflow`
+Reviewer 必须以 PR 最新 `headRefOid` 对应的新一轮同名 checks 为准，不得用上述历史 run
+替代当前代码证据。`R1-A0 writing workflow`
 job 必须提供 `r1-a0-writing-workflow-evidence` artifact，其中包含：
 
 ```text
