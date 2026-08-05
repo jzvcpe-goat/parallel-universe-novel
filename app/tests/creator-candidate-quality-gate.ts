@@ -787,6 +787,24 @@ const reviewerTerminalRecallMatrix = [
     expectedAllowed: true,
   },
   {
+    name: 'unrelated removal joined without punctuation',
+    recallText: '银钥匙仍藏在旧钟内部而守灯人从药箱里拿出绷带。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'pronoun follows the nearest explicit map object',
+    recallText: '银钥匙仍藏在旧钟内部。\n\n守灯人拿起旧地图。第二次涨潮时，他把它拿了出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'unclassified pronoun state change fails closed',
+    recallText: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人对它做了无法识别的处置。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
     name: 'container lookup cannot find the key',
     recallText: '银钥匙藏在旧钟内部。后来打开钟门时，旧钟内部已找不到银钥匙。',
     expectedStatus: 'violated',
@@ -813,6 +831,36 @@ const reviewerTerminalRecallMatrix = [
   {
     name: 'key is transferred to a drawer',
     recallText: '银钥匙藏在旧钟内部。第二次涨潮时银钥匙已被转移到灯塔抽屉。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key leaves the clock',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙已经离开了旧钟内部。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key disappears from the clock',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙从旧钟内部消失了。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is handed to the captain',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙交给了船长。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is placed in a pocket',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙塞进了自己的衣袋。',
+    expectedStatus: 'violated',
+    expectedAllowed: false,
+  },
+  {
+    name: 'key is missing during a seal check',
+    recallText: '银钥匙藏在旧钟内部。第二次涨潮后检查封条时，银钥匙已经不见了。',
     expectedStatus: 'violated',
     expectedAllowed: false,
   },
@@ -855,6 +903,18 @@ const reviewerTerminalRecallMatrix = [
   {
     name: 'normative future extraction is not actual removal',
     recallText: '银钥匙仍藏在旧钟内部。守灯人必须等到第三次涨潮才能把银钥匙从旧钟内部拿出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'fourth-tide extraction plan is not actual removal',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人打算等第四次涨潮后再把银钥匙取出来。',
+    expectedStatus: 'respected',
+    expectedAllowed: true,
+  },
+  {
+    name: 'fourth-tide pronoun extraction plan is not actual removal',
+    recallText: '银钥匙仍藏在旧钟内部。守灯人计划在第四次涨潮时再把它拿出来。',
     expectedStatus: 'respected',
     expectedAllowed: true,
   },
@@ -945,6 +1005,30 @@ const reviewerTerminalRecallMatrix = [
   {
     name: 'disbelief statement',
     recallText: '谁都不会相信银钥匙仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'so-called speculative claim',
+    recallText: '所谓“银钥匙仍藏在旧钟内部”只是一种猜测。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'pending confirmation',
+    recallText: '银钥匙是否仍藏在旧钟内部，尚待确认。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'seemingly factual claim',
+    recallText: '银钥匙似乎仍藏在旧钟内部。',
+    expectedStatus: 'omitted',
+    expectedAllowed: false,
+  },
+  {
+    name: 'possibly factual claim',
+    recallText: '银钥匙或许仍藏在旧钟内部。',
     expectedStatus: 'omitted',
     expectedAllowed: false,
   },

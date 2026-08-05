@@ -186,6 +186,11 @@ Linux/CI 使用 Playwright Chromium，不要求 Google Chrome 路径。
 - `Diff hygiene`
 - `Secret scan`
 
+只有 `R1-A0 writing workflow` job 显式 checkout
+`github.event.pull_request.head.sha`，并通过 `PR_HEAD_SHA` 绑定浏览器证据。
+其余四个 job 使用常规 `pull_request` checkout，不能表述为 exact-head
+checkout。
+
 Reviewer 必须以 PR 最新 `headRefOid` 对应的新一轮同名 checks 为准，不得用上述历史 run
 替代当前代码证据。`R1-A0 writing workflow`
 job 必须提供 `r1-a0-writing-workflow-evidence` artifact，其中包含：

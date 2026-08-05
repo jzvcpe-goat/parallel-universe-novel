@@ -46,6 +46,9 @@ const browser = requireMarkers('scripts/browser-creator-decision-workbench.mjs',
   'author_confirmed',
   'publishReceipts',
   'publicSubmitExecuted: false',
+  "sourceCategory: 'synthetic-r1-a0-workflow'",
+  "approval: 'approved-sanitized-synthetic-fixture'",
+  "createHash('sha256')",
 ])
 
 requireMarkers('scripts/lib/r1-a0-repository-identity.mjs', [
@@ -78,9 +81,11 @@ const recallEvidence = requireMarkers('app/src/features/creator-decision/manualR
   'oppositePolarityAnchorCount',
   'structuredRetentionAssessment',
   'assertionModeAt',
-  'actionTargetsSubject',
-  'removalTiming',
-  'subjectActive',
+  'extractedActionTarget',
+  'transitionTimeRelation',
+  'latestExplicitEntity',
+  'latestEntity',
+  "relation: 'uncertain'",
   'contradictingSentence',
 ])
 if (recallEvidence.includes('length >= 2')) {
@@ -100,11 +105,19 @@ requireMarkers('app/tests/creator-candidate-quality-gate.ts', [
   'ordinary took-out contradiction',
   'plain speech attribution',
   'unrelated removal in a supporting sentence',
+  'unrelated removal joined without punctuation',
+  'pronoun follows the nearest explicit map object',
+  'unclassified pronoun state change fails closed',
   'container lookup cannot find the key',
+  'key leaves the clock',
+  'key is handed to the captain',
   'later threshold reminder does not excuse early removal',
+  'fourth-tide extraction plan is not actual removal',
   'speech attribution before comma',
   'whether concession',
   'plain question',
+  'so-called speculative claim',
+  'pending confirmation',
   'manual_recall_receipt_rejected',
 ])
 
@@ -142,11 +155,26 @@ requireMarkers('docs/launch/070_R1_A0_WRITING_WORKFLOW_INTEGRATION.md', [
   '不公开提交',
 ])
 
-requireMarkers('.github/workflows/mvp-checks.yml', [
+requireMarkers('docs/reviews/CREATOR_PUBLIC_EVIDENCE_ALLOWLIST.md', [
+  'R1-A0 approved synthetic browser evidence',
+  'creator-decision-workbench.png',
+  'approved-sanitized-synthetic-fixture',
+])
+
+const workflow = requireMarkers('.github/workflows/mvp-checks.yml', [
   'r1-a0-writing-workflow:',
   'npm run qa:creator-r1-a0-writing-workflow',
   'r1-a0-writing-workflow-evidence',
+  'ref: ${{ github.event.pull_request.head.sha }}',
+  'PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}',
 ])
+const r1A0Workflow = workflow.slice(workflow.indexOf('r1-a0-writing-workflow:'))
+if (
+  r1A0Workflow.indexOf('ref: ${{ github.event.pull_request.head.sha }}')
+  > r1A0Workflow.indexOf('npm run qa:creator-r1-a0-writing-workflow')
+) {
+  failures.push('R1-A0 workflow must checkout the exact PR head before browser verification')
+}
 
 const packageJson = read('package.json')
 for (const script of [

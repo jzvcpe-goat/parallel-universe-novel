@@ -30,6 +30,18 @@ Creator review evidence is public only when it proves a bounded contract without
 
 Public JSON schemas under `validation/creator-ui/schemas/` remain source contracts, not R0 approved evidence artifacts. They are reviewed as code and are not represented by a wildcard entry in the R0 hash inventory.
 
+## R1-A0 approved synthetic browser evidence
+
+- `creator-decision-workbench.png` in the `r1-a0-writing-workflow-evidence`
+  GitHub Actions artifact is approved only when its adjacent JSON manifest marks
+  `sourceCategory = synthetic-r1-a0-workflow` and
+  `approval = approved-sanitized-synthetic-fixture`.
+- The manifest must record the screenshot's relative filename and SHA-256. It
+  must not contain a runner or local absolute path.
+- This approval covers the repository's synthetic Fog Harbor fixture only. It
+  does not approve screenshots from a real author workspace, unpublished prose,
+  browser authentication state, or local workspace exports.
+
 ## Never commit
 
 - Unpublished chapters, character cards, relationship maps, workspace exports, OPFS or IndexedDB data.

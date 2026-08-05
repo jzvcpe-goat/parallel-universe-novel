@@ -161,6 +161,21 @@ const recallEvidenceCases = [
     status: 'respected',
   },
   {
+    name: 'an unrelated removal joined without punctuation does not target the key',
+    text: '银钥匙仍藏在旧钟内部而守灯人从药箱里拿出绷带。',
+    status: 'respected',
+  },
+  {
+    name: 'a pronoun follows the nearest explicit object rather than an older key',
+    text: '银钥匙仍藏在旧钟内部。\n\n守灯人拿起旧地图。第二次涨潮时，他把它拿了出来。',
+    status: 'respected',
+  },
+  {
+    name: 'an unclassified pronoun state change fails closed',
+    text: '银钥匙仍藏在旧钟内部。第二次涨潮时，守灯人对它做了无法识别的处置。',
+    status: 'omitted',
+  },
+  {
     name: 'container lookup cannot find the constrained subject',
     text: '银钥匙藏在旧钟内部。后来打开钟门时，旧钟内部已找不到银钥匙。',
     status: 'violated',
@@ -183,6 +198,31 @@ const recallEvidenceCases = [
   {
     name: 'subject is transferred to another container',
     text: '银钥匙藏在旧钟内部。第二次涨潮时银钥匙已被转移到灯塔抽屉。',
+    status: 'violated',
+  },
+  {
+    name: 'subject leaves the required container',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙已经离开了旧钟内部。',
+    status: 'violated',
+  },
+  {
+    name: 'subject disappears from the required container',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时，银钥匙从旧钟内部消失了。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is handed to another person',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙交给了船长。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is placed in another container',
+    text: '银钥匙藏在旧钟内部。第二次涨潮时，守灯人把银钥匙塞进了自己的衣袋。',
+    status: 'violated',
+  },
+  {
+    name: 'subject is missing when checked after earlier removal',
+    text: '银钥匙藏在旧钟内部。第二次涨潮后检查封条时，银钥匙已经不见了。',
     status: 'violated',
   },
   {
@@ -218,6 +258,16 @@ const recallEvidenceCases = [
   {
     name: 'normative future extraction is not an actual removal',
     text: '银钥匙仍藏在旧钟内部。守灯人必须等到第三次涨潮才能把银钥匙从旧钟内部拿出来。',
+    status: 'respected',
+  },
+  {
+    name: 'later future extraction plan is not an actual removal',
+    text: '银钥匙仍藏在旧钟内部。守灯人打算等第四次涨潮后再把银钥匙取出来。',
+    status: 'respected',
+  },
+  {
+    name: 'later future extraction plan with pronoun is not an actual removal',
+    text: '银钥匙仍藏在旧钟内部。守灯人计划在第四次涨潮时再把它拿出来。',
     status: 'respected',
   },
   {
@@ -293,6 +343,26 @@ const recallEvidenceCases = [
   {
     name: 'disbelief statement is not factual support',
     text: '谁都不会相信银钥匙仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'so-called claim is not factual support',
+    text: '所谓“银钥匙仍藏在旧钟内部”只是一种猜测。',
+    status: 'omitted',
+  },
+  {
+    name: 'pending confirmation is not factual support',
+    text: '银钥匙是否仍藏在旧钟内部，尚待确认。',
+    status: 'omitted',
+  },
+  {
+    name: 'seemingly true claim is not factual support',
+    text: '银钥匙似乎仍藏在旧钟内部。',
+    status: 'omitted',
+  },
+  {
+    name: 'possible claim is not factual support',
+    text: '银钥匙或许仍藏在旧钟内部。',
     status: 'omitted',
   },
   {

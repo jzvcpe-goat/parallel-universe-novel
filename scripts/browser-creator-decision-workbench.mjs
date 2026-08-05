@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
 import { readR1A0RepositoryIdentity } from './lib/r1-a0-repository-identity.mjs'
@@ -527,6 +528,9 @@ try {
   assert(restoredFinalState.counts.publishReceipts === 0, 'refresh must not create a publish receipt')
 
   await page.screenshot({ path: screenshotPath, fullPage: true })
+  const screenshotSha256 = createHash('sha256')
+    .update(readFileSync(screenshotPath))
+    .digest('hex')
   const evidence = {
     status: 'pass',
     gate: 'R1_A0_WRITING_WORKFLOW_INTEGRATION',
@@ -545,7 +549,12 @@ try {
     finalState,
     restoredFinalState,
     publicSubmitExecuted: false,
-    screenshot: screenshotPath,
+    screenshot: {
+      file: basename(screenshotPath),
+      sha256: screenshotSha256,
+      sourceCategory: 'synthetic-r1-a0-workflow',
+      approval: 'approved-sanitized-synthetic-fixture',
+    },
   }
   writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`)
   console.log('[browser-creator-decision-workbench] PASS')
